@@ -1,0 +1,8 @@
+{
+  "name": "microflo",
+  "version": "0.0.1",
+  "dependencies": {
+    "noflo": "~0.4.0",
+    "fbp": "~1.0.2"
+  }
+}

@@ -1,0 +1,14 @@
+{
+    "processes": {
+        "In": { "component": "RandomChar" },
+        "f": { "component": "Forward" },
+        "Out": { "component": "PrintStdOut" } },
+    "connections": [
+        { "src": { "process": "In", "port": "out"},
+          "tgt": { "process": "f", "port": "in" }
+        },
+        { "src": { "process": "f", "port": "out"},
+          "tgt": { "process": "Out", "port": "in" }
+        }
+    ]
+}

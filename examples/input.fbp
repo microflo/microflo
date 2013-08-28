@@ -1,0 +1,2 @@
+In(RandomChar) OUT -> IN f(Forward)
+f() OUT -> IN Out(PrintStdOut)
