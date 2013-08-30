@@ -72,6 +72,7 @@ public:
     void runTick();
 private:
     void deliverMessages(int firstIndex, int lastIndex);
+    void processMessages();
 
 private:
     Component *nodes[MAX_NODES];
@@ -94,6 +95,7 @@ enum ComponentId {
 
 // Component
 // TODO: multiple ports
+// TODO: a way of declaring component introspection data. JSON embedded in comment? 
 class Component {
     friend class Network;
 
@@ -200,7 +202,7 @@ void GraphStreamer::parseByte(char b) {
 }
 
 void Component::send(Packet out) {
-    connection.target->process(out);
+    network->sendMessage(connection.target, out);
 }
 
 Network::Network()
@@ -213,6 +215,39 @@ Network::Network()
     }
 }
 
+void Network::deliverMessages(int firstIndex, int lastIndex) {
+        if (firstIndex > lastIndex || lastIndex > MAX_MESSAGES-1 || firstIndex < 0) {
+            return;
+        }
+
+        for (int i=firstIndex; i<=lastIndex; i++) {
+            messages[i].target->process(messages[i].pkg);
+        }
+}
+
+void Network::processMessages() {
+    if (messageReadIndex > messageWriteIndex) {
+        deliverMessages(messageReadIndex, MAX_MESSAGES-1);
+        deliverMessages(0, messageWriteIndex-1);
+    } else if (messageReadIndex < messageWriteIndex) {
+        deliverMessages(messageReadIndex, messageWriteIndex-1);
+    } else {
+        messageReadIndex = messageWriteIndex;
+        // no messages
+    }
+
+}
+
+void Network::sendMessage(Component *target, Packet &pkg) {
+
+    if (messageWriteIndex > MAX_MESSAGES-1) {
+        messageWriteIndex = 0;
+    }
+    Message &msg = messages[messageWriteIndex++];
+    msg.target = target;
+    msg.pkg = pkg;
+}
+
 void Network::runSetup() {
     for (int i=0; i<MAX_NODES; i++) {
         if (nodes[i]) {
@@ -221,29 +256,12 @@ void Network::runSetup() {
     }
 }
 
-
-void Network::deliverMessages(int firstIndex, int lastIndex) {
-        if (firstIndex > lastIndex || lastIndex < MAX_MESSAGES || firstIndex < 0) {
-            return;
-        }
-
-        for (int i=firstIndex; i<=lastIndex; i++) {
-            messages[i].target->process(messages[i].pkg);
-        }
-        messageReadIndex = lastIndex+1;
-}
-
 void Network::runTick() {
 
     // TODO: consider the balance between scheduling and messaging (bounded-buffer problem)
 
     // Deliver messages
-    if (messageReadIndex < messageWriteIndex) {
-        deliverMessages(messageReadIndex, MAX_MESSAGES-1);
-        deliverMessages(0, messageWriteIndex-1);
-    } else {
-        deliverMessages(messageReadIndex, messageWriteIndex-1);
-    }
+    processMessages();
 
     // Schedule
     for (int i=0; i<MAX_NODES; i++) {
@@ -271,13 +289,6 @@ int Network::addNode(Component *node) {
     nodes[lastAddedNodeIndex++] = node;
     node->setNetwork(this);
     return lastAddedNodeIndex;
-}
-
-void Network::sendMessage(Component *target, Packet &pkg) {
-
-    Message &msg = messages[messageWriteIndex++];
-    msg.target = target;
-    msg.pkg = pkg;
 }
 
 #include "components.hpp"
