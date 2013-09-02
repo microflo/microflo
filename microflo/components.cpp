@@ -56,7 +56,7 @@ public:
 
 #define RETURN_NEW_COMPONENT(X) case Id##X: return new X;
 
-Component *createComponent(ComponentId id) {
+Component *Component::create(ComponentId id) {
 
     switch (id) {
     RETURN_NEW_COMPONENT(Forward)

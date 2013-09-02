@@ -84,8 +84,8 @@ enum ComponentId {
 // TODO: a way of declaring component introspection data. JSON embedded in comment?
 class Component {
     friend class Network;
-
 public:
+    static Component *create(ComponentId id);
     virtual void process(Packet in) = 0;
 protected:
     void send(Packet out);
@@ -97,7 +97,7 @@ private:
     Network *network;
 };
 
-static Component *createComponent(ComponentId id);
+
 
 // Graph format
 // TODO: defined commands for observing graph changes

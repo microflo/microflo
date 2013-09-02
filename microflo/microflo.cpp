@@ -47,7 +47,7 @@ void GraphStreamer::parseByte(char b) {
                 } else if (cmd == GraphCmdCreateComponent) {
                     ComponentId id = (ComponentId)buffer[1];
                     // FIXME: validate
-                    network->addNode(createComponent(id));
+                    network->addNode(Component::create(id));
                 } else if (cmd == GraphCmdConnectNodes) {
                     // FIXME: validate
                     int src = (unsigned int)buffer[1];
@@ -154,51 +154,4 @@ int Network::addNode(Component *node) {
     node->setNetwork(this);
     return lastAddedNodeIndex;
 }
-
-#include "components.cpp"
-
-
-#ifdef ARDUINO
-void setup()
-{
-
-}
-
-void loop()
-{
-
-}
-#endif // ARDUINO
-
-#ifdef HOST_BUILD
-int main(int argc, char *argv[]) {
-
-    // Setup
-    Network network;
-
-    GraphStreamer parser;
-    parser.setNetwork(&network);
-
-
-    for (int i=0; i<sizeof(graph); i++) {
-        parser.parseByte(graph[i]);
-    }
-#ifdef DEBUG
-    FILE *f = fopen("reference.fbcs", "w");
-    for (int i=0; i<sizeof(graph); i++) {
-        fwrite(&graph[i], sizeof(graph[i]), 1, f);
-    }
-    fflush(f);
-#endif // DEBUG
-
-    network.runSetup();
-
-    // Loop
-    while (true) {
-        network.runTick();
-        usleep(1000);
-    }
-
-}
-#endif // HOST_BUILD
 

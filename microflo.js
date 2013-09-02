@@ -118,7 +118,9 @@ var generateOutput = function(inputFile, outputFile) {
         fs.writeFile(outputBase + ".cpp", cmdStreamToCDefinition(data) + "\n" + '#include "microflo.hpp"', function(err) {
             if (err) throw err;
         });
-
+        fs.writeFile(outputBase + ".ino", cmdStreamToCDefinition(data) + "\n#define ARDUINO" + '\n#include "microflo.hpp"', function(err) {
+            if (err) throw err;
+        });
     });
 
 }
@@ -130,7 +132,7 @@ if (cmd == "generate" || process.argv[3] == undefined) {
     var outputFile = process.argv[4] || inputFile
     generateOutput(inputFile, outputFile);
 } else {
-    throw "Invalid commandline arguments. Usage: node microflo.js generate INPUT [OUTPUT]"
+    throw "Invalid commandline arguments. Usage: node microflo.js generate INPUT [OUTPUT]"
 }
 
 
