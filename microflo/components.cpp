@@ -1,13 +1,11 @@
 
+#include "microflo.h"
+
 // Generic
 class Forward : public Component {
 public:
-    virtual void process(Packet in);
+    virtual void process(Packet in) { send(in); }
 };
-
-void Forward::process(Packet in) {
-    send(in);
-}
 
 // I/O
 
@@ -58,14 +56,16 @@ public:
 
 #define RETURN_NEW_COMPONENT(X) case Id##X: return new X;
 
-Component *Component::create(ComponentId id) {
+Component *createComponent(ComponentId id) {
 
     switch (id) {
     RETURN_NEW_COMPONENT(Forward)
+#ifdef HOST_BUILD
     RETURN_NEW_COMPONENT(PrintStdOut)
     RETURN_NEW_COMPONENT(ReadStdIn)
     RETURN_NEW_COMPONENT(RandomChar)
-    default:
+#endif
+        default:
         return NULL;
     }
 }
