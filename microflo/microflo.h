@@ -1,6 +1,9 @@
 #ifndef MICROFLO_H
 #define MICROFLO_H
 
+#include "components.h"
+#include "commandformat.h"
+
 class MicroFlo {
 public:
     void doNothing() {;}
@@ -69,16 +72,6 @@ private:
 };
 
 
-// TODO: some sort of namespacing scheme
-enum ComponentId {
-    IdInvalid = 0,
-    IdForward,
-    IdReadStdIn,
-    IdPrintStdOut,
-    IdRandomChar,
-    IdMax = 255
-};
-
 // Component
 // TODO: multiple ports
 // TODO: a way of declaring component introspection data. JSON embedded in comment?
@@ -106,16 +99,6 @@ private:
 #define GRAPH_MAGIC 'u','C','/','F','l','o',
 const size_t GRAPH_MAGIC_SIZE = 6;
 const size_t GRAPH_CMD_SIZE = 1 + 5; // cmd + payload
-
-// XXX: cannot rely on this being unsigned
-enum GraphCmd {
-    GraphCmdReset = 10,
-    GraphCmdCreateComponent,
-    GraphCmdConnectNodes,
-    // add here
-    GraphCmdInvalid,
-    GraphCmdMax = 255
-};
 
 class GraphStreamer {
 public:

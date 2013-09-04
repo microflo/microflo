@@ -1,0 +1,11 @@
+{
+    "set": { "id": 0, "name": "microflo-core", "description": "Core components" },
+    "components": {
+        "Invalid": { "id": 0 },
+        "Forward": { "id": 1 },
+        "ReadStdIn": { "id": 2 },
+        "PrintStdOut": { "id": 3 },
+        "RandomChar": { "id": 4 },
+        "Max": { "id": 255 }
+    }
+}

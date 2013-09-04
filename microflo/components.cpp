@@ -1,5 +1,6 @@
 
 #include "microflo.h"
+#include "components.h"
 
 // Generic
 class Forward : public Component {

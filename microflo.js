@@ -3,34 +3,22 @@ var fbp = require("fbp");
 var fs = require("fs");
 var path = require("path");
 
-// TODO: remove duplication, have a canonical definition used both sides
-var cmdFormat = {
-    magicString: "uC/Flo",
-    cmdSize: 6,
-    CmdReset: 10,
-    CmdCreate: 11,
-    CmdConnect: 12,
-    components: {
-        'Forward': { id: 1 },
-        'ReadStdIn': { id: 2 },
-        'PrintStdOut': { id: 3 },
-        'RandomChar': { id: 4 }
-    }
-}
+var cmdFormat = require("./microflo/commandformat.json");
+var components = require("./microflo/components.json");
 
 var writeCmd = function() {
     buf = arguments[0];
     offset = arguments[1];
     data = Array.prototype.slice.call(arguments, 2);
 
-    for (var i = 0; i < cmdFormat.cmdSize; i++) {
+    for (var i = 0; i < cmdFormat.commandSize; i++) {
         if (i < data.length) {
             buf.writeUInt8(data[i], offset+i);
         } else {
             buf.writeUInt8(0, offset+i);
         }
     }
-    return cmdFormat.cmdSize;
+    return cmdFormat.commandSize;
 }
 
 var writeString = function(buf, offset, string) {
@@ -48,9 +36,7 @@ var cmdStreamFromGraph = function(graph) {
 
     // Header
     index += writeString(buffer, index, cmdFormat.magicString);
-    index += writeCmd(buffer, index, cmdFormat.CmdReset);
-
-    // console.log(graph);
+    index += writeCmd(buffer, index, cmdFormat.commands.Reset.id);
 
     // Create components
     var currentNodeId = 0;
@@ -59,8 +45,8 @@ var cmdStreamFromGraph = function(graph) {
             continue;
         }
         var process = graph.processes[nodeName];
-        var componentId = cmdFormat.components[process.component].id;
-        index += writeCmd(buffer, index, cmdFormat.CmdCreate, componentId);
+        var componentId = components.components[process.component].id;
+        index += writeCmd(buffer, index, cmdFormat.commands.CreateComponent.id, componentId);
         nodeMap[nodeName] = currentNodeId++;
     }
 
@@ -69,7 +55,7 @@ var cmdStreamFromGraph = function(graph) {
         // TODO: support multiple ports
         var srcId = nodeMap[connection.src.process];
         var targetId = nodeMap[connection.tgt.process];
-        index += writeCmd(buffer, index, cmdFormat.CmdConnect, srcId, targetId);
+        index += writeCmd(buffer, index, cmdFormat.commands.ConnectNodes.id, srcId, targetId);
     });
 
     buf = buf.slice(0, index);
@@ -125,12 +111,34 @@ var generateOutput = function(inputFile, outputFile) {
 
 }
 
+var generateEnum = function(name, prefix, enums) {
+    var indent = "\n    ";
+
+    var out = "enum " + name + " {";
+    var a = [];
+    for (var e in enums) {
+        if (!enums.hasOwnProperty(e)) {
+            continue;
+        }
+        a.push((indent + prefix + e + ((enums[e].id !== undefined) ? " = " + enums[e].id : "")));
+    }
+    out += a.join(",");
+    out += "\n};\n";
+
+    return out;
+}
+
 // Main
 var cmd = process.argv[2];
-if (cmd == "generate" || process.argv[3] == undefined) {
+if (cmd == "generate") {
     var inputFile = process.argv[3];
     var outputFile = process.argv[4] || inputFile
     generateOutput(inputFile, outputFile);
+} else if (cmd == "update-defs") {
+    fs.writeFile("microflo/components-gen.h", generateEnum("ComponentId", "Id", components.components),
+                 function(err) { if (err) throw err });
+    fs.writeFile("microflo/commandformat-gen.h", generateEnum("GraphCmd", "GraphCmd", cmdFormat.commands),
+                 function(err) { if (err) throw err });
 } else {
     throw "Invalid commandline arguments. Usage: node microflo.js generate INPUT [OUTPUT]"
 }

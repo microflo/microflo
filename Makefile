@@ -1,10 +1,10 @@
 all: example host-example
 
-host-example:
+host-example: definitions
 	node microflo.js generate examples/input.fbp build/host/example.cpp
 	g++ -o build/host/example build/host/example.cpp $(CFLAGS) -I./microflo -DHOST_BUILD
 
-example:
+example: definitions
 	mkdir -p build/arduino/src
 	mkdir -p build/arduino/lib
 	ln -sf `pwd`/microflo build/arduino/lib/
@@ -14,5 +14,8 @@ example:
 upload:
 	cd build/arduino && ino upload
 
-.PHONY: all example host-example
+definitions:
+	node microflo.js update-defs
+
+.PHONY: all example host-example definitions
 
