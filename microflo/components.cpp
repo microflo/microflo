@@ -5,7 +5,11 @@
 // Generic
 class Forward : public Component {
 public:
-    virtual void process(Packet in) { send(in); }
+    virtual void process(Packet in) {
+        if (in.msg != MsgTick && in.msg != MsgSetup) {
+            send(in);
+        }
+    }
 };
 
 // I/O

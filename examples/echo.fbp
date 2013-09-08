@@ -1,1 +1,2 @@
-in(SerialIn) OUT -> IN out(SerialOut)
+in(SerialIn) OUT -> IN f(Forward)
+f() OUT -> IN out(SerialOut)
