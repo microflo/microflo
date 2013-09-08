@@ -50,11 +50,6 @@ struct Message {
     Packet pkg;
 };
 
-
-struct Connection {
-    Component *target;
-};
-
 class Network {
 public:
     Network();
@@ -79,6 +74,9 @@ private:
     int messageReadIndex;
 };
 
+struct Connection {
+    Component *target;
+};
 
 // Component
 // TODO: multiple ports

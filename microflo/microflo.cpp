@@ -98,12 +98,13 @@ void Network::deliverMessages(int firstIndex, int lastIndex) {
         }
 }
 
+// TODO: add debugging option which allows to inspect packages/deliveries
 void Network::processMessages() {
     if (messageReadIndex > messageWriteIndex) {
         deliverMessages(messageReadIndex, MAX_MESSAGES-1);
-        deliverMessages(0, messageWriteIndex-1);
+        deliverMessages(0, messageWriteIndex);
     } else if (messageReadIndex < messageWriteIndex) {
-        deliverMessages(messageReadIndex, messageWriteIndex-1);
+        deliverMessages(messageReadIndex, messageWriteIndex);
     } else {
         // no messages
     }
