@@ -62,6 +62,24 @@ private:
     int outPin;
 };
 
+class DigitalRead : public Component {
+public:
+    virtual void process(Packet in) {
+
+        if (in.msg == MsgSetup) {
+            // FIXME: do based on input data instead of hardcode
+            pin = 12;
+            pinMode(pin, INPUT);
+            digitalWrite(pin, HIGH); // enable pullup
+        } else if (in.msg == MsgEvent) {
+            bool isHigh = digitalRead(pin) == HIGH;
+            send(Packet(isHigh));
+        }
+    }
+private:
+    int pin;
+};
+
 class Timer : public Component {
 public:
     virtual void process(Packet in) {
@@ -97,6 +115,16 @@ public:
     }
 private:
     bool currentState;
+};
+
+class InvertBoolean : public Component {
+public:
+    virtual void process(Packet in) {
+        if (in.msg == MsgBoolean) {
+            Packet p = Packet((bool)!in.boolean);
+            send(p);
+        }
+    }
 };
 
 #endif // ARDUINO
@@ -153,8 +181,10 @@ Component *Component::create(ComponentId id) {
     RETURN_NEW_COMPONENT(RandomChar)
 #endif
 #ifdef ARDUINO
+    RETURN_NEW_COMPONENT(InvertBoolean)
     RETURN_NEW_COMPONENT(ToggleBoolean)
     RETURN_NEW_COMPONENT(DigitalWrite)
+    RETURN_NEW_COMPONENT(DigitalRead)
     RETURN_NEW_COMPONENT(Timer)
     RETURN_NEW_COMPONENT(SerialIn)
     RETURN_NEW_COMPONENT(SerialOut)

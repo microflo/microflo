@@ -8,11 +8,13 @@
         "PrintStdOut": { "id": 3 },
         "RandomChar": { "id": 4 },
 
-        "ToggleBoolean": { "id": 5 },
-        "DigitalWrite": { "id": 6 },
+        "DigitalWrite": { "id": 5 },
+        "DigitalRead": { "id": 6 },
         "Timer": { "id": 7 },
         "SerialIn": { "id": 8 },
         "SerialOut": { "id": 9 },
+        "InvertBoolean": { "id": 10 },
+        "ToggleBoolean": { "id": 11 },
 
         "Max": { "id": 255 }
     }

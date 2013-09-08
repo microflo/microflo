@@ -1,0 +1,3 @@
+timer(Timer) OUT -> IN buttonPin(DigitalRead)
+buttonPin() OUT -> IN inverted(InvertBoolean)
+inverted() OUT -> IN ledPin(DigitalWrite)
