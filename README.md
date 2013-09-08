@@ -10,13 +10,19 @@ aims to allow build standalone microcontroller applications, that can also be re
 
 Status
 -------
-Proof-of-concept still in progress. Nothing is stable or usable.
-Currently does not even run on a microcontroller, only x86 host.
+Proof-of-concept still in progress. Nothing is stable.
+Can run trivial graphs defined by .fbp files on Arduino Uno,
+for example echoing serial communication or blinking LED periodically.
 
-Milestone 0.0.2, "Hello World": Can run a .fbp graph which echoes back on serial
+Milestones
+-----------
 Milestone 0.1.0, "Minimally useful": Can implement a fridge flow
 Milestone 0.2.0, "Runtime reconfigurable": Graphs can be changed on the fly
 Milestone 0.3.0, "Generally useful": Implements Firmata protocol, most of Arduino tutorials works
+
+TODO
+-----
+git grep -E 'TODO|FIXME|XXX'
 
 License
 -------
