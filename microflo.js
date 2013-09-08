@@ -28,6 +28,16 @@ var writeString = function(buf, offset, string) {
     return string.length;
 }
 
+var lookupOutputPortId = function(componentName, portName) {
+    var portsDef = components.components[componentName].outPorts || components.defaultOutPorts;
+    return portsDef[portName].id;
+}
+
+var lookupInputPortId = function(componentName, portName) {
+    var portsDef = components.components[componentName].inPorts || components.defaultInPorts;
+    return portsDef[portName].id;
+}
+
 // TODO: actually add observers to graph, and emit a command stream for the changes
 var cmdStreamFromGraph = function(graph) {
     var buffer = new Buffer(1024); // FIXME: unhardcode
@@ -52,10 +62,11 @@ var cmdStreamFromGraph = function(graph) {
 
     // Connect nodes
     graph.connections.forEach(function(connection) {
-        // TODO: support multiple ports
-        var srcId = nodeMap[connection.src.process];
-        var targetId = nodeMap[connection.tgt.process];
-        index += writeCmd(buffer, index, cmdFormat.commands.ConnectNodes.id, srcId, targetId);
+        var srcNode = connection.src.process;
+        var tgtNode = connection.tgt.process;
+        var srcPort = lookupOutputPortId(graph.processes[srcNode].component, connection.src.port);
+        var tgtPort = lookupInputPortId(graph.processes[tgtNode].component, connection.tgt.port);
+        index += writeCmd(buffer, index, cmdFormat.commands.ConnectNodes.id, nodeMap[srcNode], nodeMap[tgtNode], srcPort, tgtPort);
     });
 
     buf = buf.slice(0, index);

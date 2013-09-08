@@ -1,5 +1,7 @@
 {
     "set": { "id": 0, "name": "microflo-core", "description": "Core components" },
+    "defaultInPorts": { "in": { "id": 0 } },
+    "defaultOutPorts": { "out": { "id": 0 } },
     "components": {
         "Invalid": { "id": 0 },
 

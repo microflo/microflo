@@ -41,16 +41,17 @@ public:
 // Network
 const int MAX_NODES = 10;
 const int MAX_MESSAGES = 100;
-
+const int MAX_PORTS = 10;
 
 class Component;
 
 struct Message {
     Component *target;
+    int targetPort;
     Packet pkg;
 };
 
-typedef void (*MessageSendNotification)(int, Message, Component *);
+typedef void (*MessageSendNotification)(int, Message, Component *, int);
 typedef void (*MessageDeliveryNotification)(int, Message);
 
 class Network {
@@ -58,10 +59,11 @@ public:
     Network();
 
     int addNode(Component *node);
-    void connectTo(Component *src, Component *target);
-    void connectTo(int srcId, int targetId);
+    void connect(Component *src, int srcPort, Component *target, int targetPort);
+    void connect(int srcId, int srcPort, int targetId, int targetPort);
 
-    void sendMessage(Component *target, Packet &pkg, Component *sender=0);
+    void sendMessage(Component *target, int targetPort, Packet &pkg,
+                     Component *sender=0, int senderPort=-1);
 
     void setNotifications(MessageSendNotification send, MessageDeliveryNotification deliver);
 
@@ -83,6 +85,7 @@ private:
 
 struct Connection {
     Component *target;
+    int targetPort;
 };
 
 // Component
@@ -92,14 +95,14 @@ class Component {
     friend class Network;
 public:
     static Component *create(ComponentId id);
-    virtual void process(Packet in) = 0;
+    virtual void process(Packet in, int port) = 0;
 protected:
-    void send(Packet out);
+    void send(Packet out, int port=0);
 private:
-    void connectTo(Component *target) { connection.target = target; }
+    void connect(int outPort, Component *target, int targetPort);
     void setNetwork(Network *net) { network = net; }
 private:
-    Connection connection;
+    Connection connections[MAX_PORTS]; // one per output port
     Network *network;
 };
 
@@ -136,7 +139,7 @@ class Debugger {
 public:
     static void setup(Network *network);
     static void printPacket(Packet *p);
-    static void printSend(int index, Message m, Component *sender);
+    static void printSend(int index, Message m, Component *sender, int senderPort);
     static void printDeliver(int index, Message m);
 };
 #endif // ARDUINO

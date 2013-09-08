@@ -59,9 +59,11 @@ void GraphStreamer::parseByte(char b) {
                     network->addNode(Component::create(id));
                 } else if (cmd == GraphCmdConnectNodes) {
                     // FIXME: validate
-                    int src = (unsigned int)buffer[1];
-                    int target = (unsigned int)buffer[2];
-                    network->connectTo(src, target);
+                    const int src = (unsigned int)buffer[1];
+                    const int target = (unsigned int)buffer[2];
+                    const int srcPort = (unsigned int)buffer[3];
+                    const int targetPort = (unsigned int)buffer[4];
+                    network->connect(src, srcPort, target, targetPort);
                 }
             }
             currentByte = 0;
@@ -74,8 +76,13 @@ void GraphStreamer::parseByte(char b) {
     }
 }
 
-void Component::send(Packet out) {
-    network->sendMessage(connection.target, out, this);
+void Component::send(Packet out, int port) {
+    network->sendMessage(connections[port].target, connections[port].targetPort, out, this, port);
+}
+
+void Component::connect(int outPort, Component *target, int targetPort) {
+    connections[outPort].target = target;
+    connections[outPort].targetPort = targetPort;
 }
 
 
@@ -94,7 +101,7 @@ void Debugger::printPacket(Packet *p) {
     Serial.print(")");
 }
 
-void Debugger::printSend(int index, Message m, Component *sender) {
+void Debugger::printSend(int index, Message m, Component *sender, int senderPort) {
     Serial.print("SEND: ");
     Serial.print("index=");
     Serial.print(index);
@@ -145,7 +152,7 @@ void Network::deliverMessages(int firstIndex, int lastIndex) {
         }
 
         for (int i=firstIndex; i<=lastIndex; i++) {
-            messages[i].target->process(messages[i].pkg);
+            messages[i].target->process(messages[i].pkg, messages[i].targetPort);
             if (messageDeliveredNotify) {
                 messageDeliveredNotify(i, messages[i]);
             }
@@ -167,23 +174,24 @@ void Network::processMessages() {
     messageReadIndex = writeIndex;
 }
 
-void Network::sendMessage(Component *target, Packet &pkg, Component *sender) {
+void Network::sendMessage(Component *target, int targetPort, Packet &pkg, Component *sender, int senderPort) {
 
     if (messageWriteIndex > MAX_MESSAGES-1) {
         messageWriteIndex = 0;
     }
     Message &msg = messages[messageWriteIndex++];
     msg.target = target;
+    msg.targetPort = targetPort;
     msg.pkg = pkg;
     if (messageSentNotify) {
-        messageSentNotify(messageWriteIndex-1, msg, sender);
+        messageSentNotify(messageWriteIndex-1, msg, sender, senderPort);
     }
 }
 
 void Network::runSetup() {
     for (int i=0; i<MAX_NODES; i++) {
         if (nodes[i]) {
-            nodes[i]->process(Packet(MsgSetup));
+            nodes[i]->process(Packet(MsgSetup), -1);
         }
     }
 }
@@ -199,22 +207,22 @@ void Network::runTick() {
     for (int i=0; i<MAX_NODES; i++) {
         Component *t = nodes[i];
         if (t) {
-            t->process(Packet(MsgTick));
+            t->process(Packet(MsgTick), -1);
         }
     }
 }
 
-void Network::connectTo(int srcId, int targetId) {
+void Network::connect(int srcId, int srcPort, int targetId, int targetPort) {
     if (srcId < 0 || srcId > lastAddedNodeIndex ||
         targetId < 0 || targetId > lastAddedNodeIndex) {
         return;
     }
 
-    connectTo(nodes[srcId], nodes[targetId]);
+    connect(nodes[srcId], srcPort, nodes[targetId], targetPort);
 }
 
-void Network::connectTo(Component *src, Component *target) {
-    src->connectTo(target);
+void Network::connect(Component *src, int srcPort, Component *target, int targetPort) {
+    src->connect(srcPort, target, targetPort);
 }
 
 int Network::addNode(Component *node) {

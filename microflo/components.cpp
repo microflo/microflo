@@ -5,9 +5,9 @@
 // Generic
 class Forward : public Component {
 public:
-    virtual void process(Packet in) {
+    virtual void process(Packet in, int port) {
         if (in.msg != MsgTick && in.msg != MsgSetup) {
-            send(in);
+            send(in, port);
         }
     }
 };
@@ -17,7 +17,7 @@ public:
 #ifdef ARDUINO
 class SerialIn : public Component {
 public:
-    virtual void process(Packet in) {
+    virtual void process(Packet in, int port) {
 
         if (in.msg == MsgSetup) {
             // FIXME: do based on input data instead of hardcode
@@ -34,7 +34,7 @@ public:
 
 class SerialOut : public Component {
 public:
-    virtual void process(Packet in) {
+    virtual void process(Packet in, int port) {
 
         if (in.msg == MsgSetup) {
             // FIXME: do based on input data instead of hardcode
@@ -48,7 +48,7 @@ public:
 
 class DigitalWrite : public Component {
 public:
-    virtual void process(Packet in) {
+    virtual void process(Packet in, int port) {
 
         if (in.msg == MsgSetup) {
             // FIXME: do based on input data instead of hardcode
@@ -64,7 +64,7 @@ private:
 
 class DigitalRead : public Component {
 public:
-    virtual void process(Packet in) {
+    virtual void process(Packet in, int port) {
 
         if (in.msg == MsgSetup) {
             // FIXME: do based on input data instead of hardcode
@@ -82,7 +82,7 @@ private:
 
 class Timer : public Component {
 public:
-    virtual void process(Packet in) {
+    virtual void process(Packet in, int port) {
 
         if (in.msg == MsgSetup) {
             previousMillis = 0;
@@ -105,7 +105,7 @@ private:
 
 class ToggleBoolean : public Component {
 public:
-    virtual void process(Packet in) {
+    virtual void process(Packet in, int port) {
 
         if (in.msg == MsgSetup) {
             // FIXME: do based on input data instead of hardcode
@@ -121,7 +121,7 @@ private:
 
 class InvertBoolean : public Component {
 public:
-    virtual void process(Packet in) {
+    virtual void process(Packet in, int port) {
         if (in.msg == MsgBoolean) {
             Packet p = Packet((bool)!in.boolean);
             send(p);
@@ -141,29 +141,25 @@ public:
 // TODO: implement host I/O components which can be used for simulation/testing
 class ReadStdIn : public Component {
 public:
-    virtual void process(Packet in);
-};
-
-void ReadStdIn::process(Packet in) {
-    if (in.msg == MsgTick) {
-        send(Packet((char)getchar()));
+    virtual void process(Packet in, int port) {
+        if (in.msg == MsgTick) {
+            send(Packet((char)getchar()));
+        }
     }
-}
+};
 
 class PrintStdOut : public Component {
 public:
-    virtual void process(Packet in);
-};
-
-void PrintStdOut::process(Packet in) {
-    if (in.msg == MsgCharacter) {
-        putchar(in.buf);
+    virtual void process(Packet in, int port) {
+        if (in.msg == MsgCharacter) {
+            putchar(in.buf);
+        }
     }
-}
+};
 
 class RandomChar : public Component {
 public:
-    virtual void process(Packet in) {
+    virtual void process(Packet in, int port) {
         char c = 255 * (rand()/(RAND_MAX+1.0));
         send(Packet(c));
     }
