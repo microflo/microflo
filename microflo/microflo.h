@@ -50,6 +50,9 @@ struct Message {
     Packet pkg;
 };
 
+typedef void (*MessageSendNotification)(int, Message, Component *);
+typedef void (*MessageDeliveryNotification)(int, Message);
+
 class Network {
 public:
     Network();
@@ -58,7 +61,9 @@ public:
     void connectTo(Component *src, Component *target);
     void connectTo(int srcId, int targetId);
 
-    void sendMessage(Component *target, Packet &pkg);
+    void sendMessage(Component *target, Packet &pkg, Component *sender=0);
+
+    void setNotifications(MessageSendNotification send, MessageDeliveryNotification deliver);
 
     void runSetup();
     void runTick();
@@ -72,6 +77,8 @@ private:
     Message messages[MAX_MESSAGES];
     int messageWriteIndex;
     int messageReadIndex;
+    MessageSendNotification messageSentNotify;
+    MessageDeliveryNotification messageDeliveredNotify;
 };
 
 struct Connection {
@@ -123,5 +130,15 @@ private:
     char buffer[GRAPH_CMD_SIZE];
     enum State state;
 };
+
+#ifdef ARDUINO
+class Debugger {
+public:
+    static void setup(Network *network);
+    static void printPacket(Packet *p);
+    static void printSend(int index, Message m, Component *sender);
+    static void printDeliver(int index, Message m);
+};
+#endif // ARDUINO
 
 #endif // MICROFLO_H

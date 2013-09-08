@@ -75,17 +75,68 @@ void GraphStreamer::parseByte(char b) {
 }
 
 void Component::send(Packet out) {
-    network->sendMessage(connection.target, out);
+    network->sendMessage(connection.target, out, this);
 }
+
+
+#ifdef ARDUINO
+void Debugger::setup(Network *network) {
+    Serial.begin(9600);
+    network->setNotifications(&Debugger::printSend, &Debugger::printDeliver);
+}
+
+// FIXME: print async, currently output gets truncated on networks with > 3 edges
+void Debugger::printPacket(Packet *p) {
+    Serial.print("Packet(");
+    Serial.print("type=");
+    Serial.print(p->msg);
+    Serial.print(",");
+    Serial.print(")");
+}
+
+void Debugger::printSend(int index, Message m, Component *sender) {
+    Serial.print("SEND: ");
+    Serial.print("index=");
+    Serial.print(index);
+    Serial.print(",");
+    Serial.print("from=");
+    Serial.print((unsigned long)sender);
+    Serial.print(",");
+    Serial.print("to=");
+    Serial.print((unsigned long)m.target);
+    Serial.print(" ");
+    printPacket(&m.pkg);
+    Serial.println();
+}
+
+void Debugger::printDeliver(int index, Message m) {
+    Serial.print("DELIVER: ");
+    Serial.print("index=");
+    Serial.print(index);
+    Serial.print(",");
+    Serial.print("to=");
+    Serial.print((unsigned long)m.target);
+    Serial.print(" ");
+    printPacket(&m.pkg);
+    Serial.println();
+}
+#endif
 
 Network::Network()
     : lastAddedNodeIndex(0)
     , messageWriteIndex(0)
     , messageReadIndex(0)
+    , messageSentNotify(0)
+    , messageDeliveredNotify(0)
 {
     for (int i=0; i<MAX_NODES; i++) {
         nodes[i] = 0;
     }
+}
+
+void Network::setNotifications(MessageSendNotification send, MessageDeliveryNotification deliver) {
+    messageSentNotify = send;
+    messageDeliveredNotify = deliver;
 }
 
 void Network::deliverMessages(int firstIndex, int lastIndex) {
@@ -95,10 +146,12 @@ void Network::deliverMessages(int firstIndex, int lastIndex) {
 
         for (int i=firstIndex; i<=lastIndex; i++) {
             messages[i].target->process(messages[i].pkg);
+            if (messageDeliveredNotify) {
+                messageDeliveredNotify(i, messages[i]);
+            }
         }
 }
 
-// TODO: add debugging option which allows to inspect packages/deliveries
 void Network::processMessages() {
     if (messageReadIndex > messageWriteIndex) {
         deliverMessages(messageReadIndex, MAX_MESSAGES-1);
@@ -111,7 +164,7 @@ void Network::processMessages() {
     messageReadIndex = messageWriteIndex;
 }
 
-void Network::sendMessage(Component *target, Packet &pkg) {
+void Network::sendMessage(Component *target, Packet &pkg, Component *sender) {
 
     if (messageWriteIndex > MAX_MESSAGES-1) {
         messageWriteIndex = 0;
@@ -119,6 +172,9 @@ void Network::sendMessage(Component *target, Packet &pkg) {
     Message &msg = messages[messageWriteIndex++];
     msg.target = target;
     msg.pkg = pkg;
+    if (messageSentNotify) {
+        messageSentNotify(messageWriteIndex-1, msg, sender);
+    }
 }
 
 void Network::runSetup() {

@@ -3,6 +3,10 @@ GraphStreamer parser;
 Network network;
 void setup()
 {
+#ifdef DEBUG
+    // TODO: allow to enable/disable at runtime
+    Debugger::setup(&network);
+#endif
     parser.setNetwork(&network);
     for (int i=0; i<sizeof(graph); i++) {
         parser.parseByte(graph[i]);
