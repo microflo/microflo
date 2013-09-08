@@ -105,10 +105,9 @@ void Network::processMessages() {
     } else if (messageReadIndex < messageWriteIndex) {
         deliverMessages(messageReadIndex, messageWriteIndex-1);
     } else {
-        messageReadIndex = messageWriteIndex;
         // no messages
     }
-
+    messageReadIndex = messageWriteIndex;
 }
 
 void Network::sendMessage(Component *target, Packet &pkg) {
