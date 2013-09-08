@@ -101,6 +101,8 @@ private:
     unsigned long interval;
 };
 
+#endif // ARDUINO
+
 class ToggleBoolean : public Component {
 public:
     virtual void process(Packet in) {
@@ -127,7 +129,7 @@ public:
     }
 };
 
-#endif // ARDUINO
+
 
 
 #ifdef HOST_BUILD
@@ -136,6 +138,7 @@ public:
 #include <time.h>
 #include <stdlib.h>
 
+// TODO: implement host I/O components which can be used for simulation/testing
 class ReadStdIn : public Component {
 public:
     virtual void process(Packet in);
@@ -175,14 +178,14 @@ Component *Component::create(ComponentId id) {
 
     switch (id) {
     RETURN_NEW_COMPONENT(Forward)
+    RETURN_NEW_COMPONENT(InvertBoolean)
+    RETURN_NEW_COMPONENT(ToggleBoolean)
 #ifdef HOST_BUILD
     RETURN_NEW_COMPONENT(PrintStdOut)
     RETURN_NEW_COMPONENT(ReadStdIn)
     RETURN_NEW_COMPONENT(RandomChar)
 #endif
 #ifdef ARDUINO
-    RETURN_NEW_COMPONENT(InvertBoolean)
-    RETURN_NEW_COMPONENT(ToggleBoolean)
     RETURN_NEW_COMPONENT(DigitalWrite)
     RETURN_NEW_COMPONENT(DigitalRead)
     RETURN_NEW_COMPONENT(Timer)

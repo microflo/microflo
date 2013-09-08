@@ -1,7 +1,7 @@
 all: example host-example
 
 host-example: definitions
-	node microflo.js generate examples/input.fbp build/host/example.cpp
+	node microflo.js generate examples/host.fbp build/host/example.cpp
 	g++ -o build/host/example build/host/example.cpp $(CFLAGS) -I./microflo -DHOST_BUILD
 
 example: definitions
