@@ -153,15 +153,18 @@ void Network::deliverMessages(int firstIndex, int lastIndex) {
 }
 
 void Network::processMessages() {
-    if (messageReadIndex > messageWriteIndex) {
-        deliverMessages(messageReadIndex, MAX_MESSAGES-1);
-        deliverMessages(0, messageWriteIndex);
-    } else if (messageReadIndex < messageWriteIndex) {
-        deliverMessages(messageReadIndex, messageWriteIndex);
+    // Messages may be emitted during delivery, so copy the range we intend to deliver
+    const int readIndex = messageReadIndex;
+    const int writeIndex = messageWriteIndex;
+    if (readIndex > writeIndex) {
+        deliverMessages(readIndex, MAX_MESSAGES-1);
+        deliverMessages(0, writeIndex);
+    } else if (readIndex < writeIndex) {
+        deliverMessages(readIndex, writeIndex);
     } else {
         // no messages
     }
-    messageReadIndex = messageWriteIndex;
+    messageReadIndex = writeIndex;
 }
 
 void Network::sendMessage(Component *target, Packet &pkg, Component *sender) {
