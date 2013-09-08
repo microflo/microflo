@@ -5,6 +5,7 @@
         "Reset": {"id": 10},
         "CreateComponent": {"id": 11},
         "ConnectNodes": {"id": 12},
+
         "Invalid": { },
         "Max": { "id": 255 }
     }

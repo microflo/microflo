@@ -2,16 +2,25 @@
 
 Packet::Packet()
     : buf('0')
+    , boolean(false)
     , msg(MsgInvalid)
 {}
 
 Packet::Packet(char c)
     : buf(c)
+    , boolean(false)
     , msg(MsgCharacter)
+{}
+
+Packet::Packet(bool b)
+    : buf('0')
+    , boolean(b)
+    , msg(MsgBoolean)
 {}
 
 Packet::Packet(Msg _msg)
     : buf('0')
+    , boolean(false)
     , msg(_msg)
 {}
 

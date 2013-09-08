@@ -1,6 +1,10 @@
 #ifndef MICROFLO_H
 #define MICROFLO_H
 
+#ifdef ARDUINO
+#include <Arduino.h>
+#endif
+
 #include "components.h"
 #include "commandformat.h"
 
@@ -15,17 +19,21 @@ enum Msg {
     MsgInvalid = -1,
     MsgSetup,
     MsgTick,
-    MsgCharacter
+    MsgCharacter,
+    MsgBoolean,
+    MsgEvent // like a "bang" in other flow-based systems
 };
 
 class Packet {
 
 public:
     Packet();
+    Packet(bool b);
     Packet(char c);
     Packet(Msg m);
 
 public:
+    bool boolean;
     char buf;
     enum Msg msg;
 };

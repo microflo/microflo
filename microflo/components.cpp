@@ -11,7 +11,88 @@ public:
 // I/O
 
 #ifdef ARDUINO
+class SerialIn : public Component {
+public:
+    virtual void process(Packet in) {
 
+        if (in.msg == MsgSetup) {
+            // FIXME: do based on input data instead of hardcode
+            // FIXME: avoid doing setup multiple times
+            Serial.begin(9600);
+        } else if (in.msg == MsgTick) {
+            if (Serial.available()) {
+                send(Packet((char)Serial.read()));
+            }
+        }
+    }
+};
+
+class SerialOut : public Component {
+public:
+    virtual void process(Packet in) {
+
+        if (in.msg == MsgSetup) {
+            // FIXME: do based on input data instead of hardcode
+            // FIXME: avoid doing multiple times
+            Serial.begin(9600);
+        } else if (in.msg == MsgCharacter) {
+            Serial.write(in.buf);
+        }
+    }
+};
+
+class DigitalWrite : public Component {
+public:
+    virtual void process(Packet in) {
+
+        if (in.msg == MsgSetup) {
+            // FIXME: do based on input data instead of hardcode
+            outPin = 13;
+            pinMode(outPin, OUTPUT);
+        } else if (in.msg == MsgBoolean) {
+            digitalWrite(outPin, in.boolean);
+        }
+    }
+private:
+    int outPin;
+};
+
+class Timer : public Component {
+public:
+    virtual void process(Packet in) {
+
+        if (in.msg == MsgSetup) {
+            previousMillis = 0;
+            // FIXME: do based on input data instead of hardcode
+            interval = 1000;
+        } else if (in.msg == MsgTick) {
+            unsigned long currentMillis = millis();
+            if (currentMillis - previousMillis > interval) {
+                previousMillis = currentMillis;
+                send(Packet(MsgEvent));
+            }
+        }
+    }
+private:
+    unsigned long previousMillis;
+    unsigned long interval;
+};
+
+class ToggleBoolean : public Component {
+public:
+    virtual void process(Packet in) {
+
+        if (in.msg == MsgSetup) {
+            // FIXME: do based on input data instead of hardcode
+            currentState = false;
+        } else if (in.msg == MsgEvent) {
+            currentState = !currentState;
+            send(Packet(currentState));
+        }
+    }
+private:
+    bool currentState;
+};
 
 #endif // ARDUINO
 
@@ -29,7 +110,7 @@ public:
 
 void ReadStdIn::process(Packet in) {
     if (in.msg == MsgTick) {
-        send(Packet(getchar()));
+        send(Packet((char)getchar()));
     }
 }
 
@@ -65,6 +146,13 @@ Component *Component::create(ComponentId id) {
     RETURN_NEW_COMPONENT(PrintStdOut)
     RETURN_NEW_COMPONENT(ReadStdIn)
     RETURN_NEW_COMPONENT(RandomChar)
+#endif
+#ifdef ARDUINO
+    RETURN_NEW_COMPONENT(ToggleBoolean)
+    RETURN_NEW_COMPONENT(DigitalWrite)
+    RETURN_NEW_COMPONENT(Timer)
+    RETURN_NEW_COMPONENT(SerialIn)
+    RETURN_NEW_COMPONENT(SerialOut)
 #endif
         default:
         return NULL;
