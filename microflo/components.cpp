@@ -20,8 +20,9 @@ public:
             // FIXME: avoid doing setup multiple times
             Serial.begin(9600);
         } else if (in.msg == MsgTick) {
-            if (Serial.available()) {
-                send(Packet((char)Serial.read()));
+            if (Serial.available() > 0) {
+                char c = Serial.read();
+                send(Packet(c));
             }
         }
     }

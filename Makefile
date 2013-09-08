@@ -8,7 +8,7 @@ example: definitions
 	mkdir -p build/arduino/src
 	mkdir -p build/arduino/lib
 	ln -sf `pwd`/microflo build/arduino/lib/
-	node microflo.js generate examples/blink.fbp build/arduino/src/blink.ino
+	node microflo.js generate examples/echo.fbp build/arduino/src/serial.ino
 	cd build/arduino && ino build
 
 upload: example
