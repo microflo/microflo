@@ -30,6 +30,7 @@ GraphStreamer::GraphStreamer()
     , state(ParseHeader)
 {}
 
+// TODO: add support for IIP (initial information packets)
 void GraphStreamer::parseByte(char b) {
 
     buffer[currentByte++] = b;
@@ -77,7 +78,10 @@ void GraphStreamer::parseByte(char b) {
 }
 
 void Component::send(Packet out, int port) {
-    network->sendMessage(connections[port].target, connections[port].targetPort, out, this, port);
+    if (connections[port].target && connections[port].targetPort >= 0) {
+        network->sendMessage(connections[port].target, connections[port].targetPort, out,
+                             this, port);
+    }
 }
 
 void Component::connect(int outPort, Component *target, int targetPort) {
@@ -85,32 +89,45 @@ void Component::connect(int outPort, Component *target, int targetPort) {
     connections[outPort].targetPort = targetPort;
 }
 
+void Component::setNetwork(Network *net, int n) {
+    network = net;
+    nodeId = n;
+    for(int i=0; i<MAX_PORTS; i++) {
+        connections[i].target = 0;
+        connections[i].targetPort = -1;
+    }
+}
 
 #ifdef ARDUINO
 void Debugger::setup(Network *network) {
     Serial.begin(9600);
-    network->setNotifications(&Debugger::printSend, &Debugger::printDeliver);
+    network->setNotifications(&Debugger::printSend, &Debugger::printDeliver,
+                              &Debugger::printConnect, &Debugger::printAdd);
 }
 
 // FIXME: print async, currently output gets truncated on networks with > 3 edges
 void Debugger::printPacket(Packet *p) {
-    Serial.print("Packet(");
-    Serial.print("type=");
+    Serial.print("IP(");
     Serial.print(p->msg);
-    Serial.print(",");
+    Serial.print(":");
+    if (p->msg == MsgCharacter) {
+        Serial.print(p->buf, HEX);
+    } else if (p->msg == MsgBoolean) {
+        Serial.print(p->boolean);
+    }
     Serial.print(")");
 }
 
 void Debugger::printSend(int index, Message m, Component *sender, int senderPort) {
     Serial.print("SEND: ");
-    Serial.print("index=");
+    Serial.print("i=");
     Serial.print(index);
     Serial.print(",");
     Serial.print("from=");
-    Serial.print((unsigned long)sender);
+    Serial.print(sender->nodeId);
     Serial.print(",");
     Serial.print("to=");
-    Serial.print((unsigned long)m.target);
+    Serial.print(m.target->nodeId);
     Serial.print(" ");
     printPacket(&m.pkg);
     Serial.println();
@@ -118,13 +135,34 @@ void Debugger::printSend(int index, Message m, Component *sender, int senderPort
 
 void Debugger::printDeliver(int index, Message m) {
     Serial.print("DELIVER: ");
-    Serial.print("index=");
+    Serial.print("i=");
     Serial.print(index);
     Serial.print(",");
     Serial.print("to=");
-    Serial.print((unsigned long)m.target);
+    Serial.print(m.target->nodeId);
     Serial.print(" ");
     printPacket(&m.pkg);
+    Serial.println();
+}
+
+void Debugger::printAdd(Component *c) {
+    Serial.print("ADD: ");
+    Serial.print(c->componentId);
+    Serial.print(",");
+    Serial.print(c->nodeId);
+    Serial.println();
+}
+
+void Debugger::printConnect(Component *src, int srcPort, Component *target, int targetPort) {
+    Serial.print("CONNECT: ");
+    Serial.print("src=");
+    Serial.print(src->nodeId);
+    Serial.print(",sPort=");
+    Serial.print(srcPort);
+    Serial.print(",tgt=");
+    Serial.print(target->nodeId);
+    Serial.print(",tPort=");
+    Serial.print(targetPort);
     Serial.println();
 }
 #endif
@@ -135,15 +173,23 @@ Network::Network()
     , messageReadIndex(0)
     , messageSentNotify(0)
     , messageDeliveredNotify(0)
+    , addNodeNotify(0)
+    , nodeConnectNotify(0)
 {
     for (int i=0; i<MAX_NODES; i++) {
         nodes[i] = 0;
     }
 }
 
-void Network::setNotifications(MessageSendNotification send, MessageDeliveryNotification deliver) {
+void Network::setNotifications(MessageSendNotification send,
+                               MessageDeliveryNotification deliver,
+                               NodeConnectNotification nodeConnect,
+                               AddNodeNotification addNode)
+{
     messageSentNotify = send;
     messageDeliveredNotify = deliver;
+    nodeConnectNotify = nodeConnect;
+    addNodeNotify = addNode;
 }
 
 void Network::deliverMessages(int firstIndex, int lastIndex) {
@@ -152,7 +198,12 @@ void Network::deliverMessages(int firstIndex, int lastIndex) {
         }
 
         for (int i=firstIndex; i<=lastIndex; i++) {
-            messages[i].target->process(messages[i].pkg, messages[i].targetPort);
+            Component *target = messages[i].target;
+            if (!target) {
+                // FIXME: this should not happen
+                continue;
+            }
+            target->process(messages[i].pkg, messages[i].targetPort);
             if (messageDeliveredNotify) {
                 messageDeliveredNotify(i, messages[i]);
             }
@@ -223,11 +274,19 @@ void Network::connect(int srcId, int srcPort, int targetId, int targetPort) {
 
 void Network::connect(Component *src, int srcPort, Component *target, int targetPort) {
     src->connect(srcPort, target, targetPort);
+    if (nodeConnectNotify) {
+        nodeConnectNotify(src, srcPort, target, targetPort);
+    }
 }
 
 int Network::addNode(Component *node) {
-    nodes[lastAddedNodeIndex++] = node;
-    node->setNetwork(this);
-    return lastAddedNodeIndex;
+    const int nodeId = lastAddedNodeIndex;
+    nodes[nodeId] = node;
+    node->setNetwork(this, nodeId);
+    if (addNodeNotify) {
+        addNodeNotify(node);
+    }
+    lastAddedNodeIndex++;
+    return nodeId;
 }
 

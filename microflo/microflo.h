@@ -16,7 +16,7 @@ public:
 // Packet
 // TODO: implement a proper variant type, or type erasure
 enum Msg {
-    MsgInvalid = -1,
+    MsgInvalid = 0,
     MsgSetup,
     MsgTick,
     MsgCharacter,
@@ -41,7 +41,7 @@ public:
 // Network
 const int MAX_NODES = 10;
 const int MAX_MESSAGES = 100;
-const int MAX_PORTS = 10;
+const int MAX_PORTS = 21;
 
 class Component;
 
@@ -51,8 +51,12 @@ struct Message {
     Packet pkg;
 };
 
+
+typedef void (*AddNodeNotification)(Component *);
+typedef void (*NodeConnectNotification)(Component *src, int srcPort, Component *target, int targetPort);
 typedef void (*MessageSendNotification)(int, Message, Component *, int);
 typedef void (*MessageDeliveryNotification)(int, Message);
+
 
 class Network {
 public:
@@ -65,7 +69,10 @@ public:
     void sendMessage(Component *target, int targetPort, Packet &pkg,
                      Component *sender=0, int senderPort=-1);
 
-    void setNotifications(MessageSendNotification send, MessageDeliveryNotification deliver);
+    void setNotifications(MessageSendNotification send,
+                          MessageDeliveryNotification deliver,
+                          NodeConnectNotification nodeConnect,
+                          AddNodeNotification addNode);
 
     void runSetup();
     void runTick();
@@ -81,6 +88,8 @@ private:
     int messageReadIndex;
     MessageSendNotification messageSentNotify;
     MessageDeliveryNotification messageDeliveredNotify;
+    AddNodeNotification addNodeNotify;
+    NodeConnectNotification nodeConnectNotify;
 };
 
 struct Connection {
@@ -88,11 +97,13 @@ struct Connection {
     int targetPort;
 };
 
+class Debugger;
+
 // Component
-// TODO: multiple ports
 // TODO: a way of declaring component introspection data. JSON embedded in comment?
 class Component {
     friend class Network;
+    friend class Debugger;
 public:
     static Component *create(ComponentId id);
     virtual void process(Packet in, int port) = 0;
@@ -100,10 +111,12 @@ protected:
     void send(Packet out, int port=0);
 private:
     void connect(int outPort, Component *target, int targetPort);
-    void setNetwork(Network *net) { network = net; }
+    void setNetwork(Network *net, int n);
 private:
     Connection connections[MAX_PORTS]; // one per output port
     Network *network;
+    int nodeId; // identifier in the network
+    int componentId; // what type of component this is
 };
 
 
@@ -141,6 +154,8 @@ public:
     static void printPacket(Packet *p);
     static void printSend(int index, Message m, Component *sender, int senderPort);
     static void printDeliver(int index, Message m);
+    static void printAdd(Component *c);
+    static void printConnect(Component *src, int srcPort, Component *target, int targetPort);
 };
 #endif // ARDUINO
 

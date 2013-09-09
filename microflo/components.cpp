@@ -168,10 +168,11 @@ public:
 #endif // HOST_BUILD
 
 
-#define RETURN_NEW_COMPONENT(X) case Id##X: return new X;
+#define RETURN_NEW_COMPONENT(X) case Id##X: c = new X; c->componentId = id; return c;
 
 Component *Component::create(ComponentId id) {
 
+    Component *c;
     switch (id) {
     RETURN_NEW_COMPONENT(Forward)
     RETURN_NEW_COMPONENT(InvertBoolean)
