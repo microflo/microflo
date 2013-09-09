@@ -49,13 +49,17 @@ public:
 class DigitalWrite : public Component {
 public:
     virtual void process(Packet in, int port) {
-
+        // Note: have to match components.json
+        const int inPort = 0;
+        const int pinConfigPort = 1;
         if (in.msg == MsgSetup) {
-            // FIXME: do based on input data instead of hardcode
-            outPin = 13;
+            outPin = 13; // default
             pinMode(outPin, OUTPUT);
-        } else if (in.msg == MsgBoolean) {
+        } else if (port == inPort && in.msg == MsgBoolean) {
             digitalWrite(outPin, in.boolean);
+        } else if (port == pinConfigPort && in.msg == MsgCharacter) {
+            outPin = in.buf;
+            pinMode(outPin, OUTPUT);
         }
     }
 private:
@@ -65,19 +69,30 @@ private:
 class DigitalRead : public Component {
 public:
     virtual void process(Packet in, int port) {
-
+        // Note: have to match components.json
+        const int triggerPort = 0;
+        const int pinConfigPort = 1;
+        const int pullupConfigPort = 2;
         if (in.msg == MsgSetup) {
-            // FIXME: do based on input data instead of hardcode
-            pin = 12;
-            pinMode(pin, INPUT);
-            digitalWrite(pin, HIGH); // enable pullup
-        } else if (in.msg == MsgEvent) {
+            setPinAndPullup(12, true); // defaults
+        } else if (port == triggerPort && in.msg == MsgEvent) {
             bool isHigh = digitalRead(pin) == HIGH;
             send(Packet(isHigh));
+        } else if (port == pinConfigPort && in.msg == MsgCharacter) {
+            setPinAndPullup(in.buf, pullup);
+        } else if (port == pullupConfigPort && in.msg == MsgBoolean) {
+            setPinAndPullup(pin, in.boolean);
         }
     }
 private:
+    void setPinAndPullup(int newPin, bool newPullup) {
+        pin = newPin;
+        pullup = newPullup;
+        pinMode(pin, INPUT);
+        digitalWrite(pin, pullup ? HIGH : LOW);
+    }
     int pin;
+    bool pullup;
 };
 
 class Timer : public Component {
@@ -87,7 +102,7 @@ public:
         if (in.msg == MsgSetup) {
             previousMillis = 0;
             // FIXME: do based on input data instead of hardcode
-            interval = 1000;
+            interval = 100;
         } else if (in.msg == MsgTick) {
             unsigned long currentMillis = millis();
             if (currentMillis - previousMillis > interval) {
@@ -129,6 +144,21 @@ public:
     }
 };
 
+class ArduinoUno : public Component {
+public:
+    virtual void process(Packet in, int port) {
+        const int digitalPins = 14;
+        const int analogPins = 6;
+        if (in.msg == MsgSetup) {
+            Serial.println("Config start");
+            for (int outPort=0; outPort < digitalPins+analogPins; outPort++) {
+                // Emit 0 for A0, 1 for A1, and so on
+                char val = (outPort < digitalPins) ? outPort : outPort - digitalPins;
+                send(Packet(val), outPort);
+            }
+        }
+    }
+};
 
 
 
@@ -185,6 +215,7 @@ Component *Component::create(ComponentId id) {
 #ifdef ARDUINO
     RETURN_NEW_COMPONENT(DigitalWrite)
     RETURN_NEW_COMPONENT(DigitalRead)
+    RETURN_NEW_COMPONENT(ArduinoUno)
     RETURN_NEW_COMPONENT(Timer)
     RETURN_NEW_COMPONENT(SerialIn)
     RETURN_NEW_COMPONENT(SerialOut)

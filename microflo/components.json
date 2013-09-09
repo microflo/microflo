@@ -10,13 +10,55 @@
         "PrintStdOut": { "id": 3 },
         "RandomChar": { "id": 4 },
 
-        "DigitalWrite": { "id": 5 },
-        "DigitalRead": { "id": 6 },
+        "DigitalWrite": { "id": 5,
+            "inPorts": {
+                "in": { "id": 0 },
+                "pin": { "id": 1 }
+            },
+            "outPorts": {}
+        },
+        "DigitalRead": { "id": 6,
+            "inPorts": {
+                "trigger": { "id": 0 },
+                "pin": { "id": 1 },
+                "pullup": { "id": 2 }
+            },
+            "outPorts": {
+                "out": { "id": 0 }
+            }
+        },
         "Timer": { "id": 7 },
         "SerialIn": { "id": 8 },
         "SerialOut": { "id": 9 },
         "InvertBoolean": { "id": 10 },
         "ToggleBoolean": { "id": 11 },
+
+        "ArduinoUno": {
+            "id": 50,
+            "outPorts": {
+                "0": { "id": 0 },
+                "1": { "id": 1 },
+                "2": { "id": 2 },
+                "3": { "id": 3 },
+                "4": { "id": 4 },
+                "5": { "id": 5 },
+                "6": { "id": 6 },
+                "7": { "id": 7 },
+                "8": { "id": 8 },
+                "9": { "id": 9 },
+                "10": { "id": 10 },
+                "11": { "id": 11 },
+                "12": { "id": 12 },
+                "13": { "id": 13 },
+                "A0": { "id": 14 },
+                "A1": { "id": 15 },
+                "A2": { "id": 16 },
+                "A3": { "id": 17 },
+                "A4": { "id": 18 },
+                "A5": { "id": 19 }
+            },
+            "inPorts": {}
+        },
 
         "Max": { "id": 255 }
     }

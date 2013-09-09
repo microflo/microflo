@@ -1,3 +1,5 @@
-timer(Timer) OUT -> IN buttonPin(DigitalRead)
-buttonPin() OUT -> IN inverted(InvertBoolean)
-inverted() OUT -> IN ledPin(DigitalWrite)
+timer(Timer) OUT -> TRIGGER button(DigitalRead)
+button() OUT -> IN inverted(InvertBoolean)
+inverted() OUT -> IN led(DigitalWrite)
+board(ArduinoUno) 2 -> PIN button()
+board() 3 -> PIN led()
