@@ -115,7 +115,7 @@ var generateOutput = function(inputFile, outputFile) {
         fs.writeFile(outputBase + ".cpp", cmdStreamToCDefinition(data) + "\n" + '#include "microflo.hpp"', function(err) {
             if (err) throw err;
         });
-        fs.writeFile(outputBase + ".ino", cmdStreamToCDefinition(data) + "\n#define ARDUINO" + '\n#include "microflo.hpp"', function(err) {
+        fs.writeFile(outputBase + ".ino", cmdStreamToCDefinition(data) + '\n#include "microflo.hpp"', function(err) {
             if (err) throw err;
         });
     });
