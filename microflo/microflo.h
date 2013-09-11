@@ -8,6 +8,7 @@
 #include "components.h"
 #include "commandformat.h"
 
+// TODO: add embedding API for use in existing Arduino sketches?
 class MicroFlo {
 public:
     void doNothing() {;}
@@ -15,6 +16,7 @@ public:
 
 // Packet
 // TODO: implement a proper variant type, or type erasure
+// XXX: should setup & ticks really be IPs??
 enum Msg {
     MsgInvalid = 0,
     MsgSetup,
@@ -32,6 +34,9 @@ public:
     Packet(char c);
     Packet(Msg m);
 
+// FIXME: factor into boolean, integer, byte (binary). With methods to check & convert
+
+// TODO: make private, put data into union
 public:
     bool boolean;
     char buf;

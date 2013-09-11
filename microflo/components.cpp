@@ -321,6 +321,7 @@ public:
 #endif // HOST_BUILD
 
 
+// FIXME: generate the entries in switch statement from components.json
 #define RETURN_NEW_COMPONENT(X) case Id##X: c = new X; c->componentId = id; return c;
 
 Component *Component::create(ComponentId id) {
