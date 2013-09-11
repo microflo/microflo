@@ -12,6 +12,8 @@ build: definitions
 	mkdir -p build/arduino/src
 	mkdir -p build/arduino/lib
 	ln -sf `pwd`/microflo build/arduino/lib/
+	unzip -n ./thirdparty/OneWire.zip -d build/arduino/lib/
+	unzip -n ./thirdparty/DallasTemperature.zip -d build/arduino/lib/
 	node microflo.js generate $(GRAPH) build/arduino/src/serial.ino
 	cd build/arduino && ino build
 
