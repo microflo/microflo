@@ -195,7 +195,6 @@ public:
         const int digitalPins = 14;
         const int analogPins = 6;
         if (in.msg == MsgSetup) {
-            Serial.println("Config start");
             for (int outPort=0; outPort < digitalPins+analogPins; outPort++) {
                 // Emit 0 for A0, 1 for A1, and so on
                 char val = (outPort < digitalPins) ? outPort : outPort - digitalPins;
