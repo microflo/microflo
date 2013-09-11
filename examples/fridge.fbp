@@ -1,0 +1,4 @@
+timer(Timer) OUT -> TRIGGER termometer(ReadDallasTemperature)
+termometer OUT -> IN hys(HysteresisLatch)
+hys() OUT -> IN s(ToString)
+s() OUT -> IN out(SerialOut)

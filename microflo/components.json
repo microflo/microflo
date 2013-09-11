@@ -22,9 +22,6 @@
                 "trigger": { "id": 0 },
                 "pin": { "id": 1 },
                 "pullup": { "id": 2 }
-            },
-            "outPorts": {
-                "out": { "id": 0 }
             }
         },
         "Timer": { "id": 7 },
@@ -32,6 +29,20 @@
         "SerialOut": { "id": 9 },
         "InvertBoolean": { "id": 10 },
         "ToggleBoolean": { "id": 11 },
+        "HysteresisLatch": { "id": 12,
+            "inPorts": {
+                "in": { "id": 0 },
+                "lowthreshold": { "id": 1 },
+                "highthreshold": { "id": 2 }
+            }
+        },
+        "ReadDallasTemperature": { "id": 13,
+            "inPorts": {
+                "trigger": { "id": 0 },
+                "pin": { "id": 1 }
+            }
+        },
+        "ToString": { "id": 14 },
 
         "ArduinoUno": {
             "id": 50,

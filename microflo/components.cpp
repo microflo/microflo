@@ -116,6 +116,51 @@ private:
     unsigned long interval;
 };
 
+#include <OneWire.h>
+#include <DallasTemperature.h>
+
+class ReadDallasTemperature : public Component {
+public:
+    ReadDallasTemperature()
+        : pin(3) // default
+        , oneWire(pin)
+        , sensors(&oneWire)
+    {}
+
+    virtual void process(Packet in, int port) {
+        const int triggerPort = 0;
+        const int pinConfigPort = 1;
+
+        if (in.msg == MsgSetup) {
+            // FIXME: support bracketed IPs so this can be configured
+            DeviceAddress a = { 0x28, 0xAF, 0x1C, 0xB2, 0x04, 0x00, 0x00, 0x33 };
+            // defaults
+            updateConfig(pin, a, 10);
+        } else if (port == pinConfigPort && in.msg == MsgCharacter) {
+            updateConfig(in.buf, address, sensors.getResolution());
+        } else if (port == triggerPort && in.msg == MsgEvent) {
+            sensors.requestTemperatures();
+            const float tempC = sensors.getTempC(address);
+            char t = tempC; // FIXME: support floats IPs
+            send(Packet(t));
+        }
+    }
+private:
+    void updateConfig(int newPin, DeviceAddress &newAddress, int newResolution) {
+        memcpy(address, newAddress, sizeof(DeviceAddress));
+        if (newPin != pin)  {
+            oneWire = OneWire(pin);
+            sensors = DallasTemperature(&oneWire);
+        }
+        sensors.setResolution(newResolution);
+    }
+
+    int pin;
+    DeviceAddress address;
+    OneWire oneWire;
+    DallasTemperature sensors;
+};
+
 #endif // ARDUINO
 
 class ToggleBoolean : public Component {
@@ -160,14 +205,93 @@ public:
     }
 };
 
+class HysteresisLatch : public Component
+{
+public:
+    virtual void process(Packet in, int port) {
+        const int inputPort = 0;
+        const int lowThresholdPort = 1;
+        const int highThresholdPort = 2;
 
+        if (in.msg == MsgSetup) {
+            // defaults
+            mHighThreshold = 30;
+            mLowThreshold = 24;
+            mCurrentState = true; // TODO: make tristate or configurable?
+        } else if (port == lowThresholdPort && in.msg == MsgCharacter) {
+            mLowThreshold = in.buf;
+        } else if (port == highThresholdPort && in.msg == MsgCharacter) {
+            mHighThreshold = in.buf;
+        } else if (port == inputPort && in.msg == MsgCharacter) {
+            updateValue(in.buf);
+        }
+    }
+
+private:
+    void updateValue(float input) {
+        if (mCurrentState) {
+            if (input <= mLowThreshold) {
+                mCurrentState = false;
+            }
+        } else {
+            if (input >= mHighThreshold) {
+                mCurrentState = true;
+            }
+        }
+        send(Packet(mCurrentState));
+    }
+
+private:
+    float mHighThreshold;
+    float mLowThreshold;
+    bool mCurrentState;
+};
 
 #ifdef HOST_BUILD
 #include <stdio.h>
 #include <unistd.h>
 #include <time.h>
 #include <stdlib.h>
+#include <string.h>
 
+#include <string>
+#include <sstream>
+#endif
+
+class ToString : public Component
+{
+public:
+    virtual void process(Packet in, int port) {
+
+    // XXX: probably too generic a name for this component?
+        if (in.msg == MsgCharacter) {
+#ifdef ARDUINO
+            String s(in.buf, DEC);
+            for (int i=0; i<s.length(); i++) {
+                send(Packet(s.charAt(i)));
+            }
+#endif
+#ifdef HOST_BUILD
+            std::stringstream ss;
+            ss << in.buf;
+            std::string s = ss.str();
+            for (int i=0; i<s.size(); i++) {
+                send(Packet(s[i]));
+            }
+#endif
+        } else if (in.msg == MsgBoolean) {
+            const char *s = in.boolean ? "true" : "false";
+            const int l = in.boolean ? 4 : 5;
+            for (int i=0; i<l; i++) {
+                send(Packet(s[i]));
+            }
+        }
+    }
+};
+
+
+
+#ifdef HOST_BUILD
 // TODO: implement host I/O components which can be used for simulation/testing
 class ReadStdIn : public Component {
 public:
@@ -207,6 +331,8 @@ Component *Component::create(ComponentId id) {
     RETURN_NEW_COMPONENT(Forward)
     RETURN_NEW_COMPONENT(InvertBoolean)
     RETURN_NEW_COMPONENT(ToggleBoolean)
+    RETURN_NEW_COMPONENT(HysteresisLatch)
+    RETURN_NEW_COMPONENT(ToString)
 #ifdef HOST_BUILD
     RETURN_NEW_COMPONENT(PrintStdOut)
     RETURN_NEW_COMPONENT(ReadStdIn)
@@ -219,6 +345,7 @@ Component *Component::create(ComponentId id) {
     RETURN_NEW_COMPONENT(Timer)
     RETURN_NEW_COMPONENT(SerialIn)
     RETURN_NEW_COMPONENT(SerialOut)
+    RETURN_NEW_COMPONENT(ReadDallasTemperature)
 #endif
         default:
         return NULL;
