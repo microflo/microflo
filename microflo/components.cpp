@@ -6,7 +6,7 @@
 class Forward : public Component {
 public:
     virtual void process(Packet in, int port) {
-        if (in.msg != MsgTick && in.msg != MsgSetup) {
+        if (in.isData()) {
             send(in, port);
         }
     }
@@ -24,11 +24,11 @@ class SerialIn : public Component {
 public:
     virtual void process(Packet in, int port) {
 
-        if (in.msg == MsgSetup) {
+        if (in.isSetup()) {
             // FIXME: do based on input data instead of hardcode
             // FIXME: avoid doing setup multiple times
             Serial.begin(9600);
-        } else if (in.msg == MsgTick) {
+        } else if (in.isTick()) {
             if (Serial.available() > 0) {
                 char c = Serial.read();
                 send(Packet(c));
@@ -41,12 +41,14 @@ class SerialOut : public Component {
 public:
     virtual void process(Packet in, int port) {
 
-        if (in.msg == MsgSetup) {
+        if (in.isSetup()) {
             // FIXME: do based on input data instead of hardcode
             // FIXME: avoid doing multiple times
             Serial.begin(9600);
-        } else if (in.msg == MsgCharacter) {
-            Serial.write(in.buf);
+        } else if (in.isByte()) {
+            Serial.write(in.asByte());
+        } else if (in.isAscii()) {
+            Serial.write(in.asAscii());
         }
     }
 };
@@ -57,13 +59,13 @@ public:
         // Note: have to match components.json
         const int inPort = 0;
         const int pinConfigPort = 1;
-        if (in.msg == MsgSetup) {
+        if (in.isSetup()) {
             outPin = 13; // default
             pinMode(outPin, OUTPUT);
-        } else if (port == inPort && in.msg == MsgBoolean) {
-            digitalWrite(outPin, in.boolean);
-        } else if (port == pinConfigPort && in.msg == MsgCharacter) {
-            outPin = in.buf;
+        } else if (port == inPort && in.isBool()) {
+            digitalWrite(outPin, in.asBool());
+        } else if (port == pinConfigPort && in.isNumber()) {
+            outPin = in.asInteger();
             pinMode(outPin, OUTPUT);
         }
     }
@@ -78,15 +80,15 @@ public:
         const int triggerPort = 0;
         const int pinConfigPort = 1;
         const int pullupConfigPort = 2;
-        if (in.msg == MsgSetup) {
+        if (in.isSetup()) {
             setPinAndPullup(12, true); // defaults
-        } else if (port == triggerPort && in.msg == MsgEvent) {
+        } else if (port == triggerPort && in.isData()) {
             bool isHigh = digitalRead(pin) == HIGH;
             send(Packet(isHigh));
-        } else if (port == pinConfigPort && in.msg == MsgCharacter) {
-            setPinAndPullup(in.buf, pullup);
-        } else if (port == pullupConfigPort && in.msg == MsgBoolean) {
-            setPinAndPullup(pin, in.boolean);
+        } else if (port == pinConfigPort && in.isNumber()) {
+            setPinAndPullup(in.asInteger(), pullup);
+        } else if (port == pullupConfigPort && in.isBool()) {
+            setPinAndPullup(pin, in.asBool());
         }
     }
 private:
@@ -104,15 +106,15 @@ class Timer : public Component {
 public:
     virtual void process(Packet in, int port) {
 
-        if (in.msg == MsgSetup) {
+        if (in.isSetup()) {
             previousMillis = 0;
             // FIXME: do based on input data instead of hardcode
             interval = 100;
-        } else if (in.msg == MsgTick) {
+        } else if (in.isTick()) {
             unsigned long currentMillis = millis();
             if (currentMillis - previousMillis > interval) {
                 previousMillis = currentMillis;
-                send(Packet(MsgEvent));
+                send(Packet());
             }
         }
     }
@@ -136,18 +138,17 @@ public:
         const int triggerPort = 0;
         const int pinConfigPort = 1;
 
-        if (in.msg == MsgSetup) {
+        if (in.isSetup()) {
             // FIXME: support bracketed IPs so this can be configured
             DeviceAddress a = { 0x28, 0xAF, 0x1C, 0xB2, 0x04, 0x00, 0x00, 0x33 };
             // defaults
             updateConfig(pin, a, 10);
-        } else if (port == pinConfigPort && in.msg == MsgCharacter) {
-            updateConfig(in.buf, address, sensors.getResolution());
-        } else if (port == triggerPort && in.msg == MsgEvent) {
+        } else if (port == pinConfigPort && in.isNumber()) {
+            updateConfig(in.asInteger(), address, sensors.getResolution());
+        } else if (port == triggerPort && in.isData()) {
             sensors.requestTemperatures();
             const float tempC = sensors.getTempC(address);
-            char t = tempC; // FIXME: support floats IPs
-            send(Packet(t));
+            send(Packet(tempC));
         }
     }
 private:
@@ -179,10 +180,10 @@ class ToggleBoolean : public Component {
 public:
     virtual void process(Packet in, int port) {
 
-        if (in.msg == MsgSetup) {
+        if (in.isSetup()) {
             // FIXME: do based on input data instead of hardcode
             currentState = false;
-        } else if (in.msg == MsgEvent) {
+        } else if (in.isData()) {
             currentState = !currentState;
             send(Packet(currentState));
         }
@@ -194,8 +195,8 @@ private:
 class InvertBoolean : public Component {
 public:
     virtual void process(Packet in, int port) {
-        if (in.msg == MsgBoolean) {
-            Packet p = Packet((bool)!in.boolean);
+        if (in.isData()) {
+            Packet p = Packet((bool)!in.asBool());
             send(p);
         }
     }
@@ -206,7 +207,7 @@ public:
     virtual void process(Packet in, int port) {
         const int digitalPins = 14;
         const int analogPins = 6;
-        if (in.msg == MsgSetup) {
+        if (in.isSetup()) {
             for (int outPort=0; outPort < digitalPins+analogPins; outPort++) {
                 // Emit 0 for A0, 1 for A1, and so on
                 char val = (outPort < digitalPins) ? outPort : outPort - digitalPins;
@@ -224,17 +225,17 @@ public:
         const int lowThresholdPort = 1;
         const int highThresholdPort = 2;
 
-        if (in.msg == MsgSetup) {
+        if (in.isSetup()) {
             // defaults
             mHighThreshold = 30;
             mLowThreshold = 24;
             mCurrentState = true; // TODO: make tristate or configurable?
-        } else if (port == lowThresholdPort && in.msg == MsgCharacter) {
-            mLowThreshold = in.buf;
-        } else if (port == highThresholdPort && in.msg == MsgCharacter) {
-            mHighThreshold = in.buf;
-        } else if (port == inputPort && in.msg == MsgCharacter) {
-            updateValue(in.buf);
+        } else if (port == lowThresholdPort && in.isNumber()) {
+            mLowThreshold = in.asFloat();
+        } else if (port == highThresholdPort && in.isNumber()) {
+            mHighThreshold = in.asFloat();
+        } else if (port == inputPort && in.isNumber()) {
+            updateValue(in.asFloat());
         }
     }
 
@@ -275,24 +276,24 @@ public:
     virtual void process(Packet in, int port) {
 
     // XXX: probably too generic a name for this component?
-        if (in.msg == MsgCharacter) {
+        if (in.isInteger()) {
 #ifdef ARDUINO
-            String s(in.buf, DEC);
+            String s(in.asInteger(), DEC);
             for (int i=0; i<s.length(); i++) {
                 send(Packet(s.charAt(i)));
             }
 #endif
 #ifdef HOST_BUILD
             std::stringstream ss;
-            ss << in.buf;
+            ss << in.asInteger();
             std::string s = ss.str();
             for (int i=0; i<s.size(); i++) {
                 send(Packet(s[i]));
             }
 #endif
-        } else if (in.msg == MsgBoolean) {
-            const char *s = in.boolean ? "true" : "false";
-            const int l = in.boolean ? 4 : 5;
+        } else if (in.isBool()) {
+            const char *s = in.asBool() ? "true" : "false";
+            const int l = in.asBool() ? 4 : 5;
             for (int i=0; i<l; i++) {
                 send(Packet(s[i]));
             }
@@ -306,7 +307,7 @@ public:
 class ReadStdIn : public Component {
 public:
     virtual void process(Packet in, int port) {
-        if (in.msg == MsgTick) {
+        if (in.isTick()) {
             send(Packet((char)getchar()));
         }
     }
@@ -315,8 +316,10 @@ public:
 class PrintStdOut : public Component {
 public:
     virtual void process(Packet in, int port) {
-        if (in.msg == MsgCharacter) {
-            putchar(in.buf);
+        if (in.isByte()) {
+            putchar(in.asByte());
+        } else if (in.isAscii()) {
+            putchar(in.asAscii());
         }
     }
 };

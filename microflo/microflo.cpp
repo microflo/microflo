@@ -1,28 +1,82 @@
 #include "microflo.h"
 
-Packet::Packet()
-    : buf('0')
-    , boolean(false)
-    , msg(MsgInvalid)
-{}
-
-Packet::Packet(char c)
-    : buf(c)
-    , boolean(false)
-    , msg(MsgCharacter)
-{}
-
-Packet::Packet(bool b)
-    : buf('0')
-    , boolean(b)
-    , msg(MsgBoolean)
-{}
-
-Packet::Packet(Msg _msg)
-    : buf('0')
-    , boolean(false)
-    , msg(_msg)
-{}
+bool Packet::asBool() {
+    if (msg == MsgBoolean){
+        return data.boolean;
+    } else if (msg == MsgByte) {
+        return data.byte;
+    } else if (msg == MsgInteger) {
+        return data.lng;
+    } else if (msg == MsgFloat) {
+        return data.flt;
+    } else if (msg == MsgAscii) {
+        return data.ch;
+    } else {
+        return false;
+    }
+}
+long Packet::asInteger() {
+    if (msg == MsgBoolean){
+        return data.boolean;
+    } else if (msg == MsgByte) {
+        return data.byte;
+    } else if (msg == MsgInteger) {
+        return data.lng;
+    } else if (msg == MsgFloat) {
+        return data.flt;
+    } else if (msg == MsgAscii) {
+        return data.ch;
+    } else {
+        return -33;
+    }
+}
+float Packet::asFloat() {
+    if (msg == MsgBoolean){
+        return data.boolean;
+    } else if (msg == MsgByte) {
+        return data.byte;
+    } else if (msg == MsgInteger) {
+        return data.lng;
+    } else if (msg == MsgFloat) {
+        return data.flt;
+    } else if (msg == MsgAscii) {
+        return data.ch;
+    } else if (msg == MsgVoid) {
+        return 0.0;
+    } else {
+        return -44.0;
+    }
+}
+char Packet::asAscii() {
+    if (msg == MsgBoolean){
+        return data.boolean;
+    } else if (msg == MsgByte) {
+        return data.byte;
+    } else if (msg == MsgInteger) {
+        return data.lng;
+    } else if (msg == MsgFloat) {
+        return data.flt;
+    } else if (msg == MsgAscii) {
+        return data.ch;
+    } else {
+        return '\0';
+    }
+}
+unsigned char Packet::asByte() {
+    if (msg == MsgBoolean){
+        return data.boolean;
+    } else if (msg == MsgByte) {
+        return data.byte;
+    } else if (msg == MsgInteger) {
+        return data.lng;
+    } else if (msg == MsgFloat) {
+        return data.flt;
+    } else if (msg == MsgAscii) {
+        return data.ch;
+    } else {
+        return 0;
+    }
+}
 
 GraphStreamer::GraphStreamer()
     : network(0)
@@ -108,12 +162,14 @@ void Debugger::setup(Network *network) {
 // FIXME: print async, currently output gets truncated on networks with > 3 edges
 void Debugger::printPacket(Packet *p) {
     Serial.print("IP(");
-    Serial.print(p->msg);
+    Serial.print(p->type());
     Serial.print(":");
-    if (p->msg == MsgCharacter) {
-        Serial.print(p->buf, HEX);
-    } else if (p->msg == MsgBoolean) {
-        Serial.print(p->boolean);
+    if (p->isByte()) {
+        Serial.print(p->asByte(), HEX);
+    } else if (p->isAscii()) {
+        Serial.print(p->asAscii());
+    } else {
+        // FIXME:
     }
     Serial.print(")");
 }

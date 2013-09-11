@@ -1,6 +1,8 @@
 #ifndef MICROFLO_H
 #define MICROFLO_H
 
+#include <stdint.h>
+
 #ifdef ARDUINO
 #include <Arduino.h>
 #endif
@@ -21,25 +23,57 @@ enum Msg {
     MsgInvalid = 0,
     MsgSetup,
     MsgTick,
-    MsgCharacter,
+
+    MsgVoid, // no data payload, can be used like a "bang" in other flow-based systems
+    MsgByte,
+    MsgAscii,
     MsgBoolean,
-    MsgEvent // like a "bang" in other flow-based systems
+    MsgInteger,
+    MsgFloat,
+
+    MsgMaxDefined
 };
 
 class Packet {
 
 public:
-    Packet();
-    Packet(bool b);
-    Packet(char c);
-    Packet(Msg m);
+    Packet(): msg(MsgVoid) {}
+    Packet(bool b): msg(MsgBoolean) { data.boolean = b; }
+    Packet(char c): msg(MsgAscii) { data.ch = c; }
+    Packet(unsigned char by): msg(MsgByte) { data.byte = by; }
+    Packet(long l): msg(MsgInteger) { data.lng = l; }
+    Packet(float f): msg(MsgFloat) { data.flt = f; }
+    Packet(Msg m): msg(m) {}
 
-// FIXME: factor into boolean, integer, byte (binary). With methods to check & convert
+    Msg type() { return msg; }
+    bool isValid() { return msg > MsgInvalid && msg < MsgMaxDefined; }
 
-// TODO: make private, put data into union
-public:
-    bool boolean;
-    char buf;
+    bool isSetup() { return msg == MsgSetup; }
+    bool isTick() { return msg == MsgTick; }
+    bool isSpecial() { return isSetup() || isTick(); }
+
+    bool isData() { return isValid() && !isSpecial(); }
+    bool isBool() { return msg == MsgBoolean; }
+    bool isByte() { return msg == MsgByte; }
+    bool isAscii() { return msg == MsgAscii; }
+    bool isInteger() { return msg == MsgInteger; } // TODO: make into a long or long long
+    bool isFloat() { return msg == MsgFloat; }
+    bool isNumber() { return isInteger() || isFloat(); }
+
+    bool asBool();
+    float asFloat();
+    long asInteger();
+    char asAscii();
+    unsigned char asByte();
+
+private:
+    union PacketData {
+        bool boolean;
+        char ch;
+        unsigned char byte;
+        long lng;
+        float flt;
+    } data;
     enum Msg msg;
 };
 
