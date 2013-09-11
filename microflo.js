@@ -139,6 +139,23 @@ var generateEnum = function(name, prefix, enums) {
     return out;
 }
 
+var generateComponentFactory = function(components) {
+    var out = "Component *Component::create(ComponentId id) {"
+    var indent = "\n    ";
+    out += indent + "Component *c;";
+    out += indent + "switch (id) {";
+    for (var name in components) {
+        if (!components.hasOwnProperty(name)) {
+            continue;
+        }
+        out += indent + "case Id" + name + ": c = new " + name + "; c->componentId=id; return c;"
+    }
+    out += indent + "default: return NULL;"
+    out += indent + "}"
+    out += "}"
+    return out;
+}
+
 // Main
 var cmd = process.argv[2];
 if (cmd == "generate") {
@@ -147,6 +164,8 @@ if (cmd == "generate") {
     generateOutput(inputFile, outputFile);
 } else if (cmd == "update-defs") {
     fs.writeFile("microflo/components-gen.h", generateEnum("ComponentId", "Id", components.components),
+                 function(err) { if (err) throw err });
+    fs.writeFile("microflo/components-gen.hpp", generateComponentFactory(components.components),
                  function(err) { if (err) throw err });
     fs.writeFile("microflo/commandformat-gen.h", generateEnum("GraphCmd", "GraphCmd", cmdFormat.commands),
                  function(err) { if (err) throw err });

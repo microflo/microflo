@@ -12,6 +12,11 @@ public:
     }
 };
 
+// FIXME: using any of these should result in error
+typedef Forward DummyComponent;
+class Invalid : public DummyComponent {};
+class Max : public DummyComponent {};
+
 // I/O
 
 #ifdef ARDUINO
@@ -160,7 +165,14 @@ private:
     OneWire oneWire;
     DallasTemperature sensors;
 };
-
+#else
+// TODO: implement host I/O components which can be used for simulation/testing
+class SerialIn : public DummyComponent {};
+class SerialOut : public DummyComponent {};
+class DigitalWrite : public DummyComponent {};
+class DigitalRead : public DummyComponent {};
+class Timer : public DummyComponent {};
+class ReadDallasTemperature : public DummyComponent {};
 #endif // ARDUINO
 
 class ToggleBoolean : public Component {
@@ -291,7 +303,6 @@ public:
 
 
 #ifdef HOST_BUILD
-// TODO: implement host I/O components which can be used for simulation/testing
 class ReadStdIn : public Component {
 public:
     virtual void process(Packet in, int port) {
@@ -317,37 +328,11 @@ public:
         send(Packet(c));
     }
 };
-
+#else
+class ReadStdIn : public DummyComponent {};
+class PrintStdOut : public DummyComponent {};
+class RandomChar : public DummyComponent {};
 #endif // HOST_BUILD
 
 
-// FIXME: generate the entries in switch statement from components.json
-#define RETURN_NEW_COMPONENT(X) case Id##X: c = new X; c->componentId = id; return c;
-
-Component *Component::create(ComponentId id) {
-
-    Component *c;
-    switch (id) {
-    RETURN_NEW_COMPONENT(Forward)
-    RETURN_NEW_COMPONENT(InvertBoolean)
-    RETURN_NEW_COMPONENT(ToggleBoolean)
-    RETURN_NEW_COMPONENT(HysteresisLatch)
-    RETURN_NEW_COMPONENT(ToString)
-#ifdef HOST_BUILD
-    RETURN_NEW_COMPONENT(PrintStdOut)
-    RETURN_NEW_COMPONENT(ReadStdIn)
-    RETURN_NEW_COMPONENT(RandomChar)
-#endif
-#ifdef ARDUINO
-    RETURN_NEW_COMPONENT(DigitalWrite)
-    RETURN_NEW_COMPONENT(DigitalRead)
-    RETURN_NEW_COMPONENT(ArduinoUno)
-    RETURN_NEW_COMPONENT(Timer)
-    RETURN_NEW_COMPONENT(SerialIn)
-    RETURN_NEW_COMPONENT(SerialOut)
-    RETURN_NEW_COMPONENT(ReadDallasTemperature)
-#endif
-        default:
-        return NULL;
-    }
-}
+#include "components-gen.hpp"
