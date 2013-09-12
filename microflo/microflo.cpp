@@ -111,7 +111,14 @@ void GraphStreamer::parseByte(char b) {
                 } else if (cmd == GraphCmdCreateComponent) {
                     ComponentId id = (ComponentId)buffer[1];
                     // FIXME: validate
-                    network->addNode(Component::create(id));
+#ifdef DEBUG
+                    Serial.println("Component create start");
+#endif
+                    Component *c = Component::create(id);
+#ifdef DEBUG
+                    Serial.println("Component create done");
+#endif
+                    network->addNode(c);
                 } else if (cmd == GraphCmdConnectNodes) {
                     // FIXME: validate
                     const int src = (unsigned int)buffer[1];

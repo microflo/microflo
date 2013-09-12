@@ -79,14 +79,14 @@ private:
 
 // Network
 const int MAX_NODES = 10;
-const int MAX_MESSAGES = 100;
-const int MAX_PORTS = 21;
+const int MAX_MESSAGES = 50;
+const int MAX_PORTS = 20;
 
 class Component;
 
 struct Message {
     Component *target;
-    int targetPort;
+    char targetPort;
     Packet pkg;
 };
 
@@ -133,7 +133,7 @@ private:
 
 struct Connection {
     Component *target;
-    int targetPort;
+    char targetPort;
 };
 
 class Debugger;
