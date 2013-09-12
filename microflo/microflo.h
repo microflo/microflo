@@ -139,6 +139,7 @@ struct Connection {
 class Debugger;
 
 // Component
+// TODO: add a way of doing subgraphs as components, both programatically and using .fbp format
 // TODO: a way of declaring component introspection data. JSON embedded in comment?
 class Component {
     friend class Network;
