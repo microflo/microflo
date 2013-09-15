@@ -1,8 +1,13 @@
-timer(Timer) OUT -> TRIGGER temp(ReadDallasTemperature)
-temp() OUT -> IN s(ToString)
-s() OUT -> IN d(Delimit)
-d() OUT -> IN out(SerialOut)
+timer(Timer) OUT -> IN toggle(ToggleBoolean)
+toggle() OUT -> IN switch(BreakBeforeMake)
+switch() OUT1 -> IN ia(InvertBoolean) OUT -> IN turnOff(DigitalWrite) OUT -> IN ib(InvertBoolean) OUT -> MONITOR1 switch()
+switch() OUT2 -> IN ic(InvertBoolean) OUT -> IN turnOn(DigitalWrite) OUT -> IN id(InvertBoolean) OUT -> MONITOR2 switch()
 
-board(ArduinoUno) 3 -> PIN temp()
-'["0x28", "0xAF", "0x1C", "0xB2", "0x04", "0x00", "0x00", "0x33"]' -> ADDRESS temp()
-'3000' -> INTERVAL timer()
+# Config
+'5000' -> INTERVAL timer()
+board(ArduinoUno) 8 -> PIN turnOff()
+board() 9 -> PIN turnOn()
+
+
+
+

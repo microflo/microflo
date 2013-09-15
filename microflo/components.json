@@ -14,8 +14,7 @@
             "inPorts": {
                 "in": { "id": 0 },
                 "pin": { "id": 1 }
-            },
-            "outPorts": {}
+            }
         },
         "DigitalRead": { "id": 6,
             "inPorts": {
@@ -50,6 +49,19 @@
         },
         "ToString": { "id": 14 },
         "Delimit": { "id": 15 },
+
+        "BreakBeforeMake": {
+            "id": 16,
+            "inPorts": {
+                "in": { "id": 0 },
+                "monitor1": { "id": 1 },
+                "monitor2": { "id": 2 }
+            },
+            "outPorts": {
+                "out1": { "id": 0 },
+                "out2": { "id": 1 }
+            }
+        },
 
         "ArduinoUno": {
             "id": 50,
