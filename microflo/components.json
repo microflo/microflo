@@ -24,7 +24,12 @@
                 "pullup": { "id": 2 }
             }
         },
-        "Timer": { "id": 7 },
+        "Timer": {
+            "id": 7,
+            "inPorts": {
+                "interval": { "id": 0 }
+            }
+        },
         "SerialIn": { "id": 8 },
         "SerialOut": { "id": 9 },
         "InvertBoolean": { "id": 10 },

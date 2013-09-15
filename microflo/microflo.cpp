@@ -84,16 +84,14 @@ GraphStreamer::GraphStreamer()
     , state(ParseHeader)
 {}
 
-// TODO: add support for IIP (initial information packets)
 void GraphStreamer::parseByte(char b) {
 
     buffer[currentByte++] = b;
-    // printf("%s: state=%d, currentByte=%d, input=%d\n", __PRETTY_FUNCTION__, state, currentByte, b);
 
     if (state == ParseHeader) {
         if (currentByte == GRAPH_MAGIC_SIZE) {
-            // FIXME: duplication of magic definition
-            if (buffer[0] == 'u' && buffer[1] == 'C' && buffer[2] == '/', buffer[3] == 'F', buffer[4] == 'l', buffer[5] == 'o') {
+            static const char magic[GRAPH_MAGIC_SIZE] = { GRAPH_MAGIC };
+            if (memcmp(buffer, magic, GRAPH_MAGIC_SIZE) == 0) {
                 state = ParseCmd;
             } else {
                 state = Invalid;
@@ -126,14 +124,29 @@ void GraphStreamer::parseByte(char b) {
                     const int srcPort = (unsigned int)buffer[3];
                     const int targetPort = (unsigned int)buffer[4];
                     network->connect(src, srcPort, target, targetPort);
+                } else if (cmd == GraphCmdSendPacket) {
+                    // FIXME: validate
+                    const int target = (unsigned int)buffer[1];
+                    const int targetPort = (unsigned int)buffer[2];
+                    const Msg packetType = (Msg)buffer[3];
+                    if (packetType == MsgInteger) {
+                        const long val = buffer[4] + 256*buffer[5] + 256*256*buffer[6] + 256*256*256*buffer[7];
+                        network->sendMessage(target, targetPort, Packet(val));
+                    }
+
                 }
             }
             currentByte = 0;
         }
 
     } else if (state == Invalid) {
+
+       Serial.println("Parser in invalid state");
+
         currentByte = 0; // avoid overflow
     } else {
+
+       Serial.println("Parser in unknown state");
 
     }
 }
@@ -288,7 +301,7 @@ void Network::processMessages() {
     messageReadIndex = writeIndex;
 }
 
-void Network::sendMessage(Component *target, int targetPort, Packet &pkg, Component *sender, int senderPort) {
+void Network::sendMessage(Component *target, int targetPort, const Packet &pkg, Component *sender, int senderPort) {
 
     if (messageWriteIndex > MAX_MESSAGES-1) {
         messageWriteIndex = 0;
@@ -300,6 +313,10 @@ void Network::sendMessage(Component *target, int targetPort, Packet &pkg, Compon
     if (messageSentNotify) {
         messageSentNotify(messageWriteIndex-1, msg, sender, senderPort);
     }
+}
+
+void Network::sendMessage(int targetId, int targetPort, const Packet &pkg) {
+    sendMessage(nodes[targetId], targetPort, pkg);
 }
 
 void Network::runSetup() {

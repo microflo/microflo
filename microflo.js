@@ -7,9 +7,15 @@ var cmdFormat = require("./microflo/commandformat.json");
 var components = require("./microflo/components.json");
 
 var writeCmd = function() {
-    buf = arguments[0];
-    offset = arguments[1];
-    data = Array.prototype.slice.call(arguments, 2);
+    var buf = arguments[0];
+    var offset = arguments[1];
+    var data = arguments[2];
+    if (data.hasOwnProperty("length")) {
+        // Buffer
+        data.copy(buf, offset);
+    } else {
+        data = Array.prototype.slice.call(arguments, 2);
+    }
 
     for (var i = 0; i < cmdFormat.commandSize; i++) {
         if (i < data.length) {
@@ -38,6 +44,26 @@ var lookupInputPortId = function(componentName, portName) {
     return portsDef[portName].id;
 }
 
+var dataLiteralToCommand = function(literal, tgt, tgtPort) {
+    // FIXME: verify definition of data literals in NoFlo JSON/FBP format
+    literal = literal.replace("^\"|\"$", "");
+    var value = parseInt(literal);
+    console.log(value);
+    if (typeof value === 'number' && value % 1 == 0) {
+        var b = new Buffer(cmdFormat.commandSize);
+        b.fill(0);
+        b.writeUInt8(cmdFormat.commands.SendPacket.id, 0);
+        b.writeUInt8(tgt, 1);
+        b.writeUInt8(tgtPort, 2);
+        b.writeInt8(cmdFormat.packetTypes.Integer.id, 3);
+        b.writeInt32LE(value, 4);
+        return b;
+    } else {
+        throw "Unknown IIP data type";
+       // TODO: handle other type of values
+    }
+}
+
 // TODO: actually add observers to graph, and emit a command stream for the changes
 var cmdStreamFromGraph = function(graph) {
     var buffer = new Buffer(1024); // FIXME: unhardcode
@@ -62,15 +88,26 @@ var cmdStreamFromGraph = function(graph) {
 
     // Connect nodes
     graph.connections.forEach(function(connection) {
-        var srcNode = connection.src.process;
-        var tgtNode = connection.tgt.process;
-        var srcPort = lookupOutputPortId(graph.processes[srcNode].component, connection.src.port);
-        var tgtPort = lookupInputPortId(graph.processes[tgtNode].component, connection.tgt.port);
-        index += writeCmd(buffer, index, cmdFormat.commands.ConnectNodes.id, nodeMap[srcNode], nodeMap[tgtNode], srcPort, tgtPort);
+        if (connection.src !== undefined) {
+            var srcNode = connection.src.process;
+            var tgtNode = connection.tgt.process;
+            var srcPort = lookupOutputPortId(graph.processes[srcNode].component, connection.src.port);
+            var tgtPort = lookupInputPortId(graph.processes[tgtNode].component, connection.tgt.port);
+            index += writeCmd(buffer, index, cmdFormat.commands.ConnectNodes.id, nodeMap[srcNode], nodeMap[tgtNode], srcPort, tgtPort);
+        }
     });
 
-    buf = buf.slice(0, index);
-    return buf;
+    // Send IIPs
+    graph.connections.forEach(function(connection) {
+        if (connection.data !== undefined) {
+            var tgtNode = connection.tgt.process;
+            var tgtPort = lookupInputPortId(graph.processes[tgtNode].component, connection.tgt.port);
+            index += writeCmd(buffer, index, dataLiteralToCommand(connection.data, nodeMap[tgtNode], tgtPort));
+        }
+    });
+
+    buffer = buffer.slice(0, index);
+    return buffer;
 }
 
 var cmdStreamToCDefinition = function(cmdStream) {
@@ -103,9 +140,12 @@ var generateOutput = function(inputFile, outputFile) {
         } else {
             def = JSON.parse(data);
         }
-        var data = cmdStreamFromGraph(def);
 
         // TODO: allow to generate just one of these
+        fs.writeFile(outputBase + ".json", JSON.stringify(def), function(err) {
+            if (err) throw err;
+        });
+        var data = cmdStreamFromGraph(def);
         fs.writeFile(outputBase + ".fbcs", data, function(err) {
             if (err) throw err;
         });

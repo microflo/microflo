@@ -33,7 +33,8 @@ enum Msg {
     MsgBracketStart,
     MsgBracketEnd,
 
-    MsgMaxDefined
+    MsgMaxDefined,
+    MsgMax = 255
 };
 
 class Packet {
@@ -110,8 +111,9 @@ public:
     void connect(Component *src, int srcPort, Component *target, int targetPort);
     void connect(int srcId, int srcPort, int targetId, int targetPort);
 
-    void sendMessage(Component *target, int targetPort, Packet &pkg,
+    void sendMessage(Component *target, int targetPort, const Packet &pkg,
                      Component *sender=0, int senderPort=-1);
+    void sendMessage(int targetId, int targetPort, const Packet &pkg);
 
     void setNotifications(MessageSendNotification send,
                           MessageDeliveryNotification deliver,
@@ -170,9 +172,9 @@ private:
 // TODO: defined commands for observing graph changes
 #include <stddef.h>
 
-#define GRAPH_MAGIC 'u','C','/','F','l','o',
-const size_t GRAPH_MAGIC_SIZE = 6;
-const size_t GRAPH_CMD_SIZE = 1 + 5; // cmd + payload
+#define GRAPH_MAGIC 'u','C','/','F','l','o', '0', '1'
+const size_t GRAPH_MAGIC_SIZE = 8;
+const size_t GRAPH_CMD_SIZE = 1 + 7; // cmd + payload
 
 class GraphStreamer {
 public:
@@ -188,7 +190,7 @@ private:
 
     Network *network;
     int currentByte;
-    char buffer[GRAPH_CMD_SIZE];
+    unsigned char buffer[GRAPH_CMD_SIZE];
     enum State state;
 };
 

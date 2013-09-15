@@ -1,12 +1,16 @@
 {
-    "magicString": "uC/Flo",
-    "commandSize": 6,
+    "magicString": "uC/Flo01",
+    "commandSize": 8,
     "commands": {
         "Reset": {"id": 10},
         "CreateComponent": {"id": 11},
         "ConnectNodes": {"id": 12},
+        "SendPacket": {"id": 13},
 
         "Invalid": { },
         "Max": { "id": 255 }
+    },
+    "packetTypes": {
+        "Integer": { "id": 7 }
     }
 }

@@ -109,17 +109,20 @@ private:
 class Timer : public Component {
 public:
     virtual void process(Packet in, int port) {
-
+        const int intervalConfigPort = 0;
         if (in.isSetup()) {
+            // defaults
             previousMillis = 0;
-            // FIXME: do based on input data instead of hardcode
-            interval = 100;
+            interval = 1000;
         } else if (in.isTick()) {
             unsigned long currentMillis = millis();
             if (currentMillis - previousMillis > interval) {
                 previousMillis = currentMillis;
                 send(Packet());
             }
+        } else if (port == intervalConfigPort && in.isData()) {
+            previousMillis = millis();
+            interval = in.asInteger();
         }
     }
 private:
