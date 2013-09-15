@@ -19,6 +19,10 @@ class Max : public DummyComponent {};
 
 // I/O
 
+// IDEA: wrap all actual I/O behind an IoMaster class/interface, which can handle multiple access etc.
+// This should make it possible for all components to share implementation, and hide platform specifics in master.
+// Should also be possible to use as an interception point for testing
+
 #ifdef ARDUINO
 class SerialIn : public Component {
 public:
