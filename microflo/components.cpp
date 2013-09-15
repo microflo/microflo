@@ -148,7 +148,9 @@ public:
         } else if (port == triggerPort && in.isData()) {
             sensors.requestTemperatures();
             const float tempC = sensors.getTempC(address);
-            send(Packet(tempC));
+            if (tempC != -127) {
+                send(Packet(tempC));
+            }
         }
     }
 private:
