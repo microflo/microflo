@@ -212,7 +212,7 @@ public:
         if (in.isSetup()) {
             for (int outPort=0; outPort < digitalPins+analogPins; outPort++) {
                 // Emit 0 for A0, 1 for A1, and so on
-                char val = (outPort < digitalPins) ? outPort : outPort - digitalPins;
+                const long val = (outPort < digitalPins) ? outPort : outPort - digitalPins;
                 send(Packet(val), outPort);
             }
         }
