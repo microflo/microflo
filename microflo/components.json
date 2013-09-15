@@ -43,6 +43,7 @@
             }
         },
         "ToString": { "id": 14 },
+        "Delimit": { "id": 15 },
 
         "ArduinoUno": {
             "id": 50,

@@ -30,6 +30,8 @@ enum Msg {
     MsgBoolean,
     MsgInteger,
     MsgFloat,
+    MsgBracketStart,
+    MsgBracketEnd,
 
     MsgMaxDefined
 };
@@ -51,6 +53,9 @@ public:
     bool isSetup() { return msg == MsgSetup; }
     bool isTick() { return msg == MsgTick; }
     bool isSpecial() { return isSetup() || isTick(); }
+
+    bool isStartBracket() { return msg == MsgBracketStart; }
+    bool isEndBracket() { return msg == MsgBracketEnd; }
 
     bool isData() { return isValid() && !isSpecial(); }
     bool isBool() { return msg == MsgBoolean; }

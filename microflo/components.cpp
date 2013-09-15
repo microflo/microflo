@@ -281,29 +281,77 @@ public:
         if (in.isInteger()) {
 #ifdef ARDUINO
             String s(in.asInteger(), DEC);
+            send(Packet(MsgBracketStart));
             for (int i=0; i<s.length(); i++) {
                 send(Packet(s.charAt(i)));
             }
+            send(Packet(MsgBracketEnd));
 #endif
 #ifdef HOST_BUILD
             std::stringstream ss;
             ss << in.asInteger();
             std::string s = ss.str();
+            send(Packet(MsgBracketStart));
             for (int i=0; i<s.size(); i++) {
                 send(Packet(s[i]));
             }
+            send(Packet(MsgBracketEnd));
 #endif
         } else if (in.isBool()) {
             const char *s = in.asBool() ? "true" : "false";
             const int l = in.asBool() ? 4 : 5;
+            send(Packet(MsgBracketStart));
             for (int i=0; i<l; i++) {
                 send(Packet(s[i]));
             }
+            send(Packet(MsgBracketEnd));
+        } else if (in.isFloat()) {
+
+            char s[20] = {0,};
+            const int precision = 2;
+            const int width = 2;
+#ifdef ARDUINO
+            dtostrf(in.asFloat(), width, precision, s);
+#endif
+#ifdef HOST_BUILD
+            snprintf(s, sizeof(s), "%.2f", in.asFloat());
+#endif
+            send(Packet(MsgBracketStart));
+            for (int i=0; i<strlen(s); i++) {
+                send(Packet(s[i]));
+            }
+            send(Packet(MsgBracketEnd));
         }
     }
 };
 
-
+class Delimit : public Component {
+public:
+    Delimit(): startBracketRecieved(false) {}
+    virtual void process(Packet in, int port) {
+        if (in.isSetup()) {
+            delimiter = '\r';
+        }
+        if (startBracketRecieved) {
+            if (in.isEndBracket()) {
+                startBracketRecieved = false;
+                send(Packet(delimiter));
+            } else {
+                send(in);
+            }
+        } else {
+            if (in.isStartBracket()) {
+                startBracketRecieved = true;
+            } else if (in.isData()) {
+                send(in);
+                send(Packet(delimiter));
+            }
+        }
+    }
+private:
+    bool startBracketRecieved;
+    char delimiter;
+};
 
 #ifdef HOST_BUILD
 class ReadStdIn : public Component {
