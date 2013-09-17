@@ -1,4 +1,8 @@
-timer(Timer) OUT -> TRIGGER termometer(ReadDallasTemperature)
-termometer OUT -> IN hys(HysteresisLatch)
-hys() OUT -> IN s(ToString)
-s() OUT -> IN out(SerialOut)
+timer(Timer) OUT -> TRIGGER temp(ReadDallasTemperature)
+temp() OUT -> IN s(ToString)
+s() OUT -> IN d(Delimit)
+d() OUT -> IN out(SerialOut)
+
+board(ArduinoUno) 3 -> PIN temp()
+'["0x28", "0xAF", "0x1C", "0xB2", "0x04", "0x00", "0x00", "0x33"]' -> ADDRESS temp()
+'3000' -> INTERVAL timer()

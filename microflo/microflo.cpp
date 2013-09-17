@@ -133,9 +133,15 @@ void GraphStreamer::parseByte(char b) {
                     const int target = (unsigned int)buffer[1];
                     const int targetPort = (unsigned int)buffer[2];
                     const Msg packetType = (Msg)buffer[3];
-                    if (packetType == MsgInteger) {
+                    if (packetType == MsgBracketStart || packetType == MsgBracketEnd
+                            || packetType == MsgVoid) {
+                        network->sendMessage(target, targetPort, Packet(packetType));
+                    } else if (packetType == MsgInteger) {
                         const long val = buffer[4] + 256*buffer[5] + 256*256*buffer[6] + 256*256*256*buffer[7];
                         network->sendMessage(target, targetPort, Packet(val));
+                    } else if (packetType == MsgByte) {
+                        const unsigned char b = buffer[4];
+                        network->sendMessage(target, targetPort, Packet(b));
                     }
 
                 }

@@ -13,6 +13,7 @@ var writeCmd = function() {
     if (data.hasOwnProperty("length")) {
         // Buffer
         data.copy(buf, offset);
+        return data.length;
     } else {
         data = Array.prototype.slice.call(arguments, 2);
     }
@@ -45,10 +46,10 @@ var lookupInputPortId = function(componentName, portName) {
 }
 
 var dataLiteralToCommand = function(literal, tgt, tgtPort) {
-    // FIXME: verify definition of data literals in NoFlo JSON/FBP format
     literal = literal.replace("^\"|\"$", "");
+
+    // Integer
     var value = parseInt(literal);
-    console.log(value);
     if (typeof value === 'number' && value % 1 == 0) {
         var b = new Buffer(cmdFormat.commandSize);
         b.fill(0);
@@ -58,10 +59,45 @@ var dataLiteralToCommand = function(literal, tgt, tgtPort) {
         b.writeInt8(cmdFormat.packetTypes.Integer.id, 3);
         b.writeInt32LE(value, 4);
         return b;
-    } else {
-        throw "Unknown IIP data type";
-       // TODO: handle other type of values
     }
+
+    try {
+        value = JSON.parse(literal);
+    } catch(err) {
+        throw "Unknown IIP data type for literal '" + literal + "' :" + err;
+    }
+
+    // Array of bytes
+    if (true) {
+        var b = new Buffer(cmdFormat.commandSize*(value.length+2));
+        var offset = 0;
+        b.fill(0, offset, offset+cmdFormat.commandSize);
+        b.writeUInt8(cmdFormat.commands.SendPacket.id, offset+0);
+        b.writeUInt8(tgt, offset+1);
+        b.writeUInt8(tgtPort, offset+2);
+        b.writeInt8(cmdFormat.packetTypes.BracketStart.id, offset+3)
+        offset += cmdFormat.commandSize;
+
+        for (var i=0; i<value.length; i++) {
+            b.fill(0, offset, offset+cmdFormat.commandSize);
+            b.writeUInt8(cmdFormat.commands.SendPacket.id, offset+0);
+            b.writeUInt8(tgt, offset+1);
+            b.writeUInt8(tgtPort, offset+2);
+            b.writeInt8(cmdFormat.packetTypes.Byte.id, offset+3)
+            var v = parseInt(value[i]);
+            b.writeUInt8(v, offset+4);
+            offset += cmdFormat.commandSize;
+        }
+        b.fill(0, offset, offset+cmdFormat.commandSize);
+        b.writeUInt8(cmdFormat.commands.SendPacket.id, offset+0);
+        b.writeUInt8(tgt, offset+1);
+        b.writeUInt8(tgtPort, offset+2);
+        b.writeInt8(cmdFormat.packetTypes.BracketEnd.id, offset+3)
+        offset += cmdFormat.commandSize;
+        return b;
+    }
+    throw "Unknown IIP data type for literal '" + literal + "'";
+    // TODO: handle floats, strings
 }
 
 // TODO: actually add observers to graph, and emit a command stream for the changes

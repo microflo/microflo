@@ -44,7 +44,8 @@
         "ReadDallasTemperature": { "id": 13,
             "inPorts": {
                 "trigger": { "id": 0 },
-                "pin": { "id": 1 }
+                "pin": { "id": 1 },
+                "address": { "id": 2 }
             }
         },
         "ToString": { "id": 14 },

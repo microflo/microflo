@@ -144,25 +144,37 @@ public:
     virtual void process(Packet in, int port) {
         const int triggerPort = 0;
         const int pinConfigPort = 1;
+        const int addressConfigPort = 2;
 
         if (in.isSetup()) {
-            // FIXME: support bracketed IPs so this can be configured
-            DeviceAddress a = { 0x28, 0xAF, 0x1C, 0xB2, 0x04, 0x00, 0x00, 0x33 };
             // defaults
-            updateConfig(pin, a, 10);
+            addressIndex = 0;
+            updateConfig(pin, 10);
         } else if (port == pinConfigPort && in.isNumber()) {
-            updateConfig(in.asInteger(), address, sensors.getResolution());
+            updateConfig(in.asInteger(), sensors.getResolution());
+        } else if (port == addressConfigPort) {
+            if (in.isStartBracket()) {
+                addressIndex = 0;
+            } else if (in.isData()) {
+                if (addressIndex < sizeof(address)) {
+                    address[addressIndex++] = in.asByte();
+                }
+            } else if (in.isEndBracket()) {
+                // ASSERT(addressIndex == sizeof(DeviceAddress));
+            }
+
         } else if (port == triggerPort && in.isData()) {
-            sensors.requestTemperatures();
-            const float tempC = sensors.getTempC(address);
-            if (tempC != -127) {
-                send(Packet(tempC));
+            if (addressIndex == sizeof(DeviceAddress)) {
+                sensors.requestTemperatures();
+                const float tempC = sensors.getTempC(address);
+                if (tempC != -127) {
+                    send(Packet(tempC));
+                }
             }
         }
     }
 private:
-    void updateConfig(int newPin, DeviceAddress &newAddress, int newResolution) {
-        memcpy(address, newAddress, sizeof(DeviceAddress));
+    void updateConfig(int newPin, int newResolution) {
         if (newPin != pin)  {
             oneWire = OneWire(pin);
             sensors = DallasTemperature(&oneWire);
@@ -171,6 +183,7 @@ private:
     }
 
     int pin;
+    int addressIndex;
     DeviceAddress address;
     OneWire oneWire;
     DallasTemperature sensors;
