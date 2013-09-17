@@ -19,24 +19,6 @@ public:
 // Packet
 // TODO: implement a proper variant type, or type erasure
 // XXX: should setup & ticks really be IPs??
-enum Msg {
-    MsgInvalid = 0,
-    MsgSetup,
-    MsgTick,
-
-    MsgVoid, // no data payload, can be used like a "bang" in other flow-based systems
-    MsgByte,
-    MsgAscii,
-    MsgBoolean,
-    MsgInteger,
-    MsgFloat,
-    MsgBracketStart,
-    MsgBracketEnd,
-
-    MsgMaxDefined,
-    MsgMax = 255
-};
-
 class Packet {
 
 public:
@@ -55,6 +37,7 @@ public:
     bool isTick() { return msg == MsgTick; }
     bool isSpecial() { return isSetup() || isTick(); }
 
+    bool isVoid() { return msg == MsgVoid; }
     bool isStartBracket() { return msg == MsgBracketStart; }
     bool isEndBracket() { return msg == MsgBracketEnd; }
 

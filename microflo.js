@@ -207,7 +207,8 @@ if (cmd == "generate") {
                  function(err) { if (err) throw err });
     fs.writeFile("microflo/components-gen.hpp", generateComponentFactory(components.components),
                  function(err) { if (err) throw err });
-    fs.writeFile("microflo/commandformat-gen.h", generateEnum("GraphCmd", "GraphCmd", cmdFormat.commands),
+    fs.writeFile("microflo/commandformat-gen.h", generateEnum("GraphCmd", "GraphCmd", cmdFormat.commands) +
+                 "\n" + generateEnum("Msg", "Msg", cmdFormat.packetTypes),
                  function(err) { if (err) throw err });
 } else {
     throw "Invalid commandline arguments. Usage: node microflo.js generate INPUT [OUTPUT]"

@@ -11,6 +11,21 @@
         "Max": { "id": 255 }
     },
     "packetTypes": {
-        "Integer": { "id": 7 }
+        "Invalid": { "id": 0 },
+        "Setup": { "id": 1 },
+        "Tick": { "id": 2 },
+
+        "Void": { "id": 3,
+            "description": "No data payload, can be used like a 'bang' in other flow-based systems" },
+        "Byte": { "id": 4 },
+        "Ascii": { "id": 5 },
+        "Boolean": { "id": 6 },
+        "Integer": { "id": 7 },
+        "Float": { "id": 8 },
+        "BracketStart": { "id": 9 },
+        "BracketEnd": { "id": 10 },
+
+        "MaxDefined": { },
+        "Max": { "id": 255 }
     }
 }
