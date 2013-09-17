@@ -1,5 +1,9 @@
 #include "microflo.h"
 
+#ifdef HOST_BUILD
+#include <cstring>
+#endif
+
 bool Packet::asBool() {
     if (msg == MsgBoolean){
         return data.boolean;
@@ -140,14 +144,14 @@ void GraphStreamer::parseByte(char b) {
         }
 
     } else if (state == Invalid) {
-
+#ifdef DEBUG
        Serial.println("Parser in invalid state");
-
+#endif
         currentByte = 0; // avoid overflow
     } else {
-
+#ifdef DEBUG
        Serial.println("Parser in unknown state");
-
+#endif
     }
 }
 
