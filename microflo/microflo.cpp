@@ -187,6 +187,7 @@ void Component::setNetwork(Network *net, int n) {
 }
 
 #ifdef ARDUINO
+#ifdef DEBUG
 void Debugger::setup(Network *network) {
     Serial.begin(9600);
     network->setNotifications(&Debugger::printSend, &Debugger::printDeliver,
@@ -255,6 +256,7 @@ void Debugger::printConnect(Component *src, int srcPort, Component *target, int 
     Serial.print(targetPort);
     Serial.println();
 }
+#endif
 #endif
 
 Network::Network()

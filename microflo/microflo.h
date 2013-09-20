@@ -69,7 +69,7 @@ private:
 };
 
 // Network
-const int MAX_NODES = 10;
+const int MAX_NODES = 20;
 const int MAX_MESSAGES = 50;
 const int MAX_PORTS = 20;
 
