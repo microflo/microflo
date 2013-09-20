@@ -82,6 +82,10 @@ unsigned char Packet::asByte() {
     }
 }
 
+bool Packet::operator==(const Packet& rhs) const {
+    return msg == rhs.msg && memcmp(&data, &rhs.data, sizeof(PacketData)) == 0;
+}
+
 GraphStreamer::GraphStreamer()
     : network(0)
     , currentByte(0)
@@ -380,3 +384,6 @@ int Network::addNode(Component *node) {
     return nodeId;
 }
 
+void Network::reset() {
+    // FIXME: implement
+}

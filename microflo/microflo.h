@@ -55,6 +55,8 @@ public:
     char asAscii();
     unsigned char asByte();
 
+    bool operator==(const Packet& rhs) const;
+
 private:
     union PacketData {
         bool boolean;
@@ -90,6 +92,7 @@ class Network {
 public:
     Network();
 
+    void reset();
     int addNode(Component *node);
     void connect(Component *src, int srcPort, Component *target, int targetPort);
     void connect(int srcId, int srcPort, int targetId, int targetPort);

@@ -23,8 +23,12 @@ upload: build
 definitions:
 	node microflo.js update-defs
 
+check:
+	g++ -o test/host test/host.cpp -I./microflo -DHOST_BUILD
+	./test/host
+
 clean:
 	git clean -dfx --exclude=node_modules
 
-.PHONY: all build hostbuild definitions clean
+.PHONY: all build hostbuild definitions clean check
 
