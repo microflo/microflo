@@ -1,12 +1,13 @@
 # TODO: build+test all examples, for both target+host
 
 GRAPH=examples/readbutton.fbp
+MODEL=uno
 
 all: build hostbuild
 
 hostbuild: definitions
 	node microflo.js generate examples/host.fbp build/host/example.cpp
-	g++ -o build/host/example build/host/example.cpp $(CFLAGS) -I./microflo -DHOST_BUILD
+	$(CXX) -o build/host/example build/host/example.cpp $(CFLAGS) -I./microflo -DHOST_BUILD
 
 build: definitions
 	mkdir -p build/arduino/src
@@ -15,16 +16,17 @@ build: definitions
 	unzip -n ./thirdparty/OneWire.zip -d build/arduino/lib/
 	unzip -n ./thirdparty/DallasTemperature.zip -d build/arduino/lib/
 	node microflo.js generate $(GRAPH) build/arduino/src/serial.ino
-	cd build/arduino && ino build
+	cd build/arduino && ino build --board-model=$(MODEL)
+	avr-size -A build/arduino/.build/$(MODEL)/firmware.elf
 
 upload: build
-	cd build/arduino && ino upload
+	cd build/arduino && ino upload --board-model=$(MODEL)
 
 definitions:
 	node microflo.js update-defs
 
 check:
-	g++ -o test/host test/host.cpp -I./microflo -DHOST_BUILD
+	$(CXX) -o test/host test/host.cpp -I./microflo -DHOST_BUILD
 	./test/host
 
 clean:
