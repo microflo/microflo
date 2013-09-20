@@ -306,9 +306,9 @@ void Network::processMessages() {
     const int writeIndex = messageWriteIndex;
     if (readIndex > writeIndex) {
         deliverMessages(readIndex, MAX_MESSAGES-1);
-        deliverMessages(0, writeIndex);
+        deliverMessages(0, writeIndex-1);
     } else if (readIndex < writeIndex) {
-        deliverMessages(readIndex, writeIndex);
+        deliverMessages(readIndex, writeIndex-1);
     } else {
         // no messages
     }
