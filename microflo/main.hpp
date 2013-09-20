@@ -1,4 +1,6 @@
 #ifdef ARDUINO
+#include <avr/pgmspace.h>
+
 GraphStreamer parser;
 Network network;
 void setup()
@@ -9,7 +11,9 @@ void setup()
 #endif
     parser.setNetwork(&network);
     for (int i=0; i<sizeof(graph); i++) {
-        parser.parseByte(graph[i]);
+        //unsigned char c = graph[i];
+        unsigned char c = pgm_read_byte_near(graph+i);
+        parser.parseByte(c);
     }
     network.runSetup();
 }

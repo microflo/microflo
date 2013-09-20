@@ -146,14 +146,29 @@ var cmdStreamFromGraph = function(graph) {
     return buffer;
 }
 
-var cmdStreamToCDefinition = function(cmdStream) {
+var cmdStreamToCDefinition = function(cmdStream, annotation) {
+    var hostCode = "#ifdef HOST_BUILD\n";
+    hostCode += cmdStreamToC(cmdStream);
+    hostCode += "\n#endif\n"
+
+    var arduinoCode = "#ifdef ARDUINO\n#include <avr/pgmspace.h>\n";
+    arduinoCode += cmdStreamToC(cmdStream, "PROGMEM");
+    arduinoCode += "\n#endif\n"
+    return hostCode + arduinoCode;
+}
+
+var cmdStreamToC = function(cmdStream, annotation) {
+    if (!annotation) {
+        annotation = ""
+    }
 
     var variableName = "graph";
     var values = [];
     for (var i=0; i<cmdStream.length; i++) {
         values[i] = "0x" + cmdStream.readUInt8(i).toString(16);
     }
-    var cCode = "const unsigned char " + variableName + "[] = {" + values.join(",") + "};"
+
+    var cCode = "const unsigned char " + variableName + "[] " + annotation + " = {" + values.join(",") + "};"
     return cCode;
 }
 
@@ -165,8 +180,7 @@ var generateOutput = function(inputFile, outputFile) {
         fs.mkdirSync(outputDir);
     }
 
-    // XXX: NoFlo tries to create instantiate the a network when creating a graph..
-    // This prevents us from using just noflo.loadFile()
+    // TODO: Use noflo.graph.loadFile() instead
     fs.readFile(inputFile, {encoding: "utf8"}, function(err, data) {
         if (err) throw err;
 
