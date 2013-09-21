@@ -1,0 +1,33 @@
+diff -u DallasTemperature/DallasTemperature.cpp DallasTemperaturePa/DallasTemperature.cpp
+--- DallasTemperature/DallasTemperature.cpp	2011-12-12 00:44:18.000000000 +0100
++++ DallasTemperaturePa/DallasTemperature.cpp	2013-09-21 21:27:35.643577662 +0200
+@@ -30,6 +30,13 @@
+   checkForConversion = true;
+ }
+ 
++void DallasTemperature::setWire(OneWire *_oneWire) {
++    _wire = _oneWire;
++}
++OneWire *DallasTemperature::getWire() {
++    return _wire;
++}
++
+ // initialise the bus
+ void DallasTemperature::begin(void)
+ {
+diff -u DallasTemperature/DallasTemperature.h DallasTemperaturePa/DallasTemperature.h
+--- DallasTemperature/DallasTemperature.h	2011-12-12 00:44:18.000000000 +0100
++++ DallasTemperaturePa/DallasTemperature.h	2013-09-21 21:27:35.646910996 +0200
+@@ -61,7 +61,10 @@
+ {
+   public:
+ 
+-  DallasTemperature(OneWire*);
++  DallasTemperature(OneWire* w=0);
++
++  void setWire(OneWire *_oneWire);
++  OneWire *getWire();
+ 
+   // initalise bus
+   void begin(void);
+Common subdirectories: DallasTemperature/examples and DallasTemperaturePa/examples

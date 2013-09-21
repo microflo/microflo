@@ -133,23 +133,18 @@ private:
 class ReadDallasTemperature : public Component {
 public:
     ReadDallasTemperature()
-        : pin(3) // default
-        , oneWire(pin)
-        , sensors(&oneWire)
+        : pin(-1) // default
+        , addressIndex(0)
     {}
 
     virtual void process(Packet in, int port) {
-        const int triggerPort = 0;
-        const int pinConfigPort = 1;
-        const int addressConfigPort = 2;
+        using namespace ReadDallasTemperaturePorts;
 
         if (in.isSetup()) {
             // defaults
-            addressIndex = 0;
-            updateConfig(pin, 10);
-        } else if (port == pinConfigPort && in.isNumber()) {
+        } else if (port == InPorts::pin && in.isNumber()) {
             updateConfig(in.asInteger(), sensors.getResolution());
-        } else if (port == addressConfigPort) {
+        } else if (port == InPorts::address) {
             if (in.isStartBracket()) {
                 addressIndex = 0;
             } else if (in.isData()) {
@@ -160,8 +155,8 @@ public:
                 // ASSERT(addressIndex == sizeof(DeviceAddress));
             }
 
-        } else if (port == triggerPort && in.isData()) {
-            if (addressIndex == sizeof(DeviceAddress)) {
+        } else if (port == InPorts::trigger && in.isData()) {
+            if (addressIndex == sizeof(DeviceAddress) && sensors.getWire()) {
                 sensors.requestTemperatures();
                 const float tempC = sensors.getTempC(address);
                 if (tempC != -127) {
@@ -172,9 +167,9 @@ public:
     }
 private:
     void updateConfig(int newPin, int newResolution) {
-        if (newPin != pin)  {
-            oneWire = OneWire(pin);
-            sensors = DallasTemperature(&oneWire);
+        if (newPin != pin && newPin > -1) {
+            oneWire.setPin(newPin);
+            sensors.setWire(&oneWire);
         }
         sensors.setResolution(newResolution);
     }

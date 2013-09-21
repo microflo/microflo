@@ -15,6 +15,9 @@ build: definitions
 	ln -sf `pwd`/microflo build/arduino/lib/
 	unzip -n ./thirdparty/OneWire.zip -d build/arduino/lib/
 	unzip -n ./thirdparty/DallasTemperature.zip -d build/arduino/lib/
+	cd build/arduino/lib && test -e patched || patch -p0 < ../../../thirdparty/DallasTemperature.patch
+	cd build/arduino/lib && test -e patched || patch -p0 < ../../../thirdparty/OneWire.patch
+	touch build/arduino/lib/patched
 	node microflo.js generate $(GRAPH) build/arduino/src/serial.ino
 	cd build/arduino && ino build --board-model=$(MODEL)
 	avr-size -A build/arduino/.build/$(MODEL)/firmware.elf
