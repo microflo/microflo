@@ -5,8 +5,8 @@ switch() OUT2 -> IN ic(InvertBoolean) OUT -> IN turnOn(DigitalWrite) OUT -> IN i
 
 # Config
 '5000' -> INTERVAL timer()
-board(ArduinoUno) 8 -> PIN turnOff()
-board() 9 -> PIN turnOn()
+board(ArduinoUno) PIN8 -> PIN turnOff()
+board() PIN9 -> PIN turnOn()
 
 
 
