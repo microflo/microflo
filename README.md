@@ -72,6 +72,18 @@ This is all TODO at the moment.
 * Target implementation (I/O)
     * Functional tests. Analog/Digital in/out, Serial/UART in/out, PWM/ADC
     * Ideally automated on real hardware coupled back-to-back
+* Performance
+    * Benchmarks to be done on device
+    * Message throughput, as function of number of nodes/edges
+    * Overhead of component interface, as function of component complexity
+    * Maximum number of nodes (limited by RAM usage)
+    * Program size (progmem/Flash)
+    * Input->output latency, average and distribution
+    * Graph setup/teardown time
+* Applications
+    * Allow to use stub/mock I/O components, and test/simulate on host
+    * Allow to build test fixtures using graphs
+    * Allow to drive BDD tests on device from host in JavaScript
 
 Contributors
 -------------
