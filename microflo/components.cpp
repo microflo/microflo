@@ -62,17 +62,14 @@ public:
 class DigitalWrite : public Component {
 public:
     virtual void process(Packet in, int port) {
-        // Note: have to match components.json
-        const int inPort = 0;
-        const int pinConfigPort = 1;
-        const int outPort = 0;
+        using namespace DigitalWritePorts;
         if (in.isSetup()) {
             outPin = 13; // default
             pinMode(outPin, OUTPUT);
-        } else if (port == inPort && in.isBool()) {
+        } else if (port == InPorts::in && in.isBool()) {
             digitalWrite(outPin, in.asBool());
-            send(in, outPort);
-        } else if (port == pinConfigPort && in.isNumber()) {
+            send(in, OutPorts::out);
+        } else if (port == InPorts::pin && in.isNumber()) {
             outPin = in.asInteger();
             pinMode(outPin, OUTPUT);
         }
