@@ -1,13 +1,26 @@
-timer(Timer) OUT -> IN toggle(ToggleBoolean)
-toggle() OUT -> IN switch(BreakBeforeMake)
-switch() OUT1 -> IN ia(InvertBoolean) OUT -> IN turnOff(DigitalWrite) OUT -> IN ib(InvertBoolean) OUT -> MONITOR1 switch()
-switch() OUT2 -> IN ic(InvertBoolean) OUT -> IN turnOn(DigitalWrite) OUT -> IN id(InvertBoolean) OUT -> MONITOR2 switch()
+# Thermostat
+timer(Timer) OUT -> TRIGGER thermometer(ReadDallasTemperature)
+thermometer() OUT -> IN hysteresis(HysteresisLatch)
+
+# Debug/monitoring
+#thermometer() OUT -> IN s(ToString)
+#hysteresis() OUT -> IN s(ToString)
+#s() OUT -> IN out(SerialOut)
+
+# On/Off switch
+hysteresis() OUT -> IN switch(BreakBeforeMake)
+switch() OUT1 -> IN ia(InvertBoolean) OUT -> IN turnOn(DigitalWrite)
+switch() OUT2 -> IN ic(InvertBoolean) OUT -> IN turnOff(DigitalWrite)
+# Feedback cycle to switch required for syncronizing break-before-make logic
+turnOn() OUT -> IN ib(InvertBoolean) OUT -> MONITOR1 switch()
+turnOff() OUT -> IN id(InvertBoolean) OUT -> MONITOR2 switch()
 
 # Config
-'5000' -> INTERVAL timer()
-board(ArduinoUno) PIN8 -> PIN turnOff()
-board() PIN9 -> PIN turnOn()
-
-
-
+'5000' -> INTERVAL timer() # milliseconds
+'28' -> LOWTHRESHOLD hysteresis() # Celcius
+'30' -> HIGHTHRESHOLD hysteresis() # Celcius
+'["0x28", "0xAF", "0x1C", "0xB2", "0x04", "0x00", "0x00", "0x33"]' -> ADDRESS thermometer()
+board(ArduinoUno) PIN9 -> PIN thermometer()
+board() PIN12 -> PIN turnOff()
+board() PIN11 -> PIN turnOn()
 
