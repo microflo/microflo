@@ -1,8 +1,10 @@
 #ifdef ARDUINO
 #include <avr/pgmspace.h>
+#include "arduino.hpp"
 
 GraphStreamer parser;
-Network network;
+ArduinoIO io;
+Network network(&io);
 void setup()
 {
 #ifdef DEBUG
@@ -26,10 +28,13 @@ void loop()
 
 #ifdef HOST_BUILD
 #include <unistd.h>
+#include "host.hpp"
+
 int main(int argc, char *argv[]) {
 
     // Setup
-    Network network;
+    HostIO io;
+    Network network(&io);
 
     GraphStreamer parser;
     parser.setNetwork(&network);

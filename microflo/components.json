@@ -6,10 +6,12 @@
         "Invalid": { "id": 0 },
 
         "Forward": { "id": 1 },
-        "ReadStdIn": { "id": 2 },
-        "PrintStdOut": { "id": 3 },
-        "RandomChar": { "id": 4 },
-
+        "Count": { "id": 3,
+            "inPorts": {
+                "in": { "id": 0 },
+                "reset": { "id": 1 }
+            }
+        },
         "DigitalWrite": { "id": 5,
             "inPorts": {
                 "in": { "id": 0 },

@@ -20,23 +20,18 @@ class Invalid : public DummyComponent {};
 class Max : public DummyComponent {};
 
 // I/O
-
-// IDEA: wrap all actual I/O behind an IoMaster class/interface, which can handle multiple access etc.
-// This should make it possible for all components to share implementation, and hide platform specifics in master.
-// Should also be possible to use as an interception point for testing
-
-#ifdef ARDUINO
 class SerialIn : public Component {
 public:
     virtual void process(Packet in, int port) {
+        // FIXME: make device and baudrate configurable
+        const int serialDevice = -1;
 
         if (in.isSetup()) {
             // FIXME: do based on input data instead of hardcode
-            // FIXME: avoid doing setup multiple times
-            Serial.begin(9600);
+            io->SerialBegin(serialDevice, 9600);
         } else if (in.isTick()) {
-            if (Serial.available() > 0) {
-                char c = Serial.read();
+            if (io->SerialDataAvailable(serialDevice) > 0) {
+                char c = io->SerialRead(serialDevice);
                 send(Packet(c));
             }
         }
@@ -46,15 +41,15 @@ public:
 class SerialOut : public Component {
 public:
     virtual void process(Packet in, int port) {
+        // FIXME: make device and baudrate configurable
+        const int serialDevice = -1;
 
         if (in.isSetup()) {
-            // FIXME: do based on input data instead of hardcode
-            // FIXME: avoid doing multiple times
-            Serial.begin(9600);
+            io->SerialBegin(serialDevice, 9600);
         } else if (in.isByte()) {
-            Serial.write(in.asByte());
+            io->SerialWrite(serialDevice, in.asByte());
         } else if (in.isAscii()) {
-            Serial.write(in.asAscii());
+            io->SerialWrite(serialDevice, in.asAscii());
         }
     }
 };
@@ -65,13 +60,13 @@ public:
         using namespace DigitalWritePorts;
         if (in.isSetup()) {
             outPin = 13; // default
-            pinMode(outPin, OUTPUT);
+            io->PinSetMode(outPin, IO::OutputPin);
         } else if (port == InPorts::in && in.isBool()) {
-            digitalWrite(outPin, in.asBool());
+            io->DigitalWrite(outPin, in.asBool());
             send(in, OutPorts::out);
         } else if (port == InPorts::pin && in.isNumber()) {
             outPin = in.asInteger();
-            pinMode(outPin, OUTPUT);
+            io->PinSetMode(outPin, IO::OutputPin);
         }
     }
 private:
@@ -88,7 +83,7 @@ public:
         if (in.isSetup()) {
             setPinAndPullup(12, true); // defaults
         } else if (port == triggerPort && in.isData()) {
-            bool isHigh = digitalRead(pin) == HIGH;
+            bool isHigh = io->DigitalRead(pin);
             send(Packet(isHigh));
         } else if (port == pinConfigPort && in.isNumber()) {
             setPinAndPullup(in.asInteger(), pullup);
@@ -100,8 +95,8 @@ private:
     void setPinAndPullup(int newPin, bool newPullup) {
         pin = newPin;
         pullup = newPullup;
-        pinMode(pin, INPUT);
-        digitalWrite(pin, pullup ? HIGH : LOW);
+        io->PinSetMode(pin, IO::InputPin);
+        io->PinEnablePullup(pin, pullup);
     }
     int pin;
     bool pullup;
@@ -116,13 +111,13 @@ public:
             previousMillis = 0;
             interval = 1000;
         } else if (in.isTick()) {
-            unsigned long currentMillis = millis();
+            unsigned long currentMillis = io->TimerCurrentMs();
             if (currentMillis - previousMillis > interval) {
                 previousMillis = currentMillis;
                 send(Packet());
             }
         } else if (port == intervalConfigPort && in.isData()) {
-            previousMillis = millis();
+            previousMillis = io->TimerCurrentMs();
             interval = in.asInteger();
         }
     }
@@ -131,6 +126,7 @@ private:
     unsigned long interval;
 };
 
+#ifdef ARDUINO
 #include <OneWire.h>
 #include <DallasTemperature.h>
 
@@ -190,12 +186,6 @@ private:
     DallasTemperature sensors;
 };
 #else
-// TODO: implement host I/O components which can be used for simulation/testing
-class SerialIn : public DummyComponent {};
-class SerialOut : public DummyComponent {};
-class DigitalWrite : public DummyComponent {};
-class DigitalRead : public DummyComponent {};
-class Timer : public DummyComponent {};
 class ReadDallasTemperature : public DummyComponent {};
 #endif // ARDUINO
 
@@ -444,38 +434,22 @@ private:
     char delimiter;
 };
 
-#ifdef HOST_BUILD
-class ReadStdIn : public Component {
-public:
-    virtual void process(Packet in, int port) {
-        if (in.isTick()) {
-            send(Packet((char)getchar()));
-        }
-    }
-};
 
-class PrintStdOut : public Component {
+class Count : public Component {
 public:
     virtual void process(Packet in, int port) {
-        if (in.isByte()) {
-            putchar(in.asByte());
-        } else if (in.isAscii()) {
-            putchar(in.asAscii());
+        using namespace CountPorts;
+        if (port == InPorts::in) {
+            current += 1;
+            send(Packet(current));
+        } else if (port == InPorts::reset) {
+            current = 0;
+            send(Packet(current));
         }
-    }
-};
 
-class RandomChar : public Component {
-public:
-    virtual void process(Packet in, int port) {
-        char c = 255 * (rand()/(RAND_MAX+1.0));
-        send(Packet(c));
     }
+private:
+    long current;
 };
-#else
-class ReadStdIn : public DummyComponent {};
-class PrintStdOut : public DummyComponent {};
-class RandomChar : public DummyComponent {};
-#endif // HOST_BUILD
 
 #include "components-gen-bottom.hpp"

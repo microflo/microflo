@@ -1,2 +1,5 @@
-In(RandomChar) OUT -> IN f(Forward)
-f() OUT -> IN Out(PrintStdOut)
+timer(Timer) OUT -> IN count(Count)
+count() OUT -> IN f(Forward)
+f() OUT -> IN Out(SerialOut)
+
+'100' -> INTERVAL timer()

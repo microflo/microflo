@@ -87,10 +87,10 @@ typedef void (*NodeConnectNotification)(Component *src, int srcPort, Component *
 typedef void (*MessageSendNotification)(int, Message, Component *, int);
 typedef void (*MessageDeliveryNotification)(int, Message);
 
-
+class IO;
 class Network {
 public:
-    Network();
+    Network(IO *io);
 
     void reset();
     int addNode(Component *node);
@@ -122,6 +122,7 @@ private:
     MessageDeliveryNotification messageDeliveredNotify;
     AddNodeNotification addNodeNotify;
     NodeConnectNotification nodeConnectNotify;
+    IO *io;
 };
 
 struct Connection {
@@ -131,9 +132,38 @@ struct Connection {
 
 class Debugger;
 
+// IO interface for components
+// Used to move the sideeffects of I/O components out of the component,
+// to allow different target implementations, and to let tests inject mocks
+class IO {
+public:
+    virtual ~IO() {}
+
+    // Serial
+    virtual void SerialBegin(int serialDevice, int baudrate) = 0;
+    virtual long SerialDataAvailable(int serialDevice) = 0;
+    virtual unsigned char SerialRead(int serialDevice) = 0;
+    virtual void SerialWrite(int serialDevice, unsigned char b) = 0;
+
+    // Pin config
+    enum PinMode {
+        InputPin,
+        OutputPin
+    };
+    virtual void PinSetMode(int pin, PinMode mode) = 0;
+    virtual void PinEnablePullup(int pin, bool enable) = 0;
+
+    // Digital
+    virtual void DigitalWrite(int pin, bool val) = 0;
+    virtual bool DigitalRead(int pin) = 0;
+
+    // Timer
+    virtual long TimerCurrentMs() = 0;
+};
+
 // Component
 // TODO: add a way of doing subgraphs as components, both programatically and using .fbp format
-// TODO: a way of declaring component introspection data. JSON embedded in comment?
+// IDEA: a decentral way of declaring component introspection data. JSON embedded in comment?
 class Component {
     friend class Network;
     friend class Debugger;
@@ -142,9 +172,10 @@ public:
     virtual void process(Packet in, int port) = 0;
 protected:
     void send(Packet out, int port=0);
+    IO *io;
 private:
     void connect(int outPort, Component *target, int targetPort);
-    void setNetwork(Network *net, int n);
+    void setNetwork(Network *net, int n, IO *io);
 private:
     Connection connections[MAX_PORTS]; // one per output port
     Network *network;

@@ -177,9 +177,10 @@ void Component::connect(int outPort, Component *target, int targetPort) {
     connections[outPort].targetPort = targetPort;
 }
 
-void Component::setNetwork(Network *net, int n) {
+void Component::setNetwork(Network *net, int n, IO *i) {
     network = net;
     nodeId = n;
+    io = i;
     for(int i=0; i<MAX_PORTS; i++) {
         connections[i].target = 0;
         connections[i].targetPort = -1;
@@ -259,7 +260,7 @@ void Debugger::printConnect(Component *src, int srcPort, Component *target, int 
 #endif
 #endif
 
-Network::Network()
+Network::Network(IO *io)
     : lastAddedNodeIndex(0)
     , messageWriteIndex(0)
     , messageReadIndex(0)
@@ -267,6 +268,7 @@ Network::Network()
     , messageDeliveredNotify(0)
     , addNodeNotify(0)
     , nodeConnectNotify(0)
+    , io(io)
 {
     for (int i=0; i<MAX_NODES; i++) {
         nodes[i] = 0;
@@ -378,7 +380,7 @@ void Network::connect(Component *src, int srcPort, Component *target, int target
 int Network::addNode(Component *node) {
     const int nodeId = lastAddedNodeIndex;
     nodes[nodeId] = node;
-    node->setNetwork(this, nodeId);
+    node->setNetwork(this, nodeId, this->io);
     if (addNodeNotify) {
         addNodeNotify(node);
     }
