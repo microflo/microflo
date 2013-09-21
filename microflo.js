@@ -4,7 +4,7 @@ var fs = require("fs");
 var path = require("path");
 
 var cmdFormat = require("./microflo/commandformat.json");
-var components = require("./microflo/components.json");
+var componentDefs = require("./microflo/components.json");
 
 var writeCmd = function() {
     var buf = arguments[0];
@@ -36,12 +36,12 @@ var writeString = function(buf, offset, string) {
 }
 
 var lookupOutputPortId = function(componentName, portName) {
-    var portsDef = components.components[componentName].outPorts || components.defaultOutPorts;
+    var portsDef = componentDefs.components[componentName].outPorts || componentDefs.defaultOutPorts;
     return portsDef[portName].id;
 }
 
 var lookupInputPortId = function(componentName, portName) {
-    var portsDef = components.components[componentName].inPorts || components.defaultInPorts;
+    var portsDef = componentDefs.components[componentName].inPorts || componentDefs.defaultInPorts;
     return portsDef[portName].id;
 }
 
@@ -117,7 +117,7 @@ var cmdStreamFromGraph = function(graph) {
             continue;
         }
         var process = graph.processes[nodeName];
-        var componentId = components.components[process.component].id;
+        var componentId = componentDefs.components[process.component].id;
         index += writeCmd(buffer, index, cmdFormat.commands.CreateComponent.id, componentId);
         nodeMap[nodeName] = currentNodeId++;
     }
@@ -213,6 +213,9 @@ var generateOutput = function(inputFile, outputFile) {
 }
 
 var generateEnum = function(name, prefix, enums) {
+    if (Object.keys(enums).length === 0) {
+        return ""
+    }
     var indent = "\n    ";
 
     var out = "enum " + name + " {";
@@ -226,6 +229,25 @@ var generateEnum = function(name, prefix, enums) {
     out += a.join(",");
     out += "\n};\n";
 
+    return out;
+}
+
+var generateComponentPortDefinitions = function(components) {
+    var out = "\n";
+    for (var name in components) {
+        if (!components.hasOwnProperty(name)) {
+            continue;
+        }
+        out += "\n" + "namespace " + name + "Ports {\n";
+        out += "struct InPorts {\n"
+        out += generateEnum("Ports", "", components[name].inPorts || componentDefs.defaultInPorts);
+        out += "};\n"
+
+        out += "struct OutPorts {\n"
+        out += generateEnum("Ports", "", components[name].outPorts || componentDefs.defaultOutPorts);
+        out += "};"
+        out += "\n}\n";
+    }
     return out;
 }
 
@@ -253,9 +275,11 @@ if (cmd == "generate") {
     var outputFile = process.argv[4] || inputFile
     generateOutput(inputFile, outputFile);
 } else if (cmd == "update-defs") {
-    fs.writeFile("microflo/components-gen.h", generateEnum("ComponentId", "Id", components.components),
+    fs.writeFile("microflo/components-gen.h", generateEnum("ComponentId", "Id", componentDefs.components),
                  function(err) { if (err) throw err });
-    fs.writeFile("microflo/components-gen.hpp", generateComponentFactory(components.components),
+    fs.writeFile("microflo/components-gen-bottom.hpp", generateComponentFactory(componentDefs.components),
+                 function(err) { if (err) throw err });
+    fs.writeFile("microflo/components-gen-top.hpp", generateComponentPortDefinitions(componentDefs.components),
                  function(err) { if (err) throw err });
     fs.writeFile("microflo/commandformat-gen.h", generateEnum("GraphCmd", "GraphCmd", cmdFormat.commands) +
                  "\n" + generateEnum("Msg", "Msg", cmdFormat.packetTypes),

@@ -2,6 +2,8 @@
 #include "microflo.h"
 #include "components.h"
 
+#include "components-gen-top.hpp"
+
 // Generic
 class Forward : public Component {
 public:
@@ -479,5 +481,4 @@ class PrintStdOut : public DummyComponent {};
 class RandomChar : public DummyComponent {};
 #endif // HOST_BUILD
 
-
-#include "components-gen.hpp"
+#include "components-gen-bottom.hpp"
