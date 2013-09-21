@@ -211,16 +211,4 @@ private:
     enum State state;
 };
 
-#ifdef ARDUINO
-class Debugger {
-public:
-    static void setup(Network *network);
-    static void printPacket(Packet *p);
-    static void printSend(int index, Message m, Component *sender, int senderPort);
-    static void printDeliver(int index, Message m);
-    static void printAdd(Component *c);
-    static void printConnect(Component *src, int srcPort, Component *target, int targetPort);
-};
-#endif // ARDUINO
-
 #endif // MICROFLO_H
