@@ -28,8 +28,6 @@ void loop()
 
 #ifdef HOST_BUILD
 #include <unistd.h>
-#include "host.hpp"
-
 int main(int argc, char *argv[]) {
 
     // Setup

@@ -1,5 +1,6 @@
 #define MICROFLO_NO_MAIN
 #include "microflo.hpp"
+#include "host.hpp"
 #include <vector>
 
 class PacketComparer : public Component
@@ -47,7 +48,8 @@ bool checkPacketPropagation() {
     for (int i=0; i<nmessages; i++) {
         messages.push_back(Packet((long)i));
     }
-    Network n;
+    HostIO io;
+    Network n(&io);
     PacketComparer comp;
 
     // Setup
