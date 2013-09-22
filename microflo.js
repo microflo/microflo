@@ -3,10 +3,13 @@
  * MicroFlo may be freely distributed under the MIT license
  */
 
-var noflo = require("noflo");
-var fbp = require("fbp");
 var fs = require("fs");
 var path = require("path");
+
+// Will not be built/available when generating definitions
+var addon = undefined;
+var noflo = undefined;
+var fbp = undefined;
 
 var cmdFormat = require("./microflo/commandformat.json");
 
@@ -329,6 +332,12 @@ var portDefAsArray = function(port) {
 var lib = new ComponentLibrary(require("./microflo/components.json"));
 var cmd = process.argv[2];
 if (cmd == "generate") {
+    console.log(process.cwd(), fs.readdirSync("./build/Release"))
+    addon = require("./build/Release/MicroFlo.node");
+    fbp = require("fbp");
+    noflo = require("noflo");
+
+    console.log(addon.hello());
     var inputFile = process.argv[3];
     var outputFile = process.argv[4] || inputFile
     generateOutput(lib, inputFile, outputFile);
