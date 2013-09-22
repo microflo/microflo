@@ -1,5 +1,6 @@
 MicroFlo: flow-based programming for microcontrollers
 ========================================================
+[![Build Status](https://travis-ci.org/jonnor/microflo.png?branch=master)](https://travis-ci.org/jonnor/microflo)
 
 Implementation of [Flow-based programming](http://en.wikipedia.org/wiki/Flow-based_programming).
 Inspired by and designed for integration with [NoFlo](http://noflojs.org/).
