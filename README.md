@@ -11,20 +11,52 @@ aims to allow build _standalone_ microcontroller applications, that can also be 
 
 Status
 -------
-**Proof-of-concept** still in progress. Nothing is stable.
+**Experimental**. Simple things work, but not tested thoroughly. Several things in the architecture has not been validated.
+Suitable for interested hackers only, not for general consumption.
 
-Can run trivial graphs defined by .fbp files on Arduino Uno,
-for example echoing serial communication or blinking LED periodically.
+Can run simple applications defined by .fbp files,
+like a fridge flow which reads out temperature using a DS1820 digital thermometer
+and turns on/off the cooler to maintain desired temperature.
+
+See [examples](./examples).
 
 Milestones
 -----------
-* 0.1.0, "Minimally useful": Can implement a fridge flow
+* 0.1.5, "Introspectable": One can monitor graphs running on the device from host
 * 0.2.0, "Runtime reconfigurable": Graphs can be changed on the fly
 * 0.3.0, "Generally useful": Implements Firmata protocol, most of Arduino tutorials works
 
 TODO
 -----
-git grep -E 'TODO|FIXME|XXX|IDEA|PERF'
+    git grep -E 'TODO|FIXME|XXX|IDEA|PERF'
+
+
+Using/developing
+-----------------
+Note: Only tested on Arch Linux and Ubuntu, but should work on any GNU/Linux.
+May also work on Mac OSX. Windows not, as [Ino](http://inotool.org/#limitations) does not support it.
+
+Note: Only tested with Arduino Uno R3 and Arduino Nano R3.
+
+Get the code
+    git clone https://github.com/jonnor/microflo.git
+    cd microflo
+
+Install prerequsites; Arduino and Ino
+    apt-get install arduino
+    pip install ino
+
+To build and run tests
+    make && make check
+
+To flash your Arduino with a graph
+    make upload GRAPH=examples/blink.fbp MODEL=uno
+
+To see existing or add new components, check the files
+    ./microflo/components.json
+    ./microflo/components.cpp
+
+When you find issues: file bugs and/or provide patches!
 
 License
 -------
