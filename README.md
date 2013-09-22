@@ -28,7 +28,9 @@ git grep -E 'TODO|FIXME|XXX|IDEA|PERF'
 
 License
 -------
-GNU LGPL v2.1+, for now. A more liberal license is being contemplated.
+MIT for the code in MicroFlo, see ./LICENSE.
+Note that MicroFlo currently relies on the Arduino, DallasTemperature and OneWire libraries,
+which are under the GNU LGPL.
 
 Goals
 ----------
@@ -88,7 +90,7 @@ This is all TODO at the moment.
 
 Contributors
 -------------
-Jon Nordby <jononor@gmail.com>
+[Jon Nordby](http://www.jonnor.com)
 
 
 Related

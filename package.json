@@ -2,9 +2,12 @@
     "name": "microflo",
     "version": "0.0.2",
     "description": "Flow-based programming runtime for microcontrollers",
-    "keywords": ["fbp", "noflo", "dataflow", "microcontroller", "physical-computing", "Arduino"],
+    "keywords": ["fbp", "noflo", "dataflow", "microcontroller",
+        "physical computing", "Arduino", "embedded systems", "atmel avr"],
     "author": "Jon Nordby <jononor@gmail.com> (http://www.jonnor.com)",
     "repository" : { "type" : "git", "url" : "http://github.com/jonnor/microflo.git"},
+    "bugs": "http://github.com/jonnor/microflo/issues",
+    "license": "MIT",
     "dependencies": {
         "noflo": "~0.4.0",
         "fbp": "~1.0.2"
