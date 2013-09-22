@@ -39,22 +39,26 @@ May also work on Mac OSX. Windows not, as [Ino](http://inotool.org/#limitations)
 Note: Only tested with Arduino Uno R3 and Arduino Nano R3.
 
 Get the code
+
     git clone https://github.com/jonnor/microflo.git
     cd microflo
 
 Install prerequsites; Arduino and Ino
+
     apt-get install arduino
     pip install ino
 
 To build and run tests
+
     make && make check
 
 To flash your Arduino with a graph
+
     make upload GRAPH=examples/blink.fbp MODEL=uno
 
 To see existing or add new components, check the files
-    ./microflo/components.json
-    ./microflo/components.cpp
+    [./microflo/components.json](./microflo/components.json)
+    [./microflo/components.cpp](./microflo/components.cpp)
 
 When you find issues: file bugs and/or provide patches!
 
