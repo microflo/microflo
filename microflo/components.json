@@ -5,8 +5,20 @@
     "components": {
         "Invalid": { "id": 0 },
 
-        "Forward": { "id": 1 },
-        "Count": { "id": 3,
+        "PwmWrite": { "id": 1,
+            "inPorts": {
+                "dutycycle": { "id": 0 },
+                "pin": { "id": 1 }
+            }
+        },
+        "AnalogRead": { "id": 2,
+            "inPorts": {
+                "trigger": { "id": 0 },
+                "pin": { "id": 1 }
+            }
+        },
+        "Forward": { "id": 3 },
+        "Count": { "id": 4,
             "inPorts": {
                 "in": { "id": 0 },
                 "reset": { "id": 1 }
@@ -62,6 +74,15 @@
             "outPorts": {
                 "out1": { "id": 0 },
                 "out2": { "id": 1 }
+            }
+        },
+        "MapLinear": { "id": 17,
+            "inPorts": {
+                "in": { "id": 0 },
+                "inmin": { "id": 1 },
+                "inmax": { "id": 2 },
+                "outmin": { "id": 3 },
+                "outmax": { "id": 4 }
             }
         },
 

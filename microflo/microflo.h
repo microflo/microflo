@@ -162,6 +162,13 @@ public:
     virtual void DigitalWrite(int pin, bool val) = 0;
     virtual bool DigitalRead(int pin) = 0;
 
+    // Analog
+    // Values should be [0..1023], for now
+    virtual long AnalogRead(int pin) = 0;
+
+    // [0..100]
+    virtual void PwmWrite(int pin, long dutyPercent) = 0;
+
     // Timer
     virtual long TimerCurrentMs() = 0;
 };

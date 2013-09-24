@@ -45,5 +45,13 @@ public:
     virtual long TimerCurrentMs() {
         return 0;
     }
+
+    // Analog
+    virtual long AnalogRead(int pin) {
+        return 0;
+    }
+    virtual void PwmWrite(int pin, long dutyPercent) {
+
+    }
 };
 

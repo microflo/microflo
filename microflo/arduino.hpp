@@ -47,6 +47,14 @@ public:
         return digitalRead(pin);
     }
 
+    // Analog
+    virtual long AnalogRead(int pin) {
+        return analogRead(pin);
+    }
+    virtual void PwmWrite(int pin, long dutyPercent) {
+        analogWrite(pin, (dutyPercent*255)/100); // normalize to [0..255]
+    }
+
     // Timer
     virtual long TimerCurrentMs() {
         return millis();

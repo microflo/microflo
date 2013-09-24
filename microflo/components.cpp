@@ -108,6 +108,71 @@ private:
     bool pullup;
 };
 
+
+class PwmWrite : public Component {
+public:
+    virtual void process(Packet in, int port) {
+        using namespace PwmWritePorts;
+        if (in.isSetup()) {
+            // no defaults
+        } else if (port == InPorts::dutycycle && in.isData()) {
+            io->PwmWrite(outPin, in.asInteger());
+            send(in, OutPorts::out);
+        } else if (port == InPorts::pin && in.isNumber()) {
+            outPin = in.asInteger();
+            io->PinSetMode(outPin, IO::OutputPin);
+        }
+    }
+private:
+    int outPin;
+};
+
+class AnalogRead : public Component {
+public:
+    virtual void process(Packet in, int port) {
+        using namespace AnalogReadPorts;
+        if (in.isSetup()) {
+            // no defaults
+        } else if (port == InPorts::trigger && in.isData()) {
+            const long val = io->AnalogRead(pin);
+            send(Packet(val));
+        } else if (port == InPorts::pin && in.isNumber()) {
+            pin = in.asInteger();
+            io->PinSetMode(pin, IO::InputPin);
+        }
+    }
+private:
+    int pin;
+};
+
+class MapLinear : public Component {
+public:
+    virtual void process(Packet in, int port) {
+        using namespace MapLinearPorts;
+        if (in.isSetup()) {
+            // no defaults
+        } else if (port == InPorts::inmin && in.isData()) {
+            inmin = in.asInteger();
+        } else if (port == InPorts::inmax && in.isData()) {
+            inmax = in.asInteger();
+        } else if (port == InPorts::outmin && in.isData()) {
+            outmin = in.asInteger();
+        } else if (port == InPorts::outmax && in.isData()) {
+            outmax = in.asInteger();
+        } else if (port == InPorts::in && in.isNumber()) {
+            send(Packet(map(in.asInteger())));
+        }
+    }
+private:
+    long map(long in) {
+        return (in-inmin) * (outmax-outmin) / (inmax-inmin) + outmin;
+    }
+    long inmin;
+    long inmax;
+    long outmax;
+    long outmin;
+};
+
 class Timer : public Component {
 public:
     virtual void process(Packet in, int port) {
