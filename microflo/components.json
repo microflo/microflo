@@ -82,12 +82,12 @@
                 "pin11": { "id": 11 },
                 "pin12": { "id": 12 },
                 "pin13": { "id": 13 },
-                "pinA0": { "id": 14 },
-                "pinA1": { "id": 15 },
-                "pinA2": { "id": 16 },
-                "pinA3": { "id": 17 },
-                "pinA4": { "id": 18 },
-                "pinA5": { "id": 19 }
+                "pina0": { "id": 14 },
+                "pina1": { "id": 15 },
+                "pina2": { "id": 16 },
+                "pina3": { "id": 17 },
+                "pina4": { "id": 18 },
+                "pina5": { "id": 19 }
             },
             "inPorts": {}
         },
