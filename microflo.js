@@ -9,7 +9,29 @@ var fs = require("fs");
 var path = require("path");
 
 var cmdFormat = require("./microflo/commandformat.json");
-var componentDefs = require("./microflo/components.json");
+
+function ComponentLibrary(definition) {
+    this.definition = definition;
+
+    this.listComponents = function(componentName) {
+        return this.definition.components;
+    }
+    this.getComponent = function(componentName) {
+        return this.definition.components[componentName];
+    }
+    this.outputPortsFor = function(componentName) {
+        return this.getComponent(componentName).outPorts || this.definition.defaultOutPorts;
+    }
+    this.inputPortsFor = function(componentName) {
+        return this.getComponent(componentName).inPorts || this.definition.defaultInPorts;
+    }
+    this.inputPort = function(componentName, portName) {
+        return this.inputPortsFor(componentName)[portName];
+    }
+    this.outputPort = function(componentName, portName) {
+        return this.outputPortsFor(componentName)[portName];
+    }
+}
 
 var writeCmd = function() {
     var buf = arguments[0];
@@ -38,16 +60,6 @@ var writeString = function(buf, offset, string) {
         buf[offset+i] = string.charCodeAt(i);
     }
     return string.length;
-}
-
-var lookupOutputPortId = function(componentName, portName) {
-    var portsDef = componentDefs.components[componentName].outPorts || componentDefs.defaultOutPorts;
-    return portsDef[portName].id;
-}
-
-var lookupInputPortId = function(componentName, portName) {
-    var portsDef = componentDefs.components[componentName].inPorts || componentDefs.defaultInPorts;
-    return portsDef[portName].id;
 }
 
 var dataLiteralToCommand = function(literal, tgt, tgtPort) {
@@ -106,7 +118,7 @@ var dataLiteralToCommand = function(literal, tgt, tgtPort) {
 }
 
 // TODO: actually add observers to graph, and emit a command stream for the changes
-var cmdStreamFromGraph = function(graph) {
+var cmdStreamFromGraph = function(componentLib, graph) {
     var buffer = new Buffer(1024); // FIXME: unhardcode
     var index = 0;
     var nodeMap = {}; // nodeName->numericNodeId
@@ -122,7 +134,7 @@ var cmdStreamFromGraph = function(graph) {
             continue;
         }
         var process = graph.processes[nodeName];
-        var componentId = componentDefs.components[process.component].id;
+        var componentId = componentLib.getComponent(process.component).id;
         index += writeCmd(buffer, index, cmdFormat.commands.CreateComponent.id, componentId);
         nodeMap[nodeName] = currentNodeId++;
     }
@@ -132,8 +144,8 @@ var cmdStreamFromGraph = function(graph) {
         if (connection.src !== undefined) {
             var srcNode = connection.src.process;
             var tgtNode = connection.tgt.process;
-            var srcPort = lookupOutputPortId(graph.processes[srcNode].component, connection.src.port);
-            var tgtPort = lookupInputPortId(graph.processes[tgtNode].component, connection.tgt.port);
+            var srcPort = componentLib.outputPort(graph.processes[srcNode].component, connection.src.port).id;
+            var tgtPort = componentLib.inputPort(graph.processes[tgtNode].component, connection.tgt.port).id;
             index += writeCmd(buffer, index, cmdFormat.commands.ConnectNodes.id, nodeMap[srcNode], nodeMap[tgtNode], srcPort, tgtPort);
         }
     });
@@ -142,7 +154,7 @@ var cmdStreamFromGraph = function(graph) {
     graph.connections.forEach(function(connection) {
         if (connection.data !== undefined) {
             var tgtNode = connection.tgt.process;
-            var tgtPort = lookupInputPortId(graph.processes[tgtNode].component, connection.tgt.port);
+            var tgtPort = componentLib.inputPort(graph.processes[tgtNode].component, connection.tgt.port).id;
             index += writeCmd(buffer, index, dataLiteralToCommand(connection.data, nodeMap[tgtNode], tgtPort));
         }
     });
@@ -178,7 +190,7 @@ var cmdStreamToC = function(cmdStream, annotation) {
 }
 
 
-var generateOutput = function(inputFile, outputFile) {
+var generateOutput = function(componentLib, inputFile, outputFile) {
     var outputBase = outputFile.replace(path.extname(outputFile), "")
     var outputDir = path.dirname(outputBase);
     if (!fs.existsSync(outputDir)) {
@@ -200,7 +212,7 @@ var generateOutput = function(inputFile, outputFile) {
         fs.writeFile(outputBase + ".json", JSON.stringify(def), function(err) {
             if (err) throw err;
         });
-        var data = cmdStreamFromGraph(def);
+        data = cmdStreamFromGraph(componentLib, def);
         fs.writeFile(outputBase + ".fbcs", data, function(err) {
             if (err) throw err;
         });
@@ -237,34 +249,28 @@ var generateEnum = function(name, prefix, enums) {
     return out;
 }
 
-var generateComponentPortDefinitions = function(components) {
+var generateComponentPortDefinitions = function(componentLib) {
     var out = "\n";
-    for (var name in components) {
-        if (!components.hasOwnProperty(name)) {
-            continue;
-        }
+    for (var name in componentLib.listComponents()) {
         out += "\n" + "namespace " + name + "Ports {\n";
         out += "struct InPorts {\n"
-        out += generateEnum("Ports", "", components[name].inPorts || componentDefs.defaultInPorts);
+        out += generateEnum("Ports", "", componentLib.inputPortsFor(name));
         out += "};\n"
 
         out += "struct OutPorts {\n"
-        out += generateEnum("Ports", "", components[name].outPorts || componentDefs.defaultOutPorts);
+        out += generateEnum("Ports", "", componentLib.outputPortsFor(name));
         out += "};"
         out += "\n}\n";
     }
     return out;
 }
 
-var generateComponentFactory = function(components) {
+var generateComponentFactory = function(componentLib) {
     var out = "Component *Component::create(ComponentId id) {"
     var indent = "\n    ";
     out += indent + "Component *c;";
     out += indent + "switch (id) {";
-    for (var name in components) {
-        if (!components.hasOwnProperty(name)) {
-            continue;
-        }
+    for (var name in componentLib.listComponents()) {
         out += indent + "case Id" + name + ": c = new " + name + "; c->componentId=id; return c;"
     }
     out += indent + "default: return NULL;"
@@ -274,17 +280,18 @@ var generateComponentFactory = function(components) {
 }
 
 // Main
+var lib = new ComponentLibrary(require("./microflo/components.json"));
 var cmd = process.argv[2];
 if (cmd == "generate") {
     var inputFile = process.argv[3];
     var outputFile = process.argv[4] || inputFile
-    generateOutput(inputFile, outputFile);
+    generateOutput(lib, inputFile, outputFile);
 } else if (cmd == "update-defs") {
-    fs.writeFile("microflo/components-gen.h", generateEnum("ComponentId", "Id", componentDefs.components),
+    fs.writeFile("microflo/components-gen.h", generateEnum("ComponentId", "Id", lib.listComponents()),
                  function(err) { if (err) throw err });
-    fs.writeFile("microflo/components-gen-bottom.hpp", generateComponentFactory(componentDefs.components),
+    fs.writeFile("microflo/components-gen-bottom.hpp", generateComponentFactory(lib),
                  function(err) { if (err) throw err });
-    fs.writeFile("microflo/components-gen-top.hpp", generateComponentPortDefinitions(componentDefs.components),
+    fs.writeFile("microflo/components-gen-top.hpp", generateComponentPortDefinitions(lib),
                  function(err) { if (err) throw err });
     fs.writeFile("microflo/commandformat-gen.h", generateEnum("GraphCmd", "GraphCmd", cmdFormat.commands) +
                  "\n" + generateEnum("Msg", "Msg", cmdFormat.packetTypes),
