@@ -19,7 +19,8 @@ build: definitions
 	cd build/arduino/lib && test -e patched || patch -p0 < ../../../thirdparty/OneWire.patch
 	touch build/arduino/lib/patched
 	node microflo.js generate $(GRAPH) build/arduino/src/firmware.ino
-	cat build/arduino/src/firmware.{ino,cpp}
+	sleep 1
+	cat build/arduino/src/firmware.cpp
 	cd build/arduino && ino build --board-model=$(MODEL)
 	avr-size -A build/arduino/.build/$(MODEL)/firmware.elf
 
