@@ -279,6 +279,14 @@ var generateComponentFactory = function(componentLib) {
     return out;
 }
 
+var portDefAsArray = function(port) {
+    var a = [];
+    for (var name in port) {
+        a.push({id: name, type: "all"});
+    }
+    return a;
+}
+
 // Main
 var lib = new ComponentLibrary(require("./microflo/components.json"));
 var cmd = process.argv[2];
@@ -296,6 +304,56 @@ if (cmd == "generate") {
     fs.writeFile("microflo/commandformat-gen.h", generateEnum("GraphCmd", "GraphCmd", cmdFormat.commands) +
                  "\n" + generateEnum("Msg", "Msg", cmdFormat.packetTypes),
                  function(err) { if (err) throw err });
+} else if (cmd == "runtime") {
+    var http = require('http');
+    var websocket = require('websocket');
+
+       var httpServer = http.createServer();
+       var wsServer = new websocket.server({
+         httpServer: httpServer
+       });
+
+      var handleMessage = function (message, connection) {
+        if (message.type == 'utf8') {
+          try {
+            var contents = JSON.parse(message.utf8Data);
+          } catch (e) {
+            return;
+          }
+          console.log(contents.protocol, contents.command, contents.payload);
+          if (contents.protocol == "component" && contents.command == "list") {
+
+              for (var name in lib.listComponents()) {
+                  var comp = lib.getComponent(name);
+                  var resp = {protocol: "component", command: "component",
+                      payload: {name: name, description: comp.description || "",
+                          inPorts: portDefAsArray(lib.inputPortsFor(name)),
+                          outPorts: portDefAsArray(lib.outputPortsFor(name))
+                      }
+                  };
+                  connection.sendUTF(JSON.stringify(resp));
+              }
+
+
+          }
+        }
+      };
+
+      wsServer.on('request', function (request) {
+        var connection = request.accept('noflo', request.origin);
+        connection.on('message', function (message) {
+          handleMessage(message, connection);
+        });
+      });
+    var port = 3569;
+    httpServer.listen(port, function (err) {
+      if (err) {
+        error(err);
+      }
+
+      console.log("MicroFlo runtime listening at WebSocket port " + port);
+    });
+
 } else {
     throw "Invalid commandline arguments. Usage: node microflo.js generate INPUT [OUTPUT]"
 }
