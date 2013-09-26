@@ -130,6 +130,7 @@
                 "pin": { "id": 0 }
             }
         },
+
         "Split": { "id": 19,
             "description": "Emit incoming packets on all output ports",
             "outPorts": {
@@ -149,6 +150,15 @@
             "inPorts": {
                 "in": { "id": 0 },
                 "enable": { "id": 1 }
+            }
+        },
+        "AdsrEnvelope": { "id": 189,
+            "inPorts": {
+                "gate": { "id": 0 },
+                "attack": { "id": 1 },
+                "decay": { "id": 2 },
+                "sustain": { "id": 3 },
+                "release": { "id": 4 }
             }
         },
 

@@ -257,6 +257,66 @@ private:
     unsigned long interval;
 };
 
+class AdsrEnvelope : public Component {
+public:
+    virtual void process(Packet in, int port) {
+        using namespace AdsrEnvelopePorts;
+
+        if (in.isTick()) {
+            if (!idle) {
+                const long e = calculateEnv(io->TimerCurrentMs() - timeOfGateChange);
+                send(Packet(e));
+            }
+        } else if (port == InPorts::attack && in.isData()) {
+            attackTime = in.asInteger();
+        } else if (port == InPorts::decay && in.isData()) {
+            decayTime = in.asInteger();
+        } else if (port == InPorts::sustain && in.isData()) {
+            sustainLevel = in.asInteger();
+        } else if (port == InPorts::release && in.isData()) {
+            releaseTime = in.asInteger();
+        } else if (port == InPorts::gate && in.isData()) {
+            gateHigh = in.asBool();
+            timeOfGateChange = io->TimerCurrentMs();
+            if (gateHigh) {
+                idle = false;
+            }
+        }
+    }
+private:
+    // FIXME: proper calculations
+    long calculateEnv(unsigned long timeSinceGateChange) {
+        long env = 0;
+        if (gateHigh && timeSinceGateChange < attackTime) {
+            // attack
+            env = 1000;
+        } else if (gateHigh && timeSinceGateChange >= attackTime
+                   && timeSinceGateChange < attackTime+decayTime) {
+            // decay
+            env = 500;
+        } else if (gateHigh && timeSinceGateChange >= attackTime+decayTime) {
+            // sustain
+            env = sustainLevel;
+        } else if (!gateHigh && timeSinceGateChange < releaseTime) {
+            // release
+            env = 100;
+        } else if (!gateHigh && timeSinceGateChange >= releaseTime) {
+            idle = true;
+        }
+        return env;
+    }
+
+    // State state;
+    long attackTime;
+    long decayTime;
+    long sustainLevel;
+    long releaseTime;
+    unsigned long timeOfGateChange;
+    bool gateHigh;
+    bool idle;
+};
+
+
 #ifdef HAVE_DALLAS_TEMPERATURE
 #include <OneWire.h>
 #include <DallasTemperature.h>

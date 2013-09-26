@@ -1,0 +1,11 @@
+in(MonitorPin) OUT -> GATE env(AdsrEnvelope)
+env OUT -> IN map(MapLinear)
+map OUT -> DUTYCYCLE vca(PwmWrite)
+
+# Config
+'10' -> ATTACK env, '50' -> DECAY env
+'500' -> SUSTAIN env, '1000' -> RELEASE env
+'0' -> INMIN map, '1023' -> INMAX map
+'100' -> OUTMIN map, '0' -> OUTMAX map
+board(ArduinoUno) PIN2 -> PIN in
+board PIN11 -> PIN vca
