@@ -53,5 +53,9 @@ public:
     virtual void PwmWrite(int pin, long dutyPercent) {
 
     }
+
+    virtual void AttachExternalInterrupt(int interrupt, IO::Interrupt::Mode mode, IOInterruptFunction func, void *user) {
+        ;
+    }
 };
 

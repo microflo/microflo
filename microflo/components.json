@@ -85,6 +85,12 @@
                 "outmax": { "id": 4 }
             }
         },
+        "MonitorPin": { "id": 18,
+            "inPorts": {
+                "pin": { "id": 0 }
+            }
+        },
+
 
         "ArduinoUno": {
             "id": 50,

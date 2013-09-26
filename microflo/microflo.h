@@ -140,6 +140,9 @@ class Debugger;
 // IO interface for components
 // Used to move the sideeffects of I/O components out of the component,
 // to allow different target implementations, and to let tests inject mocks
+
+typedef void (*IOInterruptFunction)(void *user);
+
 class IO {
 public:
     virtual ~IO() {}
@@ -166,11 +169,27 @@ public:
     // Values should be [0..1023], for now
     virtual long AnalogRead(int pin) = 0;
 
+    // Pwm
     // [0..100]
     virtual void PwmWrite(int pin, long dutyPercent) = 0;
 
     // Timer
     virtual long TimerCurrentMs() = 0;
+
+    // Interrupts
+    struct Interrupt {
+        enum Mode {
+            OnLow,
+            OnHigh,
+            OnChange,
+            OnRisingEdge,
+            OnFallingEdge
+        };
+    };
+
+    // XXX: user responsible for mapping pin number to interrupt number
+    virtual void AttachExternalInterrupt(int interrupt, IO::Interrupt::Mode mode,
+                                         IOInterruptFunction func, void *user) = 0;
 };
 
 // Component

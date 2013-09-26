@@ -109,6 +109,32 @@ private:
 };
 
 
+class MonitorPin : public Component {
+public:
+    virtual void process(Packet in, int port) {
+        using namespace MonitorPinPorts;
+        if (port == InPorts::pin) {
+            pin = in.asInteger();
+            // FIXME: report error when attempting to use pin without interrupt
+            // TODO: support pin mappings for other devices than than Uno/Micro
+            int intr = 0;
+            if (pin == 2) {
+                intr = 0;
+            } else if (pin == 3) {
+                intr = 1;
+            }
+            io->AttachExternalInterrupt(intr, IO::Interrupt::OnChange, interrupt, this);
+        }
+    }
+private:
+    static void interrupt(void *user) {
+        MonitorPin *thisptr = static_cast<MonitorPin *>(user);
+        thisptr->send(Packet(thisptr->io->DigitalRead(thisptr->pin)));
+    }
+    int pin;
+};
+
+
 class PwmWrite : public Component {
 public:
     virtual void process(Packet in, int port) {

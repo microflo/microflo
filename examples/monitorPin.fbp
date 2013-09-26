@@ -1,0 +1,5 @@
+in(MonitorPin) OUT -> IN out(DigitalWrite)
+
+# Config
+board(ArduinoUno) PIN2 -> PIN in
+board PIN11 -> PIN out

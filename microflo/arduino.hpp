@@ -7,7 +7,48 @@
 
 #include "microflo.h"
 
+static const int MAX_EXTERNAL_INTERRUPTS = 3;
+
+struct InterruptHandler {
+    IOInterruptFunction func;
+    void *user;
+};
+
+static InterruptHandler externalInterruptHandlers[MAX_EXTERNAL_INTERRUPTS];
+
+static uint8_t InterruptModeToArduino(IO::Interrupt::Mode mode) {
+    switch (mode) {
+        case IO::Interrupt::OnChange: return CHANGE;
+        case IO::Interrupt::OnLow: return LOW;
+        case IO::Interrupt::OnHigh: return HIGH;
+        case IO::Interrupt::OnRisingEdge: return RISING;
+        case IO::Interrupt::OnFallingEdge: return FALLING;
+    }
+}
+
 class ArduinoIO : public IO {
+public:
+
+    // ... Arduino interrupt API is stupid and does not provide the callback with context
+    static void externalInterrupt0() {
+        IOInterruptFunction f = externalInterruptHandlers[0].func;
+        if (f) {
+            f(externalInterruptHandlers[0].user);
+        }
+    }
+    static void externalInterrupt1() {
+        IOInterruptFunction f = externalInterruptHandlers[1].func;
+        if (f) {
+            f(externalInterruptHandlers[1].user);
+        }
+    }
+    static void externalInterrupt2() {
+        IOInterruptFunction f = externalInterruptHandlers[2].func;
+        if (f) {
+            f(externalInterruptHandlers[2].user);
+        }
+    }
+
 public:
     ArduinoIO() {}
     ~ArduinoIO() {}
@@ -58,6 +99,19 @@ public:
     // Timer
     virtual long TimerCurrentMs() {
         return millis();
+    }
+
+    virtual void AttachExternalInterrupt(int interrupt, IO::Interrupt::Mode mode, IOInterruptFunction func, void *user) {
+        externalInterruptHandlers[interrupt].func = func;
+        externalInterruptHandlers[interrupt].user = user;
+        uint8_t m = InterruptModeToArduino(mode);
+        if (interrupt == 0) {
+            attachInterrupt(interrupt, externalInterrupt0, m);
+        } else if (interrupt == 1) {
+            attachInterrupt(interrupt, externalInterrupt1, m);
+        } else if (interrupt == 2) {
+            attachInterrupt(interrupt, externalInterrupt2, m);
+        }
     }
 };
 
