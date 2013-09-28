@@ -222,9 +222,6 @@ var generateOutput = function(componentLib, inputFile, outputFile) {
         fs.writeFile(outputBase + ".cpp", cmdStreamToCDefinition(data) + "\n" + '#include "microflo.hpp"', function(err) {
             if (err) throw err;
         });
-        fs.writeFile(outputBase + ".ino", cmdStreamToCDefinition(data) + '\n#include "microflo.hpp"', function(err) {
-            if (err) throw err;
-        });
     });
 
 }
