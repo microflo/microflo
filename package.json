@@ -8,9 +8,11 @@
     "repository" : { "type" : "git", "url" : "http://github.com/jonnor/microflo.git"},
     "bugs": "http://github.com/jonnor/microflo/issues",
     "license": "MIT",
+    "scripts":{"preinstall": "make definitions && node-gyp rebuild"},
     "dependencies": {
         "noflo": "~0.4.0",
         "fbp": "~1.0.2",
-        "websocket": "~1.0.8"
+        "websocket": "~1.0.8",
+        "serialport": "~1.1.3"
     }
 }

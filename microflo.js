@@ -13,23 +13,55 @@ var cmdFormat = require("./microflo/commandformat.json");
 function ComponentLibrary(definition) {
     this.definition = definition;
 
-    this.listComponents = function(componentName) {
+    this.listComponents = function() {
         return this.definition.components;
     }
     this.getComponent = function(componentName) {
         return this.definition.components[componentName];
     }
+    this.getComponentById = function(componentId) {
+        for (name in this.listComponents()) {
+            var comp = this.getComponent(name);
+            if (comp.id == componentId) {
+                comp.name = name;
+                return comp;
+            }
+        }
+    }
+
     this.outputPortsFor = function(componentName) {
         return this.getComponent(componentName).outPorts || this.definition.defaultOutPorts;
     }
     this.inputPortsFor = function(componentName) {
         return this.getComponent(componentName).inPorts || this.definition.defaultInPorts;
     }
+
     this.inputPort = function(componentName, portName) {
         return this.inputPortsFor(componentName)[portName];
     }
+    this.inputPortById = function(componentName, portId) {
+        var ports = this.inputPortsFor(componentName);
+        for (name in ports) {
+            var port = ports[name];
+            if (port.id == portId) {
+                port.name = name;
+                return port;
+            }
+        }
+    }
+
     this.outputPort = function(componentName, portName) {
         return this.outputPortsFor(componentName)[portName];
+    }
+    this.outputPortById = function(componentName, portId) {
+        var ports = this.outputPortsFor(componentName);
+        for (name in ports) {
+            var port = ports[name];
+            if (port.id == portId) {
+                port.name = name;
+                return port;
+            }
+        }
     }
 }
 
@@ -159,6 +191,9 @@ var cmdStreamFromGraph = function(componentLib, graph) {
         }
     });
 
+    // Attach the mapping so others can use it later
+    graph.nodeMap = nodeMap;
+
     buffer = buffer.slice(0, index);
     return buffer;
 }
@@ -189,6 +224,20 @@ var cmdStreamToC = function(cmdStream, annotation) {
     return cCode;
 }
 
+// TODO: Use noflo.graph.loadFile() instead?
+var loadFile = function(filename, callback) {
+    fs.readFile(filename, {encoding: "utf8"}, function(err, data) {
+        if (err) callback(err);
+
+        var def;
+        if (path.extname(filename) == ".fbp") {
+            def = fbp.parse(data);
+        } else {
+            def = JSON.parse(data);
+        }
+        callback(undefined, def);
+    });
+}
 
 var generateOutput = function(componentLib, inputFile, outputFile) {
     var outputBase = outputFile.replace(path.extname(outputFile), "")
@@ -197,16 +246,8 @@ var generateOutput = function(componentLib, inputFile, outputFile) {
         fs.mkdirSync(outputDir);
     }
 
-    // TODO: Use noflo.graph.loadFile() instead
-    fs.readFile(inputFile, {encoding: "utf8"}, function(err, data) {
+    loadFile(inputFile, function(err, def) {
         if (err) throw err;
-
-        var def;
-        if (path.extname(inputFile) == ".fbp") {
-            def = fbp.parse(data);
-        } else {
-            def = JSON.parse(data);
-        }
 
         // TODO: allow to generate just one of these
         fs.writeFile(outputBase + ".json", JSON.stringify(def), function(err) {
@@ -349,6 +390,98 @@ if (cmd == "generate") {
       }
 
       console.log("MicroFlo runtime listening at WebSocket port " + port);
+    });
+
+} else if (cmd == "debug") {
+    var serialport = require("serialport");
+
+    serialport.list(function (err, ports) {
+      ports.forEach(function(port) {
+        console.log(port.comName);
+        console.log(port.pnpId);
+        console.log(port.manufacturer);
+      });
+    });
+    var buf = "";
+    var parseSerial = function(graph, data) {
+        buf += data;
+        //process.stdout.write(buf);
+        var lines = buf.split("\r\n");
+        for (var i=0; i<lines.length-1; i++) {
+            var line = lines[i];
+            // TEMP: use binary commandstream protocol instead
+
+            var nodeNameById = function(nodeId) {
+                for (name in graph.nodeMap) {
+                    var id = graph.nodeMap[name];
+                    if (id == nodeId) {
+                        return name;
+                    }
+                }
+            }
+            var portNameFor = function(nodeId, portId, inputOrOutput) {
+                var nodeName = nodeNameById(nodeId);
+                var componentName = graph.processes[nodeName].component;
+                if (inputOrOutput == "input") {
+                    return lib.inputPortById(componentName, portId).name;
+                } else {
+                    return lib.outputPortById(componentName, portId).name;
+                }
+            }
+
+            var tokens = "";
+            if (line.indexOf("ADD: ") == 0) {
+                line = line.replace("ADD: ", "");
+                tokens = line.split(",");
+                var componentId = parseInt(tokens[0]);
+                var nodeId = parseInt(tokens[1]);
+                var c = lib.getComponentById(componentId);
+                console.log("CREATED: " + nodeNameById(nodeId) + "(" + c.name + ")");
+            } else if (line.indexOf("CONNECT: ") == 0) {
+                line = line.replace("CONNECT: ", "");
+                tokens = line.split(",");
+                var srcNodeId = parseInt(tokens[0]);
+                var srcPortId = parseInt(tokens[1]);
+                var targetNodeId = parseInt(tokens[2]);
+                var targetPortId = parseInt(tokens[3]);
+                console.log("CONNECTED:",
+                            nodeNameById(srcNodeId),
+                            portNameFor(srcNodeId, srcPortId), "->",
+                            portNameFor(targetNodeId, targetPortId, "input"),
+                            nodeNameById(targetNodeId)
+                );
+            } else if (line.indexOf("SEND: ") == 0) {
+                line = line.replace("SEND: ", "");
+                tokens = line.split(",");
+                srcNodeId = parseInt(tokens[1]);
+                srcPortId = parseInt(tokens[2]);
+                targetNodeId = parseInt(tokens[3]);
+                targetPortId = parseInt(tokens[4]);
+                var message = tokens[5]; // TODO: decode
+                console.log("SENT:",
+                            nodeNameById(srcNodeId),
+                            portNameFor(srcNodeId, srcPortId), "-> " + message + " ->",
+                            portNameFor(targetNodeId, targetPortId, "input"),
+                            nodeNameById(targetNodeId)
+                );
+            } else if (line.indexOf("DELIVER: ") == 0) {
+
+            }
+        }
+        buf = lines[lines.length-1];
+    }
+    // FIXME: automatically detect correct port, allow to override
+    var serial = new serialport.SerialPort("/dev/ttyUSB1", {baudrate: 9600}, false);
+    loadFile(process.argv[3], function(err, graph) {
+        // XXX: exploits the sideeffect that the nodeId->nodeName mappping is created
+        cmdStreamFromGraph(lib, graph);
+
+        serial.open(function(){
+            console.log("opened")
+            serial.on("data", function(data) {
+                parseSerial(graph, data);
+            });
+        });
     });
 
 } else {

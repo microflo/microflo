@@ -149,27 +149,26 @@ void Debugger::printPacket(Packet *p) {
 
 void Debugger::printSend(int index, Message m, Component *sender, int senderPort) {
     Serial.print("SEND: ");
-    Serial.print("i=");
     Serial.print(index);
     Serial.print(",");
-    Serial.print("from=");
     Serial.print(sender->nodeId);
     Serial.print(",");
-    Serial.print("to=");
+    Serial.print(senderPort);
+    Serial.print(",");
     Serial.print(m.target->nodeId);
-    Serial.print(" ");
+    Serial.print(",");
+    Serial.print(m.targetPort, DEC);
+    Serial.print(",");
     printPacket(&m.pkg);
     Serial.println();
 }
 
 void Debugger::printDeliver(int index, Message m) {
     Serial.print("DELIVER: ");
-    Serial.print("i=");
     Serial.print(index);
     Serial.print(",");
-    Serial.print("to=");
     Serial.print(m.target->nodeId);
-    Serial.print(" ");
+    Serial.print(",");
     printPacket(&m.pkg);
     Serial.println();
 }
@@ -184,13 +183,12 @@ void Debugger::printAdd(Component *c) {
 
 void Debugger::printConnect(Component *src, int srcPort, Component *target, int targetPort) {
     Serial.print("CONNECT: ");
-    Serial.print("src=");
     Serial.print(src->nodeId);
-    Serial.print(",sPort=");
+    Serial.print(",");
     Serial.print(srcPort);
-    Serial.print(",tgt=");
+    Serial.print(",");
     Serial.print(target->nodeId);
-    Serial.print(",tPort=");
+    Serial.print(",");
     Serial.print(targetPort);
     Serial.println();
 }
