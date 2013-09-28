@@ -50,7 +50,7 @@ Install prerequsites; Arduino and Ino
 
 To build and run tests
 
-    make && make check
+    npm install && make && make check
 
 To flash your Arduino with a graph
 
