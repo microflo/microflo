@@ -9,6 +9,10 @@ First hardware target will be [Arduino](http://arduino.cc)-compatible boards.
 Different from most other physical computing involving Node/JavaScript in that it
 aims to allow build _standalone_ microcontroller applications, that can also be reconfigured at runtime.
 
+Contact
+----------
+[Flow Based Programming Google Group](https://groups.google.com/forum/#!forum/flow-based-programming)
+
 Status
 -------
 **Experimental**. Simple things work, but not tested thoroughly. Several things in the architecture has not been validated.
@@ -65,11 +69,13 @@ To see existing or add new components, check the files
 * [./microflo/components.json](./microflo/components.json)
 * [./microflo/components.cpp](./microflo/components.cpp)
 
-When you find issues: file bugs and/or provide patches!
+When you find issues: [file bugs](https://github.com/jonnor/microflo/issues)
+and/or submit [pull requests](https://github.com/jonnor/microflo/pulls)!
 
 License
 -------
-MIT for the code in MicroFlo, see ./LICENSE.
+MIT for the code in MicroFlo, see [./LICENSE](./LICENSE).
+
 Note that MicroFlo currently relies on the Arduino, DallasTemperature and OneWire libraries,
 which are under the GNU LGPL.
 
@@ -132,7 +138,6 @@ This is all TODO at the moment.
 Contributors
 -------------
 [Jon Nordby](http://www.jonnor.com)
-
 
 Related
 ---------

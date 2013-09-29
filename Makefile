@@ -4,11 +4,7 @@ GRAPH=examples/readbutton.fbp
 MODEL=uno
 REPORTER=spec
 
-all: build hostbuild
-
-hostbuild: definitions
-	node microflo.js generate examples/host.fbp build/host/example.cpp
-	$(CXX) -o build/host/example build/host/example.cpp $(CFLAGS) -I./microflo -DHOST_BUILD
+all: build
 
 build: definitions
 	mkdir -p build/arduino/src
@@ -37,5 +33,5 @@ test: check
 clean:
 	git clean -dfx --exclude=node_modules
 
-.PHONY: all build hostbuild definitions clean check test
+.PHONY: all build definitions clean check test
 
