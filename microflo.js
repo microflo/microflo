@@ -7,9 +7,14 @@ var fs = require("fs");
 var path = require("path");
 
 // Will not be built/available when generating definitions
-var addon = undefined;
-var noflo = undefined;
-var fbp = undefined;
+if (require.main === module) {
+    var addon = undefined;
+    var noflo = undefined;
+    var fbp = undefined;
+} else {
+    var noflo = require("noflo");
+    var fbp = require("fbp");
+}
 
 var cmdFormat = require("./microflo/commandformat.json");
 
@@ -493,8 +498,13 @@ if (cmd == "generate") {
         });
     });
 
-} else {
+} else if (require.main === module) {
     throw "Invalid commandline arguments. Usage: node microflo.js generate INPUT [OUTPUT]"
 }
 
-
+module.exports = {
+    loadFile: loadFile,
+    ComponentLibrary: ComponentLibrary,
+    cmdStreamFromGraph: cmdStreamFromGraph,
+    generateOutput: generateOutput
+}
