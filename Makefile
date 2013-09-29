@@ -2,6 +2,7 @@
 
 GRAPH=examples/readbutton.fbp
 MODEL=uno
+REPORTER=spec
 
 all: build hostbuild
 
@@ -29,11 +30,12 @@ definitions:
 	node microflo.js update-defs
 
 check:
-	$(CXX) -o test/host test/host.cpp -I./microflo -DHOST_BUILD
-	./test/host
+	./node_modules/.bin/mocha --reporter $(REPORTER)
+
+test: check
 
 clean:
 	git clean -dfx --exclude=node_modules
 
-.PHONY: all build hostbuild definitions clean check
+.PHONY: all build hostbuild definitions clean check test
 
