@@ -9,8 +9,8 @@
 #include <cstring>
 #endif
 
-bool Packet::asBool() {
-    if (msg == MsgBoolean){
+bool Packet::asBool() const {
+    if (msg == MsgBoolean) {
         return data.boolean;
     } else if (msg == MsgByte) {
         return data.byte;
@@ -24,7 +24,7 @@ bool Packet::asBool() {
         return false;
     }
 }
-long Packet::asInteger() {
+long Packet::asInteger() const {
     if (msg == MsgBoolean){
         return data.boolean;
     } else if (msg == MsgByte) {
@@ -39,7 +39,7 @@ long Packet::asInteger() {
         return -33;
     }
 }
-float Packet::asFloat() {
+float Packet::asFloat() const {
     if (msg == MsgBoolean){
         return data.boolean;
     } else if (msg == MsgByte) {
@@ -56,7 +56,7 @@ float Packet::asFloat() {
         return -44.0;
     }
 }
-char Packet::asAscii() {
+char Packet::asAscii() const {
     if (msg == MsgBoolean){
         return data.boolean;
     } else if (msg == MsgByte) {
@@ -71,7 +71,7 @@ char Packet::asAscii() {
         return '\0';
     }
 }
-unsigned char Packet::asByte() {
+unsigned char Packet::asByte() const {
     if (msg == MsgBoolean){
         return data.boolean;
     } else if (msg == MsgByte) {

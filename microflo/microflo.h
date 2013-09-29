@@ -35,30 +35,30 @@ public:
     Packet(float f): msg(MsgFloat) { data.flt = f; }
     Packet(Msg m): msg(m) {}
 
-    Msg type() { return msg; }
-    bool isValid() { return msg > MsgInvalid && msg < MsgMaxDefined; }
+    Msg type() const { return msg; }
+    bool isValid() const { return msg > MsgInvalid && msg < MsgMaxDefined; }
 
-    bool isSetup() { return msg == MsgSetup; }
-    bool isTick() { return msg == MsgTick; }
-    bool isSpecial() { return isSetup() || isTick(); }
+    bool isSetup() const { return msg == MsgSetup; }
+    bool isTick() const { return msg == MsgTick; }
+    bool isSpecial() const { return isSetup() || isTick(); }
 
-    bool isVoid() { return msg == MsgVoid; }
-    bool isStartBracket() { return msg == MsgBracketStart; }
-    bool isEndBracket() { return msg == MsgBracketEnd; }
+    bool isVoid() const { return msg == MsgVoid; }
+    bool isStartBracket() const { return msg == MsgBracketStart; }
+    bool isEndBracket() const { return msg == MsgBracketEnd; }
 
-    bool isData() { return isValid() && !isSpecial(); }
-    bool isBool() { return msg == MsgBoolean; }
-    bool isByte() { return msg == MsgByte; }
-    bool isAscii() { return msg == MsgAscii; }
-    bool isInteger() { return msg == MsgInteger; } // TODO: make into a long or long long
-    bool isFloat() { return msg == MsgFloat; }
-    bool isNumber() { return isInteger() || isFloat(); }
+    bool isData() const { return isValid() && !isSpecial(); }
+    bool isBool() const { return msg == MsgBoolean; }
+    bool isByte() const { return msg == MsgByte; }
+    bool isAscii() const { return msg == MsgAscii; }
+    bool isInteger() const { return msg == MsgInteger; } // TODO: make into a long or long long
+    bool isFloat() const { return msg == MsgFloat; }
+    bool isNumber() const { return isInteger() || isFloat(); }
 
-    bool asBool();
-    float asFloat();
-    long asInteger();
-    char asAscii();
-    unsigned char asByte();
+    bool asBool() const ;
+    float asFloat() const ;
+    long asInteger() const ;
+    char asAscii() const ;
+    unsigned char asByte() const ;
 
     bool operator==(const Packet& rhs) const;
 
