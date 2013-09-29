@@ -496,6 +496,32 @@ if (cmd == "generate") {
         });
     });
 
+} else if (cmd == "simulator") {
+    // Host runtime impl.
+    fbp = require("fbp");
+    noflo = require("noflo");
+    var addon = require("./build/Release/MicroFlo.node");
+    var io = undefined; // new addon.IO()
+    var net = new addon.Network(io);
+    loadFile("./examples/monitorPin.fbp", function(err, graph) {
+        var componentLib = lib;
+        var stream = cmdStreamFromGraph(componentLib, graph);
+        var endpoint = new addon.GraphStreamer(net);
+        for (var i=0; i<stream.length; i++) {
+            var b = stream.readUInt8(i);
+            endpoint.parseByte(b);
+        }
+        var comp = new addon.Component();
+        comp.on("process", function(packet, port) {
+            console.log(packet, port);
+        });
+        net.addNode(comp);
+
+        console.log("Running MicroFlo network in host");
+        net.runSetup();
+        setInterval(function () { net.runTick(); }, 100);
+    });
+
 } else if (require.main === module) {
     throw "Invalid commandline arguments. Usage: node microflo.js generate INPUT [OUTPUT]"
 }

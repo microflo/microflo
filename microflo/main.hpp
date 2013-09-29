@@ -31,37 +31,3 @@ void loop()
 }
 #endif // ARDUINO
 
-#ifdef HOST_BUILD
-#include <unistd.h>
-#include "host.hpp"
-int main(int argc, char *argv[]) {
-
-    // Setup
-    HostIO io;
-    Network network(&io);
-
-    GraphStreamer parser;
-    parser.setNetwork(&network);
-
-    for (int i=0; i<sizeof(graph); i++) {
-        parser.parseByte(graph[i]);
-    }
-#ifdef DEBUG
-    FILE *f = fopen("reference.fbcs", "w");
-    for (int i=0; i<sizeof(graph); i++) {
-        fwrite(&graph[i], sizeof(graph[i]), 1, f);
-    }
-    fflush(f);
-#endif // DEBUG
-
-    network.runSetup();
-
-    // Loop
-    while (true) {
-        network.runTick();
-        usleep(1000);
-    }
-
-}
-#endif // HOST_BUILD
-
