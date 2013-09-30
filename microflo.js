@@ -17,6 +17,7 @@ if (require.main === module) {
 }
 
 var cmdFormat = require("./microflo/commandformat.json");
+var componentLib = undefined;
 
 function ComponentLibrary(definition) {
     this.definition = definition;
@@ -72,6 +73,8 @@ function ComponentLibrary(definition) {
         }
     }
 }
+
+componentLib = new ComponentLibrary(require("./microflo/components.json"));
 
 var writeCmd = function() {
     var buf = arguments[0];
@@ -334,7 +337,6 @@ var portDefAsArray = function(port) {
 }
 
 // Main
-var lib = new ComponentLibrary(require("./microflo/components.json"));
 var cmd = process.argv[2];
 if (cmd == "generate") {
     addon = require("./build/Release/MicroFlo.node");
@@ -343,13 +345,13 @@ if (cmd == "generate") {
 
     var inputFile = process.argv[3];
     var outputFile = process.argv[4] || inputFile
-    generateOutput(lib, inputFile, outputFile);
+    generateOutput(componentLib, inputFile, outputFile);
 } else if (cmd == "update-defs") {
-    fs.writeFile("microflo/components-gen.h", generateEnum("ComponentId", "Id", lib.listComponents()),
+    fs.writeFile("microflo/components-gen.h", generateEnum("ComponentId", "Id", componentLib.listComponents()),
                  function(err) { if (err) throw err });
-    fs.writeFile("microflo/components-gen-bottom.hpp", generateComponentFactory(lib),
+    fs.writeFile("microflo/components-gen-bottom.hpp", generateComponentFactory(componentLib),
                  function(err) { if (err) throw err });
-    fs.writeFile("microflo/components-gen-top.hpp", generateComponentPortDefinitions(lib),
+    fs.writeFile("microflo/components-gen-top.hpp", generateComponentPortDefinitions(componentLib),
                  function(err) { if (err) throw err });
     fs.writeFile("microflo/commandformat-gen.h", generateEnum("GraphCmd", "GraphCmd", cmdFormat.commands) +
                  "\n" + generateEnum("Msg", "Msg", cmdFormat.packetTypes),
@@ -373,12 +375,12 @@ if (cmd == "generate") {
           console.log(contents.protocol, contents.command, contents.payload);
           if (contents.protocol == "component" && contents.command == "list") {
 
-              for (var name in lib.listComponents()) {
-                  var comp = lib.getComponent(name);
+              for (var name in componentLib.listComponents()) {
+                  var comp = componentLib.getComponent(name);
                   var resp = {protocol: "component", command: "component",
                       payload: {name: name, description: comp.description || "",
-                          inPorts: portDefAsArray(lib.inputPortsFor(name)),
-                          outPorts: portDefAsArray(lib.outputPortsFor(name))
+                          inPorts: portDefAsArray(componentLib.inputPortsFor(name)),
+                          outPorts: portDefAsArray(componentLib.outputPortsFor(name))
                       }
                   };
                   connection.sendUTF(JSON.stringify(resp));
@@ -435,9 +437,9 @@ if (cmd == "generate") {
                 var nodeName = nodeNameById(nodeId);
                 var componentName = graph.processes[nodeName].component;
                 if (inputOrOutput == "input") {
-                    return lib.inputPortById(componentName, portId).name;
+                    return componentLib.inputPortById(componentName, portId).name;
                 } else {
-                    return lib.outputPortById(componentName, portId).name;
+                    return componentLib.outputPortById(componentName, portId).name;
                 }
             }
 
@@ -447,7 +449,7 @@ if (cmd == "generate") {
                 tokens = line.split(",");
                 var componentId = parseInt(tokens[0]);
                 var nodeId = parseInt(tokens[1]);
-                var c = lib.getComponentById(componentId);
+                var c = componentLib.getComponentById(componentId);
                 console.log("CREATED: " + nodeNameById(nodeId) + "(" + c.name + ")");
             } else if (line.indexOf("CONNECT: ") == 0) {
                 line = line.replace("CONNECT: ", "");
@@ -486,7 +488,7 @@ if (cmd == "generate") {
     var serial = new serialport.SerialPort("/dev/ttyUSB1", {baudrate: 9600}, false);
     loadFile(process.argv[3], function(err, graph) {
         // XXX: exploits the sideeffect that the nodeId->nodeName mappping is created
-        cmdStreamFromGraph(lib, graph);
+        cmdStreamFromGraph(componentLib, graph);
 
         serial.open(function(){
             console.log("opened")
@@ -504,7 +506,6 @@ if (cmd == "generate") {
     var io = undefined; // new addon.IO()
     var net = new addon.Network(io);
     loadFile("./examples/monitorPin.fbp", function(err, graph) {
-        var componentLib = lib;
         var stream = cmdStreamFromGraph(componentLib, graph);
         var endpoint = new addon.GraphStreamer(net);
         for (var i=0; i<stream.length; i++) {
@@ -529,6 +530,7 @@ if (cmd == "generate") {
 module.exports = {
     loadFile: loadFile,
     ComponentLibrary: ComponentLibrary,
+    componentLib: componentLib,
     cmdStreamFromGraph: cmdStreamFromGraph,
     generateOutput: generateOutput
 }
