@@ -1,5 +1,8 @@
-in(MonitorPin) OUT -> IN out(DigitalWrite)
+in(MonitorPin) OUT -> IN split(Split)
+split OUT1 -> IN outA(DigitalWrite)
+split OUT2 -> IN outB(DigitalWrite)
 
 # Config
 board(ArduinoUno) PIN2 -> PIN in
-board PIN11 -> PIN out
+board PIN11 -> PIN outA
+board PIN10 -> PIN outB

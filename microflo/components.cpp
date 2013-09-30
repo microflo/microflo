@@ -20,6 +20,20 @@ public:
     }
 };
 
+class Split : public Component {
+public:
+    virtual void process(Packet in, int port) {
+        using namespace SplitPorts;
+        if (in.isData()) {
+            const int first = (int)OutPorts::out1;
+            const int last = (int)OutPorts::out9;
+            for (int port=first; port<=last; port++) {
+                send(in, port);
+            }
+        }
+    }
+};
+
 // FIXME: using any of these should result in error
 typedef Forward DummyComponent;
 class Invalid : public DummyComponent {};

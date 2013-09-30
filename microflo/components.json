@@ -90,7 +90,19 @@
                 "pin": { "id": 0 }
             }
         },
-
+        "Split": { "id": 19,
+            "outPorts": {
+                "out1": { "id": 0 },
+                "out2": { "id": 1 },
+                "out3": { "id": 2 },
+                "out4": { "id": 3 },
+                "out5": { "id": 4 },
+                "out6": { "id": 5 },
+                "out7": { "id": 6 },
+                "out8": { "id": 7 },
+                "out9": { "id": 8 }
+            }
+        },
 
         "ArduinoUno": {
             "id": 50,
