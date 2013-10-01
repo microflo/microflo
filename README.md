@@ -139,8 +139,15 @@ Contributors
 -------------
 [Jon Nordby](http://www.jonnor.com)
 
+
 Related
 ---------
+
+Flow-based/dataflow general
+* http://www.jpaulmorrison.com/fbp/
+* http://c2.com/cgi/wiki?FlowBasedProgramming
+* http://www.reddit.com/r/flowbasedprogramming/
+
 Physical computing with JavaScript
 
 * https://github.com/rwaldron/johnny-five
