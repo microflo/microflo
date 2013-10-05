@@ -1,8 +1,9 @@
 # TODO: build+test all examples, for both target+host
 
-GRAPH=examples/readbutton.fbp
+GRAPH=examples/blink.fbp
 MODEL=uno
 REPORTER=spec
+VERSION=$(shell git describe --tags)
 
 all: build
 
@@ -33,5 +34,12 @@ test: check
 clean:
 	git clean -dfx --exclude=node_modules
 
-.PHONY: all build definitions clean check test
+release: build
+	rm -rf build/microflo-arduino-$(VERSION)
+	mkdir -p build/microflo-arduino-$(VERSION)/microflo/examples/Standalone
+	cp -r microflo/ build/microflo-arduino-$(VERSION)/
+	cp build/arduino/src/firmware.cpp build/microflo-arduino-$(VERSION)/microflo/examples/Standalone/Standalone.pde
+	cd build/microflo-arduino-$(VERSION) && zip -r microflo-arduino-$(VERSION).zip microflo
+
+.PHONY: all build definitions clean check test release
 

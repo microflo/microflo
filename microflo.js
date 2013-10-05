@@ -283,7 +283,9 @@ var generateOutput = function(componentLib, inputFile, outputFile) {
         fs.writeFile(outputBase + ".h", cmdStreamToCDefinition(data), function(err) {
             if (err) throw err;
         });
-        fs.writeFile(outputBase + ".cpp", cmdStreamToCDefinition(data) + "\n" + '#include "microflo.hpp"', function(err) {
+        fs.writeFile(outputBase + ".cpp", cmdStreamToCDefinition(data) + "\n"
+                     + '#include "microflo.h"' + '\n#include "main.hpp"',
+                     function(err) {
             if (err) throw err;
         });
     });
