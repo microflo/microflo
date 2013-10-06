@@ -110,8 +110,9 @@ Possible Classes, Invariants.
 * Deterministic: Same sequence of inputs results in same sequence of outputs
 * State-free: Same input message always results in same output message
 * Real-time/bounded-time: A message in is guaranteed to have its corresponding output within a certain time
+* Cooperative: Yields the compute within a certain time
 
-Are there formalisms which can be provably correct suited for components?
+Are there formalisms which can be provably correct that are suited for components?
 
 * Finite State Machine
 * Truth tables
@@ -142,3 +143,61 @@ Lacks
 * LGPL license, unclear if use in proprietary products OK
 * No freely available IDE which does both hardware and software
 * Purely textual programming, not making use of peoples visual capabilities
+
+
+Free (as in freedom) electronics devices
+=====================================================
+The Free Software movement aims to provide end-users of software the freedom to
+use, study, modify and redistribute the software. After 30 years, this is still
+an exception, not the rule. Reasons are many, including some hard to change:
+* Few incentives for manufacturers to provide such freedom
+* Many users do not care for such freedom, most of the time
+
+One failing which the movement itself have to take responsibility for,
+is that the ways to discover, make use of, and benefit from these freedoms have placed
+a high burden on the user.
+* Programs are often shipped to the end-user without the required tools.
+* These tools often require extensive training/experience to use.
+* The archetypical programming model establishes next to no direct connections
+between the behaviour of the system and the recipe (source code) which define it.
+* Sharing modified programs has required lengthy registration/setup of online project sites,
+and because programs are not easily tested on different targets, often incur a large support cost
+
+Electronics devices, which traditionally were thought of as mostly hardware (electronics and mechanics),
+are increasingly defined by their software components. This trend is likely to continue and accellerate.
+This means that the software freedom also applies to such devices, from your TV to your oven and fridge.
+
+Additional complications with HW include
+- significant cost of reproduction (inherent)
+- software on these devices has real-life effects: misconfigured SW may destroy hardware or surroundings
+
+
+* [Open Source Hardware Association](http://www.oshwa.org/)
+* [Free Hardware Movement](http://www.fsmk.org/?q=free-hardware-movement)
+* [Free Software definition](http://www.gnu.org/philosophy/free-sw.html)
+
+
+Complex hetrogenous systems and the Internet of Things
+=============================================================================
+There is a tendency for more and more interconnected systems, whos realization
+spans multiple architectural levels and domains.
+- Embedded devices. One or more microcontrollers, microprocessors.
+Potentially also reconfigurable hardware; FPGA, analog blocks, external digital logic
+- Host computers.
+- Server clusters.
+- The cloud. Distributed online services that collaborate.
+- End-user clients. Mobile devices; tablet and phones. Workstations and laptops.
+
+Each of these are traditionally tackled with separate tools, programming languages and mindsets.
+
+Flow-based programming is language and detail-level agnostic concept, and may
+be well suited for programming hetrogenous systems. Each level in the architecture
+may be best targetted with a dedicated runtime optimizing for the specific concerns.
+But the systems should be interoperable and the tools allow to navigate seamlessly between
+flows on different levels and in different "domains". Merely being able to visualize and monitor
+such complex systems as they run may prove of enormous value.
+
+* NoFlo targets computers and clients.
+* MicroFlo targets embedded devices.
+* For clusters, perhaps something based on ZeroMQ?
+* For the cloud, ???
