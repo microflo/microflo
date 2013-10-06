@@ -26,9 +26,11 @@ See [examples](./examples).
 
 Milestones
 -----------
-* 0.1.5, "Introspectable": One can monitor graphs running on the device from host
-* 0.2.0, "Runtime reconfigurable": Graphs can be changed on the fly
-* 0.3.0, "Generally useful": Implements Firmata protocol, most of Arduino tutorials works
+* 0.2.0, "Runtime reconfigurable": Graphs can be uploaded from commandline without reflashing, and persisted to EEPROM
+* 0.3.0, "Visually programmable": Graphs can be uploaded from NoFlo UI, and monitored
+* 0.4.0, "Simulated": One can program and test MicroFlo programs in a simulator, before putting it on device
+* 0.5.0, "Hetrogenous FBP": MicroFlo as components in NoFlo, allows a host FBP program to (re)configure the device
+* 0.?.0, "Generally useful": Implements Firmata protocol, most of Arduino tutorials works
 
 TODO
 -----
