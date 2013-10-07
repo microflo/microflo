@@ -103,6 +103,12 @@
                 "out9": { "id": 8 }
             }
         },
+        "Gate": { "id": 20,
+            "inPorts": {
+                "in": { "id": 0 },
+                "enable": { "id": 1 }
+            }
+        },
 
         "ArduinoUno": {
             "id": 50,

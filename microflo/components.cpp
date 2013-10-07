@@ -558,4 +558,29 @@ private:
     long current;
 };
 
+class Gate : public Component {
+public:
+    Gate() : enabled(false) {}
+
+    virtual void process(Packet in, int port) {
+        using namespace GatePorts;
+        if (port == InPorts::in) {
+            lastInput = in;
+            sendIfEnabled();
+        } else if (port == InPorts::enable) {
+            enabled = in.asBool();
+            sendIfEnabled();
+        }
+    }
+private:
+    void sendIfEnabled() {
+        if (enabled && lastInput.type() != MsgVoid) {
+            send(lastInput);
+        }
+    }
+
+    Packet lastInput;
+    bool enabled;
+};
+
 #include "components-gen-bottom.hpp"
