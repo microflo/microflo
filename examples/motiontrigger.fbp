@@ -1,0 +1,15 @@
+# Input
+pidSensor(MonitorPin) OUT -> IN inv(InvertBoolean) OUT -> IN gate(Gate)
+
+# Logic
+gate OUT -> IN splitGate(Split)
+splitGate OUT2 -> RESET idleTimer(Timer)
+'true' -> ENABLE idleTimer
+'true' -> ENABLE gate
+
+# Output
+splitGate OUT1 -> IN invB(InvertBoolean) OUT -> IN led(DigitalWrite)
+
+# Config
+board(ArduinoUno) PIN2 -> PIN pidSensor
+board PIN10 -> PIN led
