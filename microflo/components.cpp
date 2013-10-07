@@ -306,12 +306,14 @@ class ReadDallasTemperature : public DummyComponent {};
 class ToggleBoolean : public Component {
 public:
     virtual void process(Packet in, int port) {
-
+        using namespace ToggleBooleanPorts;
         if (in.isSetup()) {
-            // FIXME: do based on input data instead of hardcode
             currentState = false;
-        } else if (in.isData()) {
+        } else if (port == InPorts::in && in.isData()) {
             currentState = !currentState;
+            send(Packet(currentState));
+        } else if (port == InPorts::reset) {
+            currentState = false;
             send(Packet(currentState));
         }
     }

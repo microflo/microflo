@@ -48,7 +48,12 @@
         "SerialIn": { "id": 8 },
         "SerialOut": { "id": 9 },
         "InvertBoolean": { "id": 10 },
-        "ToggleBoolean": { "id": 11 },
+        "ToggleBoolean": { "id": 11,
+            "inPorts": {
+                "in": { "id": 0 },
+                "reset": { "id": 1 }
+            }
+        },
         "HysteresisLatch": { "id": 12,
             "inPorts": {
                 "in": { "id": 0 },
