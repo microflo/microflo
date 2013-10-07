@@ -237,7 +237,7 @@ private:
     unsigned long interval;
 };
 
-#ifdef ARDUINO
+#ifdef HAVE_DALLAS_TEMPERATURE
 #include <OneWire.h>
 #include <DallasTemperature.h>
 
@@ -293,7 +293,7 @@ private:
 };
 #else
 class ReadDallasTemperature : public DummyComponent {};
-#endif // ARDUINO
+#endif
 
 class ToggleBoolean : public Component {
 public:

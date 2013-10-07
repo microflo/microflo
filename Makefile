@@ -16,7 +16,7 @@ build: definitions
 	cd build/arduino/lib && test -e patched || patch -p0 < ../../../thirdparty/OneWire.patch
 	touch build/arduino/lib/patched
 	node microflo.js generate $(GRAPH) build/arduino/src/firmware.ino
-	cd build/arduino && ino build --board-model=$(MODEL)
+	cd build/arduino && ino build --board-model=$(MODEL) --cppflags="-DHAVE_DALLAS_TEMPERATURE"
 	avr-size -A build/arduino/.build/$(MODEL)/firmware.elf
 
 upload: build
