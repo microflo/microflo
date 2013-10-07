@@ -121,6 +121,20 @@ var dataLiteralToCommand = function(literal, tgt, tgtPort) {
         return b;
     }
 
+    // Boolean
+    var isBool = literal === "true" || literal === "false";
+    value = literal === "true";
+    if (isBool) {
+        var b = new Buffer(cmdFormat.commandSize);
+        b.fill(0);
+        b.writeUInt8(cmdFormat.commands.SendPacket.id, 0);
+        b.writeUInt8(tgt, 1);
+        b.writeUInt8(tgtPort, 2);
+        b.writeInt8(cmdFormat.packetTypes.Boolean.id, 3);
+        b.writeInt8(value ? 1 : 0, 4);
+        return b;
+    }
+
     try {
         value = JSON.parse(literal);
     } catch(err) {

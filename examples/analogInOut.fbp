@@ -3,7 +3,8 @@ timer(Timer) OUT -> TRIGGER potmeter(AnalogRead)
 potmeter() OUT -> IN map(MapLinear) OUT -> DUTYCYCLE led(PwmWrite)
 
 # Config
-'10' -> INTERVAL timer()
+'10' -> INTERVAL timer
+'true' -> ENABLE timer
 '0' -> INMIN map(), '1023' -> INMAX map()
 '0' -> OUTMIN map(), '100' -> OUTMAX map()
 board(ArduinoUno) PINA0 -> PIN potmeter()

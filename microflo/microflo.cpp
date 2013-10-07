@@ -151,6 +151,9 @@ void GraphStreamer::parseByte(char b) {
                     } else if (packetType == MsgByte) {
                         const unsigned char b = buffer[4];
                         network->sendMessage(target, targetPort, Packet(b));
+                    } else if (packetType == MsgBoolean) {
+                        const bool b = !(buffer[4] == 0);
+                        network->sendMessage(target, targetPort, Packet(b));
                     }
 
                 }

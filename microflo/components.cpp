@@ -216,23 +216,31 @@ private:
 class Timer : public Component {
 public:
     virtual void process(Packet in, int port) {
-        const int intervalConfigPort = 0;
+        using namespace TimerPorts;
         if (in.isSetup()) {
             // defaults
             previousMillis = 0;
             interval = 1000;
+            enabled = false;
         } else if (in.isTick()) {
             unsigned long currentMillis = io->TimerCurrentMs();
             if (currentMillis - previousMillis > interval) {
                 previousMillis = currentMillis;
-                send(Packet());
+                if (enabled) {
+                    send(Packet());
+                }
             }
-        } else if (port == intervalConfigPort && in.isData()) {
+        } else if (port == InPorts::interval && in.isData()) {
             previousMillis = io->TimerCurrentMs();
             interval = in.asInteger();
+        } else if (port == InPorts::enable && in.isData()) {
+            enabled = in.asBool();
+        } else if (port == InPorts::reset && in.isData()) {
+            previousMillis = io->TimerCurrentMs();
         }
     }
 private:
+    bool enabled;
     unsigned long previousMillis;
     unsigned long interval;
 };

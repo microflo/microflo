@@ -40,7 +40,9 @@
         "Timer": {
             "id": 7,
             "inPorts": {
-                "interval": { "id": 0 }
+                "interval": { "id": 0 },
+                "enable": { "id": 1 },
+                "reset": { "id": 2 }
             }
         },
         "SerialIn": { "id": 8 },
