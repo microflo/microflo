@@ -210,14 +210,12 @@ var cmdStreamFromGraph = function(componentLib, graph) {
 }
 
 var cmdStreamToCDefinition = function(cmdStream, annotation) {
-    var hostCode = "#ifdef HOST_BUILD\n";
-    hostCode += cmdStreamToC(cmdStream);
-    hostCode += "\n#endif\n"
-
     var arduinoCode = "#ifdef ARDUINO\n#include <avr/pgmspace.h>\n";
+    arduinoCode += "#endif\n"
+
     arduinoCode += cmdStreamToC(cmdStream, "PROGMEM");
-    arduinoCode += "\n#endif\n"
-    return hostCode + arduinoCode;
+
+    return arduinoCode;
 }
 
 var cmdStreamToC = function(cmdStream, annotation) {
@@ -231,7 +229,21 @@ var cmdStreamToC = function(cmdStream, annotation) {
         values[i] = "0x" + cmdStream.readUInt8(i).toString(16);
     }
 
-    var cCode = "const unsigned char " + variableName + "[] " + annotation + " = {" + values.join(",") + "};"
+    values = values.join(",");
+    var prettyValues = "";
+    var commas = 0;
+    for (var i=0; i<values.length; i++) {
+        if (values[i] === ",") {
+            commas += 1;
+        }
+        prettyValues = prettyValues.concat(values[i]);
+        if (commas && (commas % cmdFormat.commandSize) == 0) {
+            prettyValues = prettyValues.concat("\n")
+            commas = 0;
+        }
+    }
+
+    var cCode = "const unsigned char " + variableName + "[] " + annotation + " = {\n" + prettyValues + "\n};"
     return cCode;
 }
 
