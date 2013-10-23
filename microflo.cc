@@ -261,4 +261,4 @@ void init(v8::Handle<v8::Object> exports) {
   JavaScriptGraphStreamer::Init(exports);
 }
 
-NODE_MODULE(MicroFlo, init)
+NODE_MODULE(MicroFloCc, init)

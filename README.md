@@ -39,8 +39,11 @@ TODO
 
 Using/developing
 -----------------
-Note: Only tested on Arch Linux and Ubuntu, but should work on any GNU/Linux.
-May also work on Mac OSX. Windows not, as [Ino](http://inotool.org/#limitations) does not support it.
+Tested on
+* Arch Linux and Ubuntu (any GNU/Linux should be OK),
+* Mac OSX 10.8 Mountain Lion (10.6 -> 10.9 should be OK)
+
+Note: Does not work on Windows atm, [Ino](http://inotool.org/#limitations) does not support it.
 
 Note: Only tested with Arduino Uno R3 and Arduino Nano R3. Other Arduino devices should however work.
 
@@ -51,7 +54,8 @@ Get the code
 
 Install prerequsites; Arduino and Ino
 
-    apt-get install arduino
+    apt-get install arduino # Ubuntu
+    # On OSX, download Arduino.app, move to /Applications
     pip install ino
 
 To build and run tests
@@ -164,5 +168,7 @@ Visual programming for Arduino etc.
 * http://seaside.citilab.eu/scratch/arduino
 * http://sourceforge.net/projects/qpc/
 * http://playground.arduino.cc/Code/QP
+* http://sourceforge.net/projects/ktechlab (poorly maintained)
 * http://www.flowol.com/InterfaceArduino.aspx (non-free)
 * http://microuml.net/microuml.html (non-free service)
+

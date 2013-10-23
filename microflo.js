@@ -367,7 +367,7 @@ var portDefAsArray = function(port) {
 // Main
 var cmd = process.argv[2];
 if (cmd == "generate") {
-    addon = require("./build/Release/MicroFlo.node");
+    addon = require("./build/Release/MicroFloCc.node");
     fbp = require("fbp");
     noflo = require("noflo");
 
@@ -530,7 +530,7 @@ if (cmd == "generate") {
     // Host runtime impl.
     fbp = require("fbp");
     noflo = require("noflo");
-    var addon = require("./build/Release/MicroFlo.node");
+    var addon = require("./build/Release/MicroFloCc.node");
     var io = undefined; // new addon.IO()
     var net = new addon.Network(io);
     loadFile("./examples/monitorPin.fbp", function(err, graph) {
