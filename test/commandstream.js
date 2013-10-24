@@ -4,7 +4,7 @@
  */
 
 var microflo = require("../microflo");
-var addon = require("../build/Release/MicroFlo.node");
+var addon = require("../build/Release/MicroFloCc.node");
 var assert = require("assert");
 var fbp = require("fbp");
 
