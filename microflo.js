@@ -364,6 +364,71 @@ var portDefAsArray = function(port) {
     return a;
 }
 
+var connectionsWithoutEdge = function(connections, findConn) {
+    var newList = [];
+    connections.forEach(function(conn) {
+        if (conn.from === findConn.from && conn.to === findConn.to) {
+
+        } else {
+            newList.push(conn);
+        }
+    });
+    return newList;
+}
+
+var wsConnectionFormatToFbp = function(ws) {
+    return {
+        src: { port: ws.from.port, process: ws.from.node },
+        tgt: { port: ws.to.port, process: ws.to.node }
+    }
+}
+
+var handleMessage = function (message, connection, graph) {
+  if (message.type == 'utf8') {
+    try {
+      var contents = JSON.parse(message.utf8Data);
+    } catch (e) {
+      return;
+    }
+    console.log(contents.protocol, contents.command, contents.payload);
+    if (contents.protocol == "component" && contents.command == "list") {
+
+        for (var name in componentLib.listComponents()) {
+            var comp = componentLib.getComponent(name);
+            var resp = {protocol: "component", command: "component",
+                payload: {name: name, description: comp.description || "",
+                    inPorts: portDefAsArray(componentLib.inputPortsFor(name)),
+                    outPorts: portDefAsArray(componentLib.outputPortsFor(name))
+                }
+            };
+            connection.sendUTF(JSON.stringify(resp));
+        }
+    } else if (contents.protocol == "graph") {
+        if (contents.command == "clear") {
+            graph.processes = {};
+            graph.connections = [];
+        } else if (contents.command == "addnode") {
+            graph.processes[contents.payload.id] = contents.payload;
+        } else if (contents.command == "removenode") {
+            delete graph.processes[contents.payload.id];
+        } else if (contents.command == "addedge") {
+            graph.connections.push(wsConnectionFormatToFbp(contents.payload));
+        } else if (contents.command == "removeedge") {
+            graph.connections = connectionsWithoutEdge(graph.connections, wsConnectionFormatToFbp(contents.payload));
+        } else if (contents.command == "addinitial") {
+            graph.connections.push(contents.payload);
+        } else if (contents.command == "removeinitial") {
+            graph.connections = connectionsWithoutEdge(graph.connections, contents.payload);
+        }
+    } else if (contents.protocol == "network") {
+        if (contents.command == "start") {
+            var data = cmdStreamFromGraph(componentLib, graph);
+            console.log(JSON.stringify(graph, null, "    "), data);
+        }
+    }
+  }
+};
+
 // Main
 var cmd = process.argv[2];
 if (cmd == "generate") {
@@ -393,36 +458,11 @@ if (cmd == "generate") {
          httpServer: httpServer
        });
 
-      var handleMessage = function (message, connection) {
-        if (message.type == 'utf8') {
-          try {
-            var contents = JSON.parse(message.utf8Data);
-          } catch (e) {
-            return;
-          }
-          console.log(contents.protocol, contents.command, contents.payload);
-          if (contents.protocol == "component" && contents.command == "list") {
-
-              for (var name in componentLib.listComponents()) {
-                  var comp = componentLib.getComponent(name);
-                  var resp = {protocol: "component", command: "component",
-                      payload: {name: name, description: comp.description || "",
-                          inPorts: portDefAsArray(componentLib.inputPortsFor(name)),
-                          outPorts: portDefAsArray(componentLib.outputPortsFor(name))
-                      }
-                  };
-                  connection.sendUTF(JSON.stringify(resp));
-              }
-
-
-          }
-        }
-      };
-
+    var graph = {};
       wsServer.on('request', function (request) {
         var connection = request.accept('noflo', request.origin);
         connection.on('message', function (message) {
-          handleMessage(message, connection);
+          handleMessage(message, connection, graph);
         });
       });
     var port = 3569;
