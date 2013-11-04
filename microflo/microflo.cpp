@@ -117,8 +117,14 @@ void GraphStreamer::parseByte(char b) {
             if (cmd >= GraphCmdInvalid) {
                 state = Invalid; // XXX: or maybe just ignore?
             } else {
-                if (cmd == GraphCmdReset) {
-                    // TODO: implement
+                if (cmd == GraphCmdEnd) {
+                    network->start();
+                    state = ParseHeader;
+#ifdef DEBUG
+                    Serial.println("Starting network");
+#endif
+                } else if (cmd == GraphCmdReset) {
+                    network->reset();
                 } else if (cmd == GraphCmdCreateComponent) {
                     ComponentId id = (ComponentId)buffer[1];
                     // FIXME: validate
@@ -199,11 +205,14 @@ Network::Network(IO *io)
     : lastAddedNodeIndex(0)
     , messageWriteIndex(0)
     , messageReadIndex(0)
+
     , messageSentNotify(0)
     , messageDeliveredNotify(0)
     , addNodeNotify(0)
     , nodeConnectNotify(0)
+
     , io(io)
+    , state(Stopped)
 {
     for (int i=0; i<MAX_NODES; i++) {
         nodes[i] = 0;
@@ -273,6 +282,10 @@ void Network::sendMessage(int targetId, int targetPort, const Packet &pkg) {
 }
 
 void Network::runSetup() {
+    if (state != Running) {
+        return;
+    }
+
     for (int i=0; i<MAX_NODES; i++) {
         if (nodes[i]) {
             nodes[i]->process(Packet(MsgSetup), -1);
@@ -281,6 +294,9 @@ void Network::runSetup() {
 }
 
 void Network::runTick() {
+    if (state != Running) {
+        return;
+    }
 
     // TODO: consider the balance between scheduling and messaging (bounded-buffer problem)
 
@@ -324,5 +340,20 @@ int Network::addNode(Component *node) {
 }
 
 void Network::reset() {
-    // FIXME: implement
+    state = Stopped;
+    for (int i=0; i<MAX_NODES; i++) {
+        if (nodes[i]) {
+            delete (nodes[i]);
+            nodes[i] = 0;
+        }
+    }
+    lastAddedNodeIndex = 0;
+    messageWriteIndex = 0;
+    messageReadIndex = 0;
+}
+
+void Network::start() {
+    state = Running;
+
+    runSetup();
 }

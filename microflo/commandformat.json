@@ -6,6 +6,7 @@
         "CreateComponent": {"id": 11},
         "ConnectNodes": {"id": 12},
         "SendPacket": {"id": 13},
+        "End": {"id": 14},
 
         "Invalid": { },
         "Max": { "id": 255 }

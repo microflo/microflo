@@ -216,6 +216,9 @@ var cmdStreamFromGraph = function(componentLib, graph) {
         }
     });
 
+    // Mark end of commands
+    index += writeCmd(buffer, index, cmdFormat.commands.End.id);
+
     // Attach the mapping so others can use it later
     graph.nodeMap = nodeMap;
 

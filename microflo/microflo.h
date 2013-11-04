@@ -98,6 +98,8 @@ public:
     Network(IO *io);
 
     void reset();
+    void start();
+
     int addNode(Component *node);
     void connect(Component *src, int srcPort, Component *target, int targetPort);
     void connect(int srcId, int srcPort, int targetId, int targetPort);
@@ -116,6 +118,11 @@ public:
 private:
     void deliverMessages(int firstIndex, int lastIndex);
     void processMessages();
+    enum State {
+        Invalid = -1,
+        Stopped,
+        Running
+    };
 
 private:
     Component *nodes[MAX_NODES];
@@ -128,6 +135,7 @@ private:
     AddNodeNotification addNodeNotify;
     NodeConnectNotification nodeConnectNotify;
     IO *io;
+    State state;
 };
 
 struct Connection {
