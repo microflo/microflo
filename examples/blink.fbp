@@ -1,4 +1,5 @@
 timer(Timer) OUT -> IN toggle(ToggleBoolean)
-toggle() OUT -> IN ledPin(DigitalWrite)
+toggle() OUT -> IN led(DigitalWrite)
 '300' -> INTERVAL timer()
 'true' -> ENABLE timer
+'13' -> PIN led()
