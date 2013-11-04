@@ -594,6 +594,40 @@ if (cmd == "generate") {
         setInterval(function () { net.runTick(); }, 100);
     });
 
+} else if (cmd == "upload") {
+    var serialport = require("serialport");
+    var fbp = require("fbp");
+
+    serialport.list(function (err, ports) {
+                    ports.forEach(function(port) {
+                                  console.log(port.comName);
+                                  console.log(port.pnpId);
+                                  console.log(port.manufacturer);
+                                  });
+    });
+
+    // FIXME: automatically detect correct port, allow to override
+    var serial = new serialport.SerialPort("/dev/tty.usbserial-A94JN55L", {baudrate: 9600}, false);
+    loadFile(process.argv[3], function(err, graph) {
+             // XXX: exploits the sideeffect that the nodeId->nodeName mappping is created
+             var data = cmdStreamFromGraph(componentLib, graph);
+             serial.open(function(){
+                 console.log("opened serial");
+                         serial.on("data", function(da) {
+                             console.log(da.toString());
+                        });
+
+                 setTimeout(function() {
+                        // XXX: for some reason when writing without this delay,
+                        // the first bytes ends up corrupted on microcontroller side
+                         serial.write(data, function() {
+                                console.log(data);
+                                console.log("wrote graph");
+                        });
+                 }, 500);
+                });
+    });
+
 } else if (require.main === module) {
     throw "Invalid commandline arguments. Usage: node microflo.js generate INPUT [OUTPUT]"
 }
