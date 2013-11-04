@@ -208,6 +208,7 @@ class Component {
     friend class Debugger;
 public:
     static Component *create(ComponentId id);
+    virtual ~Component() {}
     virtual void process(Packet in, int port) = 0;
 protected:
     void send(Packet out, int port=0);
