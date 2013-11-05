@@ -112,35 +112,6 @@ Design
 * Allow a flow network to be embedded into an existing C/C++ application, provide API for manipulating
 * Port and I/O configuration is stored in a central place, to easily change according to device/board deployed to.
 
-Testing strategy
-----------------
-This is all TODO at the moment.
-
-* MicroFlo framework
-    * Behaviour tests. Graph manipulation, message passing.
-    * Build tests around JavaScript interface to the MicroFlo graph.
-    * Run same tests against host simulation (in subprocess) and real target (on device)
-* Invidual components
-    * Unittests. Component behaviour.
-    * Something similar to noflo-test
-    * Maybe a DSL for simple message send/expect tests.
-    * Run same tests against host simulation (in subprocess) and real target (on device)
-* Target implementation (I/O)
-    * Functional tests. Analog/Digital in/out, Serial/UART in/out, PWM/ADC
-    * Ideally automated on real hardware coupled back-to-back
-* Performance
-    * Benchmarks to be done on device
-    * Message throughput, as function of number of nodes/edges
-    * Overhead of component interface, as function of component complexity
-    * Maximum number of nodes (limited by RAM usage)
-    * Program size (progmem/Flash)
-    * Input->output latency, average and distribution
-    * Graph setup/teardown time
-* Applications
-    * Allow to use stub/mock I/O components, and test/simulate on host
-    * Allow to build test fixtures using graphs
-    * Allow to drive BDD tests on device from host in JavaScript
-
 Contributors
 -------------
 [Jon Nordby](http://www.jonnor.com)

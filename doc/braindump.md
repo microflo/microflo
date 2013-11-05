@@ -201,3 +201,73 @@ such complex systems as they run may prove of enormous value.
 * MicroFlo targets embedded devices.
 * For clusters, perhaps something based on ZeroMQ?
 * For the cloud, ???
+
+Testing strategy
+----------------
+This is all TODO at the moment.
+
+* MicroFlo framework
+    * Behaviour tests. Graph manipulation, message passing.
+    * Build tests around JavaScript interface to the MicroFlo graph.
+    * Run same tests against host simulation (in subprocess) and real target (on device)
+* Invidual components
+    * Unittests. Component behaviour.
+    * Something similar to noflo-test
+    * Maybe a DSL for simple message send/expect tests.
+    * Run same tests against host simulation (in subprocess) and real target (on device)
+* Target implementation (I/O)
+    * Functional tests. Analog/Digital in/out, Serial/UART in/out, PWM/ADC
+    * Ideally automated on real hardware coupled back-to-back
+* Performance
+    * Benchmarks to be done on device
+    * Message throughput, as function of number of nodes/edges
+    * Overhead of component interface, as function of component complexity
+    * Maximum number of nodes (limited by RAM usage)
+    * Program size (progmem/Flash)
+    * Input->output latency, average and distribution
+    * Graph setup/teardown time
+* Applications
+    * Allow to use stub/mock I/O components, and test/simulate on host
+    * Allow to build test fixtures using graphs
+    * Allow to drive BDD tests on device from host in JavaScript
+
+
+Error handling
+===============
+Classes of errors
+* From runtime versus from components/graph
+* From programmer error verus from from user interaction
+* Handled versus unhandled
+* Different severity levels: Useful or not? Warnings and maybe-errors?
+
+Error handling
+* Error prevention: much better to eliminate possible errors then handle them
+* Applications may want a centralized error handler
+* App may want to handle errors depending on which instance it comes from?
+    * Should this info be stored in the error, or only encoded in which port it comes in on.
+    * The error handler needs to be able to understand this info easily
+* Ideally want to avoid custom C++ component for error handling
+* Can we provide a sane default behavior / best-practices?
+
+Displaying errors
+* Generally needs to fit with the modality of the user-interface
+    * Visual/audio signal that error has occurred
+    * LED/BCD with error code sequence
+    * LCD or other rich displays
+    * Communicating error over to a host device
+* Mechanism needs to be simple and robust, avoid failures in error handling
+
+Testing error handling
+* Knowing which errors may occur and their effects
+* Stimulating specific error conditions, verifying handling
+
+Possible implementation
+'error' port on components, MsgTypeError packets sent.
+Error contains:
+* domain. Ex: CoreComponents, Runtime
+* errno. uchar/uint, enumeration. Should map to one specific failure mode?
+Errors declared in components.json, including description.
+Should components declare which errors they may emit?
+
+
+
