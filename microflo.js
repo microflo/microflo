@@ -11,6 +11,7 @@ if (require.main === module) {
     var addon = undefined;
     var noflo = undefined;
     var fbp = undefined;
+    var serialport = undefined;
 } else {
     var noflo = require("noflo");
     var fbp = require("fbp");
@@ -386,6 +387,39 @@ var wsConnectionFormatToFbp = function(ws) {
     }
 }
 
+var guessSerialPort = function(callback) {
+    serialport.list(function (err, ports) {
+        if (err) {
+            callback(err);
+        } else {
+            callback(err, ports[0].comName, ports);
+
+            ports.forEach(function(port) {
+              console.log(port.comName);
+              console.log(port.pnpId);
+              console.log(port.manufacturer);
+            });
+        }
+    });
+}
+
+var uploadGraph = function(serial, data) {
+    console.log("opened serial");
+
+    serial.on("data", function(da) {
+         console.log(da.toString());
+    });
+
+    setTimeout(function() {
+            // XXX: for some reason when writing without this delay,
+            // the first bytes ends up corrupted on microcontroller side
+             serial.write(data, function() {
+                    console.log(data);
+                    console.log("wrote graph");
+            });
+     }, 500);
+}
+
 var handleMessage = function (message, connection, graph) {
   if (message.type == 'utf8') {
     try {
@@ -478,15 +512,8 @@ if (cmd == "generate") {
     });
 
 } else if (cmd == "debug") {
-    var serialport = require("serialport");
+    serialport = require("serialport");
 
-    serialport.list(function (err, ports) {
-      ports.forEach(function(port) {
-        console.log(port.comName);
-        console.log(port.pnpId);
-        console.log(port.manufacturer);
-      });
-    });
     var buf = "";
     var parseSerial = function(graph, data) {
         buf += data;
@@ -555,16 +582,22 @@ if (cmd == "generate") {
         }
         buf = lines[lines.length-1];
     }
-    // FIXME: automatically detect correct port, allow to override
-    var serial = new serialport.SerialPort("/dev/ttyUSB1", {baudrate: 9600}, false);
-    loadFile(process.argv[3], function(err, graph) {
-        // XXX: exploits the sideeffect that the nodeId->nodeName mappping is created
-        cmdStreamFromGraph(componentLib, graph);
 
-        serial.open(function(){
-            console.log("opened")
-            serial.on("data", function(data) {
-                parseSerial(graph, data);
+    guessSerialPort(function(err, portName) {
+        if (err) {
+            throw err;
+        }
+
+        var serial = new serialport.SerialPort(portName, {baudrate: 9600}, false);
+        loadFile(process.argv[3], function(err, graph) {
+            // XXX: exploits the sideeffect that the nodeId->nodeName mappping is created
+            cmdStreamFromGraph(componentLib, graph);
+
+            serial.open(function(){
+                console.log("opened")
+                serial.on("data", function(data) {
+                    parseSerial(graph, data);
+                });
             });
         });
     });
@@ -595,37 +628,22 @@ if (cmd == "generate") {
     });
 
 } else if (cmd == "upload") {
-    var serialport = require("serialport");
-    var fbp = require("fbp");
+    serialport = require("serialport");
+    fbp = require("fbp");
 
-    serialport.list(function (err, ports) {
-                    ports.forEach(function(port) {
-                                  console.log(port.comName);
-                                  console.log(port.pnpId);
-                                  console.log(port.manufacturer);
-                                  });
-    });
-
-    // FIXME: automatically detect correct port, allow to override
-    var serial = new serialport.SerialPort("/dev/tty.usbserial-A94JN55L", {baudrate: 9600}, false);
-    loadFile(process.argv[3], function(err, graph) {
-             // XXX: exploits the sideeffect that the nodeId->nodeName mappping is created
-             var data = cmdStreamFromGraph(componentLib, graph);
-             serial.open(function(){
-                 console.log("opened serial");
-                         serial.on("data", function(da) {
-                             console.log(da.toString());
-                        });
-
-                 setTimeout(function() {
-                        // XXX: for some reason when writing without this delay,
-                        // the first bytes ends up corrupted on microcontroller side
-                         serial.write(data, function() {
-                                console.log(data);
-                                console.log("wrote graph");
-                        });
-                 }, 500);
-                });
+    // FIXME: allow to override port
+    guessSerialPort(function(err, portName) {
+        if (err) {
+            throw err;
+        }
+        console.log("Using serial port: " + portName);
+        var serial = new serialport.SerialPort(portName, {baudrate: 9600}, false);
+        loadFile(process.argv[3], function(err, graph) {
+            var data = cmdStreamFromGraph(componentLib, graph);
+            serial.open(function() {
+                uploadGraph(serial, data);
+            });
+        });
     });
 
 } else if (require.main === module) {
