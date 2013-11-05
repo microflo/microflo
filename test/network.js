@@ -46,9 +46,15 @@ describe('Network', function(){
             net.sendMessage(0, 0, messages[i]);
         }
 
-        net.runSetup();
+        var deadline = new Date().getTime() + 1*1000; // ms
+        net.start();
         while (compare.expectingMore()) {
             net.runTick();
+            if (new Date().getTime() > deadline) {
+                assert.fail(compare.actual.length, compare.expected.length,
+                            "Did not get expected packages within deadline");
+                break;
+            }
         }
         assert.equal(compare.actual.length, 10);
         assert.deepEqual(compare.actual, compare.expected);

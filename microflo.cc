@@ -121,7 +121,7 @@ private:
     static v8::Handle<v8::Value> AddNode(const v8::Arguments& args);
     static v8::Handle<v8::Value> Connect(const v8::Arguments& args);
     static v8::Handle<v8::Value> SendMessage(const v8::Arguments& args);
-    static v8::Handle<v8::Value> RunSetup(const v8::Arguments& args);
+    static v8::Handle<v8::Value> Start(const v8::Arguments& args);
     static v8::Handle<v8::Value> RunTick(const v8::Arguments& args);
 private:
     ;
@@ -147,8 +147,8 @@ void JavaScriptNetwork::Init(v8::Handle<v8::Object> exports) {
                                 v8::FunctionTemplate::New(Connect)->GetFunction());
   tpl->PrototypeTemplate()->Set(v8::String::NewSymbol("sendMessage"),
                                 v8::FunctionTemplate::New(SendMessage)->GetFunction());
-  tpl->PrototypeTemplate()->Set(v8::String::NewSymbol("runSetup"),
-                                v8::FunctionTemplate::New(RunSetup)->GetFunction());
+  tpl->PrototypeTemplate()->Set(v8::String::NewSymbol("start"),
+                                v8::FunctionTemplate::New(Start)->GetFunction());
   tpl->PrototypeTemplate()->Set(v8::String::NewSymbol("runTick"),
                                 v8::FunctionTemplate::New(RunTick)->GetFunction());
 
@@ -169,10 +169,10 @@ v8::Handle<v8::Value> JavaScriptNetwork::RunTick(const v8::Arguments& args) {
   obj->runTick();
   return scope.Close(v8::Undefined());
 }
-v8::Handle<v8::Value> JavaScriptNetwork::RunSetup(const v8::Arguments& args) {
+v8::Handle<v8::Value> JavaScriptNetwork::Start(const v8::Arguments& args) {
   v8::HandleScope scope;
   JavaScriptNetwork* obj = node::ObjectWrap::Unwrap<JavaScriptNetwork>(args.This());
-  obj->runSetup();
+  obj->start();
   return scope.Close(v8::Undefined());
 }
 

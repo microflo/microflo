@@ -113,9 +113,9 @@ public:
                           NodeConnectNotification nodeConnect,
                           AddNodeNotification addNode);
 
-    void runSetup();
     void runTick();
 private:
+    void runSetup();
     void deliverMessages(int firstIndex, int lastIndex);
     void processMessages();
     enum State {
