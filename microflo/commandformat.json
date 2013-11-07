@@ -7,6 +7,16 @@
         "ConnectNodes": {"id": 12},
         "SendPacket": {"id": 13},
         "End": {"id": 14},
+        "ConfigureDebug": {"id": 15},
+
+        "NetworkStopped": {"id": 100},
+        "NodeAdded": {"id": 101},
+        "NodesConnected": {"id": 102},
+        "PacketSent": {"id": 103},
+        "NetworkStarted": {"id": 104},
+        "DebugChanged": {"id": 105},
+
+        "PacketDelivered": {"id": 110},
 
         "Invalid": { },
         "Max": { "id": 255 }

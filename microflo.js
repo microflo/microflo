@@ -403,19 +403,64 @@ var guessSerialPort = function(callback) {
     });
 }
 
-var uploadGraph = function(serial, data) {
+var nodeNameById = function(nodeMap, wantedId) {
+    for (name in nodeMap) {
+        var id = nodeMap[name];
+        if (id === wantedId) {
+            return name;
+        }
+    }
+}
+
+var parseReceivedCmd = function(cmdData, graph) {
+    var cmd = cmdData.readUInt8(0);
+    if (cmd == cmdFormat.commands.NetworkStopped.id) {
+        console.log("Network stopped");
+    } else if (cmd == cmdFormat.commands.NetworkStarted.id) {
+        console.log("Network started");
+    } else if (cmd == cmdFormat.commands.NodeAdded.id) {
+        var component = componentLib.getComponentById(cmdData.readUInt8(1)).name
+        var nodeName = nodeNameById(graph.nodeMap, cmdData.readUInt8(2))
+        console.log("ADD: ", nodeName, "(", component, ")");
+    } else if (cmd == cmdFormat.commands.NodesConnected.id) {
+        var srcNode = nodeNameById(graph.nodeMap, cmdData.readUInt8(1))
+        var srcPort = componentLib.outputPortById(graph.processes[srcNode].component, cmdData.readUInt8(2)).name
+        var targetNode = nodeNameById(graph.nodeMap, cmdData.readUInt8(3))
+        var targetPort = componentLib.inputPortById(graph.processes[targetNode].component, cmdData.readUInt8(4)).name
+        console.log("CONNECT: ", srcNode, srcPort, "->", targetNode, targetPort);
+    } else {
+        console.log("Unknown command: " + cmd.toString(16));
+    }
+}
+
+var uploadGraph = function(serial, data, graph) {
     console.log("opened serial");
 
+    var cmdSize = cmdFormat.commandSize;
+    var buf = new Buffer(cmdSize*20);
+    var offset = 0;
     serial.on("data", function(da) {
-         console.log(da.toString());
+        // console.log("buf= ", buf.slice(0, offset));
+        // console.log("data= ", da);
+        da.copy(buf, offset, 0, da.length);
+        offset += da.length;
+
+        for (var startIdx=0; startIdx < Math.floor(offset/cmdSize); startIdx+=cmdSize) {
+            var b = buf.slice(startIdx, startIdx+cmdSize);
+            // console.log("b= ", b);
+            parseReceivedCmd(b, graph);
+        }
+        var slush = offset % cmdSize;
+        buf.copy(buf, 0, offset-slush, offset);
+        offset = slush;
     });
 
     setTimeout(function() {
             // XXX: for some reason when writing without this delay,
             // the first bytes ends up corrupted on microcontroller side
              serial.write(data, function() {
-                    console.log(data);
-                    console.log("wrote graph");
+                    //console.log(data);
+                    //console.log("wrote graph");
             });
      }, 500);
 }
@@ -479,73 +524,7 @@ var updateDefinitions = function() {
 }
 
 
-var parseDebugSerial = function(graph, data, buf) {
-    buf += data;
-    //process.stdout.write(buf);
-    var lines = buf.split("\r\n");
-    for (var i=0; i<lines.length-1; i++) {
-        var line = lines[i];
-        // TEMP: use binary commandstream protocol instead
 
-        var nodeNameById = function(nodeId) {
-            for (name in graph.nodeMap) {
-                var id = graph.nodeMap[name];
-                if (id == nodeId) {
-                    return name;
-                }
-            }
-        }
-        var portNameFor = function(nodeId, portId, inputOrOutput) {
-            var nodeName = nodeNameById(nodeId);
-            var componentName = graph.processes[nodeName].component;
-            if (inputOrOutput == "input") {
-                return componentLib.inputPortById(componentName, portId).name;
-            } else {
-                return componentLib.outputPortById(componentName, portId).name;
-            }
-        }
-
-        var tokens = "";
-        if (line.indexOf("ADD: ") == 0) {
-            line = line.replace("ADD: ", "");
-            tokens = line.split(",");
-            var componentId = parseInt(tokens[0]);
-            var nodeId = parseInt(tokens[1]);
-            var c = componentLib.getComponentById(componentId);
-            console.log("CREATED: " + nodeNameById(nodeId) + "(" + c.name + ")");
-        } else if (line.indexOf("CONNECT: ") == 0) {
-            line = line.replace("CONNECT: ", "");
-            tokens = line.split(",");
-            var srcNodeId = parseInt(tokens[0]);
-            var srcPortId = parseInt(tokens[1]);
-            var targetNodeId = parseInt(tokens[2]);
-            var targetPortId = parseInt(tokens[3]);
-            console.log("CONNECTED:",
-                        nodeNameById(srcNodeId),
-                        portNameFor(srcNodeId, srcPortId), "->",
-                        portNameFor(targetNodeId, targetPortId, "input"),
-                        nodeNameById(targetNodeId)
-            );
-        } else if (line.indexOf("SEND: ") == 0) {
-            line = line.replace("SEND: ", "");
-            tokens = line.split(",");
-            srcNodeId = parseInt(tokens[1]);
-            srcPortId = parseInt(tokens[2]);
-            targetNodeId = parseInt(tokens[3]);
-            targetPortId = parseInt(tokens[4]);
-            var message = tokens[5]; // TODO: decode
-            console.log("SENT:",
-                        nodeNameById(srcNodeId),
-                        portNameFor(srcNodeId, srcPortId), "-> " + message + " ->",
-                        portNameFor(targetNodeId, targetPortId, "input"),
-                        nodeNameById(targetNodeId)
-            );
-        } else if (line.indexOf("DELIVER: ") == 0) {
-
-        }
-    }
-    buf = lines[lines.length-1];
-}
 
 // Main
 var cmd = process.argv[2];
@@ -582,29 +561,6 @@ if (cmd == "generate") {
       }
 
       console.log("MicroFlo runtime listening at WebSocket port " + port);
-    });
-
-} else if (cmd == "debug") {
-    serialport = require("serialport");
-
-    guessSerialPort(function(err, portName) {
-        if (err) {
-            throw err;
-        }
-
-        var serial = new serialport.SerialPort(portName, {baudrate: 9600}, false);
-        loadFile(process.argv[3], function(err, graph) {
-            // XXX: exploits the sideeffect that the nodeId->nodeName mappping is created
-            cmdStreamFromGraph(componentLib, graph);
-
-            serial.open(function(){
-                console.log("opened")
-                var buffer = "";
-                serial.on("data", function(data) {
-                    parseDebugSerial(graph, data, buffer);
-                });
-            });
-        });
     });
 
 } else if (cmd == "simulator") {
@@ -646,7 +602,7 @@ if (cmd == "generate") {
         loadFile(process.argv[3], function(err, graph) {
             var data = cmdStreamFromGraph(componentLib, graph);
             serial.open(function() {
-                uploadGraph(serial, data);
+                uploadGraph(serial, data, graph);
             });
         });
     });

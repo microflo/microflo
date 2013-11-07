@@ -7,11 +7,13 @@
 #include <avr/pgmspace.h>
 #include "arduino.hpp"
 
+const int serialPort = 0;
+const int serialBaudrate = 9600;
+
 ArduinoIO io;
 Network network(&io);
 GraphStreamer parser;
-const int serialPort = 0;
-const int serialBaudrate = 9600;
+HostCommunication endpoint(serialPort, serialBaudrate);
 
 void loadFromEEPROM(GraphStreamer *parser) {
     for (int i=0; i<sizeof(graph); i++) {
@@ -22,7 +24,7 @@ void loadFromEEPROM(GraphStreamer *parser) {
 
 void setup()
 {
-    io.SerialBegin(serialPort, serialBaudrate);
+    endpoint.setup(&parser, &network, &io);
     parser.setNetwork(&network);
 
 #ifdef MICROFLO_EMBED_GRAPH
@@ -32,11 +34,7 @@ void setup()
 
 void loop()
 {
-    if (io.SerialDataAvailable(serialPort) > 0) {
-        unsigned char c = io.SerialRead(serialPort);
-        parser.parseByte(c);
-    }
-
+    endpoint.runTick();
     network.runTick();
 }
 #endif // ARDUINO

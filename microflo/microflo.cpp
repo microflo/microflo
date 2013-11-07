@@ -179,6 +179,7 @@ void GraphStreamer::parseByte(char b) {
     }
 }
 
+
 void Component::send(Packet out, int port) {
     if (connections[port].target && connections[port].targetPort >= 0) {
         network->sendMessage(connections[port].target, connections[port].targetPort, out,
@@ -205,29 +206,13 @@ Network::Network(IO *io)
     : lastAddedNodeIndex(0)
     , messageWriteIndex(0)
     , messageReadIndex(0)
-
-    , messageSentNotify(0)
-    , messageDeliveredNotify(0)
-    , addNodeNotify(0)
-    , nodeConnectNotify(0)
-
+    , notificationHandler(0)
     , io(io)
     , state(Stopped)
 {
     for (int i=0; i<MAX_NODES; i++) {
         nodes[i] = 0;
     }
-}
-
-void Network::setNotifications(MessageSendNotification send,
-                               MessageDeliveryNotification deliver,
-                               NodeConnectNotification nodeConnect,
-                               AddNodeNotification addNode)
-{
-    messageSentNotify = send;
-    messageDeliveredNotify = deliver;
-    nodeConnectNotify = nodeConnect;
-    addNodeNotify = addNode;
 }
 
 void Network::deliverMessages(int firstIndex, int lastIndex) {
@@ -242,8 +227,8 @@ void Network::deliverMessages(int firstIndex, int lastIndex) {
                 continue;
             }
             target->process(messages[i].pkg, messages[i].targetPort);
-            if (messageDeliveredNotify) {
-                messageDeliveredNotify(i, messages[i]);
+            if (notificationHandler) {
+                notificationHandler->packetDelivered(i, messages[i]);
             }
         }
 }
@@ -272,8 +257,8 @@ void Network::sendMessage(Component *target, int targetPort, const Packet &pkg, 
     msg.target = target;
     msg.targetPort = targetPort;
     msg.pkg = pkg;
-    if (messageSentNotify) {
-        messageSentNotify(messageWriteIndex-1, msg, sender, senderPort);
+    if (notificationHandler) {
+        notificationHandler->packetSent(messageWriteIndex-1, msg, sender, senderPort);
     }
 }
 
@@ -323,8 +308,8 @@ void Network::connect(int srcId, int srcPort, int targetId, int targetPort) {
 
 void Network::connect(Component *src, int srcPort, Component *target, int targetPort) {
     src->connect(srcPort, target, targetPort);
-    if (nodeConnectNotify) {
-        nodeConnectNotify(src, srcPort, target, targetPort);
+    if (notificationHandler) {
+        notificationHandler->nodesConnected(src, srcPort, target, targetPort);
     }
 }
 
@@ -332,8 +317,8 @@ int Network::addNode(Component *node) {
     const int nodeId = lastAddedNodeIndex;
     nodes[nodeId] = node;
     node->setNetwork(this, nodeId, this->io);
-    if (addNodeNotify) {
-        addNodeNotify(node);
+    if (notificationHandler) {
+        notificationHandler->nodeAdded(node);
     }
     lastAddedNodeIndex++;
     return nodeId;
@@ -341,6 +326,10 @@ int Network::addNode(Component *node) {
 
 void Network::reset() {
     state = Stopped;
+    if (notificationHandler) {
+        notificationHandler->networkStateChanged(state);
+    }
+
     for (int i=0; i<MAX_NODES; i++) {
         if (nodes[i]) {
             delete (nodes[i]);
@@ -354,6 +343,93 @@ void Network::reset() {
 
 void Network::start() {
     state = Running;
+    if (notificationHandler) {
+        notificationHandler->networkStateChanged(state);
+    }
 
     runSetup();
+}
+
+
+HostCommunication::HostCommunication(int port, int baudRate)
+    : serialPort(port)
+    , serialBaudrate(baudRate)
+    , io(0)
+    , network(0)
+    , parser(0)
+{
+
+}
+
+void HostCommunication::setup(GraphStreamer *p, Network *n, IO *i) {
+    parser = p;
+    network = n;
+    io = i;
+    network->setNotificationHandler(this);
+
+    io->SerialBegin(serialPort, serialBaudrate);
+}
+
+
+void HostCommunication::runTick() {
+    if (io->SerialDataAvailable(serialPort) > 0) {
+        unsigned char c = io->SerialRead(serialPort);
+        parser->parseByte(c);
+    }
+}
+
+
+void HostCommunication::padCommandWithNArguments(int arguments) {
+    const int padding = GRAPH_CMD_SIZE - (arguments+1);
+    for (int i=0; i<padding; i++) {
+        io->SerialWrite(serialPort, 0x00);
+    }
+}
+
+void HostCommunication::sendCommandByte(uint8_t b) {
+    io->SerialWrite(serialPort, b);
+}
+
+void HostCommunication::nodeAdded(Component *c) {
+    sendCommandByte(GraphCmdNodeAdded);
+    sendCommandByte(c->component());
+    sendCommandByte(c->id());
+    padCommandWithNArguments(2);
+}
+
+void HostCommunication::nodesConnected(Component *src, int srcPort, Component *target, int targetPort) {
+    sendCommandByte(GraphCmdNodesConnected);
+    sendCommandByte(src->id());
+    sendCommandByte(srcPort);
+    sendCommandByte(target->id());
+    sendCommandByte(targetPort);
+    padCommandWithNArguments(4);
+}
+
+void HostCommunication::networkStateChanged(Network::State s) {
+    GraphCmd cmd = GraphCmdInvalid;
+    if (s == Network::Running) {
+        cmd = GraphCmdNetworkStarted;
+    } else if (s == Network::Stopped) {
+        cmd = GraphCmdNetworkStopped;
+    }
+    sendCommandByte(cmd);
+    padCommandWithNArguments(0);
+}
+
+// FIXME: implement
+void HostCommunication::packetSent(int index, Message m, Component *sender, int senderPort) {
+    /*Serial.print(index);
+    Serial.print(sender->nodeId);
+    Serial.print(senderPort);
+    Serial.print(m.target->nodeId);
+    Serial.print(m.targetPort, DEC);
+    printPacket(&m.pkg);*/
+}
+
+// FIXME: implement
+void HostCommunication::packetDelivered(int index, Message m) {
+    /*Serial.print(index);
+    Serial.print(m.target->nodeId);
+    printPacket(&m.pkg);*/
 }

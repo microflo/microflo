@@ -86,14 +86,16 @@ struct Message {
     Packet pkg;
 };
 
-
-typedef void (*AddNodeNotification)(Component *);
-typedef void (*NodeConnectNotification)(Component *src, int srcPort, Component *target, int targetPort);
-typedef void (*MessageSendNotification)(int, Message, Component *, int);
-typedef void (*MessageDeliveryNotification)(int, Message);
-
+class NetworkNotificationHandler;
 class IO;
+
 class Network {
+public:
+    enum State {
+        Invalid = -1,
+        Stopped,
+        Running
+    };
 public:
     Network(IO *io);
 
@@ -108,21 +110,13 @@ public:
                      Component *sender=0, int senderPort=-1);
     void sendMessage(int targetId, int targetPort, const Packet &pkg);
 
-    void setNotifications(MessageSendNotification send,
-                          MessageDeliveryNotification deliver,
-                          NodeConnectNotification nodeConnect,
-                          AddNodeNotification addNode);
+    void setNotificationHandler(NetworkNotificationHandler *handler) { notificationHandler = handler; }
 
     void runTick();
 private:
     void runSetup();
     void deliverMessages(int firstIndex, int lastIndex);
     void processMessages();
-    enum State {
-        Invalid = -1,
-        Stopped,
-        Running
-    };
 
 private:
     Component *nodes[MAX_NODES];
@@ -130,12 +124,22 @@ private:
     Message messages[MAX_MESSAGES];
     int messageWriteIndex;
     int messageReadIndex;
-    MessageSendNotification messageSentNotify;
-    MessageDeliveryNotification messageDeliveredNotify;
-    AddNodeNotification addNodeNotify;
-    NodeConnectNotification nodeConnectNotify;
+    NetworkNotificationHandler *notificationHandler;
     IO *io;
     State state;
+};
+
+// TODO: add a configuration option to Network, allowing to control detail level on reporting
+// normal = state changes + graph (node/edge) changes?
+// message send / recieve only for debugging. Possibly it should even be configured per edge or node
+class NetworkNotificationHandler {
+public:
+    virtual void packetSent(int index, Message m, Component *sender, int senderPort) = 0;
+    virtual void packetDelivered(int index, Message m) = 0;
+
+    virtual void nodeAdded(Component *c) = 0;
+    virtual void nodesConnected(Component *src, int srcPort, Component *target, int targetPort) = 0;
+    virtual void networkStateChanged(Network::State s) = 0;
 };
 
 struct Connection {
@@ -143,7 +147,6 @@ struct Connection {
     char targetPort;
 };
 
-class Debugger;
 
 // IO interface for components
 // Used to move the sideeffects of I/O components out of the component,
@@ -205,11 +208,15 @@ public:
 // IDEA: a decentral way of declaring component introspection data. JSON embedded in comment?
 class Component {
     friend class Network;
-    friend class Debugger;
 public:
     static Component *create(ComponentId id);
+
     virtual ~Component() {}
     virtual void process(Packet in, int port) = 0;
+
+    int id() { return nodeId; }
+    int component() { return componentId; }
+
 protected:
     void send(Packet out, int port=0);
     IO *io;
@@ -226,7 +233,6 @@ private:
 
 
 // Graph format
-// TODO: defined commands for observing graph changes
 #include <stddef.h>
 
 #define GRAPH_MAGIC 'u','C','/','F','l','o', '0', '1'
@@ -237,7 +243,9 @@ class GraphStreamer {
 public:
     GraphStreamer();
     void setNetwork(Network *net) { network = net; }
+
     void parseByte(char b);
+
 private:
     enum State {
         Invalid = -1,
@@ -249,6 +257,30 @@ private:
     int currentByte;
     unsigned char buffer[GRAPH_CMD_SIZE];
     enum State state;
+};
+
+class HostCommunication : public NetworkNotificationHandler {
+public:
+    HostCommunication(int serialPort, int baudRate);
+    void setup(GraphStreamer *p, Network *n, IO *i);
+    void runTick();
+
+    void padCommandWithNArguments(int arguments);
+    void sendCommandByte(uint8_t b);
+
+    // Implements NetworkNotificationHandler
+    virtual void packetSent(int index, Message m, Component *sender, int senderPort);
+    virtual void packetDelivered(int index, Message m);
+    virtual void nodeAdded(Component *c);
+    virtual void nodesConnected(Component *src, int srcPort, Component *target, int targetPort);
+    virtual void networkStateChanged(Network::State s);
+
+private:
+    int serialPort;
+    int serialBaudrate;
+    GraphStreamer *parser;
+    Network *network;
+    IO *io;
 };
 
 #endif // MICROFLO_H
