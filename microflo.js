@@ -466,6 +466,87 @@ var handleMessage = function (message, connection, graph) {
   }
 };
 
+var updateDefinitions = function() {
+    fs.writeFile("microflo/components-gen.h", generateEnum("ComponentId", "Id", componentLib.listComponents()),
+                 function(err) { if (err) throw err });
+    fs.writeFile("microflo/components-gen-bottom.hpp", generateComponentFactory(componentLib),
+                 function(err) { if (err) throw err });
+    fs.writeFile("microflo/components-gen-top.hpp", generateComponentPortDefinitions(componentLib),
+                 function(err) { if (err) throw err });
+    fs.writeFile("microflo/commandformat-gen.h", generateEnum("GraphCmd", "GraphCmd", cmdFormat.commands) +
+                 "\n" + generateEnum("Msg", "Msg", cmdFormat.packetTypes),
+                 function(err) { if (err) throw err });
+}
+
+
+var parseDebugSerial = function(graph, data, buf) {
+    buf += data;
+    //process.stdout.write(buf);
+    var lines = buf.split("\r\n");
+    for (var i=0; i<lines.length-1; i++) {
+        var line = lines[i];
+        // TEMP: use binary commandstream protocol instead
+
+        var nodeNameById = function(nodeId) {
+            for (name in graph.nodeMap) {
+                var id = graph.nodeMap[name];
+                if (id == nodeId) {
+                    return name;
+                }
+            }
+        }
+        var portNameFor = function(nodeId, portId, inputOrOutput) {
+            var nodeName = nodeNameById(nodeId);
+            var componentName = graph.processes[nodeName].component;
+            if (inputOrOutput == "input") {
+                return componentLib.inputPortById(componentName, portId).name;
+            } else {
+                return componentLib.outputPortById(componentName, portId).name;
+            }
+        }
+
+        var tokens = "";
+        if (line.indexOf("ADD: ") == 0) {
+            line = line.replace("ADD: ", "");
+            tokens = line.split(",");
+            var componentId = parseInt(tokens[0]);
+            var nodeId = parseInt(tokens[1]);
+            var c = componentLib.getComponentById(componentId);
+            console.log("CREATED: " + nodeNameById(nodeId) + "(" + c.name + ")");
+        } else if (line.indexOf("CONNECT: ") == 0) {
+            line = line.replace("CONNECT: ", "");
+            tokens = line.split(",");
+            var srcNodeId = parseInt(tokens[0]);
+            var srcPortId = parseInt(tokens[1]);
+            var targetNodeId = parseInt(tokens[2]);
+            var targetPortId = parseInt(tokens[3]);
+            console.log("CONNECTED:",
+                        nodeNameById(srcNodeId),
+                        portNameFor(srcNodeId, srcPortId), "->",
+                        portNameFor(targetNodeId, targetPortId, "input"),
+                        nodeNameById(targetNodeId)
+            );
+        } else if (line.indexOf("SEND: ") == 0) {
+            line = line.replace("SEND: ", "");
+            tokens = line.split(",");
+            srcNodeId = parseInt(tokens[1]);
+            srcPortId = parseInt(tokens[2]);
+            targetNodeId = parseInt(tokens[3]);
+            targetPortId = parseInt(tokens[4]);
+            var message = tokens[5]; // TODO: decode
+            console.log("SENT:",
+                        nodeNameById(srcNodeId),
+                        portNameFor(srcNodeId, srcPortId), "-> " + message + " ->",
+                        portNameFor(targetNodeId, targetPortId, "input"),
+                        nodeNameById(targetNodeId)
+            );
+        } else if (line.indexOf("DELIVER: ") == 0) {
+
+        }
+    }
+    buf = lines[lines.length-1];
+}
+
 // Main
 var cmd = process.argv[2];
 if (cmd == "generate") {
@@ -477,15 +558,7 @@ if (cmd == "generate") {
     var outputFile = process.argv[4] || inputFile
     generateOutput(componentLib, inputFile, outputFile);
 } else if (cmd == "update-defs") {
-    fs.writeFile("microflo/components-gen.h", generateEnum("ComponentId", "Id", componentLib.listComponents()),
-                 function(err) { if (err) throw err });
-    fs.writeFile("microflo/components-gen-bottom.hpp", generateComponentFactory(componentLib),
-                 function(err) { if (err) throw err });
-    fs.writeFile("microflo/components-gen-top.hpp", generateComponentPortDefinitions(componentLib),
-                 function(err) { if (err) throw err });
-    fs.writeFile("microflo/commandformat-gen.h", generateEnum("GraphCmd", "GraphCmd", cmdFormat.commands) +
-                 "\n" + generateEnum("Msg", "Msg", cmdFormat.packetTypes),
-                 function(err) { if (err) throw err });
+    updateDefinitions();
 } else if (cmd == "runtime") {
     var http = require('http');
     var websocket = require('websocket');
@@ -514,75 +587,6 @@ if (cmd == "generate") {
 } else if (cmd == "debug") {
     serialport = require("serialport");
 
-    var buf = "";
-    var parseSerial = function(graph, data) {
-        buf += data;
-        //process.stdout.write(buf);
-        var lines = buf.split("\r\n");
-        for (var i=0; i<lines.length-1; i++) {
-            var line = lines[i];
-            // TEMP: use binary commandstream protocol instead
-
-            var nodeNameById = function(nodeId) {
-                for (name in graph.nodeMap) {
-                    var id = graph.nodeMap[name];
-                    if (id == nodeId) {
-                        return name;
-                    }
-                }
-            }
-            var portNameFor = function(nodeId, portId, inputOrOutput) {
-                var nodeName = nodeNameById(nodeId);
-                var componentName = graph.processes[nodeName].component;
-                if (inputOrOutput == "input") {
-                    return componentLib.inputPortById(componentName, portId).name;
-                } else {
-                    return componentLib.outputPortById(componentName, portId).name;
-                }
-            }
-
-            var tokens = "";
-            if (line.indexOf("ADD: ") == 0) {
-                line = line.replace("ADD: ", "");
-                tokens = line.split(",");
-                var componentId = parseInt(tokens[0]);
-                var nodeId = parseInt(tokens[1]);
-                var c = componentLib.getComponentById(componentId);
-                console.log("CREATED: " + nodeNameById(nodeId) + "(" + c.name + ")");
-            } else if (line.indexOf("CONNECT: ") == 0) {
-                line = line.replace("CONNECT: ", "");
-                tokens = line.split(",");
-                var srcNodeId = parseInt(tokens[0]);
-                var srcPortId = parseInt(tokens[1]);
-                var targetNodeId = parseInt(tokens[2]);
-                var targetPortId = parseInt(tokens[3]);
-                console.log("CONNECTED:",
-                            nodeNameById(srcNodeId),
-                            portNameFor(srcNodeId, srcPortId), "->",
-                            portNameFor(targetNodeId, targetPortId, "input"),
-                            nodeNameById(targetNodeId)
-                );
-            } else if (line.indexOf("SEND: ") == 0) {
-                line = line.replace("SEND: ", "");
-                tokens = line.split(",");
-                srcNodeId = parseInt(tokens[1]);
-                srcPortId = parseInt(tokens[2]);
-                targetNodeId = parseInt(tokens[3]);
-                targetPortId = parseInt(tokens[4]);
-                var message = tokens[5]; // TODO: decode
-                console.log("SENT:",
-                            nodeNameById(srcNodeId),
-                            portNameFor(srcNodeId, srcPortId), "-> " + message + " ->",
-                            portNameFor(targetNodeId, targetPortId, "input"),
-                            nodeNameById(targetNodeId)
-                );
-            } else if (line.indexOf("DELIVER: ") == 0) {
-
-            }
-        }
-        buf = lines[lines.length-1];
-    }
-
     guessSerialPort(function(err, portName) {
         if (err) {
             throw err;
@@ -595,8 +599,9 @@ if (cmd == "generate") {
 
             serial.open(function(){
                 console.log("opened")
+                var buffer = "";
                 serial.on("data", function(data) {
-                    parseSerial(graph, data);
+                    parseDebugSerial(graph, data, buffer);
                 });
             });
         });
@@ -623,7 +628,7 @@ if (cmd == "generate") {
         net.addNode(comp);
 
         console.log("Running MicroFlo network in host");
-        net.runSetup();
+        net.start();
         setInterval(function () { net.runTick(); }, 100);
     });
 
