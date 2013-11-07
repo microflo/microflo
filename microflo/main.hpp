@@ -7,35 +7,34 @@
 #include <avr/pgmspace.h>
 #include "arduino.hpp"
 
-GraphStreamer parser;
 ArduinoIO io;
 Network network(&io);
+GraphStreamer parser;
+const int serialPort = 0;
+const int serialBaudrate = 9600;
+
+void loadFromEEPROM(GraphStreamer *parser) {
+    for (int i=0; i<sizeof(graph); i++) {
+        unsigned char c = pgm_read_byte_near(graph+i);
+        parser->parseByte(c);
+    }
+}
+
 void setup()
 {
-    // HACK: use the IO abstaction instead
-    Serial.begin(9600);
-
-#ifdef DEBUG
-    // TODO: allow to enable/disable at runtime
-    Debugger::setup(&network);
-#endif
+    io.SerialBegin(serialPort, serialBaudrate);
     parser.setNetwork(&network);
 
 #ifdef MICROFLO_EMBED_GRAPH
-    for (int i=0; i<sizeof(graph); i++) {
-        unsigned char c = pgm_read_byte_near(graph+i);
-        parser.parseByte(c);
-    }
+    loadFromEEPROM(&parser);
 #endif
 }
 
 void loop()
 {
-    // HACK: use the IO abstraction instead
-    if (Serial.available() > 0) {
-        unsigned char c = Serial.read();
+    if (io.SerialDataAvailable(serialPort) > 0) {
+        unsigned char c = io.SerialRead(serialPort);
         parser.parseByte(c);
-        Serial.println(c, HEX);
     }
 
     network.runTick();
