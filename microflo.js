@@ -371,8 +371,10 @@ var portDefAsArray = function(port) {
 var connectionsWithoutEdge = function(connections, findConn) {
     var newList = [];
     connections.forEach(function(conn) {
-        if (conn.from === findConn.from && conn.to === findConn.to) {
-
+        if (conn.src && JSON.stringify(conn.src) === JSON.stringify(findConn.src)
+                     && JSON.stringify(conn.tgt) === JSON.stringify(findConn.tgt)) {
+        } else if (conn.data && JSON.stringify(conn.tgt) === JSON.stringify(findConn.tgt)) {
+            // IIP
         } else {
             newList.push(conn);
         }
