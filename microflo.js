@@ -381,9 +381,17 @@ var connectionsWithoutEdge = function(connections, findConn) {
 }
 
 var wsConnectionFormatToFbp = function(ws) {
-    return {
-        src: { port: ws.from.port, process: ws.from.node },
-        tgt: { port: ws.to.port, process: ws.to.node }
+    if (ws.from.port) {
+        return {
+            src: { port: ws.from.port, process: ws.from.node },
+            tgt: { port: ws.to.port, process: ws.to.node }
+        }
+    } else {
+        // IIP
+        return {
+            data: ws.from.data,
+            tgt: { port: ws.to.port, process: ws.to.node }
+        }
     }
 }
 
@@ -498,14 +506,24 @@ var handleMessage = function (message, connection, graph) {
         } else if (contents.command == "removeedge") {
             graph.connections = connectionsWithoutEdge(graph.connections, wsConnectionFormatToFbp(contents.payload));
         } else if (contents.command == "addinitial") {
-            graph.connections.push(contents.payload);
+            graph.connections.push(wsConnectionFormatToFbp(contents.payload));
         } else if (contents.command == "removeinitial") {
-            graph.connections = connectionsWithoutEdge(graph.connections, contents.payload);
+            graph.connections = connectionsWithoutEdge(graph.connections, wsConnectionFormatToFbp(contents.payload));
         }
     } else if (contents.protocol == "network") {
         if (contents.command == "start") {
             var data = cmdStreamFromGraph(componentLib, graph);
-            console.log(JSON.stringify(graph, null, "    "), data);
+
+            guessSerialPort(function(err, portName) {
+                if (err) {
+                    throw err;
+                }
+                console.log("Using serial port: " + portName);
+                var serial = new serialport.SerialPort(portName, {baudrate: 9600}, false);
+                serial.open(function() {
+                        uploadGraph(serial, data, graph);
+                });
+            });
         }
     }
   }
@@ -539,6 +557,7 @@ if (cmd == "generate") {
 } else if (cmd == "update-defs") {
     updateDefinitions();
 } else if (cmd == "runtime") {
+    serialport = require("serialport");
     var http = require('http');
     var websocket = require('websocket');
 
