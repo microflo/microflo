@@ -302,6 +302,7 @@ var generateOutput = function(componentLib, inputFile, outputFile) {
             if (err) throw err;
         });
         fs.writeFile(outputBase + ".cpp", cmdStreamToCDefinition(data) + "\n"
+                     + "#define MICROFLO_EMBED_GRAPH\n"
                      + '#include "microflo.h"' + '\n#include "main.hpp"',
                      function(err) {
             if (err) throw err;

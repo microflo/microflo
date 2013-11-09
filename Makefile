@@ -8,7 +8,7 @@ OSX_ARDUINO_APP=/Applications/Arduino.app
 
 # Not normally customized
 CPPFLAGS=-ffunction-sections -fdata-sections -g -Os -w
-DEFINES=-DHAVE_DALLAS_TEMPERATURE -DMICROFLO_EMBED_GRAPH
+DEFINES=-DHAVE_DALLAS_TEMPERATURE
 
 # Platform specifics
 ifeq ($(OS),Windows_NT)
