@@ -9,7 +9,7 @@
     "bugs": "http://github.com/jonnor/microflo/issues",
     "license": "MIT",
     "scripts":{
-        "preinstall": "make definitions && node-gyp rebuild",
+        "preinstall": "node microflo.js update-defs && node-gyp rebuild",
         "test": "make test"
     },
     "dependencies": {
