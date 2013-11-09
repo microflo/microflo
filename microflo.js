@@ -443,7 +443,7 @@ var parseReceivedCmd = function(cmdData, graph) {
     }
 }
 
-var uploadGraph = function(serial, data, graph) {
+var uploadGraph = function(serial, data, graph, callback) {
     console.log("opened serial");
 
     var cmdSize = cmdFormat.commandSize;
@@ -471,11 +471,14 @@ var uploadGraph = function(serial, data, graph) {
              serial.write(data, function() {
                     //console.log(data);
                     //console.log("wrote graph");
+                    if (callback) {
+                        callback(serial);
+                    }
             });
      }, 500);
 }
 
-var handleMessage = function (message, connection, graph) {
+var handleMessage = function (message, connection, graph, getSerial) {
   if (message.type == 'utf8') {
     try {
       var contents = JSON.parse(message.utf8Data);
@@ -515,17 +518,7 @@ var handleMessage = function (message, connection, graph) {
     } else if (contents.protocol == "network") {
         if (contents.command == "start") {
             var data = cmdStreamFromGraph(componentLib, graph);
-
-            guessSerialPort(function(err, portName) {
-                if (err) {
-                    throw err;
-                }
-                console.log("Using serial port: " + portName);
-                var serial = new serialport.SerialPort(portName, {baudrate: 9600}, false);
-                serial.open(function() {
-                        uploadGraph(serial, data, graph);
-                });
-            });
+            uploadGraph(getSerial(), data, graph);
         }
     }
   }
@@ -568,11 +561,25 @@ if (cmd == "generate") {
          httpServer: httpServer
        });
 
+    // FIXME: nasty and racy
+    var serial = undefined;
+    guessSerialPort(function(err, portName) {
+        if (err) {
+            throw err;
+        }
+        console.log("Using serial port: " + portName);
+        serial = new serialport.SerialPort(portName, {baudrate: 9600}, false);
+        serial.open(function() {
+
+        });
+    });
+    var getSerial = function() { return serial };
+
     var graph = {};
       wsServer.on('request', function (request) {
         var connection = request.accept('noflo', request.origin);
         connection.on('message', function (message) {
-          handleMessage(message, connection, graph);
+          handleMessage(message, connection, graph, getSerial);
         });
       });
     var port = 3569;
