@@ -2,11 +2,6 @@
 timer(Timer) OUT -> TRIGGER thermometer(ReadDallasTemperature)
 thermometer() OUT -> IN hysteresis(HysteresisLatch)
 
-# Debug/monitoring
-#thermometer() OUT -> IN s(ToString)
-#hysteresis() OUT -> IN s(ToString)
-#s() OUT -> IN out(SerialOut)
-
 # On/Off switch
 hysteresis() OUT -> IN switch(BreakBeforeMake)
 switch() OUT1 -> IN ia(InvertBoolean) OUT -> IN turnOn(DigitalWrite)
@@ -18,7 +13,7 @@ turnOff() OUT -> IN id(InvertBoolean) OUT -> MONITOR2 switch()
 # Config
 '5000' -> INTERVAL timer() # milliseconds
 'true' -> ENABLE timer
-'2' -> LOWTHRESHOLD hysteresis() # Celcius
+'4' -> LOWTHRESHOLD hysteresis() # Celcius
 '5' -> HIGHTHRESHOLD hysteresis() # Celcius
 '["0x28", "0xAF", "0x1C", "0xB2", "0x04", "0x00", "0x00", "0x33"]' -> ADDRESS thermometer()
 board(ArduinoUno) PIN9 -> PIN thermometer()

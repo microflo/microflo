@@ -398,59 +398,6 @@ private:
 #include <sstream>
 #endif
 
-class ToString : public Component
-{
-public:
-    virtual void process(Packet in, int port) {
-
-    // XXX: probably too generic a name for this component?
-        if (in.isInteger()) {
-#ifdef ARDUINO
-            String s(in.asInteger(), DEC);
-            send(Packet(MsgBracketStart));
-            for (int i=0; i<s.length(); i++) {
-                send(Packet(s.charAt(i)));
-            }
-            send(Packet(MsgBracketEnd));
-#endif
-#ifdef HOST_BUILD
-            std::stringstream ss;
-            ss << in.asInteger();
-            std::string s = ss.str();
-            send(Packet(MsgBracketStart));
-            for (int i=0; i<s.size(); i++) {
-                send(Packet(s[i]));
-            }
-            send(Packet(MsgBracketEnd));
-#endif
-        } else if (in.isBool()) {
-            const char *s = in.asBool() ? "true" : "false";
-            const int l = in.asBool() ? 4 : 5;
-            send(Packet(MsgBracketStart));
-            for (int i=0; i<l; i++) {
-                send(Packet(s[i]));
-            }
-            send(Packet(MsgBracketEnd));
-        } else if (in.isFloat()) {
-
-            char s[20] = {0,};
-            const int precision = 2;
-            const int width = 2;
-#ifdef ARDUINO
-            dtostrf(in.asFloat(), width, precision, s);
-#endif
-#ifdef HOST_BUILD
-            snprintf(s, sizeof(s), "%.2f", in.asFloat());
-#endif
-            send(Packet(MsgBracketStart));
-            for (int i=0; i<strlen(s); i++) {
-                send(Packet(s[i]));
-            }
-            send(Packet(MsgBracketEnd));
-        }
-    }
-};
-
 // IDEA: ability to express components as finite state machines using a DSL and/or GUI
 class BreakBeforeMake : public Component
 {
