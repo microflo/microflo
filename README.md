@@ -120,7 +120,8 @@ Contributors
 Related
 ---------
 
-Flow-based/dataflow general
+Flow-based/dataflow concepts
+
 * http://www.jpaulmorrison.com/fbp/
 * http://c2.com/cgi/wiki?FlowBasedProgramming
 * http://www.reddit.com/r/flowbasedprogramming/
@@ -143,3 +144,10 @@ Visual programming for Arduino etc.
 * http://www.flowol.com/InterfaceArduino.aspx (non-free)
 * http://microuml.net/microuml.html (non-free service)
 
+Other notable dataflow programming environments
+
+* http://puredata.info
+* http://en.wikipedia.org/wiki/Simulink (dsp, non-free)
+* http://en.wikipedia.org/wiki/Labview (dsp, non-free)
+* http://en.wikipedia.org/wiki/Reaktor (audio, non-free)
+* http://en.wikipedia.org/wiki/Quartz_Composer (graphics, non-free)
