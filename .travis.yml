@@ -7,4 +7,4 @@ before_install:
     - sudo apt-get install -qq arduino-core arduino-mk
     - sudo pip install ino
 
-script: make && make check
+script: make && npm test

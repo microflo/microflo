@@ -1,7 +1,7 @@
 # User configuration options
 GRAPH=examples/blink.fbp
 MODEL=uno
-REPORTER=spec
+
 AVRSIZE=avr-size
 VERSION=$(shell git describe --tags)
 OSX_ARDUINO_APP=/Applications/Arduino.app
@@ -45,11 +45,6 @@ upload: build
 definitions:
 	node microflo.js update-defs
 
-check:
-	./node_modules/.bin/mocha --reporter $(REPORTER)
-
-test: check
-
 clean:
 	git clean -dfx --exclude=node_modules
 
@@ -60,5 +55,5 @@ release: build
 	cp build/arduino/src/firmware.cpp build/microflo-arduino-$(VERSION)/microflo/examples/Standalone/Standalone.pde
 	cd build/microflo-arduino-$(VERSION) && zip -r microflo-arduino-$(VERSION).zip microflo
 
-.PHONY: all build definitions clean check test release
+.PHONY: all build definitions clean release
 
