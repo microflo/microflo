@@ -447,9 +447,10 @@ var uploadGraph = function(serial, data, graph, callback) {
     console.log("opened serial");
 
     var cmdSize = cmdFormat.commandSize;
-    var buf = new Buffer(cmdSize*20);
+    var buf = new Buffer(cmdSize*2);
     var offset = 0;
-    serial.on("data", function(da) {
+
+    var onSerialData = function(da) {
         // console.log("buf= ", buf.slice(0, offset));
         // console.log("data= ", da);
         da.copy(buf, offset, 0, da.length);
@@ -463,7 +464,10 @@ var uploadGraph = function(serial, data, graph, callback) {
         var slush = offset % cmdSize;
         buf.copy(buf, 0, offset-slush, offset);
         offset = slush;
-    });
+    };
+
+    serial.removeAllListeners("data");
+    serial.on("data", onSerialData);
 
     setTimeout(function() {
             // XXX: for some reason when writing without this delay,
