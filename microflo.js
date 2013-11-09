@@ -448,7 +448,7 @@ var uploadGraph = function(serial, data, graph, callback) {
     console.log("opened serial");
 
     var cmdSize = cmdFormat.commandSize;
-    var buf = new Buffer(cmdSize*2);
+    var buf = new Buffer(cmdSize*10);
     var offset = 0;
 
     var onSerialData = function(da) {
@@ -457,7 +457,7 @@ var uploadGraph = function(serial, data, graph, callback) {
         da.copy(buf, offset, 0, da.length);
         offset += da.length;
 
-        for (var startIdx=0; startIdx < Math.floor(offset/cmdSize); startIdx+=cmdSize) {
+        for (var startIdx=0; startIdx < Math.floor(offset/cmdSize)*cmdSize; startIdx+=cmdSize) {
             var b = buf.slice(startIdx, startIdx+cmdSize);
             // console.log("b= ", b);
             parseReceivedCmd(b, graph);
