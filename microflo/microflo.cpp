@@ -332,7 +332,7 @@ void Network::reset() {
 
     for (int i=0; i<MAX_NODES; i++) {
         if (nodes[i]) {
-            delete (nodes[i]);
+            delete nodes[i];
             nodes[i] = 0;
         }
     }
