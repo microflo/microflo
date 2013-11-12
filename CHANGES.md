@@ -2,7 +2,14 @@ Next
 =====
 Released: N/A
 
-Added components: AnalogRead, PwmWrite, MapLinear, Split
+Visually programmmable. When using NoFlo UI, one can create MicroFlo graphs visually
+and upload to an Arduino while running.
+
+Added support for running on Mac OSX and Windows, in addition to GNU/Linux.
+
+Added components: AnalogRead, PwmWrite, MapLinear, Split, Gate, Route
+Modified components: ToggleBoolean (added reset port), Timer (added enable+reset port)
+Removed components: ToString (to be replaced by graph introspection/debug tools)
 
 MicroFlo 0.1.0: "The Fridge"
 ==========================

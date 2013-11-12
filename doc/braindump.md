@@ -202,6 +202,14 @@ such complex systems as they run may prove of enormous value.
 * For clusters, perhaps something based on ZeroMQ?
 * For the cloud, ???
 
+Other interesting domains...
+----------------------------
+That could be part of a hetrogenous system
+* 3d generative modelling, animation and simulations. Hook into Blender?
+* Real-time audio synthesis, algoritmic composition. Hook into SuperCollider?
+* GPU programming, both GLSL shaders and GPGPU with OpenCL.
+* FPGA devices. Sadly extremely propritary, would probably need to generate HDL/Verilog
+
 Testing strategy
 ----------------
 This is all TODO at the moment.
