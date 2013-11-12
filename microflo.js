@@ -547,7 +547,6 @@ var updateDefinitions = function() {
 // Main
 var cmd = process.argv[2];
 if (cmd == "generate") {
-    addon = require("./build/Release/MicroFloCc.node");
     fbp = require("fbp");
     noflo = require("noflo");
 
