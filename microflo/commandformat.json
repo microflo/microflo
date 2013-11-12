@@ -2,6 +2,7 @@
     "magicString": "uC/Flo01",
     "commandSize": 8,
     "commands": {
+        "Header": {"id": 9},
         "Reset": {"id": 10},
         "CreateComponent": {"id": 11},
         "ConnectNodes": {"id": 12},

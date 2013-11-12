@@ -178,6 +178,28 @@ void GraphStreamer::parseCmd() {
     }
 }
 
+#ifdef ARDUINO
+#include <avr/pgmspace.h>
+#include <avr/eeprom.h>
+
+void GraphStreamer::loadEmbeddedGraph(const uint8_t *graph) {
+    for (int i=0; i<sizeof(graph); i++) {
+        unsigned char c = pgm_read_byte_near(graph+i);
+        parseByte(c);
+    }
+}
+
+void GraphStreamer::tryLoadSavedGraph() {
+    for (int i=0; i<sizeof(graph); i++) {
+        unsigned char c = pgm_read_byte_near(graph+i);
+        parseByte(c);
+    }
+}
+#else
+void GraphStreamer::loadEmbeddedGraph(const uint8_t *graph) {}
+void GraphStreamer::tryLoadSavedGraph() {}
+#endif
+
 void Component::send(Packet out, int port) {
     if (port >= nPorts) {
         network->emitDebug(DebugComponentSendInvalidPort);

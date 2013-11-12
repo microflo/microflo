@@ -251,7 +251,14 @@ public:
     GraphStreamer();
     void setNetwork(Network *net) { network = net; }
 
+    void loadFromFlash(uint8_t *graph);
+    void tryLoadSavedGraph();
+
+private:
     void parseByte(char b);
+    void saveGraphStart();
+    void saveGraphEnd();
+    void saveGraphEnd();
 
 private:
     void parseCmd();

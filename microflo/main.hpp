@@ -4,7 +4,6 @@
  */
 
 #ifdef ARDUINO
-#include <avr/pgmspace.h>
 #include "arduino.hpp"
 
 const int serialPort = 0;
@@ -15,13 +14,6 @@ Network network(&io);
 GraphStreamer parser;
 HostCommunication endpoint(serialPort, serialBaudrate);
 
-void loadFromEEPROM(GraphStreamer *parser) {
-    for (int i=0; i<sizeof(graph); i++) {
-        unsigned char c = pgm_read_byte_near(graph+i);
-        parser->parseByte(c);
-    }
-}
-
 void setup()
 {
     endpoint.setup(&parser, &network, &io);
@@ -29,8 +21,9 @@ void setup()
     parser.setNetwork(&network);
 
 #ifdef MICROFLO_EMBED_GRAPH
-    loadFromEEPROM(&parser);
+    parser.loadEmbeddedGraph(&graph);
 #endif
+    parser.tryLoadSavedGraph();
 }
 
 void loop()
