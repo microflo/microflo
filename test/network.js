@@ -3,9 +3,16 @@
  * MicroFlo may be freely distributed under the MIT license
  */
 
-var microflo = require("../microflo");
-var addon = require("../build/Release/MicroFloCc.node");
 var assert = require("assert")
+var microflo = require("../microflo");
+var addon = undefined;
+try {
+    addon = require("../build/Release/MicroFloCc.node");
+} catch (err) {
+    console.log("Warning: could not load addon: ", err);
+}
+
+
 
 describe('Network', function(){
   describe('sending packets into graph of Forward components', function(){
