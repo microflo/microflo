@@ -495,6 +495,9 @@ var handleMessage = function (message, connection, graph, getSerial) {
 
         for (var name in componentLib.listComponents()) {
             var comp = componentLib.getComponent(name);
+            if (comp[".skip"] || false) {
+                continue;
+            }
             var resp = {protocol: "component", command: "component",
                 payload: {name: name, description: comp.description || "",
                     inPorts: portDefAsArray(componentLib.inputPortsFor(name)),

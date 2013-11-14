@@ -3,58 +3,73 @@
     "defaultInPorts": { "in": { "id": 0 } },
     "defaultOutPorts": { "out": { "id": 0 } },
     "components": {
-        "Invalid": { "id": 0 },
+        "Invalid": { "id": 0, ".skip": true },
 
         "PwmWrite": { "id": 1,
+            "description": "Set duty cycle [0-100%] of PWM pin",
             "inPorts": {
                 "dutycycle": { "id": 0 },
                 "pin": { "id": 1 }
             }
         },
         "AnalogRead": { "id": 2,
+            "description": "Read analog value from pin. Value=[0-1023]",
             "inPorts": {
                 "trigger": { "id": 0 },
                 "pin": { "id": 1 }
             }
         },
-        "Forward": { "id": 3 },
+        "Forward": { "id": 3,
+            "description": "Forward a packet from input to output"
+        },
         "Count": { "id": 4,
+            "description": "Count upwards from 0, with step 1",
             "inPorts": {
                 "in": { "id": 0 },
                 "reset": { "id": 1 }
             }
         },
         "DigitalWrite": { "id": 5,
+            "description": "Write a boolean value to pin",
             "inPorts": {
                 "in": { "id": 0 },
                 "pin": { "id": 1 }
             }
         },
         "DigitalRead": { "id": 6,
+            "description": "Read a boolean value from pin. Value is read on @trigger",
             "inPorts": {
                 "trigger": { "id": 0 },
                 "pin": { "id": 1 },
                 "pullup": { "id": 2 }
             }
         },
-        "Timer": {
-            "id": 7,
+        "Timer": { "id": 7,
+            "description": "Emit a packet every @interval milliseconds",
             "inPorts": {
                 "interval": { "id": 0 },
                 "enable": { "id": 1 },
                 "reset": { "id": 2 }
             }
         },
-        "SerialIn": { "id": 8 },
-        "SerialOut": { "id": 9 },
-        "InvertBoolean": { "id": 10 },
+        "SerialIn": { "id": 8,
+            "description": "Emit packets read from serial port (0). Warning: may interfere with MicroFlo UI usage"
+        },
+        "SerialOut": { "id": 9,
+            "description": "Write input packets to serial port (0). Warning: may interfere with MicroFlo UI usage"
+        },
+        "InvertBoolean": { "id": 10,
+            "description": "Invert incoming boolean value. Logical equivalent: NOT"
+        },
         "ToggleBoolean": { "id": 11,
+            "description": "Invert output packet everytime an input packet arrives. Output defaults to false",
             "inPorts": {
                 "in": { "id": 0 },
                 "reset": { "id": 1 }
             }
         },
         "HysteresisLatch": { "id": 12,
+            "description": "Emit true if @in < @highthreshold, false if @in < @lowthreshold, else keep previous state",
             "inPorts": {
                 "in": { "id": 0 },
                 "lowthreshold": { "id": 1 },
@@ -62,6 +77,7 @@
             }
         },
         "ReadDallasTemperature": { "id": 13,
+            "description": "Read temperature from DS1820 thermometer. Note: requires building MicroFlo from source tree.",
             "inPorts": {
                 "trigger": { "id": 0 },
                 "pin": { "id": 1 },
@@ -70,6 +86,7 @@
         },
 
         "Route": { "id": 14,
+            "description": "Pass packets to @out from input port number @port",
             "inPorts": {
                 "port": { "id": 0 },
                 "in1": { "id": 1 },
@@ -84,10 +101,10 @@
             }
         },
 
-        "Delimit": { "id": 15 },
+        "Delimit": { "id": 15, ".skip": true },
 
-        "BreakBeforeMake": {
-            "id": 16,
+        "BreakBeforeMake": { "id": 16,
+            "description": "Break-before-make switch logic. Monitor ports must be connected to form a feedback loop from what outputs are connected to",
             "inPorts": {
                 "in": { "id": 0 },
                 "monitor1": { "id": 1 },
@@ -99,6 +116,7 @@
             }
         },
         "MapLinear": { "id": 17,
+            "description": "Map the integer @in from range [@inmin,@inmax] to [@outmin,@outmax]",
             "inPorts": {
                 "in": { "id": 0 },
                 "inmin": { "id": 1 },
@@ -108,11 +126,13 @@
             }
         },
         "MonitorPin": { "id": 18,
+            "description": "Emit a boolean value each time a pin changes state. Note: only pin 2/3 on Arduino Uno/Nano supported.",
             "inPorts": {
                 "pin": { "id": 0 }
             }
         },
         "Split": { "id": 19,
+            "description": "Emit incoming packets on all output ports",
             "outPorts": {
                 "out1": { "id": 0 },
                 "out2": { "id": 1 },
@@ -126,14 +146,15 @@
             }
         },
         "Gate": { "id": 20,
+            "description": "Pass packets from @in to @out only if @enable is true",
             "inPorts": {
                 "in": { "id": 0 },
                 "enable": { "id": 1 }
             }
         },
 
-        "ArduinoUno": {
-            "id": 50,
+        "ArduinoUno": { "id": 50,
+            "description": "Convenient definition of pins available on Arduino Uno",
             "outPorts": {
                 "pin0": { "id": 0 },
                 "pin1": { "id": 1 },
@@ -159,6 +180,6 @@
             "inPorts": {}
         },
 
-        "Max": { "id": 255 }
+        "Max": { "id": 255, ".skip": true }
     }
 }
