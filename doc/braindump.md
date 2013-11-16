@@ -278,4 +278,27 @@ Errors declared in components.json, including description.
 Should components declare which errors they may emit?
 
 
+Random
+=======
+[Tangible Functional Programming](http://www.youtube.com/watch?v=faJ8N0giqzw)
 
+Compared to dataflow:
+* First-order functions: they are just values, no separation between values/data and functions.
+* Types are composable (as in Haskell), each types have a corresponding GUI. "Tangible values": type TV a = (Out a, a)
+* Main composability operation is "fusion", which combines two components, gives a new component, but hides all the intermediate data.
+
+[The future of software, the end of apps, and why UX designers should care about type theory](http://pchiusano.blogspot.no/2013/05/the-future-of-software-end-of-apps-and.html) argues that the application is an uncessesary paradim, artifically treating computers like physical machines. Furthermore,
+that the economy of the Internet is flawed due to the boundaries between applications and lack of composability - they derive most of their value by
+amassing data behind their application boundary. Highlighting that maybe the most serious challenges to achieving a world were "programming" is not
+limited to a (self-)selected and limited few is the economic and social state of the software industry.
+
+[Programming Without Text Files](http://pointersgonewild.wordpress.com/2013/07/19/programming-without-text-files/) argues that
+a natural evolution of our IDEs and current textual-imperative languages is to go from operating on source code as text files,
+to source code as Abstract Syntax Trees (AST). With macros which are functions operating on the AST, enabling to add primitives
+to the language used. And with GUIs for navigating, introspecting and viewing the AST defining the program at the level of detail
+wanted by the programming.
+I'd love to be able to add pre- and post-conditions to my programs for instance... Or create a custom visual tool for defining state-machines.
+
+[Why type systems matter for UX: an example](http://pchiusano.blogspot.no/2013/09/why-type-systems-matter-for-ux-example.html)
+
+[UI as an Act of Programming](http://awelonblue.wordpress.com/2013/09/11/ui-as-an-act-of-programming)
