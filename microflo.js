@@ -202,9 +202,22 @@ var cmdStreamFromGraph = function(componentLib, graph) {
         if (connection.src !== undefined) {
             var srcNode = connection.src.process;
             var tgtNode = connection.tgt.process;
-            var srcPort = componentLib.outputPort(graph.processes[srcNode].component, connection.src.port).id;
-            var tgtPort = componentLib.inputPort(graph.processes[tgtNode].component, connection.tgt.port).id;
-            index += writeCmd(buffer, index, cmdFormat.commands.ConnectNodes.id, nodeMap[srcNode], nodeMap[tgtNode], srcPort, tgtPort);
+            var srcPort = undefined;
+            var tgtPort = undefined;
+            try {
+                srcPort = componentLib.outputPort(graph.processes[srcNode].component,
+                                                  connection.src.port).id;
+                tgtPort = componentLib.inputPort(graph.processes[tgtNode].component,
+                                                 connection.tgt.port).id;
+            } catch (err) {
+                throw "Could not connect: " + srcNode + " " + connection.src.port +
+                        " -> " + connection.tgt.port + " "+ tgtNode;
+            }
+
+            if (tgtPort !== undefined && srcPort !== undefined) {
+                index += writeCmd(buffer, index, cmdFormat.commands.ConnectNodes.id,
+                                  nodeMap[srcNode], nodeMap[tgtNode], srcPort, tgtPort);
+            }
         }
     });
 
