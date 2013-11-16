@@ -153,6 +153,14 @@
             }
         },
 
+        "BooleanOr": { "id": 21,
+            "description": "Emits true if either @a or @b is true, else false",
+            "inPorts": {
+                "a": { "id": 0 },
+                "b": { "id": 1 }
+            }
+        },
+
         "ArduinoUno": { "id": 50,
             "description": "Convenient definition of pins available on Arduino Uno",
             "outPorts": {
