@@ -139,6 +139,7 @@ public:
             }
             io->PinEnablePullup(pin, true);
             io->AttachExternalInterrupt(intr, IO::Interrupt::OnChange, interrupt, this);
+            send(Packet(io->DigitalRead(pin)));
         }
     }
 private:
