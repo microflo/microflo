@@ -137,6 +137,7 @@ public:
             } else if (pin == 3) {
                 intr = 1;
             }
+            io->PinEnablePullup(pin, true);
             io->AttachExternalInterrupt(intr, IO::Interrupt::OnChange, interrupt, this);
         }
     }
