@@ -3,13 +3,24 @@ pidSensor(MonitorPin) OUT -> IN inv(InvertBoolean) OUT -> IN gate(Gate)
 
 # Logic
 gate OUT -> IN splitGate(Split)
-splitGate OUT2 -> RESET idleTimer(Timer)
-'true' -> ENABLE idleTimer
-'true' -> ENABLE gate
+#splitGate OUT2 -> RESET idleTimer(Timer)
+#idleTimer OUT -> IN turnOff(ToggleBoolean)
+'true' -> IN turnOff(ToggleBoolean)
+
+enableOr(BooleanOr) OUT -> ENABLE gate
+splitGate OUT3 -> IN invD(InvertBoolean) OUT -> A enableOr
+turnOff OUT -> B enableOr
+
+# turnOff OUT -> IN debug(DigitalWrite)
+# '10' -> PIN debug
+# 'true' -> ENABLE gate
+
+# FIXME: remove enable port on timer
+# 'true' -> ENABLE idleTimer
 
 # Output
 splitGate OUT1 -> IN invB(InvertBoolean) OUT -> IN led(DigitalWrite)
 
 # Config
 board(ArduinoUno) PIN2 -> PIN pidSensor
-board PIN10 -> PIN led
+board PIN11 -> PIN led
