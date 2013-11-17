@@ -552,13 +552,12 @@ var updateDefinitions = function() {
                  function(err) { if (err) throw err });
     fs.writeFile("microflo/components-gen-top.hpp", generateComponentPortDefinitions(componentLib),
                  function(err) { if (err) throw err });
-    fs.writeFile("microflo/commandformat-gen.h", generateEnum("GraphCmd", "GraphCmd", cmdFormat.commands) +
-                 "\n" + generateEnum("Msg", "Msg", cmdFormat.packetTypes),
+    fs.writeFile("microflo/commandformat-gen.h",
+                 generateEnum("GraphCmd", "GraphCmd", cmdFormat.commands) +
+                 "\n" + generateEnum("Msg", "Msg", cmdFormat.packetTypes) +
+                 "\n" + generateEnum("DebugId", "Debug", cmdFormat.debugPoints),
                  function(err) { if (err) throw err });
 }
-
-
-
 
 // Main
 var cmd = process.argv[2];

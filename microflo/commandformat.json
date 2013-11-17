@@ -15,6 +15,7 @@
         "PacketSent": {"id": 103},
         "NetworkStarted": {"id": 104},
         "DebugChanged": {"id": 105},
+        "DebugMessage": {"id": 106},
 
         "PacketDelivered": {"id": 110},
 
@@ -37,6 +38,22 @@
         "BracketEnd": { "id": 10 },
 
         "MaxDefined": { },
+        "Max": { "id": 255 }
+    },
+    "debugPoints": {
+        "Invalid": { "id": 0 },
+
+        "ProgramStart": {},
+        "ComponentCreateStart": {},
+        "ComponentCreateEnd": {},
+        "ParserInvalidState": {},
+        "ParserUnknownState": {},
+        "ParseHeader": {},
+        "ParseCommand": {},
+        "ParseByte": {},
+        "ParserUnknownCommand": {},
+        "ParserInvalidCommand": {},
+
         "Max": { "id": 255 }
     }
 }

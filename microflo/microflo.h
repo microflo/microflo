@@ -113,6 +113,9 @@ public:
     void setNotificationHandler(NetworkNotificationHandler *handler) { notificationHandler = handler; }
 
     void runTick();
+
+    void emitDebug(DebugId id);
+
 private:
     void runSetup();
     void deliverMessages(int firstIndex, int lastIndex);
@@ -140,6 +143,8 @@ public:
     virtual void nodeAdded(Component *c) = 0;
     virtual void nodesConnected(Component *src, int srcPort, Component *target, int targetPort) = 0;
     virtual void networkStateChanged(Network::State s) = 0;
+
+    virtual void emitDebug(DebugId id) = 0;
 };
 
 struct Connection {
@@ -274,6 +279,7 @@ public:
     virtual void nodeAdded(Component *c);
     virtual void nodesConnected(Component *src, int srcPort, Component *target, int targetPort);
     virtual void networkStateChanged(Network::State s);
+    virtual void emitDebug(DebugId id);
 
 private:
     int serialPort;

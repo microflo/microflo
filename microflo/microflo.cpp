@@ -120,21 +120,14 @@ void GraphStreamer::parseByte(char b) {
                 if (cmd == GraphCmdEnd) {
                     network->start();
                     state = ParseHeader;
-#ifdef DEBUG
-                    Serial.println("Starting network");
-#endif
                 } else if (cmd == GraphCmdReset) {
                     network->reset();
                 } else if (cmd == GraphCmdCreateComponent) {
                     ComponentId id = (ComponentId)buffer[1];
                     // FIXME: validate
-#ifdef DEBUG
-                    Serial.println("Component create start");
-#endif
+                    network->emitDebug(DebugComponentCreateStart);
                     Component *c = Component::create(id);
-#ifdef DEBUG
-                    Serial.println("Component create done");
-#endif
+                    network->emitDebug(DebugComponentCreateEnd);
                     network->addNode(c);
                 } else if (cmd == GraphCmdConnectNodes) {
                     // FIXME: validate
@@ -168,14 +161,11 @@ void GraphStreamer::parseByte(char b) {
         }
 
     } else if (state == Invalid) {
-#ifdef DEBUG
-       Serial.println("Parser in invalid state");
-#endif
+        network->emitDebug(DebugParserInvalidState);
         currentByte = 0; // avoid overflow
     } else {
-#ifdef DEBUG
-       Serial.println("Parser in unknown state");
-#endif
+        network->emitDebug(DebugParserUnknownState);
+        currentByte = 0; // avoid overflow
     }
 }
 
@@ -350,6 +340,9 @@ void Network::start() {
     runSetup();
 }
 
+void Network::emitDebug(DebugId id) {
+    notificationHandler->emitDebug(id);
+}
 
 HostCommunication::HostCommunication(int port, int baudRate)
     : serialPort(port)
@@ -432,4 +425,13 @@ void HostCommunication::packetDelivered(int index, Message m) {
     /*Serial.print(index);
     Serial.print(m.target->nodeId);
     printPacket(&m.pkg);*/
+}
+
+void HostCommunication::emitDebug(DebugId id) {
+    sendCommandByte(GraphCmdDebugMessage);
+    sendCommandByte(id);
+    padCommandWithNArguments(1);
+#ifdef ARDUINO
+    delay(500);
+#endif
 }
