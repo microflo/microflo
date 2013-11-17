@@ -453,7 +453,7 @@ var parseReceivedCmd = function(cmdData, graph) {
         var targetPort = componentLib.inputPortById(graph.processes[targetNode].component, cmdData.readUInt8(4)).name
         console.log("CONNECT: ", srcNode, srcPort, "->", targetNode, targetPort);
     } else {
-        console.log("Unknown command: " + cmd.toString(16));
+        console.log("Unknown command: " + cmd.toString(16), cmdData.slice(0, 8));
     }
 }
 
