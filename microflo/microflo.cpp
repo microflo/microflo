@@ -101,8 +101,6 @@ void GraphStreamer::parseByte(char b) {
 
     buffer[currentByte++] = b;
 
-    network->emitDebug(DebugParseByte);
-
     if (state == ParseHeader) {
         network->emitDebug(DebugParseHeader);
         if (currentByte == GRAPH_MAGIC_SIZE) {
@@ -168,6 +166,8 @@ void GraphStreamer::parseCmd() {
         } else if (packetType == MsgBoolean) {
             const bool b = !(buffer[4] == 0);
             network->sendMessage(target, targetPort, Packet(b));
+        } else {
+            network->emitDebug(DebugParserUnknownPacketType);
         }
     } else if (cmd >= GraphCmdInvalid) {
         network->emitDebug(DebugParserInvalidCommand);
@@ -417,14 +417,14 @@ void HostCommunication::networkStateChanged(Network::State s) {
     padCommandWithNArguments(0);
 }
 
-// FIXME: implement
-void HostCommunication::packetSent(int index, Message m, Component *sender, int senderPort) {
-    /*Serial.print(index);
-    Serial.print(sender->nodeId);
-    Serial.print(senderPort);
-    Serial.print(m.target->nodeId);
-    Serial.print(m.targetPort, DEC);
-    printPacket(&m.pkg);*/
+void HostCommunication::packetSent(int index, Message m, Component *src, int srcPort) {
+    sendCommandByte(GraphCmdPacketSent);
+    sendCommandByte(src->id());
+    sendCommandByte(srcPort);
+    sendCommandByte(m.target->id());
+    sendCommandByte(m.targetPort);
+    sendCommandByte(m.pkg.type());
+    padCommandWithNArguments(5);
 }
 
 // FIXME: implement
@@ -439,6 +439,6 @@ void HostCommunication::emitDebug(DebugId id) {
     sendCommandByte(id);
     padCommandWithNArguments(1);
 #ifdef ARDUINO
-    delay(500);
+    delay(10);
 #endif
 }

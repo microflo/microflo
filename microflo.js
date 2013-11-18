@@ -437,7 +437,7 @@ var guessSerialPort = function(callback) {
 
 var nodeNameById = function(nodeMap, wantedId) {
     for (name in nodeMap) {
-        var id = nodeMap[name];
+        var id = nodeMap[name].id !== undefined ? nodeMap[name].id : nodeMap[name];
         if (id === wantedId) {
             return name;
         }
@@ -460,6 +460,9 @@ var parseReceivedCmd = function(cmdData, graph) {
         var targetNode = nodeNameById(graph.nodeMap, cmdData.readUInt8(3))
         var targetPort = componentLib.inputPortById(graph.processes[targetNode].component, cmdData.readUInt8(4)).name
         console.log("CONNECT: ", srcNode, srcPort, "->", targetNode, targetPort);
+    } else if (cmd === cmdFormat.commands.DebugMessage.id) {
+        var point = nodeNameById(cmdFormat.debugPoints, cmdData.readUInt8(1))
+        console.log("DEBUG: ", point);
     } else {
         console.log("Unknown command: " + cmd.toString(16), cmdData.slice(0, 8));
     }

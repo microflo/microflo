@@ -43,16 +43,17 @@
     "debugPoints": {
         "Invalid": { "id": 0 },
 
-        "ProgramStart": {},
-        "ComponentCreateStart": {},
-        "ComponentCreateEnd": {},
-        "ParserInvalidState": {},
-        "ParserUnknownState": {},
-        "ParseHeader": {},
-        "ParseCommand": {},
-        "ParseByte": {},
-        "ParserUnknownCommand": {},
-        "ParserInvalidCommand": {},
+        "ProgramStart": {"id":1 },
+        "ComponentCreateStart": {"id":2},
+        "ComponentCreateEnd": {"id":3},
+        "ParserInvalidState": {"id":4},
+        "ParserUnknownState": {"id":5},
+        "ParseHeader": {"id":6},
+        "ParseCommand": {"id":7},
+        "ParseByte": {"id":8},
+        "ParserUnknownCommand": {"id":9},
+        "ParserInvalidCommand": {"id":10},
+        "ParserUnknownPacketType": {"id":11},
 
         "Max": { "id": 255 }
     }
