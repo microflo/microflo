@@ -252,6 +252,8 @@ public:
     void parseByte(char b);
 
 private:
+    void parseCmd();
+private:
     enum State {
         Invalid = -1,
         ParseHeader,

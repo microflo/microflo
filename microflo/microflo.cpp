@@ -101,7 +101,10 @@ void GraphStreamer::parseByte(char b) {
 
     buffer[currentByte++] = b;
 
+    network->emitDebug(DebugParseByte);
+
     if (state == ParseHeader) {
+        network->emitDebug(DebugParseHeader);
         if (currentByte == GRAPH_MAGIC_SIZE) {
             static const char magic[GRAPH_MAGIC_SIZE] = { GRAPH_MAGIC };
             if (memcmp(buffer, magic, GRAPH_MAGIC_SIZE) == 0) {
@@ -112,54 +115,11 @@ void GraphStreamer::parseByte(char b) {
             currentByte = 0;
         }
     } else if (state == ParseCmd) {
+        network->emitDebug(DebugParseCommand);
         if (currentByte == GRAPH_CMD_SIZE) {
-            GraphCmd cmd = (GraphCmd)buffer[0];
-            if (cmd >= GraphCmdInvalid) {
-                state = Invalid; // XXX: or maybe just ignore?
-            } else {
-                if (cmd == GraphCmdEnd) {
-                    network->start();
-                    state = ParseHeader;
-                } else if (cmd == GraphCmdReset) {
-                    network->reset();
-                } else if (cmd == GraphCmdCreateComponent) {
-                    ComponentId id = (ComponentId)buffer[1];
-                    // FIXME: validate
-                    network->emitDebug(DebugComponentCreateStart);
-                    Component *c = Component::create(id);
-                    network->emitDebug(DebugComponentCreateEnd);
-                    network->addNode(c);
-                } else if (cmd == GraphCmdConnectNodes) {
-                    // FIXME: validate
-                    const int src = (unsigned int)buffer[1];
-                    const int target = (unsigned int)buffer[2];
-                    const int srcPort = (unsigned int)buffer[3];
-                    const int targetPort = (unsigned int)buffer[4];
-                    network->connect(src, srcPort, target, targetPort);
-                } else if (cmd == GraphCmdSendPacket) {
-                    // FIXME: validate
-                    const int target = (unsigned int)buffer[1];
-                    const int targetPort = (unsigned int)buffer[2];
-                    const Msg packetType = (Msg)buffer[3];
-                    if (packetType == MsgBracketStart || packetType == MsgBracketEnd
-                            || packetType == MsgVoid) {
-                        network->sendMessage(target, targetPort, Packet(packetType));
-                    } else if (packetType == MsgInteger) {
-                        const long val = buffer[4] + 256*buffer[5] + 256*256*buffer[6] + 256*256*256*buffer[7];
-                        network->sendMessage(target, targetPort, Packet(val));
-                    } else if (packetType == MsgByte) {
-                        const unsigned char b = buffer[4];
-                        network->sendMessage(target, targetPort, Packet(b));
-                    } else if (packetType == MsgBoolean) {
-                        const bool b = !(buffer[4] == 0);
-                        network->sendMessage(target, targetPort, Packet(b));
-                    }
-
-                }
-            }
+            parseCmd();
             currentByte = 0;
         }
-
     } else if (state == Invalid) {
         network->emitDebug(DebugParserInvalidState);
         currentByte = 0; // avoid overflow
@@ -169,6 +129,53 @@ void GraphStreamer::parseByte(char b) {
     }
 }
 
+void GraphStreamer::parseCmd() {
+
+    GraphCmd cmd = (GraphCmd)buffer[0];
+    if (cmd == GraphCmdEnd) {
+        network->start();
+        state = ParseHeader;
+    } else if (cmd == GraphCmdReset) {
+        network->reset();
+    } else if (cmd == GraphCmdCreateComponent) {
+        ComponentId id = (ComponentId)buffer[1];
+        // FIXME: validate
+        network->emitDebug(DebugComponentCreateStart);
+        Component *c = Component::create(id);
+        network->emitDebug(DebugComponentCreateEnd);
+        network->addNode(c);
+    } else if (cmd == GraphCmdConnectNodes) {
+        // FIXME: validate
+        const int src = (unsigned int)buffer[1];
+        const int target = (unsigned int)buffer[2];
+        const int srcPort = (unsigned int)buffer[3];
+        const int targetPort = (unsigned int)buffer[4];
+        network->connect(src, srcPort, target, targetPort);
+    } else if (cmd == GraphCmdSendPacket) {
+        // FIXME: validate
+        const int target = (unsigned int)buffer[1];
+        const int targetPort = (unsigned int)buffer[2];
+        const Msg packetType = (Msg)buffer[3];
+        if (packetType == MsgBracketStart || packetType == MsgBracketEnd
+                || packetType == MsgVoid) {
+            network->sendMessage(target, targetPort, Packet(packetType));
+        } else if (packetType == MsgInteger) {
+            const long val = buffer[4] + 256*buffer[5] + 256*256*buffer[6] + 256*256*256*buffer[7];
+            network->sendMessage(target, targetPort, Packet(val));
+        } else if (packetType == MsgByte) {
+            const unsigned char b = buffer[4];
+            network->sendMessage(target, targetPort, Packet(b));
+        } else if (packetType == MsgBoolean) {
+            const bool b = !(buffer[4] == 0);
+            network->sendMessage(target, targetPort, Packet(b));
+        }
+    } else if (cmd >= GraphCmdInvalid) {
+        network->emitDebug(DebugParserInvalidCommand);
+        state = Invalid; // XXX: or maybe just ignore?
+    } else {
+        network->emitDebug(DebugParserUnknownCommand);
+    }
+}
 
 void Component::send(Packet out, int port) {
     if (connections[port].target && connections[port].targetPort >= 0) {
