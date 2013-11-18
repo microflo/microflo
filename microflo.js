@@ -411,18 +411,26 @@ var wsConnectionFormatToFbp = function(ws) {
     }
 }
 
+var isLikelyArduinoSerial = function (e) {
+    return e.comName.indexOf("usbserial")  !== -1
+}
+
 var guessSerialPort = function(callback) {
     serialport.list(function (err, ports) {
         if (err) {
             callback(err);
         } else {
-            callback(err, ports[0].comName, ports);
-
             ports.forEach(function(port) {
               console.log(port.comName);
               console.log(port.pnpId);
               console.log(port.manufacturer);
             });
+
+            var preferred = ports.filter(isLikelyArduinoSerial)
+            console.log(preferred);
+            var p = preferred.length > 0 ? preferred[0].comName : ports[0].comName;
+
+            callback(err, p, ports);
         }
     });
 }
