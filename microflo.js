@@ -495,15 +495,20 @@ var uploadGraph = function(serial, data, graph, callback) {
     serial.on("data", onSerialData);
 
     setTimeout(function() {
-            // XXX: for some reason when writing without this delay,
-            // the first bytes ends up corrupted on microcontroller side
-             serial.write(data, function() {
-                    //console.log(data);
-                    //console.log("wrote graph");
-                    if (callback) {
-                        callback(serial);
-                    }
-            });
+        // XXX: for some reason when writing without this delay,
+        // the first bytes ends up corrupted on microcontroller side
+        // FIXME: wait for response from one command before sending next
+        var sendCmd = function(dataBuf, index) {
+            serial.write(dataBuf.slice(index, index+cmdSize), function() {
+                //console.log("wrote", dataBuf.slice(index, index+cmdSize));
+                //console.log("wrote graph");
+                setTimeout(function() {
+                    sendCmd(dataBuf, index+=cmdSize);
+                }, 100);
+           });
+        }
+
+        sendCmd(data, 0);
      }, 500);
 }
 
