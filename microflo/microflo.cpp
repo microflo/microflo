@@ -144,6 +144,7 @@ void GraphStreamer::parseCmd() {
         network->addNode(c);
     } else if (cmd == GraphCmdConnectNodes) {
         // FIXME: validate
+        network->emitDebug(DebugConnectNodesStart);
         const int src = (unsigned int)buffer[1];
         const int target = (unsigned int)buffer[2];
         const int srcPort = (unsigned int)buffer[3];
@@ -178,6 +179,11 @@ void GraphStreamer::parseCmd() {
 }
 
 void Component::send(Packet out, int port) {
+    if (port >= nPorts) {
+        network->emitDebug(DebugComponentSendInvalidPort);
+        return;
+    }
+
     if (connections[port].target && connections[port].targetPort >= 0) {
         network->sendMessage(connections[port].target, connections[port].targetPort, out,
                              this, port);
@@ -297,6 +303,7 @@ void Network::runTick() {
 void Network::connect(int srcId, int srcPort, int targetId, int targetPort) {
     if (srcId < 0 || srcId > lastAddedNodeIndex ||
         targetId < 0 || targetId > lastAddedNodeIndex) {
+        emitDebug(DebugNetworkConnectInvalidNodes);
         return;
     }
 
@@ -311,6 +318,11 @@ void Network::connect(Component *src, int srcPort, Component *target, int target
 }
 
 int Network::addNode(Component *node) {
+    if (!node) {
+        emitDebug(DebugAddNodeInvalidInstance);
+        return -1;
+    }
+
     const int nodeId = lastAddedNodeIndex;
     nodes[nodeId] = node;
     node->setNetwork(this, nodeId, this->io);

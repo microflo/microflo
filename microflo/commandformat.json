@@ -54,6 +54,11 @@
         "ParserUnknownCommand": {"id":9},
         "ParserInvalidCommand": {"id":10},
         "ParserUnknownPacketType": {"id":11},
+        "NetworkConnectInvalidNodes": {"id":12},
+        "ConnectNodesStart": {"id": 13},
+        "ReadByte": {"id": 14},
+        "AddNodeInvalidInstance": {"id": 15},
+        "ComponentSendInvalidPort": {"id": 16},
 
         "Max": { "id": 255 }
     }
