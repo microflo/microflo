@@ -74,9 +74,8 @@ private:
 };
 
 // Network
-const int MAX_NODES = 20;
+const int MAX_NODES = 50;
 const int MAX_MESSAGES = 50;
-const int MAX_PORTS = 20;
 
 class Component;
 
@@ -216,6 +215,7 @@ class Component {
 public:
     static Component *create(ComponentId id);
 
+    Component(Connection *outPorts, int ports) : connections(outPorts), nPorts(ports) {}
     virtual ~Component() {}
     virtual void process(Packet in, int port) = 0;
 
@@ -229,7 +229,9 @@ private:
     void connect(int outPort, Component *target, int targetPort);
     void setNetwork(Network *net, int n, IO *io);
 private:
-    Connection connections[MAX_PORTS]; // one per output port
+    Connection *connections; // one per output port
+    int nPorts;
+
     Network *network;
     int nodeId; // identifier in the network
     int componentId; // what type of component this is

@@ -193,7 +193,7 @@ void Component::setNetwork(Network *net, int n, IO *i) {
     network = net;
     nodeId = n;
     io = i;
-    for(int i=0; i<MAX_PORTS; i++) {
+    for(int i=0; i<nPorts; i++) {
         connections[i].target = 0;
         connections[i].targetPort = -1;
     }

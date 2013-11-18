@@ -10,8 +10,26 @@
 
 #include "components-gen-top.hpp"
 
+// FIXME: using any of these should result in error
+class DummyComponent : public Component {
+public:
+    DummyComponent() : Component(0, 0) {}
+    virtual void process(Packet in, int port) {
+        // NOOP
+    }
+};
+class Invalid : public DummyComponent {};
+class Max : public DummyComponent {};
+
+class SingleOutputComponent : public Component {
+public:
+    SingleOutputComponent() : Component(connections, 1) {}
+private:
+    Connection connections[1];
+};
+
 // Generic
-class Forward : public Component {
+class Forward : public SingleOutputComponent {
 public:
     virtual void process(Packet in, int port) {
         if (in.isData()) {
@@ -22,6 +40,7 @@ public:
 
 class Split : public Component {
 public:
+    Split() : Component(outPorts, SplitPorts::OutPorts::out9+1) {}
     virtual void process(Packet in, int port) {
         using namespace SplitPorts;
         if (in.isData()) {
@@ -32,15 +51,13 @@ public:
             }
         }
     }
+private:
+    Connection outPorts[SplitPorts::OutPorts::out9+1];
 };
 
-// FIXME: using any of these should result in error
-typedef Forward DummyComponent;
-class Invalid : public DummyComponent {};
-class Max : public DummyComponent {};
 
 // I/O
-class SerialIn : public Component {
+class SerialIn : public SingleOutputComponent {
 public:
     virtual void process(Packet in, int port) {
         // FIXME: make device and baudrate configurable
@@ -58,7 +75,7 @@ public:
     }
 };
 
-class SerialOut : public Component {
+class SerialOut : public SingleOutputComponent {
 public:
     virtual void process(Packet in, int port) {
         // FIXME: make device and baudrate configurable
@@ -74,7 +91,7 @@ public:
     }
 };
 
-class DigitalWrite : public Component {
+class DigitalWrite : public SingleOutputComponent {
 public:
     virtual void process(Packet in, int port) {
         using namespace DigitalWritePorts;
@@ -93,7 +110,7 @@ private:
     int outPin;
 };
 
-class DigitalRead : public Component {
+class DigitalRead : public SingleOutputComponent {
 public:
     virtual void process(Packet in, int port) {
         // Note: have to match components.json
@@ -123,7 +140,7 @@ private:
 };
 
 
-class MonitorPin : public Component {
+class MonitorPin : public SingleOutputComponent {
 public:
     virtual void process(Packet in, int port) {
         using namespace MonitorPinPorts;
@@ -151,7 +168,7 @@ private:
 };
 
 
-class PwmWrite : public Component {
+class PwmWrite : public SingleOutputComponent {
 public:
     virtual void process(Packet in, int port) {
         using namespace PwmWritePorts;
@@ -169,7 +186,7 @@ private:
     int outPin;
 };
 
-class AnalogRead : public Component {
+class AnalogRead : public SingleOutputComponent {
 public:
     virtual void process(Packet in, int port) {
         using namespace AnalogReadPorts;
@@ -187,7 +204,7 @@ private:
     int pin;
 };
 
-class MapLinear : public Component {
+class MapLinear : public SingleOutputComponent {
 public:
     virtual void process(Packet in, int port) {
         using namespace MapLinearPorts;
@@ -215,7 +232,7 @@ private:
     long outmin;
 };
 
-class Timer : public Component {
+class Timer : public SingleOutputComponent {
 public:
     virtual void process(Packet in, int port) {
         using namespace TimerPorts;
@@ -251,7 +268,7 @@ private:
 #include <OneWire.h>
 #include <DallasTemperature.h>
 
-class ReadDallasTemperature : public Component {
+class ReadDallasTemperature : public SingleOutputComponent {
 public:
     ReadDallasTemperature()
         : pin(-1) // default
@@ -305,7 +322,7 @@ private:
 class ReadDallasTemperature : public DummyComponent {};
 #endif
 
-class ToggleBoolean : public Component {
+class ToggleBoolean : public SingleOutputComponent {
 public:
     virtual void process(Packet in, int port) {
         using namespace ToggleBooleanPorts;
@@ -323,7 +340,7 @@ private:
     bool currentState;
 };
 
-class InvertBoolean : public Component {
+class InvertBoolean : public SingleOutputComponent {
 public:
     virtual void process(Packet in, int port) {
         if (in.isData()) {
@@ -333,7 +350,7 @@ public:
     }
 };
 
-class BooleanOr : public Component {
+class BooleanOr : public SingleOutputComponent {
 public:
     BooleanOr() {
         lastState[0] = false;
@@ -352,6 +369,7 @@ private:
 
 class ArduinoUno : public Component {
 public:
+    ArduinoUno() : Component(outPorts, ArduinoUnoPorts::OutPorts::pina5+1) {}
     virtual void process(Packet in, int port) {
         const int digitalPins = 14;
         const int analogPins = 6;
@@ -363,9 +381,11 @@ public:
             }
         }
     }
+private:
+    Connection outPorts[ArduinoUnoPorts::OutPorts::pina5+1];
 };
 
-class HysteresisLatch : public Component
+class HysteresisLatch : public SingleOutputComponent
 {
 public:
     virtual void process(Packet in, int port) {
@@ -421,7 +441,10 @@ private:
 class BreakBeforeMake : public Component
 {
 public:
-    BreakBeforeMake() : state(Init) {}
+    BreakBeforeMake()
+        : Component(outPorts, BreakBeforeMakePorts::OutPorts::out2+1)
+        , state(Init)
+        {}
     virtual void process(Packet in, int port) {
         const int inPort = 0;
         const int out1MonitorPort = 1;
@@ -485,9 +508,10 @@ private:
 
 private:
     enum State state;
+    Connection outPorts[BreakBeforeMakePorts::OutPorts::out2+1];
 };
 
-class Delimit : public Component {
+class Delimit : public SingleOutputComponent {
 public:
     Delimit(): startBracketRecieved(false) {}
     virtual void process(Packet in, int port) {
@@ -516,7 +540,7 @@ private:
 };
 
 
-class Count : public Component {
+class Count : public SingleOutputComponent {
 public:
     virtual void process(Packet in, int port) {
         using namespace CountPorts;
@@ -533,7 +557,7 @@ private:
     long current;
 };
 
-class Gate : public Component {
+class Gate : public SingleOutputComponent {
 public:
     Gate() : enabled(false) {}
 
@@ -558,7 +582,7 @@ private:
     bool enabled;
 };
 
-class Route : public Component {
+class Route : public SingleOutputComponent {
 
 public:
     Route() : activePort(0) {
