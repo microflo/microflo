@@ -102,7 +102,7 @@ void GraphStreamer::parseByte(char b) {
     buffer[currentByte++] = b;
 
     if (state == ParseHeader) {
-        network->emitDebug(DebugParseHeader);
+        //network->emitDebug(DebugParseHeader);
         if (currentByte == GRAPH_MAGIC_SIZE) {
             static const char magic[GRAPH_MAGIC_SIZE] = { GRAPH_MAGIC };
             if (memcmp(buffer, magic, GRAPH_MAGIC_SIZE) == 0) {
@@ -113,7 +113,7 @@ void GraphStreamer::parseByte(char b) {
             currentByte = 0;
         }
     } else if (state == ParseCmd) {
-        network->emitDebug(DebugParseCommand);
+        //network->emitDebug(DebugParseCommand);
         if (currentByte == GRAPH_CMD_SIZE) {
             parseCmd();
             currentByte = 0;
@@ -430,6 +430,7 @@ void HostCommunication::networkStateChanged(Network::State s) {
 }
 
 void HostCommunication::packetSent(int index, Message m, Component *src, int srcPort) {
+    /*
     sendCommandByte(GraphCmdPacketSent);
     sendCommandByte(src->id());
     sendCommandByte(srcPort);
@@ -437,6 +438,7 @@ void HostCommunication::packetSent(int index, Message m, Component *src, int src
     sendCommandByte(m.targetPort);
     sendCommandByte(m.pkg.type());
     padCommandWithNArguments(5);
+    */
 }
 
 // FIXME: implement
@@ -451,6 +453,6 @@ void HostCommunication::emitDebug(DebugId id) {
     sendCommandByte(id);
     padCommandWithNArguments(1);
 #ifdef ARDUINO
-    delay(10);
+    //delay(10);
 #endif
 }
