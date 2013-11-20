@@ -22,7 +22,7 @@ Outline
 
 Perspectives / Motivation
 --------------------------
-Software Engineer
+Professional
 * Correctness, testability
 * Predictable, short development times
 * Self-documenting, easy-to-understand systems
@@ -30,47 +30,131 @@ Software Engineer
 
 Hobbyist
 * Fun, instant gratification
-* Fast, but unbounded learning curve
+* Fast, but unbounded learning curve -> become a professional
 * Exploratory learning and making
 
 
-Philosophical/Ideological
-* Technical systems encode assumptions about people/processes.
+Consumer
+* Opportunity to tweak, hack, learn -> become a hobbyist
+* Feel in control of the device
 
-* Avoid possible new Digital Divide,
-between those who can make, and those who can only use/consume
-Production capacity used to be divided between those who have the financial means (capital) and those
-who do not (often physical property like resources, soil, machinery). As we in the tech. industry
-increasingly make capital less important, knowledge and "intellectual property" gains importance
-* Attempt to improve end-user freedom for embedded devices
-I want devices that *I* control, not devices that control me - and that everyone feels the same
+The Digital Divide
+--------------------
+* Technical systems encode assumptions about people/processes
+Can be used to restrict/enforce what is allowed and what is not.
+Will always have a set of allowances and disallowances -
+things it makes easy and hard. This also shapes peoples behavior
+
+* Technical systems become ever more pervasive in our lives.
+In the home, at the workplace, in governance.
+Embedded systems are, and will by definition, be in the forefront of this
+
+* Power asymmetry between those who can make/create, and those who can only use/consume
+Used to be divided between those who have the financial means (capital)
+to produce things and those who did not.
+Traditionally this was physical property like resources, soil, machinery.
+As we in the tech. industry increasingly make capital less important,
+knowledge and "intellectual property" gains importance.
+
+* Existing disadvantaged groups at highest risk
+Low income, small populations, socially unfavored
+Financial interests in maintaining the status quo of large disparities
+
+Democratize Digital Creation
+---------------------------
+
+* Hardware is becoming general purpose, re-programmable
+What is the difference between a toaster and a solder-owen for electronics? Software (and pricetag)
+"There are no airplanes, only computers that fly. There are no cars, only computers we sit in.
+There are no hearing aids, only computers we put in our ears" - [Cory Doctorow](http://boingboing.net/2012/01/10/lockdown.html)
+
+* Free software and Open Hardware required
+
+
+* But not enough!
+Very practical concerns and problems remain.
+Teaching people that they have freedom and ability to change things as they like.
+Encouraging them to grab and make use of this freedom, and teaching them how.
+
+Put pointedly, achieving Digital Freedom is just as much about reprogramming people, to
+
+
 
 Imperative, textual programming
-----------------
-"Code is blindly manipulating symbols" - Bret Victor
-Assuming a Van Neumann-like architecture. Problems: Multi-core, DSP, FPGA, GPUs
-Micro-managing the machine
-Many programmers seem to fear not having this sort of control, possibly its a fear that the machine will have
-Paradoxially, the machine does end up dictating us - 
-because we've tailored our notational systems to how the machine works - not to how we as humans understand things
+-------------------
+
+* Hard to program on touch-centric devices, where text input and navigation is slow and error-prone
+
+* Imperative programming presumes an sequential, one-thing-at-a-time computing model
+OK for Van Neumann-like processors,
+but multi-core CPU, DSP, FPGA, GPUs not well represented.
+Also does not map well to problems where the computer wants to do other things
+while waiting for high-latency operations like disk I/O, network, user input, physical changes.
+Asyncronous or event-driven models.
+
+* Models used when programming often don't map easily to the systems they represent.
+Diagrams and other rich, high-level system descriptions usually stay at the whiteboard,
+and cease to reflect the realized system very fast as changed are introduced as we learn more.
+The mapping between the inputs of a system, the state of the system and its outputs (intended or actual)
+extremely hard to know and understand without knowing all of the (low-level) code
+"Code is blindly manipulating symbols" - [Bret Victor](http://vimeo.com/66085662)
+
+* Many programmers seem to fear not having instruction-level control
+Possibly a fear that the machine (or machinery) will have more control over us than we over it.
+Paradoxially, the machine does end up dictating us - because we've tailored our notational systems 
+to how the machine works - not to how most humans understand things.
+
+* Programmers are a special breed, and they should not be
+We've trained, and we continue to, train large amounts of people to speak the language of machines
+Instead of changing the machines to understand something closer to our language.
+
+"There should be no automotive software engineers, only people that make computers drive.
+No aerospace software engineers, only people that make computers fly."
+
+* Everyone have the ability to learn to program
+Anyone who can catch a ball can correctly calculate the outcome of multi-dimensional parabolas,
+someone who can answer a question can understand someones elses thoughts from varying air pressure!
+Most people can do both without thinking twice.
+
+Sidenote: playing out these two scenarios would be a very fun rethorical device in a presentation.
+Could prompt the question "Does anyone here believe that not everyone can become a programmer?",
+toss the ball to such a person in audience. Have multiple balls, case person does not get it on first ;)
 
 
-Different visual progamming models
--------------
+Visual progamming models
+------------------------
 * Sequence-diagrams
 * Data-flow
 * Finite state machines
 * Ladder-based
-* Imperative
+* Imperative symbolic
+* UML
 
-Why does visual architecture and programming stop at the whiteboard?
 
-We have UML... Problems: assumes waterfall, that design/modelling stage ends up in code,
-never need to go back to modelling. Need to support iterative workflows, fast iterations
-Tools also lived seperately from those used to implement the system, and often used by diffenent people
+Code generation FAIL
+------------------------
+Tools that do code generation assumes waterfall,
+that design/modelling stage ends up in code,
+never need to go back to modelling stage.
 
-Prior art
+We need to support fast iterative workflows,
+high-level descriptions staying in sync with the realization.
+Need strong two-way mappings when debugging,
+working ones way back from a certain outcome to its origin/reason.
+
+Tools used for mapping high-level description to low-level
+cannot only be used by certain groups of people ("architects"),
+introduces a human/organizational communication barrier
+
+Why FBP
 ---------
+* Decent theoretical foundation, much thanks to J.P. Morrisons book.
+* Data-flow a proven concept for domain-specific modelling.
+* Has a community of practiconers, with some livelyness right now, much thanks to NoFlo kickstarter
+
+
+Vision
+-------
 
 
 Status

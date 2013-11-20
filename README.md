@@ -6,46 +6,66 @@ Implementation of [Flow-based programming](http://en.wikipedia.org/wiki/Flow-bas
 Inspired by and designed for integration with [NoFlo](http://noflojs.org/).
 First hardware target will be [Arduino](http://arduino.cc)-compatible boards.
 
-Different from most other physical computing involving Node/JavaScript in that it
-aims to allow build _standalone_ microcontroller applications, that can also be reconfigured at runtime.
+Different from most other physical computing involving Node.JS/JavaScript in that it
+aims to allow build _standalone_ microcontroller applications, that can also be
+reconfigured at runtime and programmed visually.
 
-Contact
-----------
-[Flow Based Programming Google Group](https://groups.google.com/forum/#!forum/flow-based-programming)
+One can program with MicroFlo either:
+* Visually, using the [NoFlo UI](https://github.com/noflo/noflo-ui)
+* Textually, using the declarative [.fbp DSL](http://noflojs.org/documentation/fbp)
+or [.json definition](http://noflojs.org/documentation/json) specced by NoFlo
+* Programatically, by embedding it and building a graph using the C++ API
 
 Status
 -------
-**Experimental**. Simple things work, but not tested thoroughly. Several things in the architecture has not been validated.
-Suitable for interested hackers only, not for general consumption.
+**Experimental**. Simple programs work, components exists for most I/O on standard Arduino devices.
+Suitable for those curious to play with alternative microcontroller programming models. Probably
+too early to use it for general tasks.
 
-Can run simple applications defined by .fbp files,
-like a fridge flow which reads out temperature using a DS1820 digital thermometer
-and turns on/off the cooler to maintain desired temperature.
+Has been used to make simple applications, like a fridge which reads out temperature
+using a DS1820 digital thermometer and turns on/off the cooler to maintain desired temperature.
 
-See [examples](./examples).
+Contact
+----------
+Use the Google Group [Flow Based Programming](https://groups.google.com/forum/#!forum/flow-based-programming)
+or IRC channel [#fbp@freenode.org](irc://fbp.freenode.org).
+
 
 Milestones
 -----------
-* 0.2.0, "Runtime reconfigurable": Graphs can be uploaded from commandline without reflashing, and persisted to EEPROM
-* 0.3.0, "Visually programmable": Graphs can be uploaded from NoFlo UI, and monitored
-* 0.4.0, "Simulated": One can program and test MicroFlo programs in a simulator, before putting it on device
-* 0.5.0, "Hetrogenous FBP": MicroFlo as components in NoFlo, allows a host FBP program to (re)configure the device
-* 0.?.0, "Generally useful": Implements Firmata protocol, most of Arduino tutorials works
+* [0.2.0](https://github.com/jonnor/microflo/issues?milestone=2), "Visually programmable":
+Graphs can created visually using NoFlo UI, or be uploaded from commandline without reflashing
+* [0.3.0](https://github.com/jonnor/microflo/issues?milestone=3), "Runtime persistable, Introspectable":
+Uploaded graphs can be persisted to EEPROM, be monitored at runtime, and be composed of sub-graphs
+* [0.4.0](https://github.com/jonnor/microflo/issues?milestone=4), "Hetrogenous FBP":
+One can create systems using FBP in NoFlo UI which spans rich clients (browser), servers (Node.js) and microcontrollers (MicroFlo)
+* 0.5.0, "Simulated":
+One can program and test MicroFlo programs in a simulator, before putting it on device
+* 0.?.0, "Generally useful":
+Most of Arduino tutorial have been, or can easily be, reproduced
 
 TODO
 -----
     git grep -E 'TODO|FIXME|XXX|IDEA|PERF'
 
 
-Using/developing
+Using
 -----------------
-Tested on
+For visual programming your Arduino, follow the [MicroFlo for Arduino tutorial](./docs/arduino-getstarted.md).
+If interested in extending MicroFlo, using it for other microcontrollers, see the next section.
+
+
+Developing/Hacking
+-----------------
+
+Instructions below valid for
 * Arch Linux and Ubuntu (any GNU/Linux should be OK),
 * Mac OSX 10.8 Mountain Lion (10.6 -> 10.9 should be OK)
 
-Note: Does not work on Windows atm, [Ino](http://inotool.org/#limitations) does not support it.
+Note: Uploading as shown below not work on Windows atm, as [Ino](http://inotool.org/#limitations) does not support it.
+You can however use the Arduino IDE or another tool for flashing your microcontroller.
 
-Note: Only tested with Arduino Uno R3 and Arduino Nano R3. Other Arduino devices should however work.
+Note: Mostly tested on Arduino Uno R3 and Arduino Nano R3. Other Arduino devices should however work.
 
 Get the code
 
@@ -75,6 +95,11 @@ To see existing or add new components, check the files
 * [./microflo/components.json](./microflo/components.json)
 * [./microflo/components.cpp](./microflo/components.cpp)
 
+To see existing or add microcontroller targets, see
+
+* [./microflo/main.hpp](./microflo/main.hpp)
+* [./microflo/arduino.hpp](./microflo/arduino.hpp)
+
 When you find issues: [file bugs](https://github.com/jonnor/microflo/issues)
 and/or submit [pull requests](https://github.com/jonnor/microflo/pulls)!
 
@@ -82,7 +107,7 @@ License
 -------
 MIT for the code in MicroFlo, see [./LICENSE](./LICENSE).
 
-Note that MicroFlo currently relies on the Arduino, DallasTemperature and OneWire libraries,
+Note that MicroFlo currently uses the Arduino, DallasTemperature and OneWire libraries,
 which are under the GNU LGPL.
 
 Goals
@@ -143,6 +168,7 @@ Visual programming for Arduino etc.
 * http://sourceforge.net/projects/ktechlab (poorly maintained)
 * http://www.flowol.com/InterfaceArduino.aspx (non-free)
 * http://microuml.net/microuml.html (non-free service)
+* http://www.3d-svs.com/3dmicro-toolkit (non-free LabVIEW addon)
 
 Other notable dataflow programming environments
 
