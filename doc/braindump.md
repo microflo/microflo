@@ -87,6 +87,22 @@ go back in time and replay the events - maybe export to regression test?
 * Allow defining components/graphs/programs by "macro recording" and defining input-output relationships
 * Let HW components be properly simulated electronics, allow to output schematics/layouts
 
+Stories
+--------
+Example -> Custom program
+
+* Example programs readily available, searchable
+* Programs initially shown as one component, possibly with ports for config
+* Can change these parameters, couple to user interface elements easily
+* Two main methods of modding program to become something new
+    * Drive input parameters and capture output of original program with other components
+    * Drill down into the program, to change the subgraph it consists of
+
+Custom program -> Share
+
+* Upload directly to github?
+* Perhaps make no difference between program and library!
+* Other people can reuse program "as lib"
 
 Hardware targets
 ===================

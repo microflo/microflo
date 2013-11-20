@@ -18,14 +18,13 @@ Storyarc
 
 Outline
 --------
-* 
+?
 
 Perspectives / Motivation
 --------------------------
-Professional
-* Correctness, testability
-* Predictable, short development times
-* Self-documenting, easy-to-understand systems
+Consumer
+* Opportunity to tweak, hack, learn -> become a hobbyist
+* Feel in control of the device
 
 
 Hobbyist
@@ -34,9 +33,11 @@ Hobbyist
 * Exploratory learning and making
 
 
-Consumer
-* Opportunity to tweak, hack, learn -> become a hobbyist
-* Feel in control of the device
+Professional
+* Correctness, testability
+* Predictable, short development times
+* Self-documenting, easy-to-understand systems
+
 
 The Digital Divide
 --------------------
@@ -60,28 +61,38 @@ knowledge and "intellectual property" gains importance.
 Low income, small populations, socially unfavored
 Financial interests in maintaining the status quo of large disparities
 
+
 Democratize Digital Creation
 ---------------------------
-
 * Hardware is becoming general purpose, re-programmable
 What is the difference between a toaster and a solder-owen for electronics? Software (and pricetag)
 "There are no airplanes, only computers that fly. There are no cars, only computers we sit in.
 There are no hearing aids, only computers we put in our ears" - [Cory Doctorow](http://boingboing.net/2012/01/10/lockdown.html)
 
 * Free software and Open Hardware required
-
+Removes practical barrier of having to ask anyone, all permissons granted up-front.
+Freedom to study, improve, redistribute;
+for everyone (regardless of nationality, income) and for any purpose.
 
 * But not enough!
 Very practical concerns and problems remain.
 Teaching people that they have freedom and ability to change things as they like.
-Encouraging them to grab and make use of this freedom, and teaching them how.
+Encouraging them to grab and make use of this freedom, providing the tools
+and documentation neccesary, teaching them how. Also, the freedom must have concrete
+benefits for the person. Being able to earn a living, feed oneself and family important.
+Put pointedly, achieving Digital Freedom is just as much about reprogramming society,
+to make people refuse the idea of being a passive consumer, that it is about technology.
+Of course brings up the philosophical questions: "Can one give someone freedom?" and
+"Do all people (or any at all) have the capability of own, creative thought?"
 
-Put pointedly, achieving Digital Freedom is just as much about reprogramming people, to
+* Usefulness and usability at the forefront
 
+* Physical computing and safety
+When reprogramming has real-world effects, safety of users becomes a very real concern
 
 
 Imperative, textual programming
--------------------
+----------------------
 
 * Hard to program on touch-centric devices, where text input and navigation is slow and error-prone
 
@@ -115,7 +126,6 @@ No aerospace software engineers, only people that make computers fly."
 Anyone who can catch a ball can correctly calculate the outcome of multi-dimensional parabolas,
 someone who can answer a question can understand someones elses thoughts from varying air pressure!
 Most people can do both without thinking twice.
-
 Sidenote: playing out these two scenarios would be a very fun rethorical device in a presentation.
 Could prompt the question "Does anyone here believe that not everyone can become a programmer?",
 toss the ball to such a person in audience. Have multiple balls, case person does not get it on first ;)
@@ -146,22 +156,26 @@ Tools used for mapping high-level description to low-level
 cannot only be used by certain groups of people ("architects"),
 introduces a human/organizational communication barrier
 
+Vision
+-------
+* Electronic/embedded devices that come with (re-)programming tools built in
+* Easy transition between "normal" user interface, and the IDE.
+* Blurry boarders beween using, configuring, tweaking, reprogramming, repurposing
+* The program is a live, rich, visual and interactive representation of the system
+* Multiple abstraction/architectural levels, starting high-level, increasing level of detail
+
 Why FBP
 ---------
 * Decent theoretical foundation, much thanks to J.P. Morrisons book.
 * Data-flow a proven concept for domain-specific modelling.
 * Has a community of practiconers, with some livelyness right now, much thanks to NoFlo kickstarter
 
-
-Vision
--------
-
-
 Status
 -------
-What works, what can it be used for
-Current limitations
-
+* What pieces to we have
+* What works, what can it be used for
+* Current limitations
+* Concrete TODOs
 
 Future
 -----------
