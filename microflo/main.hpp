@@ -25,7 +25,7 @@ void loadFromEEPROM(GraphStreamer *parser) {
 void setup()
 {
     endpoint.setup(&parser, &network, &io);
-    network.emitDebug(DebugProgramStart);
+    network.emitDebug(DebugLevelInfo, DebugProgramStart);
     parser.setNetwork(&network);
 
 #ifdef MICROFLO_EMBED_GRAPH

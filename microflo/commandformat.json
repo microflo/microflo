@@ -61,5 +61,15 @@
         "ComponentSendInvalidPort": {"id": 16},
 
         "Max": { "id": 255 }
+    },
+    "debugLevels": {
+        "Invalid": {"id": 0},
+
+        "Error": {"id": 1},
+        "Info": {"id": 2},
+        "Detailed": {"id": 3},
+        "VeryDetailed": {"id": 4},
+
+        "Max": {"id": 255}
     }
 }

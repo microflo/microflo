@@ -113,7 +113,8 @@ public:
 
     void runTick();
 
-    void emitDebug(DebugId id);
+    void emitDebug(DebugLevel level, DebugId id);
+    void setDebugLevel(DebugLevel level);
 
 private:
     void runSetup();
@@ -129,6 +130,7 @@ private:
     NetworkNotificationHandler *notificationHandler;
     IO *io;
     State state;
+    DebugLevel debugLevel;
 };
 
 // TODO: add a configuration option to Network, allowing to control detail level on reporting
@@ -144,6 +146,7 @@ public:
     virtual void networkStateChanged(Network::State s) = 0;
 
     virtual void emitDebug(DebugId id) = 0;
+    virtual void debugChanged(DebugLevel level) = 0;
 };
 
 struct Connection {
@@ -284,6 +287,7 @@ public:
     virtual void nodesConnected(Component *src, int srcPort, Component *target, int targetPort);
     virtual void networkStateChanged(Network::State s);
     virtual void emitDebug(DebugId id);
+    virtual void debugChanged(DebugLevel level);
 
 private:
     int serialPort;

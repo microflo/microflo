@@ -11,7 +11,9 @@ describe('Commandstream generation', function(){
   describe('from a simple input FBP', function(){
       var input = "in(SerialIn) OUT -> IN f(Forward) OUT -> IN out(SerialOut)";
       var expect = Buffer([117,67,47,70,108,111,48,49,
-                           10,0,0,0,0,0,0,0, 11,8,0,0,0,0,0,0,
+                           10,0,0,0,0,0,0,0,
+                           15,1,0,0,0,0,0,0,
+                           11,8,0,0,0,0,0,0,
                            11,3,0,0,0,0,0,0, 11,9,0,0,0,0,0,0,
                            12,0,1,0,0,0,0,0, 12,1,2,0,0,0,0,0,
                            14,0,0,0,0,0,0,0 ]);

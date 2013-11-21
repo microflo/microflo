@@ -176,7 +176,8 @@ var dataLiteralToCommand = function(literal, tgt, tgtPort) {
 }
 
 // TODO: actually add observers to graph, and emit a command stream for the changes
-var cmdStreamFromGraph = function(componentLib, graph) {
+var cmdStreamFromGraph = function(componentLib, graph, debugLevel) {
+    debugLevel = debugLevel || "Error";
     var buffer = new Buffer(1024); // FIXME: unhardcode
     var index = 0;
     var nodeMap = {}; // nodeName->numericNodeId
@@ -184,6 +185,10 @@ var cmdStreamFromGraph = function(componentLib, graph) {
     // Header
     index += writeString(buffer, index, cmdFormat.magicString);
     index += writeCmd(buffer, index, cmdFormat.commands.Reset.id);
+
+    // Config
+    index += writeCmd(buffer, index, cmdFormat.commands.ConfigureDebug.id,
+                      cmdFormat.debugLevels[debugLevel].id);
 
     // Create components
     var currentNodeId = 0;
@@ -467,6 +472,9 @@ var parseReceivedCmd = function(cmdData, graph) {
         var targetNode = nodeNameById(graph.nodeMap, cmdData.readUInt8(3))
         var targetPort = componentLib.inputPortById(graph.processes[targetNode].component, cmdData.readUInt8(4)).name
         console.log("CONNECT: ", srcNode, srcPort, "->", targetNode, targetPort);
+    } else if (cmd === cmdFormat.commands.DebugChanged.id) {
+        var level = nodeNameById(cmdFormat.debugLevels, cmdData.readUInt8(1));
+        console.log("DEBUGLEVEL: ", level);
     } else if (cmd === cmdFormat.commands.DebugMessage.id) {
         var point = nodeNameById(cmdFormat.debugPoints, cmdData.readUInt8(1))
         console.log("DEBUG: ", point);
@@ -578,6 +586,7 @@ var updateDefinitions = function() {
     fs.writeFile("microflo/commandformat-gen.h",
                  generateEnum("GraphCmd", "GraphCmd", cmdFormat.commands) +
                  "\n" + generateEnum("Msg", "Msg", cmdFormat.packetTypes) +
+                 "\n" + generateEnum("DebugLevel", "DebugLevel", cmdFormat.debugLevels) +
                  "\n" + generateEnum("DebugId", "Debug", cmdFormat.debugPoints),
                  function(err) { if (err) throw err });
 }
@@ -670,7 +679,7 @@ if (cmd == "generate") {
         console.log("Using serial port: " + portName);
         var serial = new serialport.SerialPort(portName, {baudrate: 9600}, false);
         loadFile(process.argv[3], function(err, graph) {
-            var data = cmdStreamFromGraph(componentLib, graph);
+            var data = cmdStreamFromGraph(componentLib, graph, "Detailed");
             serial.open(function() {
                 uploadGraph(serial, data, graph);
             });
