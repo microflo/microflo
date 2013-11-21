@@ -318,3 +318,20 @@ I'd love to be able to add pre- and post-conditions to my programs for instance.
 [Why type systems matter for UX: an example](http://pchiusano.blogspot.no/2013/09/why-type-systems-matter-for-ux-example.html)
 
 [UI as an Act of Programming](http://awelonblue.wordpress.com/2013/09/11/ui-as-an-act-of-programming)
+
+
+Arduino opinions/criticisms
+============================
+"After all, it’s not as though each person using an arduino is having to invent the wheel all over again from scratch,
+and it’s not as if the arduino offers unlimited or limitless possibilities and
+therefore requires as flexible and efficient as possible a language to control it.
+Most stuff is the same as most other people’s stuff, most of the time.
+The common use cases cover almost all of what most people want to do with it in the first few years of their experience.
+Anything outside of those use cases can be programmed with custom ‘code’.
+The bulk, however, might as well be encapsulated into a very predictable and very efficient to use framework
+— one that doesn’t frustrate or infuriate or deter. "
+ [u0421793 @ Arduino Forums](http://forum.arduino.cc/index.php?PHPSESSID=fa4rk3oaohe5hclnghldp9lss0&topic=55937.msg432977#msg432977)
+
+[Why I'm ditching the Arduino software platform](http://bleaklow.com/2012/02/29/why_im_ditching_the_arduino_software_platform.html)
+
+
