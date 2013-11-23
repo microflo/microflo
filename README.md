@@ -51,7 +51,7 @@ TODO
 
 Using
 -----------------
-For visual programming your Arduino, follow the [MicroFlo for Arduino tutorial](./docs/arduino-getstarted.md).
+For visual programming your Arduino, follow the [MicroFlo for Arduino tutorial](./doc/arduino-getstarted.md).
 If interested in extending MicroFlo, using it for other microcontrollers, see the next section.
 
 

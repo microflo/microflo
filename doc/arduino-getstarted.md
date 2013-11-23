@@ -9,8 +9,7 @@ Prerequisites
 Download MicroFlo
 -----------------
 
-1. Download [MicroFlo for Arduino](https://dl.dropboxusercontent.com/s/57ggloyfq9iof3k/microflo-arduino-v0.1.0-71-g20d06b2.zip?dl=1&token_hash=AAGhYrYUgGVEVoAfeaN-T6xeMVur1lplo2GosyjSROm6MQ)
-2. Download [MicroFlo UI](https://dl.dropboxusercontent.com/s/9nwk0wepb5qduvd/microflo-ui-24fa1f3.zip?dl=1&token_hash=AAF-JxYJJyWaV7ulUbRTA03x64GcHouLrMExiSb-0Q54EA)
+Download the latest [MicroFlo release](https://github.com/jonnor/microflo/releases)
 
 
 Flash MicroFlo runtime to your Arduino
@@ -18,25 +17,39 @@ Flash MicroFlo runtime to your Arduino
 Open the Arduino IDE
 
 Import the MicroFlo library
-    Sketch -> Import Library -> Add Library...
 
-Open the provided MicroFlo application
-    examples -> microflo -> standalone.ino
+    Sketch -> Import Library -> Add Library... -> Chose microflo-arduino-XX.zip
 
-Flash to devick
+Open the provided MicroFlo example
+
+    examples -> microflo -> Standalone
+
+Flash to device
+
     Click "Upload"
 
-Your Arduino should now have a blinking LED, blinking around 2 times per second
+Your Arduino should now have a blinking LED, blinking around 2 times per second.
+This is the default MicroFlo program that is embedded in the firmware,
+and new programs can now be uploaded using MicroFlo.
 
 Install & run MicroFlo
 -----------------------
-Open up a terminal
-    npm install microflo
+
+Open up a command line shell.
+On Windows, run the "Node.js prompt" application. On Mac, run "Terminal".
+
+Move to where you downloaded MicroFlo
+
     cd microflo
+
+Start it
+
     node ./microflo.js runtime
 
 
 Run Microflo UI
 --------------------
 
+Open a modern web browser (Safari/Chrome/Firefox)
 
+    File -> Open -> Chose microflo-ui-XX/index.html
