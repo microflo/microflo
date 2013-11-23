@@ -227,7 +227,7 @@ var cmdStreamFromGraph = function(componentLib, graph) {
             var tgtNode = connection.tgt.process;
             var tgtPort = undefined;
             try {
-                tgtPort = componentLib.inputPort(graph.processes[11].component, connection.tgt.port).id;
+                tgtPort = componentLib.inputPort(graph.processes[tgtNode].component, connection.tgt.port).id;
             } catch (err) {
                 throw "Could not attach IIP: '" + connection.data.toString() + "' -> "
                         + tgtPort + " " + tgtNode;
