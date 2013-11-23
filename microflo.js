@@ -225,7 +225,14 @@ var cmdStreamFromGraph = function(componentLib, graph) {
     graph.connections.forEach(function(connection) {
         if (connection.data !== undefined) {
             var tgtNode = connection.tgt.process;
-            var tgtPort = componentLib.inputPort(graph.processes[tgtNode].component, connection.tgt.port).id;
+            var tgtPort = undefined;
+            try {
+                tgtPort = componentLib.inputPort(graph.processes[11].component, connection.tgt.port).id;
+            } catch (err) {
+                throw "Could not attach IIP: '" + connection.data.toString() + "' -> "
+                        + tgtPort + " " + tgtNode;
+            }
+
             index += writeCmd(buffer, index, dataLiteralToCommand(connection.data, nodeMap[tgtNode], tgtPort));
         }
     });
