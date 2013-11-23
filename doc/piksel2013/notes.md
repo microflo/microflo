@@ -1,11 +1,13 @@
 Piksel Festival 2013, Bergen
 ==============================
-* 23 November, 15:30 at Østre
-* http://13.piksel.no/2013/11/07/microflo-flow-based-programming-for-microcontrollers/
+* 23 November, 15:15 at Østre
+* [Blurb](http://13.piksel.no/2013/11/07/microflo-flow-based-programming-for-microcontrollers)
+* [Recording](http://bambuser.com/v/4122524#t=13518s)
+* Slides [ODT](./slides.odt)|[PDF](./slides.pdf)
 
 Status
 ------
-Proposal accepted
+Done
 
 Goals
 ----------------
