@@ -559,7 +559,7 @@ private:
 
 class Gate : public SingleOutputComponent {
 public:
-    Gate() : enabled(false) {}
+    Gate() : enabled(false), lastInput(MsgInvalid) {}
 
     virtual void process(Packet in, int port) {
         using namespace GatePorts;
@@ -573,7 +573,7 @@ public:
     }
 private:
     void sendIfEnabled() {
-        if (enabled && lastInput.type() != MsgVoid) {
+        if (enabled && lastInput.isValid()) {
             send(lastInput);
         }
     }
