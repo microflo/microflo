@@ -5,4 +5,3 @@ inverted() OUT -> IN led(DigitalWrite)
 # Config
 board(ArduinoUno) PIN2 -> PIN button()
 board() PIN3 -> PIN led()
-'true' -> ENABLE timer

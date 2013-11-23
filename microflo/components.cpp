@@ -240,14 +240,11 @@ public:
             // defaults
             previousMillis = 0;
             interval = 1000;
-            enabled = false;
         } else if (in.isTick()) {
             unsigned long currentMillis = io->TimerCurrentMs();
             if (currentMillis - previousMillis > interval) {
                 previousMillis = currentMillis;
-                if (enabled) {
-                    send(Packet());
-                }
+                send(Packet());
             }
         } else if (port == InPorts::interval && in.isData()) {
             interval = in.asInteger();
@@ -256,7 +253,6 @@ public:
         }
     }
 private:
-    bool enabled;
     unsigned long previousMillis;
     unsigned long interval;
 };
