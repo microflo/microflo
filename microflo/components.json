@@ -48,7 +48,6 @@
             "description": "Emit a packet every @interval milliseconds",
             "inPorts": {
                 "interval": { "id": 0 },
-                "enable": { "id": 1 },
                 "reset": { "id": 2 }
             }
         },

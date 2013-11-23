@@ -250,10 +250,7 @@ public:
                 }
             }
         } else if (port == InPorts::interval && in.isData()) {
-            previousMillis = io->TimerCurrentMs();
             interval = in.asInteger();
-        } else if (port == InPorts::enable && in.isData()) {
-            enabled = in.asBool();
         } else if (port == InPorts::reset && in.isData()) {
             previousMillis = io->TimerCurrentMs();
         }
