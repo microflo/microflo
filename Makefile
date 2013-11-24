@@ -26,7 +26,7 @@ endif
 # Rules
 all: build
 
-build: definitions
+build: install
 	mkdir -p build/arduino/src
 	mkdir -p build/arduino/lib
 	ln -sf `pwd`/microflo build/arduino/lib/
@@ -42,18 +42,33 @@ build: definitions
 upload: build
 	cd build/arduino && ino upload --board-model=$(MODEL)
 
-definitions:
-	node microflo.js update-defs
-
 clean:
 	git clean -dfx --exclude=node_modules
 
-release: build
-	rm -rf build/microflo-arduino-$(VERSION)
-	mkdir -p build/microflo-arduino-$(VERSION)/microflo/examples/Standalone
-	cp -r microflo/ build/microflo-arduino-$(VERSION)/
-	cp build/arduino/src/firmware.cpp build/microflo-arduino-$(VERSION)/microflo/examples/Standalone/Standalone.pde
-	cd build/microflo-arduino-$(VERSION) && zip -r microflo-arduino-$(VERSION).zip microflo
+install:
+	npm install
 
-.PHONY: all build definitions clean release
+release-arduino:
+	rm -rf build/microflo-arduino
+	mkdir -p build/microflo-arduino/microflo/examples/Standalone
+	cp -r microflo/ build/microflo-arduino/
+	cp build/arduino/src/firmware.cpp build/microflo-arduino/microflo/examples/Standalone/Standalone.pde
+	cd build/microflo-arduino && zip -r ../microflo-arduino.zip microflo
+
+release-ui:
+	rm -rf build/microflo-ui
+	cd thirdparty/noflo-ui && git checkout-index -f -a --prefix=../../build/microflo-ui/
+	cd build/microflo-ui && npm install && npm install grunt-cli
+	cd build/microflo-ui && ./node_modules/.bin/grunt build
+	rm -r build/microflo-ui/node_modules
+
+release: install build release-arduino release-ui
+	rm -rf build/microflo-$(VERSION)
+	mkdir -p build/microflo-$(VERSION)
+	cp -r build/microflo-arduino.zip build/microflo-$(VERSION)/
+	cp -r build/microflo-ui build/microflo-$(VERSION)/
+	git checkout-index -f -a --prefix=build/microflo-$(VERSION)/microflo/
+	cd build && zip -r microflo-$(VERSION).zip microflo-$(VERSION)
+
+.PHONY: all build install clean release release-arduino release-ui
 
