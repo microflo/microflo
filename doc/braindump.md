@@ -330,8 +330,20 @@ The common use cases cover almost all of what most people want to do with it in 
 Anything outside of those use cases can be programmed with custom ‘code’.
 The bulk, however, might as well be encapsulated into a very predictable and very efficient to use framework
 — one that doesn’t frustrate or infuriate or deter. "
- [u0421793 @ Arduino Forums](http://forum.arduino.cc/index.php?PHPSESSID=fa4rk3oaohe5hclnghldp9lss0&topic=55937.msg432977#msg432977)
+ [u0421793 @ Arduino Forums](http://forum.arduino.cc/index.php?PHPSESSID=fa4rk3oaohe5hclnghldp9lss0&topic=55937.msg432977#msg432977)
 
 [Why I'm ditching the Arduino software platform](http://bleaklow.com/2012/02/29/why_im_ditching_the_arduino_software_platform.html)
 
 
+Network
+========
+People that have expressed an interest in using MicroFlo
+
+* Jens Dyvik, Jens Brynhildsen, Alex. Bitraf, Oslo
+* Wolfgang Spahn. Artist+Educator, Berlin.
+* Elisabeth Nesheim. University of Bergen.
+
+Other contacts
+* Henri Bergius, creator of NoFlo. TheGrid, Berlin
+* Brendan Howell. Artist+Educator, Berlin.
+* Jørgen Lien. Høyskolen i Vestfold.
