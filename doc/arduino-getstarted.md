@@ -42,7 +42,11 @@ Move to where you downloaded MicroFlo
 
     cd microflo
 
-Start it
+Install it
+
+    npm install
+
+Start it. Check that serial port is guessed correctly.
 
     node ./microflo.js runtime
 
@@ -52,4 +56,13 @@ Run Microflo UI
 
 Open a modern web browser (Safari/Chrome/Firefox)
 
-    File -> Open -> Chose microflo-ui-XX/index.html
+    File -> Open -> Chose microflo-ui/index.html
+
+Create first application
+------------------------
+* Name it "Blink"
+* Chose "MicroFlo" as runtime
+
+Timer -> ToggleBoolean -> DigitalWrite
+interval=100		    pin=13
+
