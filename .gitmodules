@@ -1,0 +1,3 @@
+[submodule "thirdparty/noflo-ui"]
+	path = thirdparty/noflo-ui
+	url = ../noflo-ui.git
