@@ -591,19 +591,7 @@ var updateDefinitions = function() {
                  function(err) { if (err) throw err });
 }
 
-// Main
-var cmd = process.argv[2];
-if (cmd == "generate") {
-    fbp = require("fbp");
-    noflo = require("noflo");
-
-    var inputFile = process.argv[3];
-    var outputFile = process.argv[4] || inputFile
-    generateOutput(componentLib, inputFile, outputFile);
-} else if (cmd == "update-defs") {
-    updateDefinitions();
-} else if (cmd == "runtime") {
-    serialport = require("serialport");
+var setupRuntime = function(env) {
     var http = require('http');
     var websocket = require('websocket');
 
@@ -641,35 +629,9 @@ if (cmd == "generate") {
 
       console.log("MicroFlo runtime listening at WebSocket port " + port);
     });
+}
 
-} else if (cmd == "simulator") {
-    // Host runtime impl.
-    fbp = require("fbp");
-    noflo = require("noflo");
-    var addon = require("./build/Release/MicroFloCc.node");
-    var io = undefined; // new addon.IO()
-    var net = new addon.Network(io);
-    loadFile("./examples/monitorPin.fbp", function(err, graph) {
-        var stream = cmdStreamFromGraph(componentLib, graph);
-        var endpoint = new addon.GraphStreamer(net);
-        for (var i=0; i<stream.length; i++) {
-            var b = stream.readUInt8(i);
-            endpoint.parseByte(b);
-        }
-        var comp = new addon.Component();
-        comp.on("process", function(packet, port) {
-            console.log(packet, port);
-        });
-        net.addNode(comp);
-
-        console.log("Running MicroFlo network in host");
-        net.start();
-        setInterval(function () { net.runTick(); }, 100);
-    });
-
-} else if (cmd == "upload") {
-    serialport = require("serialport");
-    fbp = require("fbp");
+var uploadGraphCommand = function(env) {
 
     // FIXME: allow to override port
     guessSerialPort(function(err, portName) {
@@ -685,15 +647,60 @@ if (cmd == "generate") {
             });
         });
     });
-
-} else if (require.main === module) {
-    throw "Invalid commandline arguments. Usage: node microflo.js generate INPUT [OUTPUT]"
 }
 
-module.exports = {
-    loadFile: loadFile,
-    ComponentLibrary: ComponentLibrary,
-    componentLib: componentLib,
-    cmdStreamFromGraph: cmdStreamFromGraph,
-    generateOutput: generateOutput
+var generateFwCommand = function(env) {
+    var inputFile = process.argv[3];
+    var outputFile = process.argv[4] || inputFile
+    generateOutput(componentLib, inputFile, outputFile);
+}
+
+// Main
+if (require.main === module) {
+
+    if (process.argv[2] == "update-defs") {
+        // Special, runs before dependencies has been installed and thus
+        // cannot import any of them.
+        updateDefinitions();
+        return;
+    }
+
+    var commander = require("commander");
+    var pkginfo = require('pkginfo')(module);
+    fbp = require("fbp");
+    noflo = require("noflo");
+    serialport = require("serialport");
+
+    commander
+        .version(module.exports.version)
+
+    commander
+        .command('generate')
+        .description('Generate MicroFlo firmware code, with embedded graph.')
+        .action(generateFwCommand);
+
+    commander
+        .command('upload')
+        .description('Upload a new graph to a device running MicroFlo firmware')
+        .action(uploadGraphCommand);
+
+    commander
+        .command('runtime')
+        .description('Run as a server, for use with the NoFlo UI.')
+        .action(setupRuntime)
+
+    commander.parse(process.argv)
+    if (process.argv.length <= 2) {
+        commander.help()
+    }
+
+} else {
+
+    module.exports = {
+        loadFile: loadFile,
+        ComponentLibrary: ComponentLibrary,
+        componentLib: componentLib,
+        cmdStreamFromGraph: cmdStreamFromGraph,
+        generateOutput: generateOutput
+    }
 }
