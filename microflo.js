@@ -512,6 +512,14 @@ var uploadGraph = function(serial, data, graph, callback) {
     serial.removeAllListeners("data");
     serial.on("data", onSerialData);
 
+    if (graph.uploadInProgress) {
+        // avoid multiple uploads happening at same time
+        // FIXME: should give user feedback on upload process
+        console.log("WARN: Graph upload in progress, ignored second attempt");
+        return;
+    }
+
+    graph.uploadInProgress = true;
     setTimeout(function() {
         // XXX: for some reason when writing without this delay,
         // the first bytes ends up corrupted on microcontroller side
@@ -520,9 +528,13 @@ var uploadGraph = function(serial, data, graph, callback) {
             serial.write(dataBuf.slice(index, index+cmdSize), function() {
                 //console.log("wrote", dataBuf.slice(index, index+cmdSize));
                 //console.log("wrote graph");
-                setTimeout(function() {
-                    sendCmd(dataBuf, index+=cmdSize);
-                }, 100);
+                if (index < dataBuf.length) {
+                    setTimeout(function() {
+                        sendCmd(dataBuf, index+=cmdSize);
+                    }, 100);
+                } else {
+                    graph.uploadInProgress = false;
+                }
            });
         }
 
