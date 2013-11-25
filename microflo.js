@@ -427,21 +427,25 @@ var isLikelyArduinoSerial = function (e) {
     return e.comName.indexOf("usbserial")  !== -1
 }
 
-var guessSerialPort = function(callback) {
+var guessSerialPort = function(wantedPortName, callback) {
     serialport.list(function (err, ports) {
         if (err) {
             callback(err);
         } else {
+            var p = undefined;
             ports.forEach(function(port) {
-              console.log(port.comName);
-              console.log(port.pnpId);
-              console.log(port.manufacturer);
+                if (wantedPortName && wantedPortName !== "auto"
+                        && wantedPortName === port.comName) {
+                    p = port.comName;
+                }
             });
+            if (p) {
+                callback(err, p, ports);
+                return;
+            }
 
             var preferred = ports.filter(isLikelyArduinoSerial)
-            console.log(preferred);
-            var p = preferred.length > 0 ? preferred[0].comName : ports[0].comName;
-
+            p = preferred.length > 0 ? preferred[0].comName : ports[0].comName;
             callback(err, p, ports);
         }
     });
@@ -484,7 +488,6 @@ var parseReceivedCmd = function(cmdData, graph) {
 }
 
 var uploadGraph = function(serial, data, graph, callback) {
-    console.log("opened serial");
 
     var cmdSize = cmdFormat.commandSize;
     var buf = new Buffer(cmdSize*10);
@@ -527,7 +530,7 @@ var uploadGraph = function(serial, data, graph, callback) {
      }, 500);
 }
 
-var handleMessage = function (message, connection, graph, getSerial) {
+var handleMessage = function (message, connection, graph, getSerial, debugLevel) {
   if (message.type == 'utf8') {
     try {
       var contents = JSON.parse(message.utf8Data);
@@ -569,7 +572,7 @@ var handleMessage = function (message, connection, graph, getSerial) {
         }
     } else if (contents.protocol == "network") {
         if (contents.command == "start") {
-            var data = cmdStreamFromGraph(componentLib, graph);
+            var data = cmdStreamFromGraph(componentLib, graph, debugLevel);
             uploadGraph(getSerial(), data, graph);
         }
     }
@@ -595,14 +598,18 @@ var setupRuntime = function(env) {
     var http = require('http');
     var websocket = require('websocket');
 
-       var httpServer = http.createServer();
-       var wsServer = new websocket.server({
+    var serialPortToUse = env.parent.serial || "auto";
+    var port = env.parent.port || 3569;
+    var debugLevel = env.parent.debug || "Error";
+
+    var httpServer = http.createServer();
+    var wsServer = new websocket.server({
          httpServer: httpServer
-       });
+    });
 
     // FIXME: nasty and racy
     var serial = undefined;
-    guessSerialPort(function(err, portName) {
+    guessSerialPort(serialPortToUse, function(err, portName) {
         if (err) {
             throw err;
         }
@@ -618,10 +625,10 @@ var setupRuntime = function(env) {
       wsServer.on('request', function (request) {
         var connection = request.accept('noflo', request.origin);
         connection.on('message', function (message) {
-          handleMessage(message, connection, graph, getSerial);
+          handleMessage(message, connection, graph, getSerial, debugLevel);
         });
       });
-    var port = 3569;
+
     httpServer.listen(port, function (err) {
       if (err) {
         error(err);
@@ -631,17 +638,18 @@ var setupRuntime = function(env) {
     });
 }
 
-var uploadGraphCommand = function(env) {
+var uploadGraphCommand = function(graphPath, env) {
+    var serialPortName = env.parent.serial || "auto";
+    var debugLevel = env.parent.debug
 
-    // FIXME: allow to override port
-    guessSerialPort(function(err, portName) {
+    guessSerialPort(serialPortName, function(err, portName) {
         if (err) {
             throw err;
         }
         console.log("Using serial port: " + portName);
         var serial = new serialport.SerialPort(portName, {baudrate: 9600}, false);
-        loadFile(process.argv[3], function(err, graph) {
-            var data = cmdStreamFromGraph(componentLib, graph, "Detailed");
+        loadFile(graphPath, function(err, graph) {
+            var data = cmdStreamFromGraph(componentLib, graph, debugLevel);
             serial.open(function() {
                 uploadGraph(serial, data, graph);
             });
@@ -673,6 +681,9 @@ if (require.main === module) {
 
     commander
         .version(module.exports.version)
+        .option('-s, --serial <PORT>', 'which serial port to use')
+        .option('-d, --debug <LEVEL>', 'set debug level')
+        .option('-d, --port <PORT>', 'which WebSocket port to use')
 
     commander
         .command('generate')
