@@ -80,9 +80,9 @@ Install prerequsites; Arduino and Ino
 
 To build and run tests
 
-    npm install && make && make check
+    npm install && npm test
 
-To flash your Arduino with a graph
+To flash your Arduino with the MicroFlo runtime, including an embedded graph:
 
     make upload GRAPH=examples/blink.fbp MODEL=uno
 
