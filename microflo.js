@@ -442,6 +442,8 @@ var guessSerialPort = function(wantedPortName, callback) {
             if (p) {
                 callback(err, p, ports);
                 return;
+            } else if (wantedPortName && wantedPortName !== "auto") {
+                console.log("WARN: unable to find serial port: ", wantedPortName);
             }
 
             var preferred = ports.filter(isLikelyArduinoSerial)
@@ -621,10 +623,12 @@ var setupRuntime = function(env) {
 
     // FIXME: nasty and racy
     var serial = undefined;
-    guessSerialPort(serialPortToUse, function(err, portName) {
+    guessSerialPort(serialPortToUse, function(err, portName, ports) {
         if (err) {
             throw err;
         }
+        ports = ports.map(function(item) { return item.comName; });
+        console.log("Available serial ports: ", ports);
         console.log("Using serial port: " + portName);
         serial = new serialport.SerialPort(portName, {baudrate: 9600}, false);
         serial.open(function() {
