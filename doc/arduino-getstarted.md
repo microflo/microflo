@@ -11,6 +11,8 @@ Download MicroFlo
 
 Download the latest [MicroFlo release](https://github.com/jonnor/microflo/releases)
 
+Unpack the .zip file to a well-known directory.
+
 
 Flash MicroFlo runtime to your Arduino
 -------------------------------------
@@ -18,11 +20,11 @@ Open the Arduino IDE
 
 Import the MicroFlo library
 
-    Sketch -> Import Library -> Add Library... -> Chose microflo-arduino-XX.zip
+    Sketch -> Import Library -> Add Library... -> Chose microflo-arduino.zip
 
 Open the provided MicroFlo example
 
-    examples -> microflo -> Standalone
+    File -> examples -> microflo -> Standalone
 
 Flash to device
 
@@ -60,9 +62,20 @@ Open a modern web browser (Safari/Chrome/Firefox)
 
 Create first application
 ------------------------
+
+Create a new sketch.
 * Name it "Blink"
 * Chose "MicroFlo" as runtime
 
-Timer -> ToggleBoolean -> DigitalWrite
-interval=100		    pin=13
+Create the following graph, using Add (+) to add each of the components, and dragging to connect.
+
+    |--------|       |---------------|    |--------------|
+    | Timer  |-------| ToggleBoolean |----| DigitalWrite |
+    |--------|       |---------------|    |--------------|
+     interval=100		            pin=13
+
+When done, hit the Play button (>) to upload it to your Arduino.
+
+You should now see the LED of your Arduino blinking much faster, about 7 times a second.
+If so you have a working MicroFlo for Arduino setup, and can now try to build more complicated programs!
 
