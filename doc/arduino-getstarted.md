@@ -95,10 +95,12 @@ Create the following graph
 * Drag from the outlet of a node [ ] to the inlet of another to connect.
 * Click the title of a node "Timer" to edit properties like pin & interval
 
-    |--------|       |---------------|    |--------------|
-    | Timer  |-------| ToggleBoolean |----| DigitalWrite |
-    |--------|       |---------------|    |--------------|
-     interval=100                             pin=13
+```
+     |--------|       |---------------|    |--------------|
+     | Timer  |-------| ToggleBoolean |----| DigitalWrite |
+     |--------|       |---------------|    |--------------|
+       interval=100                             pin=13
+```
 
 When done, hit the Play button (>) to upload it to your Arduino. Uploading will take ~1 second,
 and you will see the RX/TX LEDs on the board blink during this time.
