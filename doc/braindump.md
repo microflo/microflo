@@ -31,12 +31,18 @@ Robotics: ?
 
 Interactive art: ?
 ------------------
+Should have at least basic integration with SuperCollider, PureData and/or Processing.
+
+Idea: run a NoFlo UI program that has a component which represents an Arduino running MicroFlo,
+and have one or more components that expose the functionality over an OSC interface.
+
+Ideally it would be possible to also program video/audio using FBP/NoFlo(UI), and combine it seamlessly with MicroFlo.
 
 Distributed systems: ?
 --------------------
 Multiple microcontroller collaboration, co-processors.
 
-Thoughts on best practices
+Thoughts on best practices and code style
 ======================
 
 Components must have a single, well defined, task.
@@ -51,6 +57,14 @@ second step. Reasons for this can include reuse/retrofitting existing code, flow
 or not easily applicable to the problem domain.
 Conversely, if and when a graph of thin components does not perform well enough, combining into a supercomponent may
 be a viable strategy.
+
+Sub-systems representing what is logically one function should be encapsulated into a component, defined by a subgraph.
+
+The size of a node should be proportional to its importance in the graph.
+
+When using hetrogenous systems, consistent of both microcontroller and host,
+important to make sure that the tasks selected for each device (class) is that which
+the device/runtime is most suited for. Example: RealTime->uC, CPU-intense->host.
 
 User Interface
 ==============
@@ -111,6 +125,8 @@ ARM Cortex-M3/M4(F) most interesting. Dirty-cheap modules available from TI (Lau
 * http://www.st.com/web/catalog/tools/FM116/SC959/SS1532/PF252419
 * http://www.ti.com/tool/EK-TM4C123GXL
 * https://estore.ti.com/Stellaris-LaunchPad.aspx
+
+FPGA soft-processors also very interesting. Most likely target is [Papilio](http://papilio.cc/) boards (Xilinx-based).
 
 Correctness, Testing
 =====================
@@ -342,6 +358,7 @@ People that have expressed an interest in using MicroFlo
 * Jens Dyvik, Jens Brynhildsen, Alex. Bitraf, Oslo
 * Wolfgang Spahn. Artist+Educator, Berlin.
 * Elisabeth Nesheim. University of Bergen.
+* Eirik Blekesaune. Verdensteateret/NOTAM, Oslo.
 
 Other contacts
 * Henri Bergius, creator of NoFlo. TheGrid, Berlin
