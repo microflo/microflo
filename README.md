@@ -4,7 +4,7 @@ MicroFlo: flow-based programming for microcontrollers
 
 Implementation of [Flow-based programming](http://en.wikipedia.org/wiki/Flow-based_programming).
 Inspired by and designed for integration with [NoFlo](http://noflojs.org/).
-First hardware target will be [Arduino](http://arduino.cc)-compatible boards.
+The first hardware target is [Arduino](http://arduino.cc)-compatible boards.
 
 Different from most other physical computing involving Node.JS/JavaScript in that it
 aims to allow build _standalone_ microcontroller applications, that can also be
@@ -33,8 +33,7 @@ or IRC channel [#fbp@freenode.org](irc://fbp.freenode.org).
 
 Milestones
 -----------
-* [0.2.0](https://github.com/jonnor/microflo/issues?milestone=2), "Visually programmable":
-Graphs can created visually using NoFlo UI, or be uploaded from commandline without reflashing
+
 * [0.3.0](https://github.com/jonnor/microflo/issues?milestone=3), "Runtime persistable, Introspectable":
 Uploaded graphs can be persisted to EEPROM, be monitored at runtime, and be composed of sub-graphs
 * [0.4.0](https://github.com/jonnor/microflo/issues?milestone=4), "Hetrogenous FBP":
@@ -48,6 +47,8 @@ A commercial product based on MicroFlo has been shipped.
 * ?.0.0, "Device freedom":
 An open source hardware, free software electronics product based on MicroFlo with an integrated IDE
 allowing and encouraging the user to customize the code has been shipped.
+
+[Past milestones](../CHANGES.md)
 
 TODO
 -----
