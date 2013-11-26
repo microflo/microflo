@@ -43,6 +43,11 @@ One can create systems using FBP in NoFlo UI which spans rich clients (browser),
 One can program and test MicroFlo programs in a simulator, before putting it on device
 * 0.?.0, "Generally useful":
 Most of Arduino tutorial have been, or can easily be, reproduced
+* ?.0.0, "Production quality":
+A commercial product based on MicroFlo has been shipped.
+* ?.0.0, "Device freedom":
+An open source hardware, free software electronics product based on MicroFlo with an integrated IDE
+allowing and encouraging the user to customize the code has been shipped.
 
 TODO
 -----
