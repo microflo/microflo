@@ -699,7 +699,7 @@ if (require.main === module) {
         .version(module.exports.version)
         .option('-s, --serial <PORT>', 'which serial port to use')
         .option('-d, --debug <LEVEL>', 'set debug level')
-        .option('-d, --port <PORT>', 'which WebSocket port to use')
+        .option('-p, --port <PORT>', 'which WebSocket port to use')
 
     commander
         .command('generate')
