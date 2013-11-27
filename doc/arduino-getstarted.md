@@ -21,6 +21,9 @@ MicroFlo has been tested working with:
 
 Prerequisites
 -----------------
+You should be comfortable installing software off the Internet, following technical instructions,
+and not be afraid to open a terminal. Getting a working setup will take about 1 hour, most of it
+due to downloading. You will in the process also get a working Node.js and plain Arduino environment.
 
 1. Install [Arduino IDE](http://arduino.cc/en/Main/Software#toc2),
   following the [official guide](http://arduino.cc/en/Guide/HomePage)

@@ -1,6 +1,6 @@
-MicroFlo 0.2.0: "Motion Detected"
+MicroFlo 0.2.0: "The start of something visual"
 ===============================
-Released: N/A
+Released: November 27, 2013
 
 Visually programmmable. When using NoFlo UI, one can create MicroFlo graphs visually
 and upload to an Arduino while running.
@@ -11,7 +11,9 @@ New features
 * Added a tutorial documenting how to get started with MicroFlo on Arduino devices.
 * Added commandline options for configuring debug levels, serial port and WebSocket port
 
-In addition many improvements were made to host<->microcontroller communication and runtime scalability. Basic Node.JS bindings were added to be able to run MicroFlo programs and tests also in the host (temporarily disabled for release).
+In addition many improvements were made to host<->microcontroller communication and runtime scalability.
+Basic Node.JS bindings were added to be able to run MicroFlo programs and tests also in the host
+(temporarily disabled for release).
 
 Added components:
 * AnalogRead, MonitorPin, PwmWrite, MapLinear, Split, Gate, Route, BooleanOr
