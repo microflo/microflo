@@ -267,7 +267,7 @@ private:
     };
 
     Network *network;
-    int currentByte;
+    unsigned int currentByte;
     unsigned char buffer[GRAPH_CMD_SIZE];
     enum State state;
 };
