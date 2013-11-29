@@ -571,8 +571,8 @@ private:
         }
     }
 
-    Packet lastInput;
     bool enabled;
+    Packet lastInput;
 };
 
 class Route : public SingleOutputComponent {

@@ -388,9 +388,9 @@ void Network::setDebugLevel(DebugLevel level) {
 HostCommunication::HostCommunication(int port, int baudRate)
     : serialPort(port)
     , serialBaudrate(baudRate)
-    , io(0)
-    , network(0)
     , parser(0)
+    , network(0)
+    , io(0)
 {
 
 }
