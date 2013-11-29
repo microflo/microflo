@@ -9,7 +9,7 @@
     "bugs": "http://github.com/jonnor/microflo/issues",
     "license": "MIT",
     "scripts":{
-        "preinstall": "node microflo.js update-defs",
+        "preinstall": "node microflo.js update-defs && node-gyp rebuild",
         "test": "mocha --reporter spec"
     },
     "dependencies": {

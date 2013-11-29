@@ -15,7 +15,7 @@ try {
 
 
 describe('Network', function(){
-  describe.skip('sending packets into graph of Forward components', function(){
+  describe('sending packets into graph of Forward components', function(){
     it('should give the same packets out on other side', function(){
         var compare = new addon.Component();
         compare.expected = [0, 1, 2]
