@@ -74,6 +74,7 @@ private:
 };
 
 // Network
+const int MICROFLO_MAX_PORTS = 255;
 const int MAX_NODES = 50;
 const int MAX_MESSAGES = 50;
 

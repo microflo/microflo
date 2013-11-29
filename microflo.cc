@@ -36,6 +36,8 @@ Packet JsValueToPacket(v8::Handle<v8::Value> val) {
 // Component
 class JavaScriptComponent : public node::ObjectWrap, public Component  {
 public:
+    JavaScriptComponent();
+
     static void Init(v8::Handle<v8::Object> exports);
 
     // Implements Component
@@ -48,7 +50,13 @@ private:
     static v8::Handle<v8::Value> Send(const v8::Arguments& args);
 private:
     v8::Persistent<v8::Function> onProcess;
+    Connection outPorts[MICROFLO_MAX_PORTS];
 };
+
+JavaScriptComponent::JavaScriptComponent()
+    : Component(outPorts, MICROFLO_MAX_PORTS)
+{
+}
 
 JavaScriptComponent::~JavaScriptComponent()
 {}
