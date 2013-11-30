@@ -4,38 +4,38 @@
  */
 
 #ifdef ARDUINO
-#include <avr/pgmspace.h>
 #include "arduino.hpp"
+#include <avr/pgmspace.h>
+
+void loadFromEEPROM(HostCommunication *controller) {
+    for (int i=0; i<sizeof(graph); i++) {
+        unsigned char c = pgm_read_byte_near(graph+i);
+        controller->parseByte(c);
+    }
+}
 
 const int serialPort = 0;
 const int serialBaudrate = 9600;
 
 ArduinoIO io;
 Network network(&io);
-GraphStreamer parser;
-HostCommunication endpoint(serialPort, serialBaudrate);
-
-void loadFromEEPROM(GraphStreamer *parser) {
-    for (int i=0; i<sizeof(graph); i++) {
-        unsigned char c = pgm_read_byte_near(graph+i);
-        parser->parseByte(c);
-    }
-}
+HostCommunication controller;
+SerialHostTransport transport(serialPort, serialBaudrate);
 
 void setup()
 {
-    endpoint.setup(&parser, &network, &io);
+    transport.setup(&io, &controller);
     network.emitDebug(DebugLevelInfo, DebugProgramStart);
-    parser.setNetwork(&network);
+    controller.setup(&network, &transport);
 
 #ifdef MICROFLO_EMBED_GRAPH
-    loadFromEEPROM(&parser);
+    loadFromEEPROM(&controller);
 #endif
 }
 
 void loop()
 {
-    endpoint.runTick();
+    transport.runTick();
     network.runTick();
 }
 #endif // ARDUINO

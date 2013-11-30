@@ -221,52 +221,9 @@ v8::Handle<v8::Value> JavaScriptNetwork::SendMessage(const v8::Arguments& args) 
   return scope.Close(v8::Undefined());
 }
 
-
-// GraphStreamer
-class JavaScriptGraphStreamer : public node::ObjectWrap, public GraphStreamer {
-public:
-    static void Init(v8::Handle<v8::Object> exports);
-
-private:
-    static v8::Handle<v8::Value> New(const v8::Arguments& args);
-    static v8::Handle<v8::Value> ParseByte(const v8::Arguments& args);
-private:
-    ;
-};
-
-void JavaScriptGraphStreamer::Init(v8::Handle<v8::Object> exports) {
-  v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(New);
-  tpl->SetClassName(v8::String::NewSymbol("GraphStreamer"));
-  tpl->InstanceTemplate()->SetInternalFieldCount(1);
-
-  tpl->PrototypeTemplate()->Set(v8::String::NewSymbol("parseByte"),
-                                v8::FunctionTemplate::New(ParseByte)->GetFunction());
-
-  v8::Persistent<v8::Function> constructor = v8::Persistent<v8::Function>::New(tpl->GetFunction());
-  exports->Set(v8::String::NewSymbol("GraphStreamer"), constructor);
-}
-
-v8::Handle<v8::Value> JavaScriptGraphStreamer::New(const v8::Arguments& args) {
-  v8::HandleScope scope;
-  JavaScriptGraphStreamer* obj = new JavaScriptGraphStreamer();
-  JavaScriptNetwork *net = node::ObjectWrap::Unwrap<JavaScriptNetwork>(args[0]->ToObject());
-  obj->setNetwork(net);
-  obj->Wrap(args.This());
-  return args.This();
-}
-
-v8::Handle<v8::Value> JavaScriptGraphStreamer::ParseByte(const v8::Arguments& args) {
-  v8::HandleScope scope;
-  JavaScriptGraphStreamer* obj = node::ObjectWrap::Unwrap<JavaScriptGraphStreamer>(args.This());
-  const char b = args[0]->Uint32Value();
-  obj->parseByte(b);
-  return scope.Close(v8::Undefined());
-}
-
 void init(v8::Handle<v8::Object> exports) {
   JavaScriptComponent::Init(exports);
   JavaScriptNetwork::Init(exports);
-  JavaScriptGraphStreamer::Init(exports);
 }
 
 NODE_MODULE(MicroFloCc, init)

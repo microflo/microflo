@@ -250,36 +250,14 @@ private:
 const size_t GRAPH_MAGIC_SIZE = 8;
 const size_t GRAPH_CMD_SIZE = 1 + 7; // cmd + payload
 
-class GraphStreamer {
-public:
-    GraphStreamer();
-    void setNetwork(Network *net) { network = net; }
-
-    void parseByte(char b);
-
-private:
-    void parseCmd();
-private:
-    enum State {
-        Invalid = -1,
-        ParseHeader,
-        ParseCmd
-    };
-
-    Network *network;
-    unsigned int currentByte;
-    unsigned char buffer[GRAPH_CMD_SIZE];
-    enum State state;
-};
+class HostTransport;
 
 class HostCommunication : public NetworkNotificationHandler {
 public:
-    HostCommunication(int serialPort, int baudRate);
-    void setup(GraphStreamer *p, Network *n, IO *i);
-    void runTick();
+    HostCommunication();
+    void setup(Network *net, HostTransport *t);
 
-    void padCommandWithNArguments(int arguments);
-    void sendCommandByte(uint8_t b);
+    void parseByte(char b);
 
     // Implements NetworkNotificationHandler
     virtual void packetSent(int index, Message m, Component *sender, int senderPort);
@@ -291,11 +269,45 @@ public:
     virtual void debugChanged(DebugLevel level);
 
 private:
+    void parseCmd();
+private:
+    enum State {
+        Invalid = -1,
+        ParseHeader,
+        ParseCmd
+    };
+
+    Network *network;
+    HostTransport *transport;
+    unsigned int currentByte;
+    unsigned char buffer[GRAPH_CMD_SIZE];
+    enum State state;
+};
+
+
+class HostTransport {
+public:
+    virtual void setup(IO *i, HostCommunication *c) = 0;
+    virtual void runTick() = 0;
+
+    virtual void sendCommandByte(uint8_t b) = 0;
+    void padCommandWithNArguments(int arguments);
+};
+
+class SerialHostTransport : public HostTransport {
+public:
+    SerialHostTransport(int serialPort, int baudRate);
+
+    // implements HostTransport
+    virtual void setup(IO *i, HostCommunication *c);
+    virtual void runTick();
+    virtual void sendCommandByte(uint8_t b);
+
+private:
+    IO *io;
+    HostCommunication *controller;
     int serialPort;
     int serialBaudrate;
-    GraphStreamer *parser;
-    Network *network;
-    IO *io;
 };
 
 #endif // MICROFLO_H

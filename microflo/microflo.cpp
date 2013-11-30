@@ -96,13 +96,20 @@ bool Packet::operator==(const Packet& rhs) const {
     return msg == rhs.msg && memcmp(&data, &rhs.data, sizeof(PacketData)) == 0;
 }
 
-GraphStreamer::GraphStreamer()
+HostCommunication::HostCommunication()
     : network(0)
     , currentByte(0)
     , state(ParseHeader)
 {}
 
-void GraphStreamer::parseByte(char b) {
+void HostCommunication::setup(Network *net, HostTransport *t) {
+    network = net;
+    transport = t;
+    network->setNotificationHandler(this);
+}
+
+
+void HostCommunication::parseByte(char b) {
 
     buffer[currentByte++] = b;
 
@@ -132,7 +139,7 @@ void GraphStreamer::parseByte(char b) {
     }
 }
 
-void GraphStreamer::parseCmd() {
+void HostCommunication::parseCmd() {
 
     GraphCmd cmd = (GraphCmd)buffer[0];
     if (cmd == GraphCmdEnd) {
@@ -385,59 +392,20 @@ void Network::setDebugLevel(DebugLevel level) {
     }
 }
 
-HostCommunication::HostCommunication(int port, int baudRate)
-    : serialPort(port)
-    , serialBaudrate(baudRate)
-    , parser(0)
-    , network(0)
-    , io(0)
-{
-
-}
-
-void HostCommunication::setup(GraphStreamer *p, Network *n, IO *i) {
-    parser = p;
-    network = n;
-    io = i;
-    network->setNotificationHandler(this);
-
-    io->SerialBegin(serialPort, serialBaudrate);
-}
-
-
-void HostCommunication::runTick() {
-    if (io->SerialDataAvailable(serialPort) > 0) {
-        unsigned char c = io->SerialRead(serialPort);
-        parser->parseByte(c);
-    }
-}
-
-
-void HostCommunication::padCommandWithNArguments(int arguments) {
-    const int padding = GRAPH_CMD_SIZE - (arguments+1);
-    for (int i=0; i<padding; i++) {
-        io->SerialWrite(serialPort, 0x00);
-    }
-}
-
-void HostCommunication::sendCommandByte(uint8_t b) {
-    io->SerialWrite(serialPort, b);
-}
-
 void HostCommunication::nodeAdded(Component *c) {
-    sendCommandByte(GraphCmdNodeAdded);
-    sendCommandByte(c->component());
-    sendCommandByte(c->id());
-    padCommandWithNArguments(2);
+    transport->sendCommandByte(GraphCmdNodeAdded);
+    transport->sendCommandByte(c->component());
+    transport->sendCommandByte(c->id());
+    transport->padCommandWithNArguments(2);
 }
 
 void HostCommunication::nodesConnected(Component *src, int srcPort, Component *target, int targetPort) {
-    sendCommandByte(GraphCmdNodesConnected);
-    sendCommandByte(src->id());
-    sendCommandByte(srcPort);
-    sendCommandByte(target->id());
-    sendCommandByte(targetPort);
-    padCommandWithNArguments(4);
+    transport->sendCommandByte(GraphCmdNodesConnected);
+    transport->sendCommandByte(src->id());
+    transport->sendCommandByte(srcPort);
+    transport->sendCommandByte(target->id());
+    transport->sendCommandByte(targetPort);
+    transport->padCommandWithNArguments(4);
 }
 
 void HostCommunication::networkStateChanged(Network::State s) {
@@ -447,19 +415,19 @@ void HostCommunication::networkStateChanged(Network::State s) {
     } else if (s == Network::Stopped) {
         cmd = GraphCmdNetworkStopped;
     }
-    sendCommandByte(cmd);
-    padCommandWithNArguments(0);
+    transport->sendCommandByte(cmd);
+    transport->padCommandWithNArguments(0);
 }
 
 void HostCommunication::packetSent(int index, Message m, Component *src, int srcPort) {
     /*
-    sendCommandByte(GraphCmdPacketSent);
-    sendCommandByte(src->id());
-    sendCommandByte(srcPort);
-    sendCommandByte(m.target->id());
-    sendCommandByte(m.targetPort);
-    sendCommandByte(m.pkg.type());
-    padCommandWithNArguments(5);
+    transport->sendCommandByte(GraphCmdPacketSent);
+    transport->sendCommandByte(src->id());
+    transport->sendCommandByte(srcPort);
+    transport->sendCommandByte(m.target->id());
+    transport->sendCommandByte(m.targetPort);
+    transport->sendCommandByte(m.pkg.type());
+    transport->padCommandWithNArguments(5);
     */
 }
 
@@ -471,16 +439,49 @@ void HostCommunication::packetDelivered(int index, Message m) {
 }
 
 void HostCommunication::emitDebug(DebugId id) {
-    sendCommandByte(GraphCmdDebugMessage);
-    sendCommandByte(id);
-    padCommandWithNArguments(1);
-#ifdef ARDUINO
-    //delay(10);
-#endif
+    transport->sendCommandByte(GraphCmdDebugMessage);
+    transport->sendCommandByte(id);
+    transport->padCommandWithNArguments(1);
 }
 
 void HostCommunication::debugChanged(DebugLevel level) {
-    sendCommandByte(GraphCmdDebugChanged);
-    sendCommandByte(level);
-    padCommandWithNArguments(1);
+    transport->sendCommandByte(GraphCmdDebugChanged);
+    transport->sendCommandByte(level);
+    transport->padCommandWithNArguments(1);
 }
+
+
+void HostTransport::padCommandWithNArguments(int arguments) {
+    const int padding = GRAPH_CMD_SIZE - (arguments+1);
+    for (int i=0; i<padding; i++) {
+        sendCommandByte(0x00);
+    }
+}
+
+
+SerialHostTransport::SerialHostTransport(int port, int baudRate)
+    : serialPort(port)
+    , serialBaudrate(baudRate)
+{
+
+}
+
+void SerialHostTransport::setup(IO *i, HostCommunication *c) {
+    io = i;
+    controller = c;
+
+    io->SerialBegin(serialPort, serialBaudrate);
+}
+
+
+void SerialHostTransport::runTick() {
+    if (io->SerialDataAvailable(serialPort) > 0) {
+        unsigned char c = io->SerialRead(serialPort);
+        controller->parseByte(c);
+    }
+}
+
+void SerialHostTransport::sendCommandByte(uint8_t b) {
+    io->SerialWrite(serialPort, b);
+}
+
