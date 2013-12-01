@@ -15,6 +15,20 @@
 #include "components.h"
 #include "commandformat.h"
 
+const int MICROFLO_MAX_PORTS = 255;
+
+#ifdef MICROFLO_NODE_LIMIT
+const int MICROFLO_MAX_NODES = MICROFLO_NODE_LIMIT;
+#else
+const int MICROFLO_MAX_NODES = 50;
+#endif
+
+#ifdef MICROFLO_MESSAGE_LIMIT
+const int MICROFLO_MAX_MESSAGES = MICROFLO_MESSAGE_LIMIT;
+#else
+const int MICROFLO_MAX_MESSAGES = 50;
+#endif
+
 // TODO: add embedding API for use in existing Arduino sketches?
 class MicroFlo {
 public:
@@ -74,9 +88,6 @@ private:
 };
 
 // Network
-const int MICROFLO_MAX_PORTS = 255;
-const int MAX_NODES = 50;
-const int MAX_MESSAGES = 50;
 
 class Component;
 
@@ -125,9 +136,9 @@ private:
     void processMessages();
 
 private:
-    Component *nodes[MAX_NODES];
+    Component *nodes[MICROFLO_MAX_NODES];
     int lastAddedNodeIndex;
-    Message messages[MAX_MESSAGES];
+    Message messages[MICROFLO_MAX_MESSAGES];
     int messageWriteIndex;
     int messageReadIndex;
     NetworkNotificationHandler *notificationHandler;
@@ -250,9 +261,7 @@ private:
 // Graph format
 #include <stddef.h>
 
-#define GRAPH_MAGIC 'u','C','/','F','l','o', '0', '1'
-const size_t GRAPH_MAGIC_SIZE = 8;
-const size_t GRAPH_CMD_SIZE = 1 + 7; // cmd + payload
+const size_t MICROFLO_CMD_SIZE = 1 + 7; // cmd + payload
 
 class HostTransport;
 
@@ -286,7 +295,7 @@ private:
     Network *network;
     HostTransport *transport;
     unsigned int currentByte;
-    unsigned char buffer[GRAPH_CMD_SIZE];
+    unsigned char buffer[MICROFLO_CMD_SIZE];
     enum State state;
 };
 

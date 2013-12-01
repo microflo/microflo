@@ -14,6 +14,8 @@ do { \
 #include <cstring>
 #endif
 
+static const char MICROFLO_GRAPH_MAGIC[] = { 'u','C','/','F','l','o', '0', '1' };
+
 bool Packet::asBool() const {
     if (msg == MsgBoolean) {
         return data.boolean;
@@ -116,9 +118,9 @@ void HostCommunication::parseByte(char b) {
 
     if (state == ParseHeader) {
         MICROFLO_DEBUG(network, DebugLevelVeryDetailed, DebugParseHeader);
-        if (currentByte == GRAPH_MAGIC_SIZE) {
-            static const char magic[GRAPH_MAGIC_SIZE] = { GRAPH_MAGIC };
-            if (memcmp(buffer, magic, GRAPH_MAGIC_SIZE) == 0) {
+        if (currentByte == sizeof(MICROFLO_GRAPH_MAGIC)) {
+
+            if (memcmp(buffer, MICROFLO_GRAPH_MAGIC, sizeof(MICROFLO_GRAPH_MAGIC)) == 0) {
                 state = ParseCmd;
             } else {
                 MICROFLO_DEBUG(network, DebugLevelError, DebugMagicMismatch);
@@ -128,13 +130,13 @@ void HostCommunication::parseByte(char b) {
         }
     } else if (state == ParseCmd) {
         MICROFLO_DEBUG(network, DebugLevelVeryDetailed, DebugParseCommand);
-        if (currentByte == GRAPH_CMD_SIZE) {
+        if (currentByte == MICROFLO_CMD_SIZE) {
             parseCmd();
             currentByte = 0;
         }
     } else if (state == LookForHeader) {
         MICROFLO_DEBUG(network, DebugLevelVeryDetailed, DebugParseLookForHeader);
-        if (b == 'u') {
+        if (b == MICROFLO_GRAPH_MAGIC[0]) {
             state = ParseHeader;
             buffer[0] = b;
             currentByte = 1;
@@ -252,13 +254,13 @@ Network::Network(IO *io)
     , state(Stopped)
     , debugLevel(DebugLevelError)
 {
-    for (int i=0; i<MAX_NODES; i++) {
+    for (int i=0; i<MICROFLO_MAX_NODES; i++) {
         nodes[i] = 0;
     }
 }
 
 void Network::deliverMessages(int firstIndex, int lastIndex) {
-        if (firstIndex > lastIndex || lastIndex > MAX_MESSAGES-1 || firstIndex < 0) {
+        if (firstIndex > lastIndex || lastIndex > MICROFLO_MAX_MESSAGES-1 || firstIndex < 0) {
             return;
         }
 
@@ -280,7 +282,7 @@ void Network::processMessages() {
     const int readIndex = messageReadIndex;
     const int writeIndex = messageWriteIndex;
     if (readIndex > writeIndex) {
-        deliverMessages(readIndex, MAX_MESSAGES-1);
+        deliverMessages(readIndex, MICROFLO_MAX_MESSAGES-1);
         deliverMessages(0, writeIndex-1);
     } else if (readIndex < writeIndex) {
         deliverMessages(readIndex, writeIndex-1);
@@ -296,7 +298,7 @@ void Network::sendMessage(Component *target, int targetPort, const Packet &pkg,
         return;
     }
 
-    if (messageWriteIndex > MAX_MESSAGES-1) {
+    if (messageWriteIndex > MICROFLO_MAX_MESSAGES-1) {
         messageWriteIndex = 0;
     }
     const int msgIndex = messageWriteIndex++;
@@ -320,7 +322,7 @@ void Network::runSetup() {
         return;
     }
 
-    for (int i=0; i<MAX_NODES; i++) {
+    for (int i=0; i<MICROFLO_MAX_NODES; i++) {
         if (nodes[i]) {
             nodes[i]->process(Packet(MsgSetup), -1);
         }
@@ -338,7 +340,7 @@ void Network::runTick() {
     processMessages();
 
     // Schedule
-    for (int i=0; i<MAX_NODES; i++) {
+    for (int i=0; i<MICROFLO_MAX_NODES; i++) {
         Component *t = nodes[i];
         if (t) {
             t->process(Packet(MsgTick), -1);
@@ -385,7 +387,7 @@ void Network::reset() {
         notificationHandler->networkStateChanged(state);
     }
 
-    for (int i=0; i<MAX_NODES; i++) {
+    for (int i=0; i<MICROFLO_MAX_NODES; i++) {
         if (nodes[i]) {
             delete nodes[i];
             nodes[i] = 0;
@@ -522,7 +524,7 @@ void HostCommunication::portSubscriptionChanged(int nodeId, int portId, bool ena
 }
 
 void HostTransport::padCommandWithNArguments(int arguments) {
-    const int padding = GRAPH_CMD_SIZE - (arguments+1);
+    const int padding = MICROFLO_CMD_SIZE - (arguments+1);
     for (int i=0; i<padding; i++) {
         sendCommandByte(0x00);
     }
