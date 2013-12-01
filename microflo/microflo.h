@@ -274,7 +274,8 @@ private:
     enum State {
         Invalid = -1,
         ParseHeader,
-        ParseCmd
+        ParseCmd,
+        LookForHeader
     };
 
     Network *network;

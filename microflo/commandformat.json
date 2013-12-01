@@ -59,6 +59,8 @@
         "ReadByte": {"id": 14},
         "AddNodeInvalidInstance": {"id": 15},
         "ComponentSendInvalidPort": {"id": 16},
+        "ParseLookForHeader": {"id":17},
+        "MagicMismatch": {"id": 18},
 
         "Max": { "id": 255 }
     },

@@ -98,8 +98,9 @@ bool Packet::operator==(const Packet& rhs) const {
 
 HostCommunication::HostCommunication()
     : network(0)
+    , transport(0)
     , currentByte(0)
-    , state(ParseHeader)
+    , state(LookForHeader)
 {}
 
 void HostCommunication::setup(Network *net, HostTransport *t) {
@@ -120,6 +121,7 @@ void HostCommunication::parseByte(char b) {
             if (memcmp(buffer, magic, GRAPH_MAGIC_SIZE) == 0) {
                 state = ParseCmd;
             } else {
+                MICROFLO_DEBUG(network, DebugLevelError, DebugMagicMismatch);
                 state = Invalid;
             }
             currentByte = 0;
@@ -130,12 +132,24 @@ void HostCommunication::parseByte(char b) {
             parseCmd();
             currentByte = 0;
         }
+    } else if (state == LookForHeader) {
+        MICROFLO_DEBUG(network, DebugLevelVeryDetailed, DebugParseLookForHeader);
+        if (b == 'u') {
+            state = ParseHeader;
+            buffer[0] = b;
+            currentByte = 1;
+        }
+
     } else if (state == Invalid) {
         MICROFLO_DEBUG(network, DebugLevelError, DebugParserInvalidState);
-        currentByte = 0; // avoid overflow
+        // try to recover
+        currentByte = 0;
+        state = LookForHeader;
     } else {
         MICROFLO_DEBUG(network, DebugLevelError,DebugParserUnknownState);
-        currentByte = 0; // avoid overflow
+        // try to recover
+        currentByte = 0;
+        state = LookForHeader;
     }
 }
 
@@ -144,7 +158,7 @@ void HostCommunication::parseCmd() {
     GraphCmd cmd = (GraphCmd)buffer[0];
     if (cmd == GraphCmdEnd) {
         network->start();
-        state = ParseHeader;
+        state = LookForHeader;
     } else if (cmd == GraphCmdReset) {
         network->reset();
     } else if (cmd == GraphCmdCreateComponent) {
@@ -188,7 +202,7 @@ void HostCommunication::parseCmd() {
         network->setDebugLevel(l);
     } else if (cmd >= GraphCmdInvalid) {
         MICROFLO_DEBUG(network, DebugLevelError, DebugParserInvalidCommand);
-        state = Invalid; // XXX: or maybe just ignore?
+        // state = Invalid; // XXX: or maybe just ignore?
     } else {
         MICROFLO_DEBUG(network, DebugLevelError, DebugParserUnknownCommand);
     }
