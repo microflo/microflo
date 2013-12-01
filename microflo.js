@@ -15,6 +15,7 @@ if (require.main === module) {
 } else {
     var noflo = require("noflo");
     var fbp = require("fbp");
+    var serialport = require("serialport");
 }
 
 var cmdFormat = require("./microflo/commandformat.json");
@@ -23,8 +24,19 @@ var componentLib = undefined;
 function ComponentLibrary(definition) {
     this.definition = definition;
 
-    this.listComponents = function() {
-        return this.definition.components;
+    this.listComponents = function(includingSkipped) {
+        if (includingSkipped) {
+            return this.definition.components;
+        }
+
+        var components = {};
+        for (var name in this.definition.components) {
+            var comp = componentLib.getComponent(name);
+            if (!(comp[".skip"] || false)) {
+                components[name] = comp;
+            }
+        }
+        return components;
     }
     this.getComponent = function(componentName) {
         return this.definition.components[componentName];
@@ -549,16 +561,15 @@ var handleMessage = function (message, connection, graph, getSerial, debugLevel)
     try {
       var contents = JSON.parse(message.utf8Data);
     } catch (e) {
-      return;
+        console.log("WS parser error: ", e);
+        return;
     }
     console.log(contents.protocol, contents.command, contents.payload);
     if (contents.protocol == "component" && contents.command == "list") {
 
         for (var name in componentLib.listComponents()) {
             var comp = componentLib.getComponent(name);
-            if (comp[".skip"] || false) {
-                continue;
-            }
+
             var resp = {protocol: "component", command: "component",
                 payload: {name: name, description: comp.description || "",
                     inPorts: portDefAsArray(componentLib.inputPortsFor(name)),
@@ -589,12 +600,14 @@ var handleMessage = function (message, connection, graph, getSerial, debugLevel)
             var data = cmdStreamFromGraph(componentLib, graph, debugLevel);
             uploadGraph(getSerial(), data, graph);
         }
+    } else {
+        console.log("Unknown WS message:", contents);
     }
   }
 };
 
 var updateDefinitions = function() {
-    fs.writeFile("microflo/components-gen.h", generateEnum("ComponentId", "Id", componentLib.listComponents()),
+    fs.writeFile("microflo/components-gen.h", generateEnum("ComponentId", "Id", componentLib.listComponents(true)),
                  function(err) { if (err) throw err });
     fs.writeFile("microflo/components-gen-bottom.hpp", generateComponentFactory(componentLib),
                  function(err) { if (err) throw err });
@@ -728,6 +741,7 @@ if (require.main === module) {
         ComponentLibrary: ComponentLibrary,
         componentLib: componentLib,
         cmdStreamFromGraph: cmdStreamFromGraph,
-        generateOutput: generateOutput
+        generateOutput: generateOutput,
+        setupRuntime: setupRuntime
     }
 }
