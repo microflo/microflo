@@ -210,7 +210,8 @@ var cmdStreamFromGraph = function(componentLib, graph, debugLevel) {
         }
         var process = graph.processes[nodeName];
         var componentId = componentLib.getComponent(process.component).id;
-        index += writeCmd(buffer, index, cmdFormat.commands.CreateComponent.id, componentId);
+        index += writeCmd(buffer, index, cmdFormat.commands.CreateComponent.id,
+                          componentId);
         nodeMap[nodeName] = currentNodeId++;
     }
 
@@ -253,6 +254,9 @@ var cmdStreamFromGraph = function(componentLib, graph, debugLevel) {
             index += writeCmd(buffer, index, dataLiteralToCommand(connection.data, nodeMap[tgtNode], tgtPort));
         }
     });
+
+    // HACK: can be used to observe data flowing along edges
+    // index += writeCmd(buffer, index, cmdFormat.commands.SubscribeToPort.id, 1, 1, 1);
 
     // Mark end of commands
     index += writeCmd(buffer, index, cmdFormat.commands.End.id);
@@ -503,6 +507,22 @@ var parseReceivedCmd = function(cmdData, graph) {
     } else if (cmd === cmdFormat.commands.DebugMessage.id) {
         var point = nodeNameById(cmdFormat.debugPoints, cmdData.readUInt8(1))
         console.log("DEBUG: ", point);
+    } else if (cmd === cmdFormat.commands.PortSubscriptionChanged.id) {
+        var node = nodeNameById(graph.nodeMap, cmdData.readUInt8(1))
+        var port = componentLib.outputPortById(graph.processes[node].component, cmdData.readUInt8(2)).name
+        var enable = cmdData.readUInt8(3) ? "true" : "false";
+        console.log("SUBSCRIBE: ", node, "->", port, enable);
+    } else if (cmd === cmdFormat.commands.PacketSent.id) {
+        var srcNode = nodeNameById(graph.nodeMap, cmdData.readUInt8(1))
+        var srcPort = componentLib.outputPortById(graph.processes[srcNode].component, cmdData.readUInt8(2)).name
+        var targetNode = nodeNameById(graph.nodeMap, cmdData.readUInt8(3))
+        var targetPort = componentLib.inputPortById(graph.processes[targetNode].component, cmdData.readUInt8(4)).name
+        var type = nodeNameById(cmdFormat.packetTypes, cmdData.readUInt8(5));
+        var data = "unknown";
+        if (type == "Boolean") {
+            data = cmdData.readUInt8(6) ? "true": "false";
+        }
+        console.log("SEND: ", srcNode, srcPort, "->", "(", type, ":", data, ")", "->", targetNode, targetPort);
     } else {
         console.log("Unknown command: " + cmd.toString(16), cmdData.slice(0, 8));
     }

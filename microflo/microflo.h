@@ -110,6 +110,8 @@ public:
                      Component *sender=0, int senderPort=-1);
     void sendMessage(int targetId, int targetPort, const Packet &pkg);
 
+    void subscribeToPort(int nodeId, int portId, bool enable);
+
     void setNotificationHandler(NetworkNotificationHandler *handler) { notificationHandler = handler; }
 
     void runTick();
@@ -148,11 +150,13 @@ public:
 
     virtual void emitDebug(DebugId id) = 0;
     virtual void debugChanged(DebugLevel level) = 0;
+    virtual void portSubscriptionChanged(int nodeId, int portId, bool enable);
 };
 
 struct Connection {
     Component *target;
     char targetPort;
+    bool subscribed;
 };
 
 
@@ -267,6 +271,7 @@ public:
     virtual void networkStateChanged(Network::State s);
     virtual void emitDebug(DebugId id);
     virtual void debugChanged(DebugLevel level);
+    virtual void portSubscriptionChanged(int nodeId, int portId, bool enable);
 
 private:
     void parseCmd();

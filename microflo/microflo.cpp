@@ -200,6 +200,13 @@ void HostCommunication::parseCmd() {
     } else if (cmd == GraphCmdConfigureDebug) {
         const DebugLevel l = (DebugLevel)buffer[1];
         network->setDebugLevel(l);
+
+    } else if (cmd == GraphCmdSubscribeToPort) {
+        const int nodeId = (unsigned int)buffer[1];
+        const int portId = (unsigned int)buffer[2];
+        const bool enable = (bool)buffer[3];
+        network->subscribeToPort(nodeId, portId, enable);
+
     } else if (cmd >= GraphCmdInvalid) {
         MICROFLO_DEBUG(network, DebugLevelError, DebugParserInvalidCommand);
         // state = Invalid; // XXX: or maybe just ignore?
@@ -232,6 +239,7 @@ void Component::setNetwork(Network *net, int n, IO *i) {
     for(int i=0; i<nPorts; i++) {
         connections[i].target = 0;
         connections[i].targetPort = -1;
+        connections[i].subscribed = false;
     }
 }
 
@@ -284,16 +292,22 @@ void Network::processMessages() {
 
 void Network::sendMessage(Component *target, int targetPort, const Packet &pkg,
                           Component *sender, int senderPort) {
+    if (!target) {
+        return;
+    }
 
     if (messageWriteIndex > MAX_MESSAGES-1) {
         messageWriteIndex = 0;
     }
-    Message &msg = messages[messageWriteIndex++];
+    const int msgIndex = messageWriteIndex++;
+    Message &msg = messages[msgIndex];
     msg.target = target;
     msg.targetPort = targetPort;
     msg.pkg = pkg;
-    if (notificationHandler) {
-        notificationHandler->packetSent(messageWriteIndex-1, msg, sender, senderPort);
+
+    const bool sendNotification = sender->connections[senderPort].subscribed;
+    if (sendNotification && notificationHandler) {
+        notificationHandler->packetSent(msgIndex, msg, sender, senderPort);
     }
 }
 
@@ -406,6 +420,27 @@ void Network::setDebugLevel(DebugLevel level) {
     }
 }
 
+void Network::subscribeToPort(int nodeId, int portId, bool enable) {
+    /* FIXME: does not trigger
+    if (nodeId < 1 || nodeId > lastAddedNodeIndex) {
+        return;
+    }
+    */
+
+    //MICROFLO_DEBUG(this, DebugLevelDetailed, DebugPortSubscription);
+
+    Component *c = nodes[nodeId];
+    if (portId >= c->nPorts) {
+        return;
+    }
+
+    c->connections[portId].subscribed = enable;
+
+    if (notificationHandler) {
+        notificationHandler->portSubscriptionChanged(nodeId, portId, enable);
+    }
+}
+
 void HostCommunication::nodeAdded(Component *c) {
     transport->sendCommandByte(GraphCmdNodeAdded);
     transport->sendCommandByte(c->component());
@@ -434,15 +469,29 @@ void HostCommunication::networkStateChanged(Network::State s) {
 }
 
 void HostCommunication::packetSent(int index, Message m, Component *src, int srcPort) {
-    /*
+    if (!src ) {
+        return;
+    }
+
     transport->sendCommandByte(GraphCmdPacketSent);
     transport->sendCommandByte(src->id());
     transport->sendCommandByte(srcPort);
     transport->sendCommandByte(m.target->id());
     transport->sendCommandByte(m.targetPort);
     transport->sendCommandByte(m.pkg.type());
-    transport->padCommandWithNArguments(5);
-    */
+
+    if (m.pkg.isData()) {
+        if (m.pkg.isBool()) {
+            transport->sendCommandByte(m.pkg.asBool());
+            transport->padCommandWithNArguments(6);
+        } else {
+            // FIXME: support all types
+            transport->padCommandWithNArguments(5); // finish command before sending debug
+            MICROFLO_DEBUG(network, DebugLevelError, DebugNotImplemented);
+        }
+    } else {
+        transport->padCommandWithNArguments(5);
+    }
 }
 
 // FIXME: implement
@@ -464,6 +513,13 @@ void HostCommunication::debugChanged(DebugLevel level) {
     transport->padCommandWithNArguments(1);
 }
 
+void HostCommunication::portSubscriptionChanged(int nodeId, int portId, bool enable) {
+    transport->sendCommandByte(GraphCmdPortSubscriptionChanged);
+    transport->sendCommandByte(nodeId);
+    transport->sendCommandByte(portId);
+    transport->sendCommandByte(enable);
+    transport->padCommandWithNArguments(3);
+}
 
 void HostTransport::padCommandWithNArguments(int arguments) {
     const int padding = GRAPH_CMD_SIZE - (arguments+1);

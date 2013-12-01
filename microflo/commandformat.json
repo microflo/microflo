@@ -8,6 +8,7 @@
         "SendPacket": {"id": 13},
         "End": {"id": 14},
         "ConfigureDebug": {"id": 15},
+        "SubscribeToPort": {"id": 16},
 
         "NetworkStopped": {"id": 100},
         "NodeAdded": {"id": 101},
@@ -16,6 +17,7 @@
         "NetworkStarted": {"id": 104},
         "DebugChanged": {"id": 105},
         "DebugMessage": {"id": 106},
+        "PortSubscriptionChanged": {"id": 107},
 
         "PacketDelivered": {"id": 110},
 
@@ -61,6 +63,7 @@
         "ComponentSendInvalidPort": {"id": 16},
         "ParseLookForHeader": {"id":17},
         "MagicMismatch": {"id": 18},
+        "NotImplemented": {"id": 19},
 
         "Max": { "id": 255 }
     },
