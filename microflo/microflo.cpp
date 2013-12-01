@@ -307,7 +307,7 @@ void Network::sendMessage(Component *target, int targetPort, const Packet &pkg,
     msg.targetPort = targetPort;
     msg.pkg = pkg;
 
-    const bool sendNotification = sender->connections[senderPort].subscribed;
+    const bool sendNotification = sender ? sender->connections[senderPort].subscribed : false;
     if (sendNotification && notificationHandler) {
         notificationHandler->packetSent(msgIndex, msg, sender, senderPort);
     }
