@@ -154,8 +154,8 @@ Related
 Flow-based/dataflow concepts
 
 * http://www.jpaulmorrison.com/fbp/
-* http://c2.com/cgi/wiki?FlowBasedProgramming
-* http://www.reddit.com/r/flowbasedprogramming/
+* http://c2.com/cgi/wiki?DataFlowBasedProgramming
+* http://www.reddit.com/r/dataflowprogramming/
 
 Physical computing with JavaScript
 
@@ -175,6 +175,13 @@ Visual programming for Arduino etc.
 * http://www.flowol.com/InterfaceArduino.aspx (non-free)
 * http://microuml.net/microuml.html (non-free service)
 * http://www.3d-svs.com/3dmicro-toolkit (non-free LabVIEW addon)
+
+Other alternative Arduino programming models (RTOS, event-driven)
+
+* https://github.com/mikaelpatel/Cosa
+* http://blog.ardublock.com/2013/10/29/evaluating-of-event-driven-libraries-on-arduino/
+* http://code.google.com/p/duinos/
+* http://jeelabs.org/2013/05/25/chibios-for-the-arduino-ide-2/
 
 Other notable dataflow programming environments
 
