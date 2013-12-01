@@ -443,7 +443,13 @@ var guessSerialPort = function(wantedPortName, callback) {
     serialport.list(function (err, ports) {
         if (err) {
             callback(err);
+            return;
         } else {
+            if (ports.length === 0) {
+                callback("No serial port found", undefined, undefined);
+                return;
+            }
+
             var p = undefined;
             ports.forEach(function(port) {
                 if (wantedPortName && wantedPortName !== "auto"
@@ -461,6 +467,7 @@ var guessSerialPort = function(wantedPortName, callback) {
             var preferred = ports.filter(isLikelyArduinoSerial)
             p = preferred.length > 0 ? preferred[0].comName : ports[0].comName;
             callback(err, p, ports);
+            return;
         }
     });
 }
@@ -638,15 +645,16 @@ var setupRuntime = function(env) {
     var serial = undefined;
     guessSerialPort(serialPortToUse, function(err, portName, ports) {
         if (err) {
-            throw err;
-        }
-        ports = ports.map(function(item) { return item.comName; });
-        console.log("Available serial ports: ", ports);
-        console.log("Using serial port: " + portName);
-        serial = new serialport.SerialPort(portName, {baudrate: 9600}, false);
-        serial.open(function() {
+            console.log("No serial port found!: ", err);
+        } else {
+            ports = ports.map(function(item) { return item.comName; });
+            console.log("Available serial ports: ", ports);
+            console.log("Using serial port: " + portName);
+            serial = new serialport.SerialPort(portName, {baudrate: 9600}, false);
+            serial.open(function() {
 
-        });
+            });
+        }
     });
     var getSerial = function() { return serial };
 
