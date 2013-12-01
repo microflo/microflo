@@ -5,12 +5,8 @@ examples/fridge.fbp
 examples/monitorPin.fbp
 examples/readbutton.fbp
 microflo/arduino.hpp
-microflo/commandformat-gen.h
 microflo/commandformat.h
 microflo/commandformat.json
-microflo/components-gen-bottom.hpp
-microflo/components-gen-top.hpp
-microflo/components-gen.h
 microflo/components.cpp
 microflo/components.h
 microflo/components.json
@@ -21,6 +17,12 @@ microflo/microflo.h
 microflo/microflo.hpp
 test/commandstream.js
 test/network.js
+test/websocketapi.js
 microflo.cc
 microflo.js
 package.json
+README.md
+CHANGES.md
+binding.gyp
+doc/braindump.md
+doc/arduino-getstarted.md
