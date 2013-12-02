@@ -2,7 +2,7 @@ Piksel Festival 2013, Bergen
 ==============================
 * 23 November, 15:15 at Østre
 * [Blurb](http://13.piksel.no/2013/11/07/microflo-flow-based-programming-for-microcontrollers)
-* [Recording](http://bambuser.com/v/4122524#t=13518s)
+* [Recording](http://bambuser.com/v/4122524#t=13518s) [YouTube](http://www.youtube.com/watch?v=mizj6eoepC0)
 * Slides [ODP](./slides.odp)|[PDF](./slides.pdf)
 
 Status
@@ -14,13 +14,12 @@ Goals
 * Spark interest around visual programming models for microcontrollers
 * Gather feedback from artists that have used Arduino etc: what do they find lacking
 
-Storyarc
------------
-?
 
-Outline
---------
-?
+Brainstorming
+=============
+Some of the things that case up when thinking about doing this presentation.
+Most things are not presented in the same way in the talk.
+
 
 Perspectives / Motivation
 --------------------------

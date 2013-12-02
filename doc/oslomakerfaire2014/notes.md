@@ -5,29 +5,25 @@ Maker Faire Oslo, 2014
 
 Status
 -------
-Idea
+Stand proposal submitted.
 
 Goals
 ------
 * Introduce MicroFlo and visual Arduino programming to the public maker audience
 * Gather feedback. How understandable, useful is it. What would people like to use it for
 
-Format
--------
-Hands-on workshop
+Setup
+-----
+Have a couple of machines running Linux and the NoFlo IDE, hooked up
+to Arduino boards with some pheripials. Have some ready made examples, and
+then invite people to play around with re-programming.
+
+Have a list where people can sign up to be notified about future workshops (at Bitraf).
+Could have a small competition or raffle for people signing up.
 
 Ideas
 ------
-* Cooperate with Bitraf
-* Use Olimexino as basis for a cheap kit?
-    * Could also use the Arduino starter pack, though its more expensive
-* Perhaps invite Olimex over, or try to get sponsorship?
-* Should participants solder their own board? More "real" that way
-https://www.olimex.com/Products/Duino/AVR/OLIMEXINO-85-ASM
-https://www.olimex.com/Products/Duino/AVR/OLIMEXINO-85-KIT
-* Should we have computers available for people to use, or they use their own?
-
-* Kind project should we do?
+* Kind project should we have prepared?
     * Robots?
     * Visual?
     * Sound?
