@@ -190,3 +190,7 @@ Other notable dataflow programming environments
 * http://en.wikipedia.org/wiki/Labview (dsp, non-free)
 * http://en.wikipedia.org/wiki/Reaktor (audio, non-free)
 * http://en.wikipedia.org/wiki/Quartz_Composer (graphics, non-free)
+
+
+[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/jonnor/microflo/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
+
