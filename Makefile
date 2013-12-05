@@ -62,13 +62,20 @@ release-ui:
 	cd build/microflo-ui && ./node_modules/.bin/grunt build
 	rm -r build/microflo-ui/node_modules
 
-release: install build release-arduino release-ui
+release-microflo:
+	rm -rf build/microflo
+	git checkout-index -f -a --prefix=build/microflo/
+	mkdir -p build/microflo/node_modules
+	cd build/microflo && npm install
+	cp -r thirdparty/node-serialport/build/Release/{Darwin,Windows_NT} build/microflo/node_modules/serialport/build/Release
+
+release: install build release-microflo release-arduino release-ui
 	rm -rf build/microflo-$(VERSION)
 	mkdir -p build/microflo-$(VERSION)
 	cp -r build/microflo-arduino.zip build/microflo-$(VERSION)/
 	cp -r build/microflo-ui build/microflo-$(VERSION)/
-	git checkout-index -f -a --prefix=build/microflo-$(VERSION)/microflo/
+	cp -r build/microflo build/microflo-$(VERSION)/
 	cd build && zip -r microflo-$(VERSION).zip microflo-$(VERSION)
 
-.PHONY: all build install clean release release-arduino release-ui
+.PHONY: all build install clean release release-microflo release-arduino release-ui
 
