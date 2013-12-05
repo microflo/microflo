@@ -1,6 +1,6 @@
 {
     "name": "microflo",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "description": "Flow-based programming runtime for microcontrollers",
     "keywords": ["fbp", "noflo", "dataflow", "microcontroller",
         "physical computing", "Arduino", "embedded systems", "atmel avr"],
