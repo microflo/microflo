@@ -1,0 +1,9 @@
+in(ReadCapacitivePin) OUT -> IN outA(DigitalWrite)
+timer(Timer) OUT -> TRIGGER in
+
+# Config
+'60' -> THRESHOLD in
+'10' -> INTERVAL timer
+
+board(ArduinoUno) PIN2 -> PIN in
+board PIN13 -> PIN outA

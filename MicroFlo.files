@@ -26,3 +26,4 @@ CHANGES.md
 binding.gyp
 doc/braindump.md
 doc/arduino-getstarted.md
+examples/capasitivePin.fbp

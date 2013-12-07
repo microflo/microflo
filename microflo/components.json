@@ -160,6 +160,15 @@
             }
         },
 
+        "ReadCapacitivePin": { "id": 22,
+            "description": "",
+            "inPorts": {
+                "trigger": { "id": 0 },
+                "pin": { "id": 1 },
+                "threshold": { "id": 2 }
+            }
+        },
+
         "ArduinoUno": { "id": 50,
             "description": "Convenient definition of pins available on Arduino Uno",
             "outPorts": {
