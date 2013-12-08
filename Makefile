@@ -75,7 +75,13 @@ release: install build release-microflo release-arduino release-ui
 	cp -r build/microflo-arduino.zip build/microflo-$(VERSION)/
 	cp -r build/microflo-ui build/microflo-$(VERSION)/
 	cp -r build/microflo build/microflo-$(VERSION)/
-	cd build && zip -r microflo-$(VERSION).zip microflo-$(VERSION)
+	cd build && zip --symlinks -r microflo-$(VERSION).zip microflo-$(VERSION)
 
-.PHONY: all build install clean release release-microflo release-arduino release-ui
+check-release: release
+	rm -rf build/check-release
+	mkdir -p build/check-release
+	cd build/check-release && unzip ../microflo-$(VERSION)
+	cd build/check-release/microflo-$(VERSION)/microflo && npm test
+
+.PHONY: all build install clean release release-microflo release-arduino release-ui check-release
 
