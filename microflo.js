@@ -655,6 +655,7 @@ var setupRuntime = function(env) {
     var serialPortToUse = env.parent.serial || "auto";
     var port = env.parent.port || 3569;
     var debugLevel = env.parent.debug || "Error";
+    var ip = env.parent.ip || "127.0.0.1"
 
     var httpServer = http.createServer();
     var wsServer = new websocket.server({
@@ -686,12 +687,12 @@ var setupRuntime = function(env) {
         });
       });
 
-    httpServer.listen(port, function (err) {
+    httpServer.listen(port, ip, function (err) {
       if (err) {
         error(err);
       }
 
-      console.log("MicroFlo runtime listening at WebSocket port " + port);
+      console.log("MicroFlo runtime listening at", ip+":"+port);
     });
 }
 
