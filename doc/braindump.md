@@ -351,6 +351,106 @@ The bulk, however, might as well be encapsulated into a very predictable and ver
 [Why I'm ditching the Arduino software platform](http://bleaklow.com/2012/02/29/why_im_ditching_the_arduino_software_platform.html)
 
 
+Software defined sensor/actuator systems
+===============================
+Arduino provides cheap, standardized microcontroller boards which are programmable
+- but they do not include any sensor or actuator pheriperals, and does not solve any
+of the mechanical challenges faced when making a thing. Also, it is conceived as "the" controller
+of a project, not so much geared towards collaboration in larger systems.
+Can one provide a cheap, encapsulated box which provides a standard set of sensors/actuators,
+running on battery power and with wireless communication to allow it to easily form larger
+systems in addition to running autonomously?
+
+Usecases: Interactive art installations; smart homes, factories and cities.
+
+Communication
+--------------
+Devices should be able to communicate directly with eachother, to collaborate as
+equals on tasks. But, it should also be possible for them to take part in a centrally
+controlled network.
+* Random 2.4Ghz net?
+* Bluetooth 4.0/LE
+
+Sensors
+-----------
+* Light. Ambient, infrared
+* Sound. Microphone
+* Distance. infrared and/or ultrasound
+* Temperature, moisture. Precense of gasses.
+* Motion. Accelerometer, gyro
+* Hall-sensor
+* Capasitive switches/button
+
+Other generally useful pheriperals:
+* LEDs (RGB?) for basic user interactions
+* SDcard/Flash for logging data
+
+Each sensor (subsystem) must be able to be turned off from software,
+and should probably be off by default, to conserve power.
+
+Power
+-------
+Should, in a minimal config, at least last a month on one charge. Ideally last a year.
+* LiPoly rechargable battery?
+* Wireless/inductive charging (Qi standard)?
+
+Idea: Have a way of "tagging" a device as fulfilling a specific role, and
+allow another device to "take over" its function automatically. This could
+allow to work around missing battery times by making switchovers with a spare painless.
+
+Mechanics 
+----------
+Ideally something like 40x40x10 mm (HxWxD). Should be easily to place on walls, cealings,
+Could be made out of leveral layers of plastic/acrylic: Front, body, back?
+Front will need to accomodate the needs of the various sensors for interfacing with the world, 
+the body the electronics found inside, and the back various ways of fastening.
+The device should be easy to disassemble, for repairs and hacking.
+
+Idea: Use paper on top surface, and allow to write/draw on it to reflect the
+(software defined) functionality of the device.
+
+Could one encapsulate the whole thing well enough to withstand weather?
+
+Realistically there is probably a need for different models. The hardware should be
+open source and easy to produce and hack with the tools available at typical
+hackerspaces/makerspaces/fablabs, to facilitate derivatives targeting more specific
+problems or simply improving the initial designs.
+
+
+Marketing/Outreach
+==================
+
+Target audiences
+
+* Embedded software engineers
+* Interactive media artists
+* Tinkerers/makers/hackers
+* Academics/researchers
+
+Avenues
+
+* Hacker/maker-spaces, fab/media-labs. Bitraf, Fellesverkstedet, Hackeriet, CBase.
+* Art/design schools. KHiO
+* Technical/engineering schools. UiO, HiVe, UiB, NITH
+* Adjacent communities. Arduino, Raspberry Pi, Beagleboard. PureData, SuperCollider.
+* Technical conferences. FOSDEM, LGM, Piksel,
+* Companies using it in own products.
+* Companies intergrating with it to sell related products.
+    * Adafruit, Olimex, Element14
+    * EnergyMicron, NordicSemiconductor
+
+Methods
+
+* Social media
+* Hands-on workshops
+* Guest lectures
+* Presentations/talks
+* Joint projects
+* Consulting
+* Technical demos
+* Academic papers
+
+
 Network
 ========
 People that have expressed an interest in using MicroFlo
