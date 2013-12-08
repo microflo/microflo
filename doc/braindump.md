@@ -368,6 +368,7 @@ Communication
 Devices should be able to communicate directly with eachother, to collaborate as
 equals on tasks. But, it should also be possible for them to take part in a centrally
 controlled network.
+* 433 Mhz?
 * Random 2.4Ghz net?
 * Bluetooth 4.0/LE
 
@@ -377,9 +378,12 @@ Sensors
 * Sound. Microphone
 * Distance. infrared and/or ultrasound
 * Temperature, moisture. Precense of gasses.
-* Motion. Accelerometer, gyro
+* Motion. Accelerometer, gyro, PID.
+* Vibration, shock, pressure.
 * Hall-sensor
 * Capasitive switches/button
+* Current sensing
+* IR/UL laser photodiodes.
 
 Other generally useful pheriperals:
 * LEDs (RGB?) for basic user interactions
@@ -387,6 +391,19 @@ Other generally useful pheriperals:
 
 Each sensor (subsystem) must be able to be turned off from software,
 and should probably be off by default, to conserve power.
+
+Actuators
+----------
+Either be able to wirelessly talk to standard devices, or must also
+deliver a actuator-class device also.
+Maybe more challenging than sensors, as many (most?) actuators must often
+physically act on something, or be eletrically connected to something that does?
+Also, power requirements...
+
+* Relays. AC lights, heating, motors.
+* Triac. AC lights
+* MOSFET transistors. DC/step motors, DC lighting.
+* IR transmitter, laser.
 
 Power
 -------
