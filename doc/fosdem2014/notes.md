@@ -4,18 +4,19 @@ FOSDEM 2014, Brussels
 * Embedded or Internet-of-Things devroom
 * https://fosdem.org/2014/
 * https://groups.google.com/forum/?hl=en#!forum/iot-devroom
+* https://lists.fosdem.org/pipermail/fosdem/2013-October/001870.html
 
 Status
 ------
-Proposal in progress, deadline 1. December
+Proposals delivered
 
 Goals
 -------
 * Introduce flow-based programming as a potential programming paradigm for hetrogenous systems
 * Gather interest around NoFlo,MicroFlo as projects. Invite feedback, use and experimentation in embedded systems
 
-Proposal
----------
+Proposal: Internet of Things devroom
+--------------------------
 Title:
 
 Flow-based programming for heterogeneous systems, with NoFlo and MicroFlo
@@ -45,6 +46,34 @@ MicroFlo is a C++ based FBP runtime by Jon Nordby. It runs on AVR and Cortex-M m
 
 NoFlo and MicroFlo can both be targeted by the NoFlo UI, an IDE for flow-based programming currently in development.
 Systems can be programmed visually, using a domain-specific language or the runtimes can be embedded and controlled programmatically.
+
+
+Proposal: Embedded devroom
+-------------------
+
+Title:
+
+Flow-based programming for Raspberry Pi and Arduino, with NoFlo+MicroFlo
+
+Abstract:
+
+Many tinkerers, interactive media artists and entrepreneurs use the Raspberry Pi
+and Arduino platforms to develop new tools, artworks and products. The new Arduino Yùn,
+Tre and Intel Gallilio devices show that the combination of Embedded Linux, microcontrollers
+and web technology is expected to continue. Right now, each of these domains are served
+by different programming paradigms and tools, and integration between them done ad-hoc.
+    With NoFlo and Microflo each domain, and systems which include all of them, can be
+developed using flow-based programming (FBP). This talk will show how such a heterogeneous system
+can be created using FBP, and discuss current and planned developments for making this easier.
+
+About the speaker:
+
+Jon Nordby is an embedded Linux software developer and electronics engineer.
+Previously he has worked on text input in Meego (Maliit) and interactive graphics
+(MyPaint, GEGL). Recently he created MicroFlo, extending NoFlo and flow-based
+programming to microcontrollers.
+Jon is an active member of the Bitraf hackerspace in Oslo, Norway.
+
 
 
 Storyarc
