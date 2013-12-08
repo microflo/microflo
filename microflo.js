@@ -651,13 +651,23 @@ var updateDefinitions = function() {
 var setupRuntime = function(env) {
     var http = require('http');
     var websocket = require('websocket');
+    var url = require("url");
 
     var serialPortToUse = env.parent.serial || "auto";
     var port = env.parent.port || 3569;
     var debugLevel = env.parent.debug || "Error";
     var ip = env.parent.ip || "127.0.0.1"
 
-    var httpServer = http.createServer();
+    var httpServer = http.createServer(function(request, response) {
+        var path = url.parse(request.url).pathname
+        if (path == "/") {
+            response.writeHead(200, {"Content-Type": "text/plain"});
+            response.write("NoFlo UI WebSocket API at: " + "ws://"+request.headers.host);
+        } else {
+            response.writeHead(404);
+        }
+        response.end();
+    });
     var wsServer = new websocket.server({
          httpServer: httpServer
     });
@@ -680,12 +690,12 @@ var setupRuntime = function(env) {
     var getSerial = function() { return serial };
 
     var graph = {};
-      wsServer.on('request', function (request) {
+    wsServer.on('request', function (request) {
         var connection = request.accept('noflo', request.origin);
         connection.on('message', function (message) {
-          handleMessage(message, connection, graph, getSerial, debugLevel);
+            handleMessage(message, connection, graph, getSerial, debugLevel);
         });
-      });
+    });
 
     httpServer.listen(port, ip, function (err) {
       if (err) {
