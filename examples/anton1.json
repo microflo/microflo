@@ -1,0 +1,387 @@
+{
+  "properties": {
+    "name": "ReadCap",
+    "environment": {
+      "runtime": "websocket",
+      "wsUrl": "ws://localhost:3569"
+    }
+  },
+  "exports": [],
+  "groups": [],
+  "processes": {
+    "ReadCapacitivePin_a61t5": {
+      "component": "ReadCapacitivePin",
+      "metadata": {
+        "x": 625,
+        "y": 87,
+        "label": "ReadCapacitivePin"
+      }
+    },
+    "DigitalWrite_1e4qz": {
+      "component": "DigitalWrite",
+      "metadata": {
+        "x": 1053,
+        "y": 101,
+        "label": "DigitalWrite"
+      }
+    },
+    "ReadCapacitivePin_o37t3": {
+      "component": "ReadCapacitivePin",
+      "metadata": {
+        "x": 605,
+        "y": 254,
+        "label": "ReadCapacitivePin"
+      }
+    },
+    "DigitalWrite_hxql": {
+      "component": "DigitalWrite",
+      "metadata": {
+        "x": 1053,
+        "y": 282,
+        "label": "DigitalWrite"
+      }
+    },
+    "InvertBoolean_vg3pt": {
+      "component": "InvertBoolean",
+      "metadata": {
+        "x": 823,
+        "y": 278,
+        "label": "InvertBoolean"
+      }
+    },
+    "InvertBoolean_c6z7y": {
+      "component": "InvertBoolean",
+      "metadata": {
+        "x": 834,
+        "y": 97,
+        "label": "InvertBoolean"
+      }
+    },
+    "Split_aujhl": {
+      "component": "Split",
+      "metadata": {
+        "x": 411,
+        "y": -125,
+        "label": "Split"
+      }
+    },
+    "Timer_91zil": {
+      "component": "Timer",
+      "metadata": {
+        "x": 207,
+        "y": -128,
+        "label": "Timer"
+      }
+    },
+    "ReadCapacitivePin_5d6i5": {
+      "component": "ReadCapacitivePin",
+      "metadata": {
+        "x": 598,
+        "y": 395,
+        "label": "ReadCapacitivePin"
+      }
+    },
+    "ReadCapacitivePin_v39j2": {
+      "component": "ReadCapacitivePin",
+      "metadata": {
+        "x": 598,
+        "y": 535,
+        "label": "ReadCapacitivePin"
+      }
+    },
+    "InvertBoolean_gt4jo": {
+      "component": "InvertBoolean",
+      "metadata": {
+        "x": 805,
+        "y": 416,
+        "label": "InvertBoolean"
+      }
+    },
+    "InvertBoolean_axj4g": {
+      "component": "InvertBoolean",
+      "metadata": {
+        "x": 815,
+        "y": 549,
+        "label": "InvertBoolean"
+      }
+    },
+    "DigitalWrite_phq9d": {
+      "component": "DigitalWrite",
+      "metadata": {
+        "x": 1037,
+        "y": 407,
+        "label": "DigitalWrite"
+      }
+    },
+    "DigitalWrite_9kx5c": {
+      "component": "DigitalWrite",
+      "metadata": {
+        "x": 1032,
+        "y": 542,
+        "label": "DigitalWrite"
+      }
+    }
+  },
+  "connections": [
+    {
+      "src": {
+        "process": "ReadCapacitivePin_o37t3",
+        "port": "out"
+      },
+      "tgt": {
+        "process": "InvertBoolean_vg3pt",
+        "port": "in"
+      },
+      "metadata": {
+        "route": 0
+      }
+    },
+    {
+      "src": {
+        "process": "InvertBoolean_vg3pt",
+        "port": "out"
+      },
+      "tgt": {
+        "process": "DigitalWrite_hxql",
+        "port": "in"
+      },
+      "metadata": {
+        "route": 0
+      }
+    },
+    {
+      "src": {
+        "process": "ReadCapacitivePin_a61t5",
+        "port": "out"
+      },
+      "tgt": {
+        "process": "InvertBoolean_c6z7y",
+        "port": "in"
+      },
+      "metadata": {
+        "route": 0
+      }
+    },
+    {
+      "src": {
+        "process": "InvertBoolean_c6z7y",
+        "port": "out"
+      },
+      "tgt": {
+        "process": "DigitalWrite_1e4qz",
+        "port": "in"
+      },
+      "metadata": {
+        "route": 0
+      }
+    },
+    {
+      "src": {
+        "process": "Split_aujhl",
+        "port": "out1"
+      },
+      "tgt": {
+        "process": "ReadCapacitivePin_a61t5",
+        "port": "trigger"
+      },
+      "metadata": {
+        "route": 0
+      }
+    },
+    {
+      "src": {
+        "process": "Split_aujhl",
+        "port": "out2"
+      },
+      "tgt": {
+        "process": "ReadCapacitivePin_o37t3",
+        "port": "trigger"
+      },
+      "metadata": {
+        "route": 0
+      }
+    },
+    {
+      "src": {
+        "process": "Timer_91zil",
+        "port": "out"
+      },
+      "tgt": {
+        "process": "Split_aujhl",
+        "port": "in"
+      },
+      "metadata": {
+        "route": 0
+      }
+    },
+    {
+      "src": {
+        "process": "InvertBoolean_axj4g",
+        "port": "out"
+      },
+      "tgt": {
+        "process": "DigitalWrite_9kx5c",
+        "port": "in"
+      },
+      "metadata": {
+        "route": 0
+      }
+    },
+    {
+      "src": {
+        "process": "InvertBoolean_gt4jo",
+        "port": "out"
+      },
+      "tgt": {
+        "process": "DigitalWrite_phq9d",
+        "port": "in"
+      },
+      "metadata": {
+        "route": 0
+      }
+    },
+    {
+      "src": {
+        "process": "ReadCapacitivePin_5d6i5",
+        "port": "out"
+      },
+      "tgt": {
+        "process": "InvertBoolean_gt4jo",
+        "port": "in"
+      },
+      "metadata": {
+        "route": 0
+      }
+    },
+    {
+      "src": {
+        "process": "ReadCapacitivePin_v39j2",
+        "port": "out"
+      },
+      "tgt": {
+        "process": "InvertBoolean_axj4g",
+        "port": "in"
+      },
+      "metadata": {
+        "route": 0
+      }
+    },
+    {
+      "src": {
+        "process": "Split_aujhl",
+        "port": "out3"
+      },
+      "tgt": {
+        "process": "ReadCapacitivePin_5d6i5",
+        "port": "trigger"
+      },
+      "metadata": {
+        "route": 0
+      }
+    },
+    {
+      "src": {
+        "process": "Split_aujhl",
+        "port": "out4"
+      },
+      "tgt": {
+        "process": "ReadCapacitivePin_v39j2",
+        "port": "trigger"
+      },
+      "metadata": {
+        "route": 0
+      }
+    },
+    {
+      "data": "19",
+      "tgt": {
+        "process": "ReadCapacitivePin_a61t5",
+        "port": "threshold"
+      }
+    },
+    {
+      "data": "2",
+      "tgt": {
+        "process": "ReadCapacitivePin_a61t5",
+        "port": "pin"
+      }
+    },
+    {
+      "data": "19",
+      "tgt": {
+        "process": "ReadCapacitivePin_o37t3",
+        "port": "threshold"
+      }
+    },
+    {
+      "data": "3",
+      "tgt": {
+        "process": "ReadCapacitivePin_o37t3",
+        "port": "pin"
+      }
+    },
+    {
+      "data": "10",
+      "tgt": {
+        "process": "DigitalWrite_hxql",
+        "port": "pin"
+      }
+    },
+    {
+      "data": "9",
+      "tgt": {
+        "process": "DigitalWrite_1e4qz",
+        "port": "pin"
+      }
+    },
+    {
+      "data": "10",
+      "tgt": {
+        "process": "Timer_91zil",
+        "port": "interval"
+      }
+    },
+    {
+      "data": "4",
+      "tgt": {
+        "process": "ReadCapacitivePin_5d6i5",
+        "port": "pin"
+      }
+    },
+    {
+      "data": "5",
+      "tgt": {
+        "process": "ReadCapacitivePin_v39j2",
+        "port": "pin"
+      }
+    },
+    {
+      "data": "11",
+      "tgt": {
+        "process": "DigitalWrite_phq9d",
+        "port": "pin"
+      }
+    },
+    {
+      "data": "12",
+      "tgt": {
+        "process": "DigitalWrite_9kx5c",
+        "port": "pin"
+      }
+    },
+    {
+      "data": "25",
+      "tgt": {
+        "process": "ReadCapacitivePin_5d6i5",
+        "port": "threshold"
+      }
+    },
+    {
+      "data": "25",
+      "tgt": {
+        "process": "ReadCapacitivePin_v39j2",
+        "port": "threshold"
+      }
+    }
+  ]
+}

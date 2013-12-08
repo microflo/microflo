@@ -99,11 +99,14 @@ public:
             outPin = 13; // default
             io->PinSetMode(outPin, IO::OutputPin);
         } else if (port == InPorts::in && in.isBool()) {
-            io->DigitalWrite(outPin, in.asBool());
+            const bool b = in.asBool();
+            io->DigitalWrite(outPin, b);
+            io->PinSetMode(outPin, b ? IO::InputPin : IO::OutputPin);
             send(in, OutPorts::out);
         } else if (port == InPorts::pin && in.isNumber()) {
             outPin = in.asInteger();
             io->PinSetMode(outPin, IO::OutputPin);
+            io->PinEnablePullup(outPin, false);
         }
     }
 private:
