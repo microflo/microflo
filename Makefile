@@ -67,7 +67,8 @@ release-microflo:
 	git checkout-index -f -a --prefix=build/microflo/
 	mkdir -p build/microflo/node_modules
 	cd build/microflo && npm install
-	cp -r thirdparty/node-serialport/build/Release/{Darwin,Windows_NT} build/microflo/node_modules/serialport/build/Release
+	cp -r thirdparty/node-serialport/build/Release/Darwin build/microflo/node_modules/serialport/build/Release
+	cp -r thirdparty/node-serialport/build/Release/Windows_NT build/microflo/node_modules/serialport/build/Release
 
 release: install build release-microflo release-arduino release-ui
 	rm -rf build/microflo-$(VERSION)
