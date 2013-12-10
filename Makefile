@@ -66,7 +66,7 @@ release-microflo:
 	rm -rf build/microflo
 	git checkout-index -f -a --prefix=build/microflo/
 	mkdir -p build/microflo/node_modules
-	cd build/microflo && npm install
+	cd build/microflo && npm install ../../thirdparty/node-serialport && npm install
 	cp -r thirdparty/node-serialport/build/Release/Darwin build/microflo/node_modules/serialport/build/Release
 	cp -r thirdparty/node-serialport/build/Release/Windows_NT build/microflo/node_modules/serialport/build/Release
 
