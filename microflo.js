@@ -440,7 +440,7 @@ var wsConnectionFormatToFbp = function(ws) {
 }
 
 var isLikelyArduinoSerial = function (e) {
-    return e.comName.indexOf("usbserial")  !== -1 && e.comName.indexOf("usbmodem") !== -1
+    return e.comName.indexOf("usbserial") !== -1 || e.comName.indexOf("usbmodem") !== -1
 }
 
 var guessSerialPort = function(wantedPortName, callback) {
