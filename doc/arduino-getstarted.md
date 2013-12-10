@@ -28,9 +28,6 @@ due to downloading. You will in the process also get a working Node.js and plain
 1. Install [Arduino IDE](http://arduino.cc/en/Main/Software#toc2),
   following the [official guide](http://arduino.cc/en/Guide/HomePage)
 2. Download and install [Node.js](http://nodejs.org/download/)
-3. Install the [requirements for node-gyp](https://github.com/TooTallNate/node-gyp#installation)
-(Python v2.7, Make and a C/C++ compiler)
-
 
 Download MicroFlo
 -----------------
@@ -69,10 +66,6 @@ On Windows, run the "Node.js prompt" application. On Mac, run "Terminal".
 Move to where you downloaded MicroFlo
 
     cd microflo
-
-Install it
-
-    npm install
 
 Start it. Check that serial port is guessed correctly.
 
