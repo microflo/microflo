@@ -1,3 +1,17 @@
+MicroFlo 0.2.1
+===================
+
+Installing on Mac OSX and Windows no longer requires a C++ compiler,
+as node-serialport binaries for those platforms are included.
+
+New:
+* Documentation extended to cover persisting graphs on device, and creating custom components.
+* Message and node capacity is now configurable at compiletime, to adapt to different devices
+Example: -DMICROFLO_NODE_LIMIT=10 -DMICROFLO_MESSAGE_LIMIT=10 reduces SRAM usage to ~350 bytes
+
+Added components:
+* ReadCapacitivePin
+
 MicroFlo 0.2.0: "The start of something visual"
 ===============================
 Released: November 27, 2013
