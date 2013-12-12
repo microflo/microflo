@@ -35,7 +35,7 @@ build: install
 	cd build/arduino/lib && test -e patched || patch -p0 < ../../../thirdparty/DallasTemperature.patch
 	cd build/arduino/lib && test -e patched || patch -p0 < ../../../thirdparty/OneWire.patch
 	touch build/arduino/lib/patched
-	node microflo.js generate $(GRAPH) build/arduino/src/firmware.ino
+	node microflo.js generate $(GRAPH) build/arduino/src/firmware.cpp
 	cd build/arduino && ino build --board-model=$(MODEL) --cppflags="$(CPPFLAGS) $(DEFINES)"
 	$(AVRSIZE) -A build/arduino/.build/$(MODEL)/firmware.elf
 

@@ -323,6 +323,9 @@ var loadFile = function(filename, callback) {
 
 var generateOutput = function(componentLib, inputFile, outputFile) {
     var outputBase = outputFile.replace(path.extname(outputFile), "")
+    if (!path.extname(outputFile)) {
+        outputFile = outputFile + ".pde";
+    }
     var outputDir = path.dirname(outputBase);
     if (!fs.existsSync(outputDir)) {
         fs.mkdirSync(outputDir);
@@ -342,12 +345,13 @@ var generateOutput = function(componentLib, inputFile, outputFile) {
         fs.writeFile(outputBase + ".h", cmdStreamToCDefinition(data), function(err) {
             if (err) throw err;
         });
-        fs.writeFile(outputBase + ".cpp", cmdStreamToCDefinition(data) + "\n"
+        fs.writeFile(outputFile, cmdStreamToCDefinition(data) + "\n"
                      + "#define MICROFLO_EMBED_GRAPH\n"
                      + '#include "microflo.h"' + '\n#include "main.hpp"',
                      function(err) {
             if (err) throw err;
         });
+
     });
 
 }
@@ -727,7 +731,7 @@ var uploadGraphCommand = function(graphPath, env) {
 
 var generateFwCommand = function(env) {
     var inputFile = process.argv[3];
-    var outputFile = process.argv[4] || inputFile
+    var outputFile = process.argv[4] || inputFile.replace(path.extname(inputFile), "");
     generateOutput(componentLib, inputFile, outputFile);
 }
 
