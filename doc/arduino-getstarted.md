@@ -27,7 +27,7 @@ due to downloading. You will in the process also get a working Node.js and plain
 
 1. Install [Arduino IDE](http://arduino.cc/en/Main/Software#toc2),
   following the [official guide](http://arduino.cc/en/Guide/HomePage)
-2. Download and install [Node.js](http://nodejs.org/download/)
+2. Download and install [Node.js](http://nodejs.org/download/) (NB: must use 32bit for Windows and 64bit for Mac!)
 
 Download MicroFlo
 -----------------
@@ -104,3 +104,50 @@ and you will see the RX/TX LEDs on the board blink during this time.
 You should now see the LED of your Arduino blinking much faster, about 7 times a second.
 If so you have a working MicroFlo for Arduino setup, and can now try to build more complicated programs!
 
+Baking in your custom app
+-------------------------
+
+Applications uploaded from the IDE are not persistent, that is: if the Arduino is reset or
+loses power, the application is no longer there. To fix this we will "bake", or embedd
+the program into the firmware that is uploaded to and stored in Arduino.
+
+In the Microflo UI
+    Click the menu button, next to search, then the </> button (view source)
+    Now Copy & paste the text into a new text file, called "mygraph.json". Put it in the "microflo" folder
+
+In the console, run
+    node microflo.js generate mygraph.json
+
+In the Arduino IDE
+    Open the file "mygraph.pde" found in the "microflo" folder (next to mygraph.json), and hit upload
+
+You can now try to hit the "Reset" button on your Arduino, and when the device
+boots again it should now run your custom program (until you upload something different)!
+
+Note: in the future, this functionality will be offered directly through the UI
+([issue](https://github.com/jonnor/microflo/issues/20)).
+
+Creating and modifying components
+---------------------------------
+
+At some point you will probably want to add new components, or make changes to existing components.
+
+In a text editor
+    Open the "components.cpp" and "components.json" found in the "microflo/microflo" folder
+    Make your changes
+
+In the console, run
+    node microflo.js update-defs
+
+Using a file browser
+    Copy all the files in the "microflo/microflo" folder into the "microflo" folder found in your Arduino sketchbook.
+
+You can now run the Microflo runtime again (and hit "Connect"), upload new firmware using Arduino IDE,
+and your new/changed component will be available.
+
+For a list of components that people have requested and/or made,
+see the [component wishlist](https://github.com/jonnor/microflo/issues/11).
+
+Note: in the future, this functionality be offered directly through the UI
+([issue](https://github.com/jonnor/microflo/issues/21)).
+It will also become easier to add components without changing the files of MicroFlo itself.
