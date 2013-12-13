@@ -112,13 +112,16 @@ loses power, the application is no longer there. To fix this we will "bake", or 
 the program into the firmware that is uploaded to and stored in Arduino.
 
 In the Microflo UI
+
     Click the menu button, next to search, then the </> button (view source)
     Now Copy & paste the text into a new text file, called "mygraph.json". Put it in the "microflo" folder
 
 In the console, run
+
     node microflo.js generate mygraph.json
 
 In the Arduino IDE
+
     Open the file "mygraph.pde" found in the "microflo" folder (next to mygraph.json), and hit upload
 
 You can now try to hit the "Reset" button on your Arduino, and when the device
@@ -133,13 +136,16 @@ Creating and modifying components
 At some point you will probably want to add new components, or make changes to existing components.
 
 In a text editor
+
     Open the "components.cpp" and "components.json" found in the "microflo/microflo" folder
     Make your changes
 
 In the console, run
+
     node microflo.js update-defs
 
 Using a file browser
+
     Copy all the files in the "microflo/microflo" folder into the "microflo" folder found in your Arduino sketchbook.
 
 You can now run the Microflo runtime again (and hit "Connect"), upload new firmware using Arduino IDE,
