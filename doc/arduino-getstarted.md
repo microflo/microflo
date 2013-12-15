@@ -27,7 +27,7 @@ due to downloading. You will in the process also get a working Node.js and plain
 
 1. Install [Arduino IDE](http://arduino.cc/en/Main/Software#toc2),
   following the [official guide](http://arduino.cc/en/Guide/HomePage)
-2. Download and install [Node.js](http://nodejs.org/download/) (NB: must use 32bit for Windows and 64bit for Mac!)
+2. Download and install [Node.js](http://nodejs.org/download/). *NB: must use 32bit MSI for Windows!*
 
 Download MicroFlo
 -----------------

@@ -97,17 +97,20 @@ public:
         using namespace DigitalWritePorts;
         if (in.isSetup()) {
             outPin = 13; // default
-            io->PinSetMode(outPin, IO::OutputPin);
+            currentState = false;
         } else if (port == InPorts::in && in.isBool()) {
-            io->DigitalWrite(outPin, in.asBool());
+            currentState = in.asBool();
+            io->DigitalWrite(outPin, currentState);
             send(in, OutPorts::out);
         } else if (port == InPorts::pin && in.isNumber()) {
             outPin = in.asInteger();
             io->PinSetMode(outPin, IO::OutputPin);
+            io->DigitalWrite(outPin, currentState);
         }
     }
 private:
     int outPin;
+    bool currentState;
 };
 
 class DigitalRead : public SingleOutputComponent {
