@@ -692,16 +692,21 @@ public:
     virtual void process(Packet in, int port) {
         using namespace CountPorts;
         if (port == InPorts::in) {
-            current += 1;
-            send(Packet(current));
+            if (!isReset) {
+                current += 1;
+                send(Packet(current));
+            }
         } else if (port == InPorts::reset) {
+            if (in.isBool()) {
+                isReset = in.asBool();
+            }
             current = 0;
             send(Packet(current));
         }
-
     }
 private:
     long current;
+    bool isReset;
 };
 
 class Gate : public SingleOutputComponent {
