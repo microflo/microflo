@@ -467,6 +467,53 @@ private:
     bool lastState[2];
 };
 
+
+class BooleanAnd : public SingleOutputComponent {
+public:
+    BooleanAnd() {
+        lastState[0] = false;
+        lastState[1] = false;
+    }
+
+    virtual void process(Packet in, int port) {
+        if (in.isData() && port <= 1) {
+            lastState[port] = in.asBool();
+            send((lastState[0] && lastState[1]) ? Packet((bool)true) : Packet((bool)false));
+        }
+    }
+private:
+    bool lastState[2];
+};
+
+class NumberEquals : public SingleOutputComponent {
+public:
+    NumberEquals() {
+        lastA = -1;
+        lastB = -1;
+    }
+
+    virtual void process(Packet in, int port) {
+        using namespace NumberEqualsPorts;
+
+        if (port == InPorts::a) {
+            lastA = in.asInteger();
+            checkEquals();
+        } else if (port == InPorts::b) {
+            lastB = in.asInteger();
+            checkEquals();
+        }
+    }
+private:
+    void checkEquals() {
+        send((lastA == lastB) ? Packet((bool)true) : Packet((bool)false));
+    }
+
+private:
+    bool validData;
+    long lastA;
+    long lastB;
+};
+
 class ArduinoUno : public Component {
 public:
     ArduinoUno() : Component(outPorts, ArduinoUnoPorts::OutPorts::pina5+1) {}

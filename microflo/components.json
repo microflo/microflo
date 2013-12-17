@@ -153,19 +153,35 @@
         },
 
         "BooleanOr": { "id": 21,
-            "description": "Emits true if either @a or @b is true, else false",
+            "description": "Emits true if either @a OR @b is true, else false",
             "inPorts": {
                 "a": { "id": 0 },
                 "b": { "id": 1 }
             }
         },
 
-        "ReadCapacitivePin": { "id": 22,
+        "BooleanAnd": { "id": 22,
+            "description": "Emits true if @a AND @b is true, else false",
+            "inPorts": {
+                "a": { "id": 0 },
+                "b": { "id": 1 }
+            }
+        },
+
+        "ReadCapacitivePin": { "id": 23,
             "description": "",
             "inPorts": {
                 "trigger": { "id": 0 },
                 "pin": { "id": 1 },
                 "threshold": { "id": 2 }
+            }
+        },
+
+        "NumberEquals": { "id": 24,
+            "description": "Emits true if @a EQUALS @b is true, else false",
+            "inPorts": {
+                "a": { "id": 0 },
+                "b": { "id": 1 }
             }
         },
 
