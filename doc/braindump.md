@@ -7,6 +7,10 @@ Home automation: fridge
 ------------------------
 * http://www.jonnor.com/2013/09/microflo-0-1-0-and-an-arduino-powered-fridge/
 
+Lab/fabrication tools
+---------------------
+* PCB solder oven
+
 Making music: digitally controlled analog synth
 -----------------------------------------------
 Components: Envelope generator, low-frequency oscillators, sequencer, MIDI
@@ -440,6 +444,8 @@ Marketing/Outreach
 Target audiences
 
 * Embedded software engineers
+* Electronics/electromechanical engineers
+* Lab/research toolmakers
 * Interactive media artists
 * Tinkerers/makers/hackers
 * Academics/researchers
@@ -467,6 +473,9 @@ Methods
 * Technical demos
 * Academic papers
 
+In the press
+-------------
+* [LWN.net - A bit of visual programming with MicroFlo](http://lwn.net/Articles/575524)
 
 Network
 ========

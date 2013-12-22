@@ -166,6 +166,7 @@ Physical computing with JavaScript
 
 Visual programming for Arduino etc.
 
+* http://www.mindplus.cc/
 * http://www.modk.it/
 * http://blog.minibloq.org/
 * http://seaside.citilab.eu/scratch/arduino
