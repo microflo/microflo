@@ -9,6 +9,7 @@
         "End": {"id": 14},
         "ConfigureDebug": {"id": 15},
         "SubscribeToPort": {"id": 16},
+        "ConnectSubgraphPort": {"id": 17},
 
         "NetworkStopped": {"id": 100},
         "NodeAdded": {"id": 101},
@@ -18,6 +19,7 @@
         "DebugChanged": {"id": 105},
         "DebugMessage": {"id": 106},
         "PortSubscriptionChanged": {"id": 107},
+        "SubgraphPortConnected": {"id": 108},
 
         "PacketDelivered": {"id": 110},
 

@@ -113,9 +113,10 @@ public:
     void reset();
     void start();
 
-    int addNode(Component *node);
+    int addNode(Component *node, int parentId);
     void connect(Component *src, int srcPort, Component *target, int targetPort);
     void connect(int srcId, int srcPort, int targetId, int targetPort);
+    void connectSubgraph(bool isOutput, int subgraphNode, int subgraphPort, int childNode, int childPort);
 
     void sendMessage(Component *target, int targetPort, const Packet &pkg,
                      Component *sender=0, int senderPort=-1);
@@ -147,17 +148,16 @@ private:
     DebugLevel debugLevel;
 };
 
-// TODO: add a configuration option to Network, allowing to control detail level on reporting
-// normal = state changes + graph (node/edge) changes?
-// message send / recieve only for debugging. Possibly it should even be configured per edge or node
 class NetworkNotificationHandler {
 public:
     virtual void packetSent(int index, Message m, Component *sender, int senderPort) = 0;
     virtual void packetDelivered(int index, Message m) = 0;
 
-    virtual void nodeAdded(Component *c) = 0;
+    virtual void nodeAdded(Component *c, int parentId) = 0;
     virtual void nodesConnected(Component *src, int srcPort, Component *target, int targetPort) = 0;
     virtual void networkStateChanged(Network::State s) = 0;
+    virtual void subgraphConnected(bool isOutput, int subgraphNode, int subgraphPort, int childNode, int childPort);
+
 
     virtual void emitDebug(DebugId id) = 0;
     virtual void debugChanged(DebugLevel level) = 0;
@@ -245,6 +245,7 @@ protected:
     void send(Packet out, int port=0);
     IO *io;
 private:
+    void setParent(int parentId) { parentNodeId = parentId; }
     void connect(int outPort, Component *target, int targetPort);
     void setNetwork(Network *net, int n, IO *io);
 private:
@@ -254,9 +255,26 @@ private:
     Network *network;
     int nodeId; // identifier in the network
     int componentId; // what type of component this is
+    int parentNodeId; // if <0, a top-level component, else subcomponent
 };
 
+#define MICROFLO_SUBGRAPH_MAXPORTS 10
 
+class SubGraph : public Component {
+    friend class Network;
+public:
+    SubGraph();
+    virtual ~SubGraph() {}
+
+    // Implements Component
+    virtual void process(Packet in, int port);
+
+    void connectInport(int inPort, Component *child, int childInPort);
+    void connectOutport(int outPort, Component *child, int childOutPort);
+private:
+    Connection inputConnections[MICROFLO_SUBGRAPH_MAXPORTS];
+    Connection outputConnections[MICROFLO_SUBGRAPH_MAXPORTS];
+};
 
 // Graph format
 #include <stddef.h>
@@ -275,12 +293,13 @@ public:
     // Implements NetworkNotificationHandler
     virtual void packetSent(int index, Message m, Component *sender, int senderPort);
     virtual void packetDelivered(int index, Message m);
-    virtual void nodeAdded(Component *c);
+    virtual void nodeAdded(Component *c, int parentId);
     virtual void nodesConnected(Component *src, int srcPort, Component *target, int targetPort);
     virtual void networkStateChanged(Network::State s);
     virtual void emitDebug(DebugId id);
     virtual void debugChanged(DebugLevel level);
     virtual void portSubscriptionChanged(int nodeId, int portId, bool enable);
+    virtual void subgraphConnected(bool isOutput, int subgraphNode, int subgraphPort, int childNode, int childPort);
 
 private:
     void parseCmd();

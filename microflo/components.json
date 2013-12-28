@@ -212,6 +212,12 @@
             "inPorts": {}
         },
 
+        "SubGraph": { "id": 100,
+            "description": "Not for normal use. Used internally for handling subgraphs",
+            "inPorts": {},
+            "outPorts": {}
+        },
+
         "Max": { "id": 255, ".skip": true }
     }
 }

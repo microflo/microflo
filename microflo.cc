@@ -194,7 +194,7 @@ v8::Handle<v8::Value> JavaScriptNetwork::AddNode(const v8::Arguments& args) {
   } else {
       component = Component::create((ComponentId)args[0]->Int32Value());
   }
-  const int nodeId = network->addNode(component);
+  const int nodeId = network->addNode(component, 0);
 
   return scope.Close(v8::Number::New(nodeId));
 }

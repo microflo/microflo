@@ -164,12 +164,13 @@ void HostCommunication::parseCmd() {
     } else if (cmd == GraphCmdReset) {
         network->reset();
     } else if (cmd == GraphCmdCreateComponent) {
-        ComponentId id = (ComponentId)buffer[1];
+        const ComponentId id = (ComponentId)buffer[1];
+        const int parentId = (int)buffer[2];
         // FIXME: validate
         MICROFLO_DEBUG(network, DebugLevelDetailed, DebugComponentCreateStart);
         Component *c = Component::create(id);
         MICROFLO_DEBUG(network, DebugLevelDetailed, DebugComponentCreateEnd);
-        network->addNode(c);
+        network->addNode(c, parentId);
     } else if (cmd == GraphCmdConnectNodes) {
         // FIXME: validate
         MICROFLO_DEBUG(network, DebugLevelDetailed, DebugConnectNodesStart);
@@ -209,6 +210,15 @@ void HostCommunication::parseCmd() {
         const bool enable = (bool)buffer[3];
         network->subscribeToPort(nodeId, portId, enable);
 
+    } else if (cmd == GraphCmdConnectSubgraphPort) {
+        // FIXME: validate
+        const bool isOutput = (unsigned int)buffer[1];
+        const int subgraphNode = (unsigned int)buffer[2];
+        const int subgraphPort = (unsigned int)buffer[3];
+        const int childNode = (unsigned int)buffer[4];
+        const int childPort = (unsigned int)buffer[5];
+        network->connectSubgraph(isOutput, subgraphNode, subgraphPort, childNode, childPort);
+
     } else if (cmd >= GraphCmdInvalid) {
         MICROFLO_DEBUG(network, DebugLevelError, DebugParserInvalidCommand);
         // state = Invalid; // XXX: or maybe just ignore?
@@ -235,6 +245,7 @@ void Component::connect(int outPort, Component *target, int targetPort) {
 }
 
 void Component::setNetwork(Network *net, int n, IO *i) {
+    parentNodeId = -1;
     network = net;
     nodeId = n;
     io = i;
@@ -307,6 +318,26 @@ void Network::sendMessage(Component *target, int targetPort, const Packet &pkg,
     msg.targetPort = targetPort;
     msg.pkg = pkg;
 
+    const bool senderIsChild = sender->parentNodeId > 0;
+    if (senderIsChild) {
+        SubGraph *parent = (SubGraph *)nodes[sender->parentNodeId];
+        if (target == parent) {
+            // Redirect output message from child outport, emit message on the parent outport
+            // FIXME: should we change @sender / @senderPort, for debugging?
+            target = parent->outputConnections[targetPort].target;
+            targetPort = parent->outputConnections[targetPort].targetPort;
+        }
+    }
+
+    const bool targetIsSubGraph = target->componentId == IdSubGraph;
+    if (targetIsSubGraph) {
+        SubGraph *targetSubGraph = (SubGraph *)target;
+        // Redirect input message from, send to desired port on child
+        // FIXME: should we change @sender / @senderPort, for debugging?
+        target = targetSubGraph->inputConnections[targetPort].target;
+        targetPort = targetSubGraph->inputConnections[targetPort].targetPort;
+    }
+
     const bool sendNotification = sender ? sender->connections[senderPort].subscribed : false;
     if (sendNotification && notificationHandler) {
         notificationHandler->packetSent(msgIndex, msg, sender, senderPort);
@@ -365,7 +396,7 @@ void Network::connect(Component *src, int srcPort, Component *target, int target
     }
 }
 
-int Network::addNode(Component *node) {
+int Network::addNode(Component *node, int parentId) {
     if (!node) {
         MICROFLO_DEBUG(this, DebugLevelError, DebugAddNodeInvalidInstance);
         return -1;
@@ -374,8 +405,11 @@ int Network::addNode(Component *node) {
     const int nodeId = lastAddedNodeIndex;
     nodes[nodeId] = node;
     node->setNetwork(this, nodeId, this->io);
+    if (parentId > 0) {
+        node->setParent(parentId);
+    }
     if (notificationHandler) {
-        notificationHandler->nodeAdded(node);
+        notificationHandler->nodeAdded(node, parentId);
     }
     lastAddedNodeIndex++;
     return nodeId;
@@ -443,11 +477,39 @@ void Network::subscribeToPort(int nodeId, int portId, bool enable) {
     }
 }
 
-void HostCommunication::nodeAdded(Component *c) {
+void Network::connectSubgraph(bool isOutput, int subgraphNode, int subgraphPort,
+                              int childNode, int childPort) {
+
+    if (subgraphNode < 0 || subgraphNode >= lastAddedNodeIndex
+            || childNode < 0 || childNode >= lastAddedNodeIndex) {
+        // FIXME: emit error
+        return;
+    }
+
+    Component *comp = nodes[subgraphNode];
+    Component *child = nodes[childNode];
+    if (!comp->component() != IdSubGraph || child->parentNodeId < 1) {
+        // FIXME: emit error
+        return;
+    }
+
+    SubGraph *subgraph = (SubGraph *)comp;
+    if (isOutput) {
+        subgraph->connectOutport(subgraphPort, child, childPort);
+    } else {
+        subgraph->connectInport(subgraphPort, child, childPort);
+    }
+    if (notificationHandler) {
+        notificationHandler->subgraphConnected(isOutput, subgraphNode, subgraphPort, childNode, childPort);
+    }
+}
+
+void HostCommunication::nodeAdded(Component *c, int parentId) {
     transport->sendCommandByte(GraphCmdNodeAdded);
     transport->sendCommandByte(c->component());
     transport->sendCommandByte(c->id());
-    transport->padCommandWithNArguments(2);
+    transport->sendCommandByte(parentId);
+    transport->padCommandWithNArguments(3);
 }
 
 void HostCommunication::nodesConnected(Component *src, int srcPort, Component *target, int targetPort) {
@@ -523,13 +585,23 @@ void HostCommunication::portSubscriptionChanged(int nodeId, int portId, bool ena
     transport->padCommandWithNArguments(3);
 }
 
+void HostCommunication::subgraphConnected(bool isOutput, int subgraphNode, int subgraphPort,
+                                      int childNode, int childPort) {
+    transport->sendCommandByte(GraphCmdSubgraphPortConnected);
+    transport->sendCommandByte(isOutput);
+    transport->sendCommandByte(subgraphNode);
+    transport->sendCommandByte(subgraphPort);
+    transport->sendCommandByte(childNode);
+    transport->sendCommandByte(childPort);
+    transport->padCommandWithNArguments(5);
+}
+
 void HostTransport::padCommandWithNArguments(int arguments) {
     const int padding = MICROFLO_CMD_SIZE - (arguments+1);
     for (int i=0; i<padding; i++) {
         sendCommandByte(0x00);
     }
 }
-
 
 SerialHostTransport::SerialHostTransport(int port, int baudRate)
     : serialPort(port)
@@ -557,3 +629,28 @@ void SerialHostTransport::sendCommandByte(uint8_t b) {
     io->SerialWrite(serialPort, b);
 }
 
+
+SubGraph::SubGraph()
+    : Component(outputConnections, MICROFLO_SUBGRAPH_MAXPORTS)
+{
+}
+
+void SubGraph::connectInport(int inPort, Component *child, int childInPort) {
+    if (inPort < 0 || inPort >= MICROFLO_SUBGRAPH_MAXPORTS) {
+        return;
+    }
+    inputConnections[inPort].target = child;
+    inputConnections[inPort].targetPort = childInPort;
+}
+
+void SubGraph::connectOutport(int outPort, Component *child, int childOutPort) {
+    if (outPort < 0 || outPort >= MICROFLO_SUBGRAPH_MAXPORTS) {
+        return;
+    }
+    outputConnections[outPort].target = child;
+    outputConnections[outPort].targetPort = childOutPort;
+}
+
+void SubGraph::process(Packet in, int port) {
+    // TODO: assert that this never receives packets. Network should forward
+}
