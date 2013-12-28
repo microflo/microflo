@@ -25,6 +25,10 @@ function ComponentLibrary(definition) {
     this.definition = definition;
 
     this.listComponents = function(includingSkipped) {
+        return Object.keys(this.getComponents(includingSkipped));
+    }
+
+    this.getComponents = function(includingSkipped) {
         if (includingSkipped) {
             return this.definition.components;
         }
@@ -42,7 +46,7 @@ function ComponentLibrary(definition) {
         return this.definition.components[componentName];
     }
     this.getComponentById = function(componentId) {
-        for (name in this.listComponents()) {
+        for (name in this.getComponents()) {
             var comp = this.getComponent(name);
             if (comp.id == componentId) {
                 comp.name = name;
@@ -378,7 +382,7 @@ var generateEnum = function(name, prefix, enums) {
 
 var generateComponentPortDefinitions = function(componentLib) {
     var out = "\n";
-    for (var name in componentLib.listComponents()) {
+    for (var name in componentLib.getComponents()) {
         out += "\n" + "namespace " + name + "Ports {\n";
         out += "struct InPorts {\n"
         out += generateEnum("Ports", "", componentLib.inputPortsFor(name));
@@ -397,7 +401,7 @@ var generateComponentFactory = function(componentLib) {
     var indent = "\n    ";
     out += indent + "Component *c;";
     out += indent + "switch (id) {";
-    for (var name in componentLib.listComponents()) {
+    for (var name in componentLib.getComponents()) {
         out += indent + "case Id" + name + ": c = new " + name + "; c->componentId=id; return c;"
     }
     out += indent + "default: return NULL;"
@@ -598,7 +602,7 @@ var handleMessage = function (message, connection, graph, getSerial, debugLevel)
     console.log(contents.protocol, contents.command, contents.payload);
     if (contents.protocol == "component" && contents.command == "list") {
 
-        for (var name in componentLib.listComponents()) {
+        for (var name in componentLib.getComponents()) {
             var comp = componentLib.getComponent(name);
 
             var resp = {protocol: "component", command: "component",
@@ -638,7 +642,7 @@ var handleMessage = function (message, connection, graph, getSerial, debugLevel)
 };
 
 var updateDefinitions = function() {
-    fs.writeFile("microflo/components-gen.h", generateEnum("ComponentId", "Id", componentLib.listComponents(true)),
+    fs.writeFile("microflo/components-gen.h", generateEnum("ComponentId", "Id", componentLib.getComponents(true)),
                  function(err) { if (err) throw err });
     fs.writeFile("microflo/components-gen-bottom.hpp", generateComponentFactory(componentLib),
                  function(err) { if (err) throw err });
