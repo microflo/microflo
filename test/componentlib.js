@@ -30,6 +30,19 @@ describe('ComponentLibrary', function(){
             assert.ok(normal.indexOf("Split") !== -1);
             assert.ok(normal.indexOf("Forward") !== -1);
         })
+        it("no components have same id", function() {
+            var defs = microflo.componentLib.getComponents(true);
+            for (var i=0; i<all.length; i++) {
+                for (var j=0; j<all.length; j++) {
+                    var I = all[i];
+                    var J = all[j];
+                    if (I === J) {
+                        continue;
+                    }
+                    assert.ok(defs[I].id !== defs[J].id, I+" has same ID as "+J + " : " + defs[I].id);
+                }
+            }
+        })
     })
 })
 
