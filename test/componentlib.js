@@ -15,8 +15,8 @@ describe('ComponentLibrary', function(){
         it('should give above 20 normal', function(){
             assert.ok(normal.length > 20, "normal.length "+normal.length);
         })
-        it('and 4 skipped', function(){
-            assert.equal(skipped.length, 4);
+        it('and 3 skipped', function(){
+            assert.equal(skipped.length, 3);
         })
         it("Max,Invalid should be skipped", function() {
             assert.ok(normal.indexOf("Max") === -1);
