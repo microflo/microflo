@@ -30,8 +30,8 @@ build: install
 	mkdir -p build/arduino/src
 	mkdir -p build/arduino/lib
 	ln -sf `pwd`/microflo build/arduino/lib/
-	unzip -n ./thirdparty/OneWire.zip -d build/arduino/lib/
-	unzip -n ./thirdparty/DallasTemperature.zip -d build/arduino/lib/
+	unzip -q -n ./thirdparty/OneWire.zip -d build/arduino/lib/
+	unzip -q -n ./thirdparty/DallasTemperature.zip -d build/arduino/lib/
 	cd build/arduino/lib && test -e patched || patch -p0 < ../../../thirdparty/DallasTemperature.patch
 	cd build/arduino/lib && test -e patched || patch -p0 < ../../../thirdparty/OneWire.patch
 	touch build/arduino/lib/patched
@@ -53,7 +53,7 @@ release-arduino:
 	mkdir -p build/microflo-arduino/microflo/examples/Standalone
 	cp -r microflo build/microflo-arduino/
 	cp build/arduino/src/firmware.cpp build/microflo-arduino/microflo/examples/Standalone/Standalone.pde
-	cd build/microflo-arduino && zip -r ../microflo-arduino.zip microflo
+	cd build/microflo-arduino && zip -q -r ../microflo-arduino.zip microflo
 
 release-ui:
 	rm -rf build/microflo-ui
@@ -76,12 +76,12 @@ release: install build release-microflo release-arduino release-ui
 	cp -r build/microflo-arduino.zip build/microflo-$(VERSION)/
 	cp -r build/microflo-ui build/microflo-$(VERSION)/
 	cp -r build/microflo build/microflo-$(VERSION)/
-	cd build && zip --symlinks -r microflo-$(VERSION).zip microflo-$(VERSION)
+	cd build && zip -q --symlinks -r microflo-$(VERSION).zip microflo-$(VERSION)
 
 check-release: release
 	rm -rf build/check-release
 	mkdir -p build/check-release
-	cd build/check-release && unzip ../microflo-$(VERSION)
+	cd build/check-release && unzip -q ../microflo-$(VERSION)
 	cd build/check-release/microflo-$(VERSION)/microflo && npm test
 
 .PHONY: all build install clean release release-microflo release-arduino release-ui check-release
