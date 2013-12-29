@@ -8,8 +8,8 @@ var microflo = require("../microflo");
 
 describe('ComponentLibrary', function(){
     describe('listing all components', function(){
-        var normal = microflo.componentLib.listComponents();
-        var all = microflo.componentLib.listComponents(true);
+        var normal = microflo.componentLib.listComponents(false, true);
+        var all = microflo.componentLib.listComponents(true, true);
         var skipped = all.filter(function(n) { return normal.indexOf(n) === -1 });
 
         it('should give above 20 normal', function(){

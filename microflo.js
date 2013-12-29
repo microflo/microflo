@@ -21,14 +21,44 @@ if (require.main === module) {
 var cmdFormat = require("./microflo/commandformat.json");
 var componentLib = undefined;
 
-function ComponentLibrary(definition) {
+function ComponentLibrary(definition, basedir) {
     this.definition = definition;
+    this.baseDirectory = basedir;
 
-    this.listComponents = function(includingSkipped) {
-        return Object.keys(this.getComponents(includingSkipped));
+    this.load = function() {
+        for (var compName in this.definition.components) {
+            var comp = this.definition.components[compName];
+            if (comp.graph || comp.graphFile) {
+                // FIXME: don't read file syncronously
+                // FIXME: do not require fbp to instantiate class
+                if (fbp) {
+                    var graph = comp.graph;
+                    if (!graph && comp.graphFile) {
+                        var p = path.join(this.baseDirectory, comp.graphFile);
+                        console.log(p);
+                        graph = fbp.parse(fs.readFileSync(p, {encoding: "utf-8"}));
+                        this.definition.components[compName].graph = graph;
+                    }
+                    console.log(graph);
+
+                    var exports = {};
+                    for (var i=0; i<graph.exports.length; i++) {
+                        exports[graph.exports[i].public] = {id: i};
+                    }
+
+                    // FIXME: separate between inport and outports. Requires https://github.com/noflo/noflo/issues/118
+                    this.definition.components[compName].inPorts = exports;
+                    this.definition.components[compName].outPorts = exports;
+                }
+            }
+        }
     }
 
-    this.getComponents = function(includingSkipped) {
+    this.listComponents = function(includingSkipped, includingVirtual) {
+        return Object.keys(this.getComponents(includingSkipped, includingVirtual));
+    }
+
+    this.getComponents = function(includingSkipped, includingVirtual) {
         if (includingSkipped) {
             return this.definition.components;
         }
@@ -36,7 +66,9 @@ function ComponentLibrary(definition) {
         var components = {};
         for (var name in this.definition.components) {
             var comp = componentLib.getComponent(name);
-            if (!(comp[".skip"] || false)) {
+            var skip = comp[".skip"] || false;
+            var virtual = comp["graph"] || comp["graphFile"];
+            if (!skip && (includingVirtual || !virtual)) {
                 components[name] = comp;
             }
         }
@@ -91,12 +123,11 @@ function ComponentLibrary(definition) {
     }
 }
 
-componentLib = new ComponentLibrary(require("./microflo/components.json"));
-
 var writeCmd = function() {
     var buf = arguments[0];
     var offset = arguments[1];
     var data = arguments[2];
+
     if (data.hasOwnProperty("length")) {
         // Buffer
         data.copy(buf, offset);
@@ -106,6 +137,7 @@ var writeCmd = function() {
     }
 
     for (var i = 0; i < cmdFormat.commandSize; i++) {
+        // console.log(offset, data);
         if (i < data.length) {
             buf.writeUInt8(data[i], offset+i);
         } else {
@@ -191,32 +223,70 @@ var dataLiteralToCommand = function(literal, tgt, tgtPort) {
     // TODO: handle floats, strings
 }
 
-// TODO: actually add observers to graph, and emit a command stream for the changes
-var cmdStreamFromGraph = function(componentLib, graph, debugLevel) {
-    debugLevel = debugLevel || "Error";
-    var buffer = new Buffer(1024); // FIXME: unhardcode
-    var index = 0;
-    var nodeMap = {}; // nodeName->numericNodeId
+var findPort = function(componentLib, graph, nodeName, portName) {
+    var isOutput = false;
+    var port = componentLib.inputPort(graph.processes[nodeName].component, portName);
+    if (!port) {
+        port =  componentLib.outputPort(graph.processes[nodeName].component, portName);
+        isOutput = true;
+    }
+    return { isOutput: isOutput, port: port};
+}
 
-    // Header
-    index += writeString(buffer, index, cmdFormat.magicString);
-    index += writeCmd(buffer, index, cmdFormat.commands.Reset.id);
+var cmdStreamBuildGraph = function(currentNodeId, buffer, index, componentLib, graph, parent) {
 
-    // Config
-    index += writeCmd(buffer, index, cmdFormat.commands.ConfigureDebug.id,
-                      cmdFormat.debugLevels[debugLevel].id);
+    var nodeMap = graph.nodeMap;
+    var startIndex = index;
 
     // Create components
-    var currentNodeId = 0;
     for (var nodeName in graph.processes) {
         if (!graph.processes.hasOwnProperty(nodeName)) {
             continue;
         }
+
         var process = graph.processes[nodeName];
-        var componentId = componentLib.getComponent(process.component).id;
-        index += writeCmd(buffer, index, cmdFormat.commands.CreateComponent.id,
-                          componentId);
-        nodeMap[nodeName] = currentNodeId++;
+        var comp = componentLib.getComponent(process.component);
+        if (comp.graph || comp.graphFile) {
+            // Inject subgraph
+            index += writeCmd(buffer, index, cmdFormat.commands.CreateComponent.id,
+                              componentLib.getComponent("SubGraph").id)
+            nodeMap[nodeName] = {id: currentNodeId++};
+
+            var subgraph = comp.graph;
+            subgraph.nodeMap = nodeMap;
+            graph.processes[nodeName].graph = subgraph;
+            var r = cmdStreamBuildGraph(currentNodeId, buffer, index, componentLib, subgraph, nodeName);
+            index += r.index;
+            currentNodeId = r.nodeId;
+
+            for (var i=0; i<subgraph.exports.length; i++) {
+                var c = subgraph.exports[i];
+                var tok = c.private.split(".");
+                if (tok.length != 2) {
+                    throw "Invalid export definition"
+                }
+
+                var childNode = nodeMap[tok[0]];
+                var childPort = findPort(componentLib, subgraph, tok[0], tok[1]);
+                var subgraphNode = nodeMap[nodeName];
+                var subgraphPort = componentLib.inputPort(graph.processes[nodeName].component, c.public);
+                console.log("connect subgraph", childNode, childPort);
+                index += writeCmd(buffer, index, cmdFormat.commands.ConnectSubgraphPort.id,
+                                  childPort.isOutPort ? 0 : 1, subgraphNode.id, subgraphPort.id,
+                                  childNode.id, childPort.port.id);
+            }
+
+        } else {
+            // Add normal component
+            var parentId = parent ? nodeMap[parent].id : undefined;
+            if (parentId) {
+                graph.processes[nodeName].parent = parentId;
+            }
+
+            index += writeCmd(buffer, index, cmdFormat.commands.CreateComponent.id,
+                              comp.id, parentId||0);
+            nodeMap[nodeName] = {id: currentNodeId++, parent: parentId};
+        }
     }
 
     // Connect nodes
@@ -238,7 +308,7 @@ var cmdStreamFromGraph = function(componentLib, graph, debugLevel) {
 
             if (tgtPort !== undefined && srcPort !== undefined) {
                 index += writeCmd(buffer, index, cmdFormat.commands.ConnectNodes.id,
-                                  nodeMap[srcNode], nodeMap[tgtNode], srcPort, tgtPort);
+                                  nodeMap[srcNode].id, nodeMap[tgtNode].id, srcPort, tgtPort);
             }
         }
     });
@@ -255,18 +325,42 @@ var cmdStreamFromGraph = function(componentLib, graph, debugLevel) {
                         + tgtPort + " " + tgtNode;
             }
 
-            index += writeCmd(buffer, index, dataLiteralToCommand(connection.data, nodeMap[tgtNode], tgtPort));
+            index += writeCmd(buffer, index, dataLiteralToCommand(connection.data, nodeMap[tgtNode].id, tgtPort));
         }
     });
 
     // HACK: can be used to observe data flowing along edges
     // index += writeCmd(buffer, index, cmdFormat.commands.SubscribeToPort.id, 1, 1, 1);
 
+    return {index: index-startIndex, nodeId: currentNodeId};
+}
+
+// TODO: actually add observers to graph, and emit a command stream for the changes
+var cmdStreamFromGraph = function(componentLib, graph, debugLevel) {
+    debugLevel = debugLevel || "Error";
+    var buffer = new Buffer(1024); // FIXME: unhardcode
+    var index = 0;
+    var nodeMap = {}; // nodeName->numericNodeId
+    var currentNodeId = 0;
+
+    // HACK: Attach the mapping so others can use it later
+    graph.nodeMap = nodeMap;
+
+    // Header
+    index += writeString(buffer, index, cmdFormat.magicString);
+    index += writeCmd(buffer, index, cmdFormat.commands.Reset.id);
+
+    // Config
+    index += writeCmd(buffer, index, cmdFormat.commands.ConfigureDebug.id,
+                      cmdFormat.debugLevels[debugLevel].id);
+
+    // Actual graph
+    var r = cmdStreamBuildGraph(currentNodeId, buffer, index, componentLib, graph);
+    index += r.index;
+    currentNodeId = r.nodeId;
+
     // Mark end of commands
     index += writeCmd(buffer, index, cmdFormat.commands.End.id);
-
-    // Attach the mapping so others can use it later
-    graph.nodeMap = nodeMap;
 
     buffer = buffer.slice(0, index);
     return buffer;
@@ -493,6 +587,12 @@ var nodeNameById = function(nodeMap, wantedId) {
     }
 }
 
+var nodeLookup = function(graph, nodeName) {
+    var parent = graph.nodeMap[nodeName].parent;
+    var r = parent !== undefined ? graph.processes[nodeNameById(graph.nodeMap, parent)].graph.processes: graph.processes;
+    return r[nodeName];
+}
+
 var parseReceivedCmd = function(cmdData, graph) {
     var cmd = cmdData.readUInt8(0);
     if (cmd == cmdFormat.commands.NetworkStopped.id) {
@@ -505,10 +605,10 @@ var parseReceivedCmd = function(cmdData, graph) {
         console.log("ADD: ", nodeName, "(", component, ")");
     } else if (cmd == cmdFormat.commands.NodesConnected.id) {
         var srcNode = nodeNameById(graph.nodeMap, cmdData.readUInt8(1))
-        var srcPort = componentLib.outputPortById(graph.processes[srcNode].component, cmdData.readUInt8(2)).name
+        var srcPort = componentLib.outputPortById(nodeLookup(graph, srcNode).component, cmdData.readUInt8(2)).name
         var targetNode = nodeNameById(graph.nodeMap, cmdData.readUInt8(3))
-        var targetPort = componentLib.inputPortById(graph.processes[targetNode].component, cmdData.readUInt8(4)).name
-        console.log("CONNECT: ", srcNode, srcPort, "->", targetNode, targetPort);
+        var targetPort = componentLib.inputPortById(nodeLookup(graph,targetNode).component, cmdData.readUInt8(4)).name
+        console.log("CONNECT: ", srcNode, srcPort, "->", targetPort, targetNode);
     } else if (cmd === cmdFormat.commands.DebugChanged.id) {
         var level = nodeNameById(cmdFormat.debugLevels, cmdData.readUInt8(1));
         console.log("DEBUGLEVEL: ", level);
@@ -642,7 +742,7 @@ var handleMessage = function (message, connection, graph, getSerial, debugLevel)
 };
 
 var updateDefinitions = function() {
-    fs.writeFile("microflo/components-gen.h", generateEnum("ComponentId", "Id", componentLib.getComponents(true)),
+    fs.writeFile("microflo/components-gen.h", generateEnum("ComponentId", "Id", componentLib.getComponents(true, true)),
                  function(err) { if (err) throw err });
     fs.writeFile("microflo/components-gen-bottom.hpp", generateComponentFactory(componentLib),
                  function(err) { if (err) throw err });
@@ -740,6 +840,7 @@ var generateFwCommand = function(env) {
 }
 
 // Main
+componentLib = new ComponentLibrary(require("./microflo/components.json"), "./microflo");
 if (require.main === module) {
 
     if (process.argv[2] == "update-defs") {
@@ -754,6 +855,8 @@ if (require.main === module) {
     fbp = require("fbp");
     noflo = require("noflo");
     serialport = require("serialport");
+
+    componentLib.load();
 
     commander
         .version(module.exports.version)
@@ -783,6 +886,7 @@ if (require.main === module) {
     }
 
 } else {
+    componentLib.load();
 
     module.exports = {
         loadFile: loadFile,
