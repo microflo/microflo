@@ -1,0 +1,6 @@
+# Component defind as subgraph in .fbp DSL
+EXPORT=READ.OUT:OUT
+EXPORT=READ.PIN:PIN
+
+timer(Timer) OUT -> TRIGGER read(AnalogRead)
+'10' -> INTERVAL timer

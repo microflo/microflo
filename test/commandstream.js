@@ -7,7 +7,7 @@ var microflo = require("../lib/microflo");
 var assert = require("assert");
 var fbp = require("fbp");
 
-var componentLib = new microflo.componentlib.ComponentLibrary(require("../microflo/components.json"));
+var componentLib = new microflo.componentlib.ComponentLibrary(require("../microflo/components.json"), "./microflo");
 componentLib.load();
 
 var assertStreamsEqual = function(actual, expected) {
@@ -35,4 +35,28 @@ describe('Commandstream generation', function(){
           assertStreamsEqual(out, expect);
       })
   })
+  describe('from a input FBP with subgraph', function(){
+          var input = "potmeter(AnalogReadPoller) OUT -> IN map(MapLinear) OUT -> DUTYCYCLE led(PwmWrite)";
+          var expect = Buffer([117,67,47,70,108,111,48,49,
+                               10,0,0,0,0,0,0,0,
+                               15,1,0,0,0,0,0,0,
+                               0x0b,0x64,0,0,0,0,0,0,
+                               0x0b,7,0,0,0,0,0,0,
+                               0x0b,2,0,0,0,0,0,0,
+                               0x0c,1,2,0,0,0,0,0,
+                               13,1,0,7,0x0a,0,0,0,
+                               17,1,0,0,2,0,0,0,
+                               17,1,0,1,2,1,0,0,
+                               0x0b,17,0,0,0,0,0,0,
+                               0x0b,1,0,0,0,0,0,0,
+                               0x0c,0,0,0,0,0,0,0,
+                               0x0c,0,1,0,0,0,0,0,
+                               0x0e,0,0,0,0,0,0,0
+                              ]);
+        it('parsing should give known valid output', function(){
+            var out = microflo.commandstream.cmdStreamFromGraph(componentLib, fbp.parse(input));
+            assertStreamsEqual(out, expect);
+        })
+  })
+
 })
