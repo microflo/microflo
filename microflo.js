@@ -367,8 +367,8 @@ var cmdStreamFromGraph = function(componentLib, graph, debugLevel) {
 }
 
 var cmdStreamToCDefinition = function(cmdStream, annotation) {
-    var arduinoCode = "#ifdef ARDUINO\n#include <avr/pgmspace.h>\n";
-    arduinoCode += "#endif\n"
+    var arduinoCode = "#include <avr/pgmspace.h>\n";
+    arduinoCode += ""
 
     arduinoCode += cmdStreamToC(cmdStream, "PROGMEM");
 

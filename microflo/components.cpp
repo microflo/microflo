@@ -773,4 +773,22 @@ private:
     int activePort;
 };
 
+
+class AT90USBKEY : public Component {
+public:
+    AT90USBKEY() : Component(outPorts, AT90USBKEYPorts::OutPorts::portf7) {}
+    virtual void process(Packet in, int port) {
+        // FIXME: separate between analog/digital capable ports (also PWM etc)
+        if (in.isSetup()) {
+            for (int outPort=0; outPort < AT90USBKEYPorts::OutPorts::portf7; outPort++) {
+                const long val = outPort;
+                send(Packet(val), outPort);
+            }
+        }
+    }
+private:
+    Connection outPorts[AT90USBKEYPorts::OutPorts::portf7];
+};
+
+
 #include "components-gen-bottom.hpp"

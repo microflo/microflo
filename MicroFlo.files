@@ -29,3 +29,4 @@ doc/arduino-getstarted.md
 examples/capasitivePin.fbp
 test/TODO.md
 test/componentlib.js
+microflo/avr.hpp

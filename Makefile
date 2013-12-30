@@ -1,8 +1,12 @@
 # User configuration options
 GRAPH=examples/blink.fbp
 MODEL=uno
+AVRMODEL=at90usb1287
 
 AVRSIZE=avr-size
+AVRGCC=avr-g++
+AVROBJCOPY=avr-objcopy
+DFUPROGRAMMER=dfu-programmer
 VERSION=$(shell git describe --tags)
 OSX_ARDUINO_APP=/Applications/Arduino.app
 
@@ -26,7 +30,7 @@ endif
 # Rules
 all: build
 
-build: install
+build-arduino: install
 	mkdir -p build/arduino/src
 	mkdir -p build/arduino/lib
 	ln -sf `pwd`/microflo build/arduino/lib/
@@ -39,8 +43,21 @@ build: install
 	cd build/arduino && ino build --board-model=$(MODEL) --cppflags="$(CPPFLAGS) $(DEFINES)"
 	$(AVRSIZE) -A build/arduino/.build/$(MODEL)/firmware.elf
 
+build-avr: install
+	mkdir -p build/avr
+	node microflo.js generate $(GRAPH) build/avr/firmware.cpp
+	cd build/avr && $(AVRGCC) -o firmware.elf firmware.cpp -I../../microflo -DAVR=1 -Wall -Werror -Wno-error=overflow -mmcu=$(AVRMODEL) -fno-exceptions -fno-rtti $(CPPFLAGS)
+	cd build/avr && $(AVROBJCOPY) -j .text -j .data -O ihex firmware.elf firmware.hex
+
+build: build-arduino build-avr
+
 upload: build
 	cd build/arduino && ino upload --board-model=$(MODEL)
+
+upload-dfu: build-avr
+	cd build/avr && sudo $(DFUPROGRAMMER) $(AVRMODEL) erase
+	sleep 1
+	cd build/avr && sudo $(DFUPROGRAMMER) $(AVRMODEL) flash firmware.hex || sudo $(DFUPROGRAMMER) $(AVRMODEL) flash firmware.hex || sudo $(DFUPROGRAMMER) $(AVRMODEL) flash firmware.hex
 
 clean:
 	git clean -dfx --exclude=node_modules

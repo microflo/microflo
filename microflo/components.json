@@ -212,6 +212,67 @@
             "inPorts": {}
         },
 
+
+        "AT90USBKEY": { "id": 51,
+            "description": "Convenient definition of pins available on Atmel AT90USBKEY",
+            "outPorts": {
+                "porta0": { "id": 0 },
+                "porta1": { "id": 1 },
+                "porta2": { "id": 2 },
+                "porta3": { "id": 3 },
+                "porta4": { "id": 4 },
+                "porta5": { "id": 5 },
+                "porta6": { "id": 6 },
+                "porta7": { "id": 7 },
+
+                "portb0": { "id": 8 },
+                "portb1": { "id": 9 },
+                "portb2": { "id": 10 },
+                "portb3": { "id": 11 },
+                "portb4": { "id": 12 },
+                "portb5": { "id": 13 },
+                "portb6": { "id": 14 },
+                "portb7": { "id": 15 },
+
+                "portc0": { "id": 16 },
+                "portc1": { "id": 17 },
+                "portc2": { "id": 18 },
+                "portc3": { "id": 19 },
+                "portc4": { "id": 20 },
+                "portc5": { "id": 21 },
+                "portc6": { "id": 22 },
+                "portc7": { "id": 23 },
+
+                "portd0": { "id": 24 },
+                "portd1": { "id": 25 },
+                "portd2": { "id": 26 },
+                "portd3": { "id": 27 },
+                "portd4": { "id": 28 },
+                "portd5": { "id": 29 },
+                "portd6": { "id": 30 },
+                "portd7": { "id": 31 },
+
+                "porte0": { "id": 32 },
+                "porte1": { "id": 33 },
+                "porte2": { "id": 34 },
+                "porte3": { "id": 35 },
+                "porte4": { "id": 36 },
+                "porte5": { "id": 37 },
+                "porte6": { "id": 38 },
+                "porte7": { "id": 39 },
+
+                "portf0": { "id": 40 },
+                "portf1": { "id": 41 },
+                "portf2": { "id": 42 },
+                "portf3": { "id": 43 },
+                "portf4": { "id": 44 },
+                "portf5": { "id": 45 },
+                "portf6": { "id": 46 },
+                "portf7": { "id": 47 }
+            },
+            "inPorts": {}
+        },
+
         "SubGraph": { "id": 100,
             "description": "Not for normal use. Used internally for handling subgraphs",
             "inPorts": {},
