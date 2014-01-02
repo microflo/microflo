@@ -348,7 +348,7 @@ void Network::sendMessage(Component *target, int targetPort, const Packet &pkg,
     }
 }
 
-void Network::sendMessage(int targetId, int targetPort, const Packet &pkg) {
+void Network::sendMessage(MicroFlo::NodeId targetId, int targetPort, const Packet &pkg) {
     sendMessage(nodes[targetId], targetPort, pkg);
 }
 
@@ -383,9 +383,8 @@ void Network::runTick() {
     }
 }
 
-void Network::connect(int srcId, int srcPort, int targetId, int targetPort) {
-    if (srcId < 0 || srcId > lastAddedNodeIndex ||
-        targetId < 0 || targetId > lastAddedNodeIndex) {
+void Network::connect(MicroFlo::NodeId srcId, int srcPort, MicroFlo::NodeId targetId, int targetPort) {
+    if (srcId > lastAddedNodeIndex || targetId > lastAddedNodeIndex) {
         MICROFLO_DEBUG(this, DebugLevelError, DebugNetworkConnectInvalidNodes);
         return;
     }
@@ -400,7 +399,7 @@ void Network::connect(Component *src, int srcPort, Component *target, int target
     }
 }
 
-int Network::addNode(Component *node, int parentId) {
+int Network::addNode(Component *node, MicroFlo::NodeId parentId) {
     if (!node) {
         MICROFLO_DEBUG(this, DebugLevelError, DebugAddNodeInvalidInstance);
         return -1;
@@ -460,7 +459,7 @@ void Network::setDebugLevel(DebugLevel level) {
     }
 }
 
-void Network::subscribeToPort(int nodeId, int portId, bool enable) {
+void Network::subscribeToPort(MicroFlo::NodeId nodeId, int portId, bool enable) {
     /* FIXME: does not trigger
     if (nodeId < 1 || nodeId > lastAddedNodeIndex) {
         return;
@@ -481,11 +480,10 @@ void Network::subscribeToPort(int nodeId, int portId, bool enable) {
     }
 }
 
-void Network::connectSubgraph(bool isOutput, int subgraphNode, int subgraphPort,
-                              int childNode, int childPort) {
+void Network::connectSubgraph(bool isOutput, MicroFlo::NodeId subgraphNode, int subgraphPort,
+                              MicroFlo::NodeId childNode, int childPort) {
 
-    if (subgraphNode < 0 || subgraphNode >= lastAddedNodeIndex
-            || childNode < 0 || childNode >= lastAddedNodeIndex) {
+    if (subgraphNode >= lastAddedNodeIndex || childNode >= lastAddedNodeIndex) {
         // FIXME: emit error
         return;
     }
@@ -581,7 +579,7 @@ void HostCommunication::debugChanged(DebugLevel level) {
     transport->padCommandWithNArguments(1);
 }
 
-void HostCommunication::portSubscriptionChanged(int nodeId, int portId, bool enable) {
+void HostCommunication::portSubscriptionChanged(MicroFlo::NodeId nodeId, int portId, bool enable) {
     transport->sendCommandByte(GraphCmdPortSubscriptionChanged);
     transport->sendCommandByte(nodeId);
     transport->sendCommandByte(portId);
@@ -589,8 +587,8 @@ void HostCommunication::portSubscriptionChanged(int nodeId, int portId, bool ena
     transport->padCommandWithNArguments(3);
 }
 
-void HostCommunication::subgraphConnected(bool isOutput, int subgraphNode, int subgraphPort,
-                                      int childNode, int childPort) {
+void HostCommunication::subgraphConnected(bool isOutput, MicroFlo::NodeId subgraphNode, int subgraphPort,
+                                      MicroFlo::NodeId childNode, int childPort) {
     transport->sendCommandByte(GraphCmdSubgraphPortConnected);
     transport->sendCommandByte(isOutput);
     transport->sendCommandByte(subgraphNode);

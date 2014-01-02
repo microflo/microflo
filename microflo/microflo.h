@@ -23,16 +23,18 @@ const int MICROFLO_MAX_NODES = MICROFLO_NODE_LIMIT;
 const int MICROFLO_MAX_NODES = 50;
 #endif
 
+
+
 #ifdef MICROFLO_MESSAGE_LIMIT
 const int MICROFLO_MAX_MESSAGES = MICROFLO_MESSAGE_LIMIT;
 #else
 const int MICROFLO_MAX_MESSAGES = 50;
 #endif
 
-// TODO: add embedding API for use in existing Arduino sketches?
-class MicroFlo {
-public:
-    void doNothing() {;}
+
+namespace MicroFlo {
+    typedef uint8_t NodeId;
+
 };
 
 // Packet
@@ -113,16 +115,17 @@ public:
     void reset();
     void start();
 
-    int addNode(Component *node, int parentId);
+    int addNode(Component *node, MicroFlo::NodeId parentId);
     void connect(Component *src, int srcPort, Component *target, int targetPort);
-    void connect(int srcId, int srcPort, int targetId, int targetPort);
-    void connectSubgraph(bool isOutput, int subgraphNode, int subgraphPort, int childNode, int childPort);
+    void connect(MicroFlo::NodeId srcId, int srcPort, MicroFlo::NodeId targetId, int targetPort);
+    void connectSubgraph(bool isOutput, MicroFlo::NodeId subgraphNode, int subgraphPort,
+                         MicroFlo::NodeId childNode, int childPort);
 
     void sendMessage(Component *target, int targetPort, const Packet &pkg,
                      Component *sender=0, int senderPort=-1);
-    void sendMessage(int targetId, int targetPort, const Packet &pkg);
+    void sendMessage(MicroFlo::NodeId targetId, int targetPort, const Packet &pkg);
 
-    void subscribeToPort(int nodeId, int portId, bool enable);
+    void subscribeToPort(MicroFlo::NodeId nodeId, int portId, bool enable);
 
     void setNotificationHandler(NetworkNotificationHandler *handler) { notificationHandler = handler; }
 
@@ -138,7 +141,7 @@ private:
 
 private:
     Component *nodes[MICROFLO_MAX_NODES];
-    int lastAddedNodeIndex;
+    MicroFlo::NodeId lastAddedNodeIndex;
     Message messages[MICROFLO_MAX_MESSAGES];
     int messageWriteIndex;
     int messageReadIndex;
@@ -156,12 +159,13 @@ public:
     virtual void nodeAdded(Component *c, int parentId) = 0;
     virtual void nodesConnected(Component *src, int srcPort, Component *target, int targetPort) = 0;
     virtual void networkStateChanged(Network::State s) = 0;
-    virtual void subgraphConnected(bool isOutput, int subgraphNode, int subgraphPort, int childNode, int childPort);
+    virtual void subgraphConnected(bool isOutput, MicroFlo::NodeId subgraphNode, int subgraphPort,
+                                   MicroFlo::NodeId childNode, int childPort);
 
 
     virtual void emitDebug(DebugId id) = 0;
     virtual void debugChanged(DebugLevel level) = 0;
-    virtual void portSubscriptionChanged(int nodeId, int portId, bool enable);
+    virtual void portSubscriptionChanged(MicroFlo::NodeId nodeId, int portId, bool enable);
 };
 
 struct Connection {
@@ -238,7 +242,7 @@ public:
     virtual ~Component() {}
     virtual void process(Packet in, int port) = 0;
 
-    int id() { return nodeId; }
+    MicroFlo::NodeId id() { return nodeId; }
     int component() { return componentId; }
 
 protected:
@@ -253,9 +257,9 @@ private:
     int nPorts;
 
     Network *network;
-    int nodeId; // identifier in the network
+    MicroFlo::NodeId nodeId; // identifier in the network
     int componentId; // what type of component this is
-    int parentNodeId; // if <0, a top-level component, else subcomponent
+    MicroFlo::NodeId parentNodeId; // if <0, a top-level component, else subcomponent
 };
 
 #define MICROFLO_SUBGRAPH_MAXPORTS 10
@@ -298,8 +302,9 @@ public:
     virtual void networkStateChanged(Network::State s);
     virtual void emitDebug(DebugId id);
     virtual void debugChanged(DebugLevel level);
-    virtual void portSubscriptionChanged(int nodeId, int portId, bool enable);
-    virtual void subgraphConnected(bool isOutput, int subgraphNode, int subgraphPort, int childNode, int childPort);
+    virtual void portSubscriptionChanged(MicroFlo::NodeId nodeId, int portId, bool enable);
+    virtual void subgraphConnected(bool isOutput, MicroFlo::NodeId subgraphNode,
+                                   int subgraphPort, MicroFlo::NodeId childNode, int childPort);
 
 private:
     void parseCmd();
@@ -313,7 +318,7 @@ private:
 
     Network *network;
     HostTransport *transport;
-    unsigned int currentByte;
+    uint8_t currentByte;
     unsigned char buffer[MICROFLO_CMD_SIZE];
     enum State state;
 };
@@ -340,7 +345,7 @@ public:
 private:
     IO *io;
     HostCommunication *controller;
-    int serialPort;
+    int8_t serialPort;
     int serialBaudrate;
 };
 
