@@ -10,6 +10,11 @@ Home automation: fridge
 Lab/fabrication tools
 ---------------------
 * PCB solder oven
+* Dip coater
+* CNC mill
+* 3d-printers
+
+Components: PID control, stepper-motor
 
 Making music: digitally controlled analog synth
 -----------------------------------------------
@@ -32,6 +37,10 @@ Components: SD-card, NMEA parsing, Accelerometer/Gyro
 
 Robotics: ?
 ---------------
+* Line-follower
+* Autonomous N-copters
+
+Components: Servo,
 
 Interactive art: ?
 ------------------
@@ -122,7 +131,7 @@ Custom program -> Share
 * Perhaps make no difference between program and library!
 * Other people can reuse program "as lib"
 
-Hardware targets
+Platforms/Hardware targets
 ===================
 ARM Cortex-M3/M4(F) most interesting. Dirty-cheap modules available from TI (Launchpad) and STM (Discovery)
 * http://www.st.com/web/en/catalog/tools/FM116/SC959/SS1532/PF250863
@@ -131,6 +140,8 @@ ARM Cortex-M3/M4(F) most interesting. Dirty-cheap modules available from TI (Lau
 * https://estore.ti.com/Stellaris-LaunchPad.aspx
 
 FPGA soft-processors also very interesting. Most likely target is [Papilio](http://papilio.cc/) boards (Xilinx-based).
+
+It could also be interesting for some to combine MicroFlo with an existing RTOS. Examples: FreeRTOS, eCos
 
 Correctness, Testing
 =====================
