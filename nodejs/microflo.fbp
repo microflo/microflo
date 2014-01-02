@@ -1,0 +1,4 @@
+
+'/dev/ttyUSB1' -> DEVICENAME comp(MicroFloComponent)
+'examples/blink.fbp' -> GRAPH comp
+comp OUT -> IN out(core/Output)

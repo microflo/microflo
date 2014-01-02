@@ -593,50 +593,60 @@ var nodeLookup = function(graph, nodeName) {
     return r[nodeName];
 }
 
-var parseReceivedCmd = function(cmdData, graph) {
+var printReceived = function() {
+    var args = [];
+    for (var i=0; i<arguments.length; i++) {
+        args.push(arguments[i]);
+    }
+    console.log(args.join(", "));
+}
+
+var parseReceivedCmd = function(cmdData, graph, handler) {
     var cmd = cmdData.readUInt8(0);
     if (cmd == cmdFormat.commands.NetworkStopped.id) {
-        console.log("Network stopped");
+        handler("NETSTART");
     } else if (cmd == cmdFormat.commands.NetworkStarted.id) {
-        console.log("Network started");
+        handler("NETSTART");
     } else if (cmd == cmdFormat.commands.NodeAdded.id) {
         var component = componentLib.getComponentById(cmdData.readUInt8(1)).name
         var nodeName = nodeNameById(graph.nodeMap, cmdData.readUInt8(2))
-        console.log("ADD: ", nodeName, "(", component, ")");
+        handler("ADD", nodeName, "(", component, ")");
     } else if (cmd == cmdFormat.commands.NodesConnected.id) {
         var srcNode = nodeNameById(graph.nodeMap, cmdData.readUInt8(1))
         var srcPort = componentLib.outputPortById(nodeLookup(graph, srcNode).component, cmdData.readUInt8(2)).name
         var targetNode = nodeNameById(graph.nodeMap, cmdData.readUInt8(3))
         var targetPort = componentLib.inputPortById(nodeLookup(graph,targetNode).component, cmdData.readUInt8(4)).name
-        console.log("CONNECT: ", srcNode, srcPort, "->", targetPort, targetNode);
+        handler("CONNECT", srcNode, srcPort, "->", targetPort, targetNode);
     } else if (cmd === cmdFormat.commands.DebugChanged.id) {
         var level = nodeNameById(cmdFormat.debugLevels, cmdData.readUInt8(1));
-        console.log("DEBUGLEVEL: ", level);
+        handler("DEBUGLEVEL", level);
     } else if (cmd === cmdFormat.commands.DebugMessage.id) {
         var point = nodeNameById(cmdFormat.debugPoints, cmdData.readUInt8(1))
-        console.log("DEBUG: ", point);
+        handler("DEBUG", point);
     } else if (cmd === cmdFormat.commands.PortSubscriptionChanged.id) {
         var node = nodeNameById(graph.nodeMap, cmdData.readUInt8(1))
         var port = componentLib.outputPortById(graph.processes[node].component, cmdData.readUInt8(2)).name
         var enable = cmdData.readUInt8(3) ? "true" : "false";
-        console.log("SUBSCRIBE: ", node, "->", port, enable);
+        handler("SUBSCRIBE", node, "->", port, enable);
     } else if (cmd === cmdFormat.commands.PacketSent.id) {
         var srcNode = nodeNameById(graph.nodeMap, cmdData.readUInt8(1))
         var srcPort = componentLib.outputPortById(graph.processes[srcNode].component, cmdData.readUInt8(2)).name
         var targetNode = nodeNameById(graph.nodeMap, cmdData.readUInt8(3))
         var targetPort = componentLib.inputPortById(graph.processes[targetNode].component, cmdData.readUInt8(4)).name
         var type = nodeNameById(cmdFormat.packetTypes, cmdData.readUInt8(5));
-        var data = "unknown";
+        var data = undefined;
         if (type == "Boolean") {
-            data = cmdData.readUInt8(6) ? "true": "false";
+            data = cmdData.readUInt8(6) ? true: false;
+        } else if (type == "Void") {
+            data = null;
         }
-        console.log("SEND: ", srcNode, srcPort, "->", "(", type, ":", data, ")", "->", targetNode, targetPort);
+        handler("SEND", srcNode, srcPort, type, data, targetNode, targetPort);
     } else {
-        console.log("Unknown command: " + cmd.toString(16), cmdData.slice(0, 8));
+        handler("UNKNOWN" + cmd.toString(16), cmdData.slice(0, 8));
     }
 }
 
-var uploadGraph = function(serial, data, graph, callback) {
+var uploadGraph = function(serial, data, graph, receiveHandler) {
 
     var cmdSize = cmdFormat.commandSize;
     var buf = new Buffer(cmdSize*10);
@@ -651,7 +661,7 @@ var uploadGraph = function(serial, data, graph, callback) {
         for (var startIdx=0; startIdx < Math.floor(offset/cmdSize)*cmdSize; startIdx+=cmdSize) {
             var b = buf.slice(startIdx, startIdx+cmdSize);
             // console.log("b= ", b);
-            parseReceivedCmd(b, graph);
+            parseReceivedCmd(b, graph, receiveHandler ? receiveHandler : printReceived);
         }
         var slush = offset % cmdSize;
         buf.copy(buf, 0, offset-slush, offset);
@@ -894,6 +904,7 @@ if (require.main === module) {
         componentLib: componentLib,
         cmdStreamFromGraph: cmdStreamFromGraph,
         generateOutput: generateOutput,
-        setupRuntime: setupRuntime
+        setupRuntime: setupRuntime,
+        uploadGraph: uploadGraph
     }
 }

@@ -30,3 +30,4 @@ examples/capasitivePin.fbp
 test/TODO.md
 test/componentlib.js
 microflo/avr.hpp
+nodejs/MicroFloComponent.coffee

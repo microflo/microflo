@@ -23,5 +23,10 @@
     },
     "devDependencies": {
         "mocha": "~1.13.0"
+    },
+    "noflo": {
+      "components": {
+            "MicroFloComponent": "nodejs/MicroFloComponent"
+      }
     }
 }
