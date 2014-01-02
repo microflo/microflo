@@ -144,6 +144,8 @@ void HostCommunication::parseByte(char b) {
             state = ParseHeader;
             buffer[0] = b;
             currentByte = 1;
+        } else {
+            currentByte = 0;
         }
 
     } else if (state == Invalid) {

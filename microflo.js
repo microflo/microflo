@@ -905,6 +905,10 @@ if (require.main === module) {
         cmdStreamFromGraph: cmdStreamFromGraph,
         generateOutput: generateOutput,
         setupRuntime: setupRuntime,
-        uploadGraph: uploadGraph
+        uploadGraph: uploadGraph,
+        dataLiteralToCommand: dataLiteralToCommand,
+        writeCmd: writeCmd,
+        writeString: writeString,
+        cmdFormat: cmdFormat
     }
 }
