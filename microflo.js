@@ -604,7 +604,7 @@ var printReceived = function() {
 var parseReceivedCmd = function(cmdData, graph, handler) {
     var cmd = cmdData.readUInt8(0);
     if (cmd == cmdFormat.commands.NetworkStopped.id) {
-        handler("NETSTART");
+        handler("NETSTOP");
     } else if (cmd == cmdFormat.commands.NetworkStarted.id) {
         handler("NETSTART");
     } else if (cmd == cmdFormat.commands.NodeAdded.id) {
