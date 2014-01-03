@@ -504,6 +504,9 @@ var generateComponentFactory = function(componentLib) {
     return out;
 }
 
+// TODO: allow port types to be declared in component metadata,
+// and send the appropriate types instead of just "all"
+// https://github.com/noflo/noflo/issues/51
 var portDefAsArray = function(port) {
     var a = [];
     for (var name in port) {
@@ -701,6 +704,7 @@ var uploadGraph = function(serial, data, graph, receiveHandler) {
      }, 500);
 }
 
+
 var handleMessage = function (message, connection, graph, getSerial, debugLevel) {
   if (message.type == 'utf8') {
     try {
@@ -710,19 +714,24 @@ var handleMessage = function (message, connection, graph, getSerial, debugLevel)
         return;
     }
     console.log(contents.protocol, contents.command, contents.payload);
-    if (contents.protocol == "component" && contents.command == "list") {
+    if (contents.protocol == "component") {
 
-        for (var name in componentLib.getComponents()) {
-            var comp = componentLib.getComponent(name);
+        if (contents.command == "list") {
+            for (var name in componentLib.getComponents()) {
+                var comp = componentLib.getComponent(name);
 
-            var resp = {protocol: "component", command: "component",
-                payload: {name: name, description: comp.description || "",
-                    inPorts: portDefAsArray(componentLib.inputPortsFor(name)),
-                    outPorts: portDefAsArray(componentLib.outputPortsFor(name))
-                }
-            };
-            connection.sendUTF(JSON.stringify(resp));
+                var resp = {protocol: "component", command: "component",
+                    payload: {name: name, description: comp.description || "",
+                        inPorts: portDefAsArray(componentLib.inputPortsFor(name)),
+                        outPorts: portDefAsArray(componentLib.outputPortsFor(name))
+                    }
+                };
+                connection.sendUTF(JSON.stringify(resp));
+            }
+        } else {
+            console.log("Unknown WS command:", contents);
         }
+
     } else if (contents.protocol == "graph") {
         if (contents.command == "clear") {
             graph.processes = {};
@@ -739,28 +748,67 @@ var handleMessage = function (message, connection, graph, getSerial, debugLevel)
             graph.connections.push(wsConnectionFormatToFbp(contents.payload));
         } else if (contents.command == "removeinitial") {
             graph.connections = connectionsWithoutEdge(graph.connections, wsConnectionFormatToFbp(contents.payload));
+        } else {
+            console.log("Unknown WS command:", contents);
         }
     } else if (contents.protocol == "network") {
         if (contents.command == "start") {
 
             // FIXME: also do error handling, and send that across
             // https://github.com/noflo/noflo-runtime-websocket/blob/master/runtime/network.js
+            // TODO: handle start/stop messages, send this to the UI
             var wsSendOutput = function() {
                 var args = [];
                 for (var i=0; i<arguments.length; i++) {
                     args.push(arguments[i]);
                 }
-                var string = args.join(", ");
-                string = string.replace(/\n$/, '');
-                var msg = {protocol: 'network', command: 'output', payload: {message: string}};
-                connection.sendUTF(JSON.stringify(msg));
+                if (args[0] == "SEND") {
+                    var data = undefined;
+                    if (args[3] == "Void") {
+                        data = "!";
+                    } else {
+                        data = args[4];
+                    }
+                    var msg = {protocol: "network", command: "data", payload: {
+                            from: {node: args[1], port: args[2]},
+                            to: {node: args[5], port: args[6]},
+                            data: data
+                        }
+                    }
+                    connection.sendUTF(JSON.stringify(msg));
+                } else {
+                    var string = args.join(", ");
+                    string = string.replace(/\n$/, '');
+                    var msg = {protocol: 'network', command: 'output', payload: {message: string}};
+                    connection.sendUTF(JSON.stringify(msg));
+                }
             }
 
             var data = cmdStreamFromGraph(componentLib, graph, debugLevel);
             uploadGraph(getSerial(), data, graph, wsSendOutput);
+
+        } else if (contents.command == "edges"){
+            // FIXME: should not need to use serial directly here
+            var serial = getSerial();
+            var edges = contents.payload;
+
+            // FIXME: loop over all edges, unsubscribe
+
+            // Subscribe to enabled edges
+            edges.forEach(function (edge) {
+                var buffer = new Buffer(16);
+                var srcId = graph.nodeMap[edge.src.process].id;
+                var srcComp = graph.processes[edge.src.process].component;
+                var srcPort = componentLib.outputPort(srcComp, edge.src.port).id;
+                writeString(buffer, 0, cmdFormat.magicString);
+                writeCmd(buffer, 8, cmdFormat.commands.SubscribeToPort.id, srcId, srcPort, 1);
+                serial.write(buffer);
+            });
+        } else {
+            console.log("Unknown WS command:", contents);
         }
     } else {
-        console.log("Unknown WS message:", contents);
+        console.log("Unknown WS protocol:", contents);
     }
   }
 };
