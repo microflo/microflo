@@ -720,6 +720,7 @@ var handleMessage = function (message, connection, graph, getSerial, debugLevel)
             for (var name in componentLib.getComponents()) {
                 var comp = componentLib.getComponent(name);
 
+                // TODO: also allow to send icon definitions
                 var resp = {protocol: "component", command: "component",
                     payload: {name: name, description: comp.description || "",
                         inPorts: portDefAsArray(componentLib.inputPortsFor(name)),
