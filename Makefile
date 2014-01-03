@@ -14,6 +14,11 @@ OSX_ARDUINO_APP=/Applications/Arduino.app
 CPPFLAGS=-ffunction-sections -fdata-sections -g -Os -w
 DEFINES=-DHAVE_DALLAS_TEMPERATURE
 
+
+ifdef SERIALPORT
+INOOPTIONS=--serial-port=$(SERIALPORT)
+endif
+
 # Platform specifics
 ifeq ($(OS),Windows_NT)
 	# TODO, test and fix
@@ -53,7 +58,7 @@ build-avr: install
 build: build-arduino build-avr
 
 upload: build
-	cd build/arduino && ino upload --board-model=$(MODEL)
+	cd build/arduino && ino upload --board-model=$(MODEL) $(INOOPTIONS)
 
 upload-dfu: build-avr
 	cd build/avr && sudo $(DFUPROGRAMMER) $(AVRMODEL) erase
