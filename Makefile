@@ -3,6 +3,9 @@ GRAPH=examples/blink.fbp
 MODEL=uno
 AVRMODEL=at90usb1287
 
+# SERIALPORT=/dev/somecustom
+# ARDUINO=/home/user/Arduino-1.0.5
+
 AVRSIZE=avr-size
 AVRGCC=avr-g++
 AVROBJCOPY=avr-objcopy
@@ -15,8 +18,14 @@ CPPFLAGS=-ffunction-sections -fdata-sections -g -Os -w
 DEFINES=-DHAVE_DALLAS_TEMPERATURE
 
 
+INOOPTIONS=--board-model=$(MODEL)
+
 ifdef SERIALPORT
-INOOPTIONS=--serial-port=$(SERIALPORT)
+INOUPLOADOPTIONS=--serial-port=$(SERIALPORT)
+endif
+
+ifdef ARDUINO
+INOOPTIONS+=--arduino-dist=$(ARDUINO)
 endif
 
 # Platform specifics
@@ -45,7 +54,7 @@ build-arduino: install
 	cd build/arduino/lib && test -e patched || patch -p0 < ../../../thirdparty/OneWire.patch
 	touch build/arduino/lib/patched
 	node microflo.js generate $(GRAPH) build/arduino/src/firmware.cpp
-	cd build/arduino && ino build --board-model=$(MODEL) --cppflags="$(CPPFLAGS) $(DEFINES)"
+	cd build/arduino && ino build $(INOOPTIONS) --cppflags="$(CPPFLAGS) $(DEFINES)"
 	$(AVRSIZE) -A build/arduino/.build/$(MODEL)/firmware.elf
 
 build-avr: install
@@ -58,7 +67,7 @@ build-avr: install
 build: build-arduino build-avr
 
 upload: build
-	cd build/arduino && ino upload --board-model=$(MODEL) $(INOOPTIONS)
+	cd build/arduino && ino upload $(INOUPLOADOPTIONS) $(INOOPTIONS)
 
 upload-dfu: build-avr
 	cd build/avr && sudo $(DFUPROGRAMMER) $(AVRMODEL) erase
