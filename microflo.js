@@ -742,8 +742,20 @@ var handleMessage = function (message, connection, graph, getSerial, debugLevel)
         }
     } else if (contents.protocol == "network") {
         if (contents.command == "start") {
+
+            var wsSendOutput = function() {
+                var args = [];
+                for (var i=0; i<arguments.length; i++) {
+                    args.push(arguments[i]);
+                }
+                var string = args.join(", ");
+                string = string.replace(/\n$/, '');
+                var msg = {protocol: 'network', command: 'output', payload: {message: string}};
+                connection.sendUTF(JSON.stringify(msg));
+            }
+
             var data = cmdStreamFromGraph(componentLib, graph, debugLevel);
-            uploadGraph(getSerial(), data, graph);
+            uploadGraph(getSerial(), data, graph, wsSendOutput);
         }
     } else {
         console.log("Unknown WS message:", contents);
