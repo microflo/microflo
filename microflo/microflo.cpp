@@ -552,6 +552,8 @@ void HostCommunication::packetSent(int index, Message m, Component *src, int src
         if (m.pkg.isBool()) {
             transport->sendCommandByte(m.pkg.asBool());
             transport->padCommandWithNArguments(6);
+        } else if (m.pkg.isVoid()) {
+            transport->padCommandWithNArguments(5);
         } else {
             // FIXME: support all types
             transport->padCommandWithNArguments(5); // finish command before sending debug
