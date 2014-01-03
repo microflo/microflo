@@ -743,6 +743,8 @@ var handleMessage = function (message, connection, graph, getSerial, debugLevel)
     } else if (contents.protocol == "network") {
         if (contents.command == "start") {
 
+            // FIXME: also do error handling, and send that across
+            // https://github.com/noflo/noflo-runtime-websocket/blob/master/runtime/network.js
             var wsSendOutput = function() {
                 var args = [];
                 for (var i=0; i<arguments.length; i++) {

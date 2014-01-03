@@ -169,7 +169,7 @@
         },
 
         "ReadCapacitivePin": { "id": 23,
-            "description": "",
+            "description": "Emits true if measured capacitance (in iterations) on @pin exceeds @threshold",
             "inPorts": {
                 "trigger": { "id": 0 },
                 "pin": { "id": 1 },
