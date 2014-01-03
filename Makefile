@@ -48,6 +48,7 @@ build-avr: install
 	node microflo.js generate $(GRAPH) build/avr/firmware.cpp
 	cd build/avr && $(AVRGCC) -o firmware.elf firmware.cpp -I../../microflo -DAVR=1 -Wall -Werror -Wno-error=overflow -mmcu=$(AVRMODEL) -fno-exceptions -fno-rtti $(CPPFLAGS)
 	cd build/avr && $(AVROBJCOPY) -j .text -j .data -O ihex firmware.elf firmware.hex
+	$(AVRSIZE) -A build/avr/firmware.elf
 
 build: build-arduino build-avr
 
