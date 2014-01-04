@@ -777,6 +777,13 @@ var handleMessage = function (message, connection, graph, getSerial, debugLevel)
                         }
                     }
                     connection.sendUTF(JSON.stringify(msg));
+
+                } else if (args[0] == "NETSTOP") {
+                    var m = {protocol: "network", command: "stopped"};
+                    connection.sendUTF(JSON.stringify(m));
+                } else if (args[0] == "NETSTART") {
+                    var m = {protocol: "network", command: "started"};
+                    connection.sendUTF(JSON.stringify(m));
                 } else {
                     var string = args.join(", ");
                     string = string.replace(/\n$/, '');
