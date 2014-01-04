@@ -484,6 +484,17 @@ Methods
 * Technical demos
 * Academic papers
 
+Core advantages
+
+over traditional Arduino/uC prog. Some of these are planned, not realized fully yet.
+* Visual programming, C++ optional
+* Visual, interactive debugging
+* Interactive simulation, without special tools
+* Instant program changes
+* Portability across microcontroller families
+* Automated BDD testing, both on host and on-device
+
+
 In the press
 -------------
 * [LWN.net - A bit of visual programming with MicroFlo](http://lwn.net/Articles/575524)
