@@ -753,7 +753,8 @@ var handleMessage = function (message, connection, graph, getSerial, debugLevel)
             console.log("Unknown WS command:", contents);
         }
     } else if (contents.protocol == "network") {
-        if (contents.command == "start") {
+        if (contents.command == "start" || contents.command == "stop") {
+            // TODO: handle stop command separately, actually pause the graph
 
             // FIXME: also do error handling, and send that across
             // https://github.com/noflo/noflo-runtime-websocket/blob/master/runtime/network.js
