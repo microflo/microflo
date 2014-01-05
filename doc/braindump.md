@@ -512,3 +512,55 @@ Other contacts
 * Henri Bergius, creator of NoFlo. TheGrid, Berlin
 * Brendan Howell. Artist+Educator, Berlin.
 * Jørgen Lien. Høyskolen i Vestfold.
+
+
+Finite State Machines & Flow-based programming
+==============================================
+
+TODO: check for prior art around this design pattern.
+
+Consider the StateMachine (SM) as a FBP component, containing one flows/graphs for
+each of the possible states.
+
+All the in and outports of the contained graphs are exposed on the SM,
+and it routes packets to the appropriate state sub-flow depending on current state.
+
+A set of nodes listening to data from inports (and/or intermediate nodes of state flows)
+acts as predicates, and decides when to transition to a new state.
+
+Enter/leave is modeled by special messages (or special ports),
+sent by the SM to state sub-flows on transitions.
+
+It may or may not be desirable to be able to visualize the setup in the traditional FSM way,
+a graph with circular nodes for states, directed edges for transitions.
+
+It is desirable that the ST is easily testable. We at least want to be able to
+* Mock the input and check succesful transition
+* Assert that after a set of functional tests, all states have been visited
+* Assert that there are no ambigious transitions
+
+It is desirable that one can easily introspect the ST at runtime,
+both get current state and subscribe to state transitions.
+
+Related to this high-level FSM, it would be nice to be able to create small FBP components
+using a structured/visual FSM, for cases where a dynamic ST is not performant enough.
+It may be neccesary to do code-generation to realize this, and that predicates and enter/leave/run
+functions are standard C++ code.
+Challenges:
+* Having a sensible mapping from C++ code back to model definition, especially for debugging
+* Injecting code snippets into the appropriate context when generating, so they have access to the state/data needed
+
+
+Arduino versus RPi
+===================
+
+Criteria            Arduino             RPi
+Cost (USD)          < 10                >25
+HW customization    Easy                Impossible if not partner
+Realtime            Hard, ~1uS          Soft, ~1mS
+Power               mW                  ~2 Watt
+SW toolchain        C++/Arduino         C++, Python, JS
+I/O                 Digital,PWM,ADC     Digital GPIO
+                    i2c,SPI,USART       i2c,SPI,USART
+                    USB device          USB host, Ethernet, HDMI, audio out
+
