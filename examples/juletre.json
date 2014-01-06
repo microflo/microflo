@@ -1,0 +1,337 @@
+{
+"properties": {
+"name": "runlight",
+"environment": {
+"runtime": "websocket",
+"wsUrl": "ws://77.88.71.235:3569"
+}
+},
+"exports": [],
+"groups": [],
+"processes": {
+"DigitalWrite_6xblg": {
+"component": "DigitalWrite",
+"metadata": {
+"x": 1174,
+"y": 48,
+"label": "DigitalWrite"
+}
+},
+"DigitalWrite_6v3be": {
+"component": "DigitalWrite",
+"metadata": {
+"x": 1167,
+"y": 172,
+"label": "DigitalWrite"
+}
+},
+"DigitalWrite_if2ga": {
+"component": "DigitalWrite",
+"metadata": {
+"x": 1162,
+"y": 297,
+"label": "DigitalWrite"
+}
+},
+"NumberEquals_5u38p": {
+"component": "NumberEquals",
+"metadata": {
+"x": 939,
+"y": -107,
+"label": "NumberEquals"
+}
+},
+"Split_t2vtg": {
+"component": "Split",
+"metadata": {
+"x": 665,
+"y": 0,
+"label": "Split"
+}
+},
+"NumberEquals_tg0ff": {
+"component": "NumberEquals",
+"metadata": {
+"x": 942,
+"y": 174,
+"label": "NumberEquals"
+}
+},
+"NumberEquals_f3s84": {
+"component": "NumberEquals",
+"metadata": {
+"x": 927,
+"y": 308,
+"label": "NumberEquals"
+}
+},
+"DigitalWrite_7i07m": {
+"component": "DigitalWrite",
+"metadata": {
+"x": 1177,
+"y": -105,
+"label": "DigitalWrite"
+}
+},
+"Count_tmpx4": {
+"component": "Count",
+"metadata": {
+"x": 486,
+"y": 102,
+"label": "Count"
+}
+},
+"Timer_bjqa9": {
+"component": "Timer",
+"metadata": {
+"x": 444,
+"y": -10,
+"label": "Timer"
+}
+},
+"NumberEquals_8t7mj": {
+"component": "NumberEquals",
+"metadata": {
+"x": 640,
+"y": 255,
+"label": "NumberEquals"
+}
+},
+"NumberEquals_pent6": {
+"component": "NumberEquals",
+"metadata": {
+"x": 908,
+"y": 29,
+"label": "NumberEquals"
+}
+}
+},
+"connections": [
+{
+"src": {
+"process": "NumberEquals_tg0ff",
+"port": "out"
+},
+"tgt": {
+"process": "DigitalWrite_6v3be",
+"port": "in"
+},
+"metadata": {
+"route": 0
+}
+},
+{
+"src": {
+"process": "NumberEquals_f3s84",
+"port": "out"
+},
+"tgt": {
+"process": "DigitalWrite_if2ga",
+"port": "in"
+},
+"metadata": {
+"route": 0
+}
+},
+{
+"src": {
+"process": "Split_t2vtg",
+"port": "out1"
+},
+"tgt": {
+"process": "NumberEquals_5u38p",
+"port": "a"
+},
+"metadata": {
+"route": 0
+}
+},
+{
+"src": {
+"process": "Split_t2vtg",
+"port": "out3"
+},
+"tgt": {
+"process": "NumberEquals_tg0ff",
+"port": "a"
+},
+"metadata": {
+"route": 0
+}
+},
+{
+"src": {
+"process": "Split_t2vtg",
+"port": "out4"
+},
+"tgt": {
+"process": "NumberEquals_f3s84",
+"port": "a"
+},
+"metadata": {
+"route": 0
+}
+},
+{
+"src": {
+"process": "Timer_bjqa9",
+"port": "out"
+},
+"tgt": {
+"process": "Count_tmpx4",
+"port": "in"
+},
+"metadata": {
+"route": 0
+}
+},
+{
+"src": {
+"process": "Count_tmpx4",
+"port": "out"
+},
+"tgt": {
+"process": "Split_t2vtg",
+"port": "in"
+},
+"metadata": {
+"route": 0
+}
+},
+{
+"src": {
+"process": "NumberEquals_5u38p",
+"port": "out"
+},
+"tgt": {
+"process": "DigitalWrite_7i07m",
+"port": "in"
+},
+"metadata": {
+"route": 0
+}
+},
+{
+"src": {
+"process": "NumberEquals_8t7mj",
+"port": "out"
+},
+"tgt": {
+"process": "Count_tmpx4",
+"port": "reset"
+},
+"metadata": {
+"route": 0
+}
+},
+{
+"src": {
+"process": "Split_t2vtg",
+"port": "out5"
+},
+"tgt": {
+"process": "NumberEquals_8t7mj",
+"port": "a"
+},
+"metadata": {
+"route": 0
+}
+},
+{
+"src": {
+"process": "Split_t2vtg",
+"port": "out2"
+},
+"tgt": {
+"process": "NumberEquals_pent6",
+"port": "a"
+},
+"metadata": {
+"route": 0
+}
+},
+{
+"src": {
+"process": "NumberEquals_pent6",
+"port": "out"
+},
+"tgt": {
+"process": "DigitalWrite_6xblg",
+"port": "in"
+},
+"metadata": {
+"route": 0
+}
+},
+{
+"data": "3",
+"tgt": {
+"process": "DigitalWrite_6xblg",
+"port": "pin"
+}
+},
+{
+"data": "5",
+"tgt": {
+"process": "DigitalWrite_6v3be",
+"port": "pin"
+}
+},
+{
+"data": "6",
+"tgt": {
+"process": "DigitalWrite_if2ga",
+"port": "pin"
+}
+},
+{
+"data": "9",
+"tgt": {
+"process": "DigitalWrite_7i07m",
+"port": "pin"
+}
+},
+{
+"data": "500",
+"tgt": {
+"process": "Timer_bjqa9",
+"port": "interval"
+}
+},
+{
+"data": "0",
+"tgt": {
+"process": "NumberEquals_5u38p",
+"port": "b"
+}
+},
+{
+"data": "2",
+"tgt": {
+"process": "NumberEquals_tg0ff",
+"port": "b"
+}
+},
+{
+"data": "3",
+"tgt": {
+"process": "NumberEquals_f3s84",
+"port": "b"
+}
+},
+{
+"data": "4",
+"tgt": {
+"process": "NumberEquals_8t7mj",
+"port": "b"
+}
+},
+{
+"data": "1",
+"tgt": {
+"process": "NumberEquals_pent6",
+"port": "b"
+}
+}
+]
+}
