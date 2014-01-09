@@ -12,6 +12,7 @@ AVROBJCOPY=avr-objcopy
 DFUPROGRAMMER=dfu-programmer
 VERSION=$(shell git describe --tags)
 OSX_ARDUINO_APP=/Applications/Arduino.app
+AVR_FCPU=1000000UL
 
 # Not normally customized
 CPPFLAGS=-ffunction-sections -fdata-sections -g -Os -w
@@ -35,6 +36,8 @@ else
     UNAME_S := $(shell uname -s)
     ifeq ($(UNAME_S),Darwin)
         AVRSIZE=$(OSX_ARDUINO_APP)/Contents/Resources/Java/hardware/tools/avr/bin/avr-size
+	AVRGCC=$(OSX_ARDUINO_APP)/Contents/Resources/Java/hardware/tools/avr/bin/avr-g++
+	AVROBJCOPY=$(OSX_ARDUINO_APP)/Contents/Resources/Java/hardware/tools/avr/bin/avr-objcopy
     endif
     ifeq ($(UNAME_S),Linux)
         # Nothing needed :D
@@ -60,7 +63,7 @@ build-arduino: install
 build-avr: install
 	mkdir -p build/avr
 	node microflo.js generate $(GRAPH) build/avr/firmware.cpp
-	cd build/avr && $(AVRGCC) -o firmware.elf firmware.cpp -I../../microflo -DAVR=1 -Wall -Werror -Wno-error=overflow -mmcu=$(AVRMODEL) -fno-exceptions -fno-rtti $(CPPFLAGS)
+	cd build/avr && $(AVRGCC) -o firmware.elf firmware.cpp -I../../microflo -DF_CPU=$(AVR_FCPU) -DAVR=1 -Wall -Werror -Wno-error=overflow -mmcu=$(AVRMODEL) -fno-exceptions -fno-rtti $(CPPFLAGS)
 	cd build/avr && $(AVROBJCOPY) -j .text -j .data -O ihex firmware.elf firmware.hex
 	$(AVRSIZE) -A build/avr/firmware.elf
 
@@ -72,7 +75,8 @@ upload: build
 upload-dfu: build-avr
 	cd build/avr && sudo $(DFUPROGRAMMER) $(AVRMODEL) erase
 	sleep 1
-	cd build/avr && sudo $(DFUPROGRAMMER) $(AVRMODEL) flash firmware.hex || sudo $(DFUPROGRAMMER) $(AVRMODEL) flash firmware.hex || sudo $(DFUPROGRAMMER) $(AVRMODEL) flash firmware.hex
+	cd build/avr && sudo $(DFUPROGRAMMER) $(AVRMODEL) flash firmware.hex || sudo $(DFUPROGRAMMER) $(AVRMODEL) flash firmware.hex || sudo $(DFUPROGRAMMER) $(AVRMODEL) flash firmware.hex || sudo $(DFUPROGRAMMER) $(AVRMODEL) flash firmware.hex || sudo $(DFUPROGRAMMER) $(AVRMODEL) flash firmware.hex
+	sudo $(DFUPROGRAMMER) $(AVRMODEL) start
 
 clean:
 	git clean -dfx --exclude=node_modules

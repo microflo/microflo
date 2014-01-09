@@ -213,7 +213,7 @@
         },
 
 
-        "AT90USBKEY": { "id": 51,
+        "ATUSBKEY": { "id": 51,
             "description": "Convenient definition of pins available on Atmel AT90USBKEY",
             "outPorts": {
                 "porta0": { "id": 0 },

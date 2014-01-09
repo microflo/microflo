@@ -1,0 +1,13 @@
+
+#timer(Timer) OUT -> IN toggle(ToggleBoolean) OUT -> IN split(Split), '1000' -> INTERVAL timer
+timer(Timer) OUT -> TRIGGER read(DigitalRead) OUT -> IN split(Split), '5' -> INTERVAL timer
+# 'true' -> IN split(Split)
+board(ATUSBKEY) PORTA0 -> PIN outA(DigitalWrite), split OUT1 -> IN outA
+board PORTA1 -> PIN outB(DigitalWrite), split OUT2 -> IN outB
+board PORTA2 -> PIN outC(DigitalWrite), split OUT3 -> IN outC
+board PORTA3 -> PIN outD(DigitalWrite), split OUT4 -> IN outD
+board PORTA4 -> PIN outE(DigitalWrite), split OUT5 -> IN outE
+board PORTA5 -> PIN outF(DigitalWrite), split OUT6 -> IN outF
+board PORTA6 -> PIN outG(DigitalWrite), split OUT7 -> IN outG
+board PORTA7 -> PIN outH(DigitalWrite), split OUT8 -> IN outH
+board PORTF0 -> PIN read
