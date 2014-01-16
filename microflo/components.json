@@ -185,6 +185,31 @@
             }
         },
 
+        "Min": { "id": 25,
+            "description": "Emits minimum value of @in and @threshold",
+            "inPorts": {
+                "in": { "id": 0 },
+                "threshold": { "id": 1 }
+            }
+        },
+
+        "Max": { "id": 26,
+            "description": "Emits maximum value of @in and @threshold",
+            "inPorts": {
+                "in": { "id": 0 },
+                "threshold": { "id": 1 }
+            }
+        },
+
+        "Constrain": { "id": 27,
+            "description": "Constraina a number within a the range [@lower,@upper]",
+            "inPorts": {
+                "in": { "id": 0 },
+                "lower": { "id": 1 },
+                "upper": { "id": 2 }
+            }
+        },
+
         "ArduinoUno": { "id": 50,
             "description": "Convenient definition of pins available on Arduino Uno",
             "outPorts": {
@@ -279,6 +304,6 @@
             "outPorts": {}
         },
 
-        "Max": { "id": 255, ".skip": true }
+        "_Max": { "id": 255, ".skip": true }
     }
 }

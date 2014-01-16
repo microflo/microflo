@@ -19,7 +19,7 @@ public:
     }
 };
 class Invalid : public DummyComponent {};
-class Max : public DummyComponent {};
+class _Max : public DummyComponent {};
 
 class SingleOutputComponent : public Component {
 public:
@@ -233,6 +233,99 @@ private:
     long inmax;
     long outmax;
     long outmin;
+};
+
+#ifdef max
+#undef max
+#endif
+#ifdef min
+#undef min
+#endif
+#ifdef constrain
+#undef constrain
+#endif
+
+// FIXME: implement Min, Max, Constrain as generics operating on Packet
+class Constrain : public SingleOutputComponent {
+public:
+    virtual void process(Packet in, int port) {
+        using namespace ConstrainPorts;
+        if (in.isSetup()) {
+            // no defaults
+            lower = 0;
+            upper = 0;
+            input = 0;
+        } else if (port == InPorts::lower && in.isData()) {
+            lower = in.asInteger();
+        } else if (port == InPorts::upper && in.isData()) {
+            upper = in.asInteger();
+        } else if (port == InPorts::in && in.isNumber()) {
+            input = in.asInteger();
+            send(Packet(constrain()));
+        }
+    }
+private:
+    long constrain() {
+        if (input > upper)
+            return upper;
+        else if (input < lower)
+            return lower;
+        else
+            return input;
+    }
+    long lower;
+    long upper;
+    long input;
+};
+
+
+class Min : public SingleOutputComponent {
+public:
+    virtual void process(Packet in, int port) {
+        using namespace MinPorts;
+        if (in.isSetup()) {
+            threshold = 0;
+        } else if (port == InPorts::threshold && in.isData()) {
+            threshold = in.asInteger();
+        } else if (port == InPorts::in && in.isNumber()) {
+            input = in.asInteger();
+            send(Packet(min()));
+        }
+    }
+private:
+    long min() {
+        if (input >= threshold)
+            return threshold;
+        else
+            return input;
+    }
+    long threshold;
+    long input;
+};
+
+
+class Max : public SingleOutputComponent {
+public:
+    virtual void process(Packet in, int port) {
+        using namespace MaxPorts;
+        if (in.isSetup()) {
+            threshold = 0;
+        } else if (port == InPorts::threshold && in.isData()) {
+            threshold = in.asInteger();
+        } else if (port == InPorts::in && in.isNumber()) {
+            input = in.asInteger();
+            send(Packet(max()));
+        }
+    }
+private:
+    long max() {
+        if (input <= threshold)
+            return threshold;
+        else
+            return input;
+    }
+    long threshold;
+    long input;
 };
 
 class Timer : public SingleOutputComponent {
@@ -509,7 +602,6 @@ private:
     }
 
 private:
-    bool validData;
     long lastA;
     long lastB;
 };
