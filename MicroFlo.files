@@ -31,3 +31,4 @@ test/TODO.md
 test/componentlib.js
 microflo/avr.hpp
 nodejs/MicroFloComponent.coffee
+examples/max7219.fbp

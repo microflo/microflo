@@ -1,0 +1,7 @@
+
+'5' -> IN  matrix(LedMatrixMax)
+
+board(ArduinoUno) PIN8 -> PINCLK matrix
+board() PIN7 -> PINDIN matrix
+board() PIN6 -> PINCS matrix
+

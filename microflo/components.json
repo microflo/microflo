@@ -210,6 +210,16 @@
             }
         },
 
+        "LedMatrixMax": { "id": 28,
+            "description": "Constraina a number within a the range [@lower,@upper]",
+            "inPorts": {
+                "in": { "id": 0 },
+                "pincs": { "id": 1 },
+                "pindin": { "id": 2 },
+                "pinclk": { "id": 3 }
+            }
+        },
+
         "ArduinoUno": { "id": 50,
             "description": "Convenient definition of pins available on Arduino Uno",
             "outPorts": {
@@ -236,6 +246,7 @@
             },
             "inPorts": {}
         },
+
 
 
         "ATUSBKEY": { "id": 51,
