@@ -492,7 +492,7 @@ void Network::connectSubgraph(bool isOutput, MicroFlo::NodeId subgraphNode, int 
 
     Component *comp = nodes[subgraphNode];
     Component *child = nodes[childNode];
-    if (!comp->component() != IdSubGraph || child->parentNodeId < 1) {
+    if (comp->component() != IdSubGraph || child->parentNodeId < 1) {
         // FIXME: emit error
         return;
     }
