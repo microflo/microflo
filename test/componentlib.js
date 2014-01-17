@@ -19,9 +19,9 @@ describe('ComponentLibrary', function(){
             assert.equal(skipped.length, 3);
         })
         it("Max,Invalid should be skipped", function() {
-            assert.ok(normal.indexOf("Max") === -1);
+            assert.ok(normal.indexOf("_Max") === -1);
             assert.ok(normal.indexOf("Invalid") === -1);
-            assert.ok(skipped.indexOf("Max") !== -1);
+            assert.ok(skipped.indexOf("_Max") !== -1);
             assert.ok(skipped.indexOf("Invalid") !== -1);
         })
         it("Split,Forward should be available", function() {
