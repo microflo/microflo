@@ -43,7 +43,7 @@ function ComponentLibrary(definition, basedir) {
 
                     var exports = {};
                     for (var i=0; i<graph.exports.length; i++) {
-                        exports[graph.exports[i].public] = {id: i};
+                        exports[graph.exports[i]['public']] = {id: i};
                     }
 
                     // FIXME: separate between inport and outports. Requires https://github.com/noflo/noflo/issues/118
@@ -261,7 +261,7 @@ var cmdStreamBuildGraph = function(currentNodeId, buffer, index, componentLib, g
 
             for (var i=0; i<subgraph.exports.length; i++) {
                 var c = subgraph.exports[i];
-                var tok = c.private.split(".");
+                var tok = c['private'].split(".");
                 if (tok.length != 2) {
                     throw "Invalid export definition"
                 }
@@ -269,7 +269,7 @@ var cmdStreamBuildGraph = function(currentNodeId, buffer, index, componentLib, g
                 var childNode = nodeMap[tok[0]];
                 var childPort = findPort(componentLib, subgraph, tok[0], tok[1]);
                 var subgraphNode = nodeMap[nodeName];
-                var subgraphPort = componentLib.inputPort(graph.processes[nodeName].component, c.public);
+                var subgraphPort = componentLib.inputPort(graph.processes[nodeName].component, c['public']);
                 console.log("connect subgraph", childNode, childPort);
                 index += writeCmd(buffer, index, cmdFormat.commands.ConnectSubgraphPort.id,
                                   childPort.isOutPort ? 0 : 1, subgraphNode.id, subgraphPort.id,
