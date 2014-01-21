@@ -4,12 +4,13 @@
  */
 
 var assert = require("assert")
-var microflo = require("../microflo");
+var microflo = require("../lib/microflo");
+var componentLib = new microflo.componentlib.ComponentLibrary(require("../microflo/components.json"), "./microflo")
 
 describe('ComponentLibrary', function(){
     describe('listing all components', function(){
-        var normal = microflo.componentLib.listComponents(false, true);
-        var all = microflo.componentLib.listComponents(true, true);
+        var normal = componentLib.listComponents(false, true);
+        var all = componentLib.listComponents(true, true);
         var skipped = all.filter(function(n) { return normal.indexOf(n) === -1 });
 
         it('should give above 20 normal', function(){
@@ -31,7 +32,7 @@ describe('ComponentLibrary', function(){
             assert.ok(normal.indexOf("Forward") !== -1);
         })
         it("no components have same id", function() {
-            var defs = microflo.componentLib.getComponents(true);
+            var defs = componentLib.getComponents(true);
             for (var i=0; i<all.length; i++) {
                 for (var j=0; j<all.length; j++) {
                     var I = all[i];

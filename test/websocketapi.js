@@ -4,14 +4,14 @@
  */
 
 var assert = require("assert")
-var microflo = require("../microflo");
+var microflo = require("../lib/microflo");
 var websocket = require("websocket");
 
-var componentLib = new microflo.ComponentLibrary(require("../microflo/components.json"));
+var componentLib = new microflo.componentlib.ComponentLibrary(require("../microflo/components.json"));
 
 describe('WebSocket API', function(){
     before(function () {
-        microflo.setupRuntime({"parent": {"port": 3888}});
+        microflo.runtime.setupRuntime(undefined, 3888);
     });
 
     after(function () {

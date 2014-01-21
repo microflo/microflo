@@ -4,15 +4,14 @@
  */
 
 var assert = require("assert")
-var microflo = require("../microflo");
+var microflo = require("../lib/microflo");
 var addon = undefined;
 try {
     addon = require("../build/Release/MicroFloCc.node");
 } catch (err) {
     console.log("Warning: could not load addon: ", err);
 }
-
-
+var componentLib = new microflo.componentlib.ComponentLibrary(require("../microflo/components.json"), "./microflo")
 
 describe('Network', function(){
   describe('sending packets into graph of Forward components', function(){
@@ -32,7 +31,6 @@ describe('Network', function(){
 
         // Host runtime impl.
         var net = new addon.Network();
-        var componentLib = new microflo.ComponentLibrary(require("../microflo/components.json"));
         var nodes = 7;
         var messages = [];
         for (var i=0; i<10; i++) {

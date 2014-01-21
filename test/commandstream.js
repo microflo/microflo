@@ -3,9 +3,11 @@
  * MicroFlo may be freely distributed under the MIT license
  */
 
-var microflo = require("../microflo");
+var microflo = require("../lib/microflo");
 var assert = require("assert");
 var fbp = require("fbp");
+
+var componentLib = new microflo.componentlib.ComponentLibrary(require("../microflo/components.json"));
 
 describe('Commandstream generation', function(){
   describe('from a simple input FBP', function(){
@@ -18,7 +20,7 @@ describe('Commandstream generation', function(){
                            12,0,1,0,0,0,0,0, 12,1,2,0,0,0,0,0,
                            14,0,0,0,0,0,0,0 ]);
       it('parsing should give known valid output', function(){
-          var out = microflo.cmdStreamFromGraph(microflo.componentLib, fbp.parse(input));
+          var out = microflo.commandstream.cmdStreamFromGraph(componentLib, fbp.parse(input));
           assert.equal(out.toString("hex"), expect.toString("hex"));
     })
   })
