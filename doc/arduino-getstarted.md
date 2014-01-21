@@ -72,19 +72,19 @@ Start it. Check that serial port is guessed correctly.
     node ./microflo.js runtime
 
 
-Run Microflo UI
+Run NoFlo UI
 --------------------
 
 Open a modern web browser (Safari/Chrome/Firefox)
 
-    File -> Open -> Chose microflo-ui/index.html
+    File -> Open -> Chose noflo-ui/index.html
 
 Create first application
 ------------------------
 
 Create a new sketch.
 * Name it "Blink"
-* Chose "MicroFlo" as runtime
+* Chose "Microcontroller" as runtime
 
 Create the following graph
 * Use Add (+) to add each of the nodes

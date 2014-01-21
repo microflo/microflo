@@ -329,9 +329,6 @@ var cmdStreamBuildGraph = function(currentNodeId, buffer, index, componentLib, g
         }
     });
 
-    // HACK: can be used to observe data flowing along edges
-    // index += writeCmd(buffer, index, cmdFormat.commands.SubscribeToPort.id, 1, 1, 1);
-
     return {index: index-startIndex, nodeId: currentNodeId};
 }
 
@@ -530,16 +527,16 @@ var connectionsWithoutEdge = function(connections, findConn) {
 }
 
 var wsConnectionFormatToFbp = function(ws) {
-    if (ws.from.port) {
+    if (ws.src.port) {
         return {
-            src: { port: ws.from.port, process: ws.from.node },
-            tgt: { port: ws.to.port, process: ws.to.node }
+            src: { port: ws.src.port, process: ws.src.node },
+            tgt: { port: ws.tgt.port, process: ws.tgt.node }
         }
     } else {
         // IIP
         return {
-            data: ws.from.data,
-            tgt: { port: ws.to.port, process: ws.to.node }
+            data: ws.src.data,
+            tgt: { port: ws.tgt.port, process: ws.tgt.node }
         }
     }
 }
@@ -772,8 +769,8 @@ var handleMessage = function (message, connection, graph, getSerial, debugLevel)
                         data = args[4];
                     }
                     var msg = {protocol: "network", command: "data", payload: {
-                            from: {node: args[1], port: args[2]},
-                            to: {node: args[5], port: args[6]},
+                            src: {node: args[1], port: args[2]},
+                            tgt: {node: args[5], port: args[6]},
                             data: data
                         }
                     }
@@ -799,7 +796,7 @@ var handleMessage = function (message, connection, graph, getSerial, debugLevel)
         } else if (contents.command == "edges"){
             // FIXME: should not need to use serial directly here
             var serial = getSerial();
-            var edges = contents.payload;
+            var edges = contents.payload.edges;
 
             // FIXME: loop over all edges, unsubscribe
 

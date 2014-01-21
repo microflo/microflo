@@ -92,11 +92,11 @@ release-arduino:
 	cd build/microflo-arduino && zip -q -r ../microflo-arduino.zip microflo
 
 release-ui:
-	rm -rf build/microflo-ui
-	cd thirdparty/noflo-ui && git checkout-index -f -a --prefix=../../build/microflo-ui/
-	cd build/microflo-ui && npm install && npm install grunt-cli
-	cd build/microflo-ui && ./node_modules/.bin/grunt build
-	rm -r build/microflo-ui/node_modules
+	rm -rf build/noflo-ui
+	cd thirdparty/noflo-ui && git checkout-index -f -a --prefix=../../build/noflo-ui/
+	cd build/noflo-ui && npm install && npm install grunt-cli
+	cd build/noflo-ui && ./node_modules/.bin/grunt build
+	rm -r build/noflo-ui/node_modules
 
 release-microflo:
 	rm -rf build/microflo
