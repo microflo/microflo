@@ -925,7 +925,7 @@ if (require.main === module) {
         // Special, runs before dependencies has been installed and thus
         // cannot import any of them.
         updateDefinitions();
-        return;
+        process.exit(0);
     }
 
     var commander = require("commander");
