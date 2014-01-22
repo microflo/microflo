@@ -110,7 +110,7 @@ release: install build release-microflo release-arduino release-ui
 	rm -rf build/microflo-$(VERSION)
 	mkdir -p build/microflo-$(VERSION)
 	cp -r build/microflo-arduino.zip build/microflo-$(VERSION)/
-	cp -r build/microflo-ui build/microflo-$(VERSION)/
+	cp -r build/noflo-ui build/microflo-$(VERSION)/
 	cp -r build/microflo build/microflo-$(VERSION)/
 	cd build && zip -q --symlinks -r microflo-$(VERSION).zip microflo-$(VERSION)
 
