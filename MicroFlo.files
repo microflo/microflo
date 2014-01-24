@@ -15,9 +15,14 @@ microflo/main.hpp
 microflo/microflo.cpp
 microflo/microflo.h
 microflo/microflo.hpp
+lib/runtime.js
+lib/commandstream.js
+lib/generate.js
+lib/componentlib.js
 test/commandstream.js
 test/network.js
 test/websocketapi.js
+test/componentlib.js
 microflo.cc
 microflo.js
 package.json
