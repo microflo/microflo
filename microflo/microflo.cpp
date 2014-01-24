@@ -251,7 +251,7 @@ void Component::connect(int outPort, Component *target, int targetPort) {
 }
 
 void Component::setNetwork(Network *net, int n, IO *i) {
-    parentNodeId = -1;
+    parentNodeId = 0;
     network = net;
     nodeId = n;
     io = i;
@@ -319,12 +319,8 @@ void Network::sendMessage(Component *target, int targetPort, const Packet &pkg,
         messageWriteIndex = 0;
     }
     const int msgIndex = messageWriteIndex++;
-    Message &msg = messages[msgIndex];
-    msg.target = target;
-    msg.targetPort = targetPort;
-    msg.pkg = pkg;
 
-    const bool senderIsChild = sender->parentNodeId > 0;
+    const bool senderIsChild = sender && sender->parentNodeId > 0;
     if (senderIsChild) {
         SubGraph *parent = (SubGraph *)nodes[sender->parentNodeId];
         if (target == parent) {
@@ -343,6 +339,11 @@ void Network::sendMessage(Component *target, int targetPort, const Packet &pkg,
         target = targetSubGraph->inputConnections[targetPort].target;
         targetPort = targetSubGraph->inputConnections[targetPort].targetPort;
     }
+
+    Message &msg = messages[msgIndex];
+    msg.target = target;
+    msg.targetPort = targetPort;
+    msg.pkg = pkg;
 
     const bool sendNotification = sender ? sender->connections[senderPort].subscribed : false;
     if (sendNotification && notificationHandler) {

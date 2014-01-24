@@ -128,6 +128,7 @@ private:
     static v8::Handle<v8::Value> New(const v8::Arguments& args);
     static v8::Handle<v8::Value> AddNode(const v8::Arguments& args);
     static v8::Handle<v8::Value> Connect(const v8::Arguments& args);
+    static v8::Handle<v8::Value> ConnectSubgraph(const v8::Arguments& args);
     static v8::Handle<v8::Value> SendMessage(const v8::Arguments& args);
     static v8::Handle<v8::Value> Start(const v8::Arguments& args);
     static v8::Handle<v8::Value> RunTick(const v8::Arguments& args);
@@ -153,6 +154,8 @@ void JavaScriptNetwork::Init(v8::Handle<v8::Object> exports) {
                                 v8::FunctionTemplate::New(AddNode)->GetFunction());
   tpl->PrototypeTemplate()->Set(v8::String::NewSymbol("connect"),
                                 v8::FunctionTemplate::New(Connect)->GetFunction());
+  tpl->PrototypeTemplate()->Set(v8::String::NewSymbol("connectSubgraph"),
+                                v8::FunctionTemplate::New(ConnectSubgraph)->GetFunction());
   tpl->PrototypeTemplate()->Set(v8::String::NewSymbol("sendMessage"),
                                 v8::FunctionTemplate::New(SendMessage)->GetFunction());
   tpl->PrototypeTemplate()->Set(v8::String::NewSymbol("start"),
@@ -194,7 +197,8 @@ v8::Handle<v8::Value> JavaScriptNetwork::AddNode(const v8::Arguments& args) {
   } else {
       component = Component::create((ComponentId)args[0]->Int32Value());
   }
-  const int nodeId = network->addNode(component, 0);
+  const int parentId = args[1]->Int32Value();
+  const int nodeId = network->addNode(component, parentId);
 
   return scope.Close(v8::Number::New(nodeId));
 }
@@ -210,6 +214,20 @@ v8::Handle<v8::Value> JavaScriptNetwork::Connect(const v8::Arguments& args) {
   obj->connect(srcNode, srcPort, targetNode, targetPort);
 
   return scope.Close(v8::Undefined());
+}
+
+v8::Handle<v8::Value> JavaScriptNetwork::ConnectSubgraph(const v8::Arguments& args) {
+    v8::HandleScope scope;
+
+    JavaScriptNetwork* obj = node::ObjectWrap::Unwrap<JavaScriptNetwork>(args.This());
+    const bool isOutput = args[0]->BooleanValue();
+    const int subGraphNode = args[1]->Int32Value();
+    const int subGraphPort = args[2]->Int32Value();
+    const int childNode = args[3]->Int32Value();
+    const int childPort = args[4]->Int32Value();
+    obj->connectSubgraph(isOutput, subGraphNode, subGraphPort, childNode, childPort);
+
+    return scope.Close(v8::Undefined());
 }
 
 v8::Handle<v8::Value> JavaScriptNetwork::SendMessage(const v8::Arguments& args) {
