@@ -66,6 +66,9 @@
         "ParseLookForHeader": {"id":17},
         "MagicMismatch": {"id": 18},
         "NotImplemented": {"id": 19},
+        "SubGraphConnectNotASubgraph": {"id": 20},
+        "SubGraphConnectInvalidNodes": {"id": 21},
+        "SubGraphReceivedNormalMessage": {"id": 22},
 
         "Max": { "id": 255 }
     },

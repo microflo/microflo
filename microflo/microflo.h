@@ -235,6 +235,7 @@ public:
 // IDEA: a decentral way of declaring component introspection data. JSON embedded in comment?
 class Component {
     friend class Network;
+    friend class SubGraph;
 public:
     static Component *create(ComponentId id);
 

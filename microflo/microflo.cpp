@@ -486,14 +486,14 @@ void Network::connectSubgraph(bool isOutput, MicroFlo::NodeId subgraphNode, int 
                               MicroFlo::NodeId childNode, int childPort) {
 
     if (subgraphNode >= lastAddedNodeIndex || childNode >= lastAddedNodeIndex) {
-        // FIXME: emit error
+        MICROFLO_DEBUG(this, DebugLevelError, DebugSubGraphConnectInvalidNodes);
         return;
     }
 
     Component *comp = nodes[subgraphNode];
     Component *child = nodes[childNode];
     if (comp->component() != IdSubGraph || child->parentNodeId < 1) {
-        // FIXME: emit error
+        MICROFLO_DEBUG(this, DebugLevelError, DebugSubGraphConnectNotASubgraph);
         return;
     }
 
@@ -658,5 +658,7 @@ void SubGraph::connectOutport(int outPort, Component *child, int childOutPort) {
 }
 
 void SubGraph::process(Packet in, int port) {
-    // TODO: assert that this never receives packets. Network should forward
+    if (port >= 0) {
+        MICROFLO_DEBUG(network, DebugLevelError, DebugSubGraphReceivedNormalMessage);
+    }
 }
