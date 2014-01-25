@@ -12,28 +12,13 @@ try {
     console.log("Warning: could not load addon: ", err);
 }
 var componentLib = new microflo.componentlib.ComponentLibrary(require("../microflo/components.json"), "./microflo")
-
-var createCompare = function(expected) {
-    var compare = new addon.Component();
-    compare.expected = expected
-    compare.actual = []
-    compare.expectingMore = function() {
-        return compare.actual.length == 0 || (compare.actual.length < compare.expected.length);
-    }
-    compare.on("process", function(packet, port) {
-        //console.log("process", packet, port);
-        if (port >= 0) {
-            compare.actual.push(packet.value);
-        }
-    });
-    return compare;
-}
+var fbp = require("fbp");
 
 describe('Network', function(){
   describe('sending packets into graph of Forward components', function(){
     it('should give the same packets out on other side', function(){
 
-        var compare = createCompare()
+        var compare = microflo.simulator.createCompare()
 
         // Host runtime impl.
         var net = new addon.Network();
@@ -71,15 +56,12 @@ describe('Network', function(){
         assert.deepEqual(compare.actual, compare.expected);
     })
   })
-})
 
-
-describe('Network', function(){
   describe('sending packets through subgraph', function(){
     it('should give the same packets out on other side', function(){
 
         var messages = [0,1,2,3];
-        var compare = createCompare(messages);
+        var compare = microflo.simulator.createCompare(messages);
 
         var net = new addon.Network();
         var inputNode = net.addNode(componentLib.getComponent("Forward").id);

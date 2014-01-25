@@ -116,6 +116,108 @@ v8::Handle<v8::Value> JavaScriptComponent::Send(const v8::Arguments& args) {
   return scope.Close(v8::Undefined());
 }
 
+
+// HostTransport
+class JavaScriptHostTransport : public node::ObjectWrap, public HostTransport  {
+public:
+    // implements HostTransport
+    virtual void setup(IO *i, HostCommunication *c);
+    virtual void runTick();
+    virtual void sendCommandByte(uint8_t b);
+public:
+    static void Init(v8::Handle<v8::Object> exports);
+
+private:
+    static v8::Handle<v8::Value> New(const v8::Arguments& args);
+    static v8::Handle<v8::Value> On(const v8::Arguments& args);
+    static v8::Handle<v8::Value> Send(const v8::Arguments& args);
+    static v8::Handle<v8::Value> RunTick(const v8::Arguments& args);
+
+private:
+    HostCommunication *controller;
+    v8::Persistent<v8::Function> receiveFunc;
+    v8::Persistent<v8::Function> pullFunc;
+};
+
+void JavaScriptHostTransport::setup(IO *i, HostCommunication *c) {
+    controller = c;
+}
+
+void JavaScriptHostTransport::runTick() {
+    const int argc = 0;
+    v8::Local<v8::Value> argv[argc] = {
+
+    };
+    pullFunc->Call(v8::Context::GetCurrent()->Global(), argc, argv);
+}
+
+void JavaScriptHostTransport::sendCommandByte(uint8_t b) {
+
+    const int argc = 1;
+    v8::Local<v8::Value> argv[argc] = {
+        v8::Local<v8::Value>::New(v8::Number::New(b)),
+    };
+    receiveFunc->Call(v8::Context::GetCurrent()->Global(), argc, argv);
+}
+
+void JavaScriptHostTransport::Init(v8::Handle<v8::Object> exports) {
+  // Prepare constructor template
+  v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(New);
+  tpl->SetClassName(v8::String::NewSymbol("HostTransport"));
+  tpl->InstanceTemplate()->SetInternalFieldCount(2);
+  // Prototype
+  tpl->PrototypeTemplate()->Set(v8::String::NewSymbol("on"),
+                                v8::FunctionTemplate::New(On)->GetFunction());
+  tpl->PrototypeTemplate()->Set(v8::String::NewSymbol("send"),
+                                v8::FunctionTemplate::New(Send)->GetFunction());
+  tpl->PrototypeTemplate()->Set(v8::String::NewSymbol("runTick"),
+                                v8::FunctionTemplate::New(RunTick)->GetFunction());
+
+  v8::Persistent<v8::Function> constructor = v8::Persistent<v8::Function>::New(tpl->GetFunction());
+  exports->Set(v8::String::NewSymbol("HostTransport"), constructor);
+}
+
+v8::Handle<v8::Value> JavaScriptHostTransport::New(const v8::Arguments& args) {
+  v8::HandleScope scope;
+  JavaScriptHostTransport* obj = new JavaScriptHostTransport();
+  obj->Wrap(args.This());
+  return args.This();
+}
+
+v8::Handle<v8::Value> JavaScriptHostTransport::On(const v8::Arguments& args) {
+  v8::HandleScope scope;
+
+  JavaScriptHostTransport* obj = node::ObjectWrap::Unwrap<JavaScriptHostTransport>(args.This());
+  v8::String::Utf8Value event(args[0]);
+  if (*event == std::string("_receive")) {
+      v8::Persistent<v8::Function> cb = v8::Persistent<v8::Function>::New(v8::Local<v8::Function>::Cast(args[1]));
+      obj->receiveFunc = cb;
+  } else if (*event == std::string("_pull")) {
+      v8::Persistent<v8::Function> cb = v8::Persistent<v8::Function>::New(v8::Local<v8::Function>::Cast(args[1]));
+      obj->pullFunc = cb;
+  }
+  return scope.Close(v8::Undefined());
+}
+
+v8::Handle<v8::Value> JavaScriptHostTransport::Send(const v8::Arguments& args) {
+  v8::HandleScope scope;
+
+  JavaScriptHostTransport* obj = node::ObjectWrap::Unwrap<JavaScriptHostTransport>(args.This());
+  const uint8_t b = args[0]->Int32Value();
+  if (obj->controller) {
+      obj->controller->parseByte(b);
+  }
+
+  return scope.Close(v8::Undefined());
+}
+
+v8::Handle<v8::Value> JavaScriptHostTransport::RunTick(const v8::Arguments& args) {
+  v8::HandleScope scope;
+  JavaScriptHostTransport* obj = node::ObjectWrap::Unwrap<JavaScriptHostTransport>(args.This());
+  obj->runTick();
+  return scope.Close(v8::Undefined());
+}
+
 // Network
 class JavaScriptNetwork : public Network, public node::ObjectWrap {
 public:
@@ -125,6 +227,8 @@ private:
     JavaScriptNetwork();
     ~JavaScriptNetwork();
 
+    static v8::Handle<v8::Value> SetTransport(const v8::Arguments& args);
+
     static v8::Handle<v8::Value> New(const v8::Arguments& args);
     static v8::Handle<v8::Value> AddNode(const v8::Arguments& args);
     static v8::Handle<v8::Value> Connect(const v8::Arguments& args);
@@ -133,11 +237,13 @@ private:
     static v8::Handle<v8::Value> Start(const v8::Arguments& args);
     static v8::Handle<v8::Value> RunTick(const v8::Arguments& args);
 private:
-    ;
+    HostCommunication controller;
+    JavaScriptHostTransport *transport;
 };
 
 JavaScriptNetwork::JavaScriptNetwork()
     : Network(new HostIO)
+    , transport(0)
 {
 }
 
@@ -162,6 +268,8 @@ void JavaScriptNetwork::Init(v8::Handle<v8::Object> exports) {
                                 v8::FunctionTemplate::New(Start)->GetFunction());
   tpl->PrototypeTemplate()->Set(v8::String::NewSymbol("runTick"),
                                 v8::FunctionTemplate::New(RunTick)->GetFunction());
+  tpl->PrototypeTemplate()->Set(v8::String::NewSymbol("setTransport"),
+                                v8::FunctionTemplate::New(SetTransport)->GetFunction());
 
   v8::Persistent<v8::Function> constructor = v8::Persistent<v8::Function>::New(tpl->GetFunction());
   exports->Set(v8::String::NewSymbol("Network"), constructor);
@@ -172,6 +280,19 @@ v8::Handle<v8::Value> JavaScriptNetwork::New(const v8::Arguments& args) {
   JavaScriptNetwork* obj = new JavaScriptNetwork();
   obj->Wrap(args.This());
   return args.This();
+}
+
+v8::Handle<v8::Value> JavaScriptNetwork::SetTransport(const v8::Arguments& args) {
+  v8::HandleScope scope;
+
+  JavaScriptNetwork* network = node::ObjectWrap::Unwrap<JavaScriptNetwork>(args.This());
+  JavaScriptHostTransport* transport = node::ObjectWrap::Unwrap<JavaScriptHostTransport>(args[0]->ToObject());
+
+  network->transport = transport;
+  network->transport->setup(0, &(network->controller));
+  network->controller.setup(network, transport);
+
+  return scope.Close(v8::Undefined());
 }
 
 v8::Handle<v8::Value> JavaScriptNetwork::RunTick(const v8::Arguments& args) {
@@ -241,6 +362,7 @@ v8::Handle<v8::Value> JavaScriptNetwork::SendMessage(const v8::Arguments& args) 
 
 void init(v8::Handle<v8::Object> exports) {
   JavaScriptComponent::Init(exports);
+  JavaScriptHostTransport::Init(exports);
   JavaScriptNetwork::Init(exports);
 }
 

@@ -19,6 +19,7 @@ lib/runtime.js
 lib/commandstream.js
 lib/generate.js
 lib/componentlib.js
+lib/simulator.js
 test/commandstream.js
 test/network.js
 test/websocketapi.js
