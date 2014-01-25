@@ -94,4 +94,32 @@ describe('Network', function(){
         assert.deepEqual(compare.actual, compare.expected);
     })
   })
+  describe('Uploading a graph via commandstream', function(){
+    it('gives one response per command', function(finish){
+
+        var net = new addon.Network();
+        var transport = new microflo.simulator.JsTransport(net);
+
+        var graph = fbp.parse("a(Forward) OUT -> IN b(Forward) OUT -> IN c(Forward)");
+        var cmdstream = microflo.commandstream.cmdStreamFromGraph(componentLib, graph);
+
+        var expectedResponses = 8;
+        var actualResponses = 0;
+        // TODO: API should allow to get callback when everything is completed
+        var handleFunc = function() {
+            actualResponses++;
+            if (arguments[0] === "NETSTART") {
+                assert.equal(actualResponses, expectedResponses);
+                finish();
+            }
+        }
+
+        microflo.runtime.uploadGraph(transport, cmdstream, graph, handleFunc);
+
+        var interval = setInterval(function() {
+            net.runTick();
+            transport.runTick();
+        }, 10);
+    })
+  })
 })
