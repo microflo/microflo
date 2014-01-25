@@ -1,5 +1,24 @@
+MicroFlo NEXT: "Node in a Node, to infinity"
+=============================================
+Released: Not yet
+
+NoFlo UI updated to latest version on 'the-graph' branch, and MicroFlo gives upload feedback and
+allows basic visual debugging.
+
+New:
+* One can now introspect data flowing along edges in NoFlo UI
+* Upload output is now shown in NoFlo UI
+* _Experimental_ Atmel AVR8 backend, without any Arduino dependencies. Tested on AT90USB1287 w/ AT90USBKEY
+* Makefile now has additional variables for overriding: ARDUINO, SERIALPORT
+* Host/simulator API has been extended to also cover HostCommunication/commandstream
+
+Added components:
+* LedMatrixMax, NumberEquals, BooleanAnd
+
+
 MicroFlo 0.2.1
 ===================
+Released: December 21, 2013
 
 Installing on Mac OSX and Windows no longer requires a C++ compiler,
 as node-serialport binaries for those platforms are included.
