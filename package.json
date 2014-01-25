@@ -7,11 +7,19 @@
     "author": "Jon Nordby <jononor@gmail.com> (http://www.jonnor.com)",
     "repository" : { "type" : "git", "url" : "http://github.com/jonnor/microflo.git"},
     "bugs": "http://github.com/jonnor/microflo/issues",
+    "homepage": "http://microflo.org",
     "license": "MIT",
+    "main": "./lib/microflo",
+    "bin": {
+      "microflo": "./microflo.js"
+    },
     "scripts":{
         "start": "node microflo.js runtime",
         "preinstall": "node microflo.js update-defs && node-gyp rebuild",
         "test": "mocha --reporter spec"
+    },
+    "engines": {
+      "node": ">=0.10.0"
     },
     "dependencies": {
         "noflo": "~0.4.0",
