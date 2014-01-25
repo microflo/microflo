@@ -8,6 +8,17 @@ var assert = require("assert");
 var fbp = require("fbp");
 
 var componentLib = new microflo.componentlib.ComponentLibrary(require("../microflo/components.json"));
+componentLib.load();
+
+var assertStreamsEqual = function(actual, expected) {
+    assert.equal(actual.length, expected.length);
+    assert(actual.length%8 === 0);
+    for (var i=0; i<actual.length; i+=8) {
+        var a = actual.slice(i,i+8).toJSON().toString();
+        var e = expected.slice(i,i+8).toJSON().toString();
+        assert.equal(a, e, "Command " + i/8 + " : " + a + " != " + e);
+    }
+}
 
 describe('Commandstream generation', function(){
   describe('from a simple input FBP', function(){
@@ -21,7 +32,7 @@ describe('Commandstream generation', function(){
                            14,0,0,0,0,0,0,0 ]);
       it('parsing should give known valid output', function(){
           var out = microflo.commandstream.cmdStreamFromGraph(componentLib, fbp.parse(input));
-          assert.equal(out.toString("hex"), expect.toString("hex"));
-    })
+          assertStreamsEqual(out, expect);
+      })
   })
 })
