@@ -37,3 +37,4 @@ test/componentlib.js
 microflo/avr.hpp
 nodejs/MicroFloComponent.coffee
 examples/max7219.fbp
+lib/serial.js
