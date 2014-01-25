@@ -88,8 +88,6 @@ describe('Network', function(){
         var outputNode = net.addNode(componentLib.getComponent("Forward").id);
         var compareNode = net.addNode(compare);
 
-        console.log("subgraphNode: ", subgraphNode);
-        console.log("subgraphNode: ", subgraphNode);
         net.connect(inputNode, 0, subgraphNode, 0);
         net.connectSubgraph(false, subgraphNode, 0, innerNode, 0); //in
         net.connectSubgraph(true, subgraphNode, 0, innerNode, 0);  //ou
