@@ -9,7 +9,6 @@
 #define HOST_BUILD
 #define MICROFLO_NO_MAIN
 #include "microflo/microflo.hpp"
-#include "microflo/host.hpp"
 
 // Packet
 v8::Handle<v8::Value> PacketToJsObject(const Packet &p) {
@@ -32,6 +31,120 @@ Packet JsValueToPacket(v8::Handle<v8::Value> val) {
     }
     return Packet();
 }
+
+
+// IO
+class JavaScriptIO : public node::ObjectWrap, public IO {
+
+public:
+    JavaScriptIO();
+    static void Init(v8::Handle<v8::Object> exports);
+
+    static v8::Handle<v8::Value> New(const v8::Arguments& args);
+    static v8::Handle<v8::Value> SetValue(const v8::Arguments& args);
+
+private:
+    static const int nInputs = 40;
+    long analogInputs[nInputs];
+    bool digitalInputs[nInputs];
+    long currentTimeMs;
+
+public: // Implements IO
+
+    // Serial
+    virtual void SerialBegin(int serialDevice, int baudrate) {
+
+    }
+    virtual long SerialDataAvailable(int serialDevice) {
+        return 0;
+    }
+    virtual unsigned char SerialRead(int serialDevice) {
+        return '\0';
+    }
+    virtual void SerialWrite(int serialDevice, unsigned char b) {
+
+    }
+
+    // Pin config
+    virtual void PinSetMode(int pin, PinMode mode) {
+
+    }
+    virtual void PinEnablePullup(int pin, bool enable) {
+
+    }
+
+    // Digital
+    virtual void DigitalWrite(int pin, bool val) {
+
+    }
+    virtual bool DigitalRead(int pin) {
+        return digitalInputs[pin];
+    }
+
+    // Timer
+    virtual long TimerCurrentMs() {
+        return currentTimeMs;
+    }
+
+    // Analog
+    virtual long AnalogRead(int pin) {
+        return analogInputs[pin];
+    }
+    virtual void PwmWrite(int pin, long dutyPercent) {
+
+    }
+
+    virtual void AttachExternalInterrupt(int interrupt, IO::Interrupt::Mode mode, IOInterruptFunction func, void *user) {
+        ;
+    }
+};
+
+JavaScriptIO::JavaScriptIO()
+    : currentTimeMs(0)
+{
+
+}
+
+v8::Handle<v8::Value> JavaScriptIO::New(const v8::Arguments& args) {
+  v8::HandleScope scope;
+  JavaScriptIO* obj = new JavaScriptIO();
+  obj->Wrap(args.This());
+  return args.This();
+}
+
+void JavaScriptIO::Init(v8::Handle<v8::Object> exports) {
+  // Prepare constructor template
+  v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(New);
+  tpl->SetClassName(v8::String::NewSymbol("IO"));
+  tpl->InstanceTemplate()->SetInternalFieldCount(2);
+  // Prototype
+  tpl->PrototypeTemplate()->Set(v8::String::NewSymbol("setValue"),
+                                v8::FunctionTemplate::New(SetValue)->GetFunction());
+  v8::Persistent<v8::Function> constructor = v8::Persistent<v8::Function>::New(tpl->GetFunction());
+  exports->Set(v8::String::NewSymbol("IO"), constructor);
+}
+
+v8::Handle<v8::Value> JavaScriptIO::SetValue(const v8::Arguments& args) {
+  v8::HandleScope scope;
+
+  JavaScriptIO* obj = node::ObjectWrap::Unwrap<JavaScriptIO>(args.This());
+  v8::String::Utf8Value event(args[0]);
+
+  if (*event == std::string("timer")) {
+    obj->currentTimeMs =  args[1]->Int32Value();
+  } else if (*event == std::string("digital")) {
+    const int pin =  args[1]->Int32Value();
+    obj->digitalInputs[pin] = args[2]->BooleanValue();
+  } else if (*event == std::string("analog")) {
+    const int pin =  args[1]->Int32Value();
+    obj->analogInputs[pin] = args[2]->Int32Value();
+  } else {
+
+  }
+
+  return scope.Close(v8::Undefined());
+}
+
 
 // Component
 class JavaScriptComponent : public node::ObjectWrap, public Component  {
@@ -224,7 +337,7 @@ public:
     static void Init(v8::Handle<v8::Object> exports);
 
 private:
-    JavaScriptNetwork();
+    JavaScriptNetwork(IO *io);
     ~JavaScriptNetwork();
 
     static v8::Handle<v8::Value> SetTransport(const v8::Arguments& args);
@@ -241,8 +354,8 @@ private:
     JavaScriptHostTransport *transport;
 };
 
-JavaScriptNetwork::JavaScriptNetwork()
-    : Network(new HostIO)
+JavaScriptNetwork::JavaScriptNetwork(IO *io)
+    : Network(io)
     , transport(0)
 {
 }
@@ -277,7 +390,10 @@ void JavaScriptNetwork::Init(v8::Handle<v8::Object> exports) {
 
 v8::Handle<v8::Value> JavaScriptNetwork::New(const v8::Arguments& args) {
   v8::HandleScope scope;
-  JavaScriptNetwork* obj = new JavaScriptNetwork();
+
+  JavaScriptIO *io = node::ObjectWrap::Unwrap<JavaScriptIO>(args[0]->ToObject());
+  JavaScriptNetwork* obj = new JavaScriptNetwork(io);
+
   obj->Wrap(args.This());
   return args.This();
 }
@@ -363,6 +479,7 @@ v8::Handle<v8::Value> JavaScriptNetwork::SendMessage(const v8::Arguments& args) 
 void init(v8::Handle<v8::Object> exports) {
   JavaScriptComponent::Init(exports);
   JavaScriptHostTransport::Init(exports);
+  JavaScriptIO::Init(exports);
   JavaScriptNetwork::Init(exports);
 }
 

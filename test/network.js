@@ -21,7 +21,8 @@ describe('Network', function(){
         var compare = microflo.simulator.createCompare()
 
         // Host runtime impl.
-        var net = new addon.Network();
+        var s = new microflo.simulator.RuntimeSimulator();
+        var net = s.network
         var nodes = 7;
         var messages = [];
         for (var i=0; i<10; i++) {
@@ -63,7 +64,8 @@ describe('Network', function(){
         var messages = [0,1,2,3];
         var compare = microflo.simulator.createCompare(messages);
 
-        var net = new addon.Network();
+        var s = new microflo.simulator.RuntimeSimulator();
+        var net = s.network
         var inputNode = net.addNode(componentLib.getComponent("Forward").id);
         var subgraphNode = net.addNode(componentLib.getComponent("SubGraph").id);
         var innerNode = net.addNode(componentLib.getComponent("Forward").id, subgraphNode);

@@ -10,7 +10,6 @@ microflo/commandformat.json
 microflo/components.cpp
 microflo/components.h
 microflo/components.json
-microflo/host.hpp
 microflo/main.hpp
 microflo/microflo.cpp
 microflo/microflo.h
