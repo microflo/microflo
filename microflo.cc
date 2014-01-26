@@ -41,13 +41,11 @@ public:
     static void Init(v8::Handle<v8::Object> exports);
 
     static v8::Handle<v8::Value> New(const v8::Arguments& args);
-    static v8::Handle<v8::Value> SetValue(const v8::Arguments& args);
+    static v8::Handle<v8::Value> On(const v8::Arguments& args);
 
 private:
-    static const int nInputs = 40;
-    long analogInputs[nInputs];
-    bool digitalInputs[nInputs];
-    long currentTimeMs;
+    v8::Persistent<v8::Function> setValueFunc;
+    v8::Persistent<v8::Function> getValueFunc;
 
 public: // Implements IO
 
@@ -75,20 +73,40 @@ public: // Implements IO
 
     // Digital
     virtual void DigitalWrite(int pin, bool val) {
-
+        const int argc = 3;
+        v8::Local<v8::Value> argv[argc] = {
+            v8::Local<v8::Value>::New(v8::String::NewSymbol("digitalOutputs")),
+            v8::Local<v8::Value>::New(v8::Number::New(pin)),
+            v8::Local<v8::Value>::New(v8::Boolean::New(val)),
+        };
+        setValueFunc->Call(v8::Context::GetCurrent()->Global(), argc, argv);
     }
     virtual bool DigitalRead(int pin) {
-        return digitalInputs[pin];
+        const int argc = 2;
+        v8::Local<v8::Value> argv[argc] = {
+            v8::Local<v8::Value>::New(v8::String::NewSymbol("digitalInputs")),
+            v8::Local<v8::Value>::New(v8::Number::New(pin)),
+        };
+        v8::Local<v8::Value> ret = getValueFunc->Call(v8::Context::GetCurrent()->Global(), argc, argv);
+        const bool val = ret->BooleanValue();
+        return val;
     }
 
     // Timer
     virtual long TimerCurrentMs() {
+        const int argc = 1;
+        v8::Local<v8::Value> argv[argc] = {
+            v8::Local<v8::Value>::New(v8::String::NewSymbol("currentTimeMs")),
+        };
+        v8::Local<v8::Value> ret = getValueFunc->Call(v8::Context::GetCurrent()->Global(), argc, argv);
+        const int currentTimeMs = ret->Int32Value();
+        fprintf(stderr, "currentTime: %d\n", currentTimeMs);
         return currentTimeMs;
     }
 
     // Analog
     virtual long AnalogRead(int pin) {
-        return analogInputs[pin];
+        return 0;
     }
     virtual void PwmWrite(int pin, long dutyPercent) {
 
@@ -100,7 +118,6 @@ public: // Implements IO
 };
 
 JavaScriptIO::JavaScriptIO()
-    : currentTimeMs(0)
 {
 
 }
@@ -118,28 +135,22 @@ void JavaScriptIO::Init(v8::Handle<v8::Object> exports) {
   tpl->SetClassName(v8::String::NewSymbol("IO"));
   tpl->InstanceTemplate()->SetInternalFieldCount(2);
   // Prototype
-  tpl->PrototypeTemplate()->Set(v8::String::NewSymbol("setValue"),
-                                v8::FunctionTemplate::New(SetValue)->GetFunction());
+  tpl->PrototypeTemplate()->Set(v8::String::NewSymbol("on"),
+                                v8::FunctionTemplate::New(On)->GetFunction());
   v8::Persistent<v8::Function> constructor = v8::Persistent<v8::Function>::New(tpl->GetFunction());
   exports->Set(v8::String::NewSymbol("IO"), constructor);
 }
 
-v8::Handle<v8::Value> JavaScriptIO::SetValue(const v8::Arguments& args) {
+v8::Handle<v8::Value> JavaScriptIO::On(const v8::Arguments& args) {
   v8::HandleScope scope;
 
   JavaScriptIO* obj = node::ObjectWrap::Unwrap<JavaScriptIO>(args.This());
   v8::String::Utf8Value event(args[0]);
 
-  if (*event == std::string("timer")) {
-    obj->currentTimeMs =  args[1]->Int32Value();
-  } else if (*event == std::string("digital")) {
-    const int pin =  args[1]->Int32Value();
-    obj->digitalInputs[pin] = args[2]->BooleanValue();
-  } else if (*event == std::string("analog")) {
-    const int pin =  args[1]->Int32Value();
-    obj->analogInputs[pin] = args[2]->Int32Value();
-  } else {
-
+  if (*event == std::string("getValue")) {
+    obj->getValueFunc = v8::Persistent<v8::Function>::New(v8::Local<v8::Function>::Cast(args[1]));
+  } else if (*event == std::string("setValue")) {
+    obj->setValueFunc = v8::Persistent<v8::Function>::New(v8::Local<v8::Function>::Cast(args[1]));
   }
 
   return scope.Close(v8::Undefined());
