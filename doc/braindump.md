@@ -498,6 +498,7 @@ over traditional Arduino/uC prog. Some of these are planned, not realized fully 
 In the press
 -------------
 * [LWN.net - A bit of visual programming with MicroFlo](http://lwn.net/Articles/575524)
+* [Makezine.com - Maker Faire Oslo: Maker Tech](http://makezine.com/2014/01/21/maker-faire-oslo-maker-tech)
 
 Network
 ========
