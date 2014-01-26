@@ -5,12 +5,7 @@
 
 var assert = require("assert")
 var microflo = require("../lib/microflo");
-var addon = undefined;
-try {
-    addon = require("../build/Release/MicroFloCc.node");
-} catch (err) {
-    console.log("Warning: could not load addon: ", err);
-}
+
 var componentLib = new microflo.componentlib.ComponentLibrary(require("../microflo/components.json"), "./microflo")
 var fbp = require("fbp");
 
