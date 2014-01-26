@@ -97,8 +97,7 @@ describe('Network', function(){
   describe('Uploading a graph via commandstream', function(){
     it('gives one response per command', function(finish){
 
-        var net = new addon.Network();
-        var transport = new microflo.simulator.JsTransport(net);
+        var s = new microflo.simulator.RuntimeSimulator();
 
         var graph = fbp.parse("a(Forward) OUT -> IN b(Forward) OUT -> IN c(Forward)");
         var cmdstream = microflo.commandstream.cmdStreamFromGraph(componentLib, graph);
@@ -114,12 +113,8 @@ describe('Network', function(){
             }
         }
 
-        microflo.runtime.uploadGraph(transport, cmdstream, graph, handleFunc);
-
-        var interval = setInterval(function() {
-            net.runTick();
-            transport.runTick();
-        }, 10);
+        s.start();
+        microflo.runtime.uploadGraph(s.transport, cmdstream, graph, handleFunc);
     })
   })
 })
