@@ -30,7 +30,6 @@ describe('a Blink program', function(){
     })
     it('should go HIGH when timer expires', function(finish){
         simulator.io.state.currentTimeMs += 300;
-        console.log("first try");
         simulator.io.waitForChange(function () {
             assert.equal(simulator.io.state.digitalOutputs[13], true);
             finish();

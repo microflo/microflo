@@ -100,7 +100,6 @@ public: // Implements IO
         };
         v8::Local<v8::Value> ret = getValueFunc->Call(v8::Context::GetCurrent()->Global(), argc, argv);
         const int currentTimeMs = ret->Int32Value();
-        fprintf(stderr, "currentTime: %d\n", currentTimeMs);
         return currentTimeMs;
     }
 
