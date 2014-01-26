@@ -349,6 +349,9 @@ private:
     static v8::Handle<v8::Value> SendMessage(const v8::Arguments& args);
     static v8::Handle<v8::Value> Start(const v8::Arguments& args);
     static v8::Handle<v8::Value> RunTick(const v8::Arguments& args);
+
+    static v8::Handle<v8::Value> GetNodes(const v8::Arguments& args);
+
 private:
     HostCommunication controller;
     JavaScriptHostTransport *transport;
@@ -383,6 +386,7 @@ void JavaScriptNetwork::Init(v8::Handle<v8::Object> exports) {
                                 v8::FunctionTemplate::New(RunTick)->GetFunction());
   tpl->PrototypeTemplate()->Set(v8::String::NewSymbol("setTransport"),
                                 v8::FunctionTemplate::New(SetTransport)->GetFunction());
+  node::SetPrototypeMethod(tpl, "getNodes", GetNodes);
 
   v8::Persistent<v8::Function> constructor = v8::Persistent<v8::Function>::New(tpl->GetFunction());
   exports->Set(v8::String::NewSymbol("Network"), constructor);
@@ -465,6 +469,19 @@ v8::Handle<v8::Value> JavaScriptNetwork::ConnectSubgraph(const v8::Arguments& ar
     obj->connectSubgraph(isOutput, subGraphNode, subGraphPort, childNode, childPort);
 
     return scope.Close(v8::Undefined());
+}
+
+v8::Handle<v8::Value> JavaScriptNetwork::GetNodes(const v8::Arguments& args) {
+  v8::HandleScope scope;
+  JavaScriptNetwork* obj = node::ObjectWrap::Unwrap<JavaScriptNetwork>(args.This());
+
+  v8::Handle<v8::Array> nodeArray = v8::Array::New(obj->lastAddedNodeIndex);
+  for (int i=0; i<obj->lastAddedNodeIndex; i++) {
+      const Component *node = obj->nodes[i];
+      nodeArray->Set(i, v8::Integer::New(node->component()));
+  }
+
+  return scope.Close(nodeArray);
 }
 
 v8::Handle<v8::Value> JavaScriptNetwork::SendMessage(const v8::Arguments& args) {

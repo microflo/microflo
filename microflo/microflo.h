@@ -103,6 +103,10 @@ class NetworkNotificationHandler;
 class IO;
 
 class Network {
+#ifdef HOST_BUILD
+    friend class JavaScriptNetwork;
+#endif
+
 public:
     enum State {
         Invalid = -1,
@@ -243,8 +247,8 @@ public:
     virtual ~Component() {}
     virtual void process(Packet in, int port) = 0;
 
-    MicroFlo::NodeId id() { return nodeId; }
-    int component() { return componentId; }
+    MicroFlo::NodeId id() const { return nodeId; }
+    int component() const { return componentId; }
 
 protected:
     void send(Packet out, int port=0);
