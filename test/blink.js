@@ -29,7 +29,7 @@ describe('a Blink program', function(){
         assert.equal(simulator.io.state.digitalOutputs[13], false);
     })
     it('should go HIGH when timer expires', function(finish){
-        simulator.io.state.currentTimeMs += 301;
+        simulator.io.state.currentTimeMs += 300;
         console.log("first try");
         simulator.io.waitForChange(function () {
             assert.equal(simulator.io.state.digitalOutputs[13], true);
@@ -37,7 +37,7 @@ describe('a Blink program', function(){
         });
     })
     it('and then toggle LOW when timer expires again', function(finish){
-        simulator.io.state.currentTimeMs += 301;
+        simulator.io.state.currentTimeMs += 300;
         simulator.io.waitForChange(function () {
             assert.equal(simulator.io.state.digitalOutputs[13], false);
             finish();

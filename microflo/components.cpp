@@ -338,7 +338,7 @@ public:
             interval = 1000;
         } else if (in.isTick()) {
             unsigned long currentMillis = io->TimerCurrentMs();
-            if (currentMillis - previousMillis > interval) {
+            if (currentMillis - previousMillis >= interval) {
                 previousMillis = currentMillis;
                 send(Packet());
             }
