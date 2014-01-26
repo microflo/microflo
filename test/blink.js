@@ -8,17 +8,19 @@ var microflo = require("../lib/microflo");
 
 // TODO: get rid of boilerplate. Use noflo-test + should,
 // instantiate simulator, load graph automatically?
+// TODO: also test that there are no side-effects of program,
+// and that output does not fire before it's time
 describe('a Blink program', function(){
     var simulator = new microflo.simulator.RuntimeSimulator();
     var prog = "\
-            timer(Timer) OUT -> IN toggle(ToggleBoolean) OUT -> IN led(DigitalWrite)\
+            timer(Timer) OUT -> IN toggle(ToggleBoolean)\
+            toggle OUT -> IN led(DigitalWrite)\
             '300' -> INTERVAL timer() \
             '13' -> PIN led()";
     simulator.start();
 
-    it('should load', function(finish){
+    it('should load 3 nodes', function(finish){
         simulator.io.state.digitalOutputs[13] = true;
-
         simulator.uploadFBP(prog, function () {
             var nodes = simulator.network.getNodes();
             assert.equal(nodes.length, 3);
