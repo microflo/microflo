@@ -164,7 +164,7 @@ public:
     static void Init(v8::Handle<v8::Object> exports);
 
     // Implements Component
-    virtual void process(Packet in, int port);
+    virtual void process(Packet in, MicroFlo::PortId port);
 private:
     ~JavaScriptComponent();
 
@@ -206,7 +206,7 @@ v8::Handle<v8::Value> JavaScriptComponent::New(const v8::Arguments& args) {
   return args.This();
 }
 
-void JavaScriptComponent::process(Packet in, int port) {
+void JavaScriptComponent::process(Packet in, MicroFlo::PortId port) {
     // call the JavaScript callback
     const int argc = 2;
     v8::Local<v8::Value> argv[argc] = {

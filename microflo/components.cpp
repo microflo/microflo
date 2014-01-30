@@ -14,7 +14,7 @@
 class DummyComponent : public Component {
 public:
     DummyComponent() : Component(0, 0) {}
-    virtual void process(Packet in, int port) {
+    virtual void process(Packet in, MicroFlo::PortId port) {
         // NOOP
     }
 };
@@ -31,7 +31,7 @@ private:
 // Generic
 class Forward : public SingleOutputComponent {
 public:
-    virtual void process(Packet in, int port) {
+    virtual void process(Packet in, MicroFlo::PortId port) {
         if (in.isData()) {
             send(in, port);
         }
@@ -41,12 +41,12 @@ public:
 class Split : public Component {
 public:
     Split() : Component(outPorts, SplitPorts::OutPorts::out9+1) {}
-    virtual void process(Packet in, int port) {
+    virtual void process(Packet in, MicroFlo::PortId port) {
         using namespace SplitPorts;
         if (in.isData()) {
             const int first = (int)OutPorts::out1;
             const int last = (int)OutPorts::out9;
-            for (int port=first; port<=last; port++) {
+            for (MicroFlo::PortId port=first; port<=last; port++) {
                 send(in, port);
             }
         }
@@ -59,7 +59,7 @@ private:
 // I/O
 class SerialIn : public SingleOutputComponent {
 public:
-    virtual void process(Packet in, int port) {
+    virtual void process(Packet in, MicroFlo::PortId port) {
         // FIXME: make device and baudrate configurable
         const int serialDevice = -1;
 
@@ -77,7 +77,7 @@ public:
 
 class SerialOut : public SingleOutputComponent {
 public:
-    virtual void process(Packet in, int port) {
+    virtual void process(Packet in, MicroFlo::PortId port) {
         // FIXME: make device and baudrate configurable
         const int serialDevice = -1;
 
@@ -93,7 +93,7 @@ public:
 
 class DigitalWrite : public SingleOutputComponent {
 public:
-    virtual void process(Packet in, int port) {
+    virtual void process(Packet in, MicroFlo::PortId port) {
         using namespace DigitalWritePorts;
         if (in.isSetup()) {
             outPin = 13; // default
@@ -115,7 +115,7 @@ private:
 
 class DigitalRead : public SingleOutputComponent {
 public:
-    virtual void process(Packet in, int port) {
+    virtual void process(Packet in, MicroFlo::PortId port) {
         // Note: have to match components.json
         const int triggerPort = 0;
         const int pinConfigPort = 1;
@@ -145,7 +145,7 @@ private:
 
 class MonitorPin : public SingleOutputComponent {
 public:
-    virtual void process(Packet in, int port) {
+    virtual void process(Packet in, MicroFlo::PortId port) {
         using namespace MonitorPinPorts;
         if (port == InPorts::pin) {
             pin = in.asInteger();
@@ -173,7 +173,7 @@ private:
 
 class PwmWrite : public SingleOutputComponent {
 public:
-    virtual void process(Packet in, int port) {
+    virtual void process(Packet in, MicroFlo::PortId port) {
         using namespace PwmWritePorts;
         if (in.isSetup()) {
             // no defaults
@@ -191,7 +191,7 @@ private:
 
 class AnalogRead : public SingleOutputComponent {
 public:
-    virtual void process(Packet in, int port) {
+    virtual void process(Packet in, MicroFlo::PortId port) {
         using namespace AnalogReadPorts;
         if (in.isSetup()) {
             // no defaults
@@ -209,7 +209,7 @@ private:
 
 class MapLinear : public SingleOutputComponent {
 public:
-    virtual void process(Packet in, int port) {
+    virtual void process(Packet in, MicroFlo::PortId port) {
         using namespace MapLinearPorts;
         if (in.isSetup()) {
             // no defaults
@@ -248,7 +248,7 @@ private:
 // FIXME: implement Min, Max, Constrain as generics operating on Packet
 class Constrain : public SingleOutputComponent {
 public:
-    virtual void process(Packet in, int port) {
+    virtual void process(Packet in, MicroFlo::PortId port) {
         using namespace ConstrainPorts;
         if (in.isSetup()) {
             // no defaults
@@ -281,7 +281,7 @@ private:
 
 class Min : public SingleOutputComponent {
 public:
-    virtual void process(Packet in, int port) {
+    virtual void process(Packet in, MicroFlo::PortId port) {
         using namespace MinPorts;
         if (in.isSetup()) {
             threshold = 0;
@@ -306,7 +306,7 @@ private:
 
 class Max : public SingleOutputComponent {
 public:
-    virtual void process(Packet in, int port) {
+    virtual void process(Packet in, MicroFlo::PortId port) {
         using namespace MaxPorts;
         if (in.isSetup()) {
             threshold = 0;
@@ -330,7 +330,7 @@ private:
 
 class Timer : public SingleOutputComponent {
 public:
-    virtual void process(Packet in, int port) {
+    virtual void process(Packet in, MicroFlo::PortId port) {
         using namespace TimerPorts;
         if (in.isSetup()) {
             // defaults
@@ -364,7 +364,7 @@ public:
         , addressIndex(0)
     {}
 
-    virtual void process(Packet in, int port) {
+    virtual void process(Packet in, MicroFlo::PortId port) {
         using namespace ReadDallasTemperaturePorts;
 
         if (in.isSetup()) {
@@ -480,7 +480,7 @@ uint8_t readCapacitivePin(int pinToMeasure){
 
 class ReadCapacitivePin : public SingleOutputComponent {
 public:
-    virtual void process(Packet in, int port) {
+    virtual void process(Packet in, MicroFlo::PortId port) {
         using namespace ReadCapacitivePinPorts;
 
         if (in.isSetup()) {
@@ -517,7 +517,7 @@ class ReadCapacitivePin : public DummyComponent {};
 
 class ToggleBoolean : public SingleOutputComponent {
 public:
-    virtual void process(Packet in, int port) {
+    virtual void process(Packet in, MicroFlo::PortId port) {
         using namespace ToggleBooleanPorts;
         if (in.isSetup()) {
             currentState = false;
@@ -535,7 +535,7 @@ private:
 
 class InvertBoolean : public SingleOutputComponent {
 public:
-    virtual void process(Packet in, int port) {
+    virtual void process(Packet in, MicroFlo::PortId port) {
         if (in.isData()) {
             Packet p = Packet((bool)!in.asBool());
             send(p);
@@ -550,7 +550,7 @@ public:
         lastState[1] = false;
     }
 
-    virtual void process(Packet in, int port) {
+    virtual void process(Packet in, MicroFlo::PortId port) {
         if (in.isData() && port <= 1) {
             lastState[port] = in.asBool();
             send((lastState[0] || lastState[1]) ? Packet((bool)true) : Packet((bool)false));
@@ -568,7 +568,7 @@ public:
         lastState[1] = false;
     }
 
-    virtual void process(Packet in, int port) {
+    virtual void process(Packet in, MicroFlo::PortId port) {
         if (in.isData() && port <= 1) {
             lastState[port] = in.asBool();
             send((lastState[0] && lastState[1]) ? Packet((bool)true) : Packet((bool)false));
@@ -585,7 +585,7 @@ public:
         lastB = -1;
     }
 
-    virtual void process(Packet in, int port) {
+    virtual void process(Packet in, MicroFlo::PortId port) {
         using namespace NumberEqualsPorts;
 
         if (port == InPorts::a) {
@@ -609,7 +609,7 @@ private:
 class ArduinoUno : public Component {
 public:
     ArduinoUno() : Component(outPorts, ArduinoUnoPorts::OutPorts::pina5+1) {}
-    virtual void process(Packet in, int port) {
+    virtual void process(Packet in, MicroFlo::PortId port) {
         const int digitalPins = 14;
         const int analogPins = 6;
         if (in.isSetup()) {
@@ -627,7 +627,7 @@ private:
 class HysteresisLatch : public SingleOutputComponent
 {
 public:
-    virtual void process(Packet in, int port) {
+    virtual void process(Packet in, MicroFlo::PortId port) {
         const int inputPort = 0;
         const int lowThresholdPort = 1;
         const int highThresholdPort = 2;
@@ -684,7 +684,7 @@ public:
         : Component(outPorts, BreakBeforeMakePorts::OutPorts::out2+1)
         , state(Init)
         {}
-    virtual void process(Packet in, int port) {
+    virtual void process(Packet in, MicroFlo::PortId port) {
         const int inPort = 0;
         const int out1MonitorPort = 1;
         const int out2MonitorPort = 2;
@@ -753,7 +753,7 @@ private:
 class Delimit : public SingleOutputComponent {
 public:
     Delimit(): startBracketRecieved(false) {}
-    virtual void process(Packet in, int port) {
+    virtual void process(Packet in, MicroFlo::PortId port) {
         if (in.isSetup()) {
             delimiter = '\r';
         }
@@ -781,7 +781,7 @@ private:
 
 class Count : public SingleOutputComponent {
 public:
-    virtual void process(Packet in, int port) {
+    virtual void process(Packet in, MicroFlo::PortId port) {
         using namespace CountPorts;
         if (in.isSetup()) {
             current = 0;
@@ -811,7 +811,7 @@ class Gate : public SingleOutputComponent {
 public:
     Gate() : enabled(false), lastInput(MsgInvalid) {}
 
-    virtual void process(Packet in, int port) {
+    virtual void process(Packet in, MicroFlo::PortId port) {
         using namespace GatePorts;
         if (port == InPorts::in) {
             lastInput = in;
@@ -841,7 +841,7 @@ public:
         }
     }
 
-    virtual void process(Packet in, int port) {
+    virtual void process(Packet in, MicroFlo::PortId port) {
         using namespace RoutePorts;
         if (port == InPorts::port) {
             activePort = in.asInteger();
@@ -869,7 +869,7 @@ private:
 class ATUSBKEY : public Component {
 public:
     ATUSBKEY() : Component(outPorts, ATUSBKEYPorts::OutPorts::portf7) {}
-    virtual void process(Packet in, int port) {
+    virtual void process(Packet in, MicroFlo::PortId port) {
         // FIXME: separate between analog/digital capable ports (also PWM etc)
         if (in.isSetup()) {
             for (int outPort=0; outPort < ATUSBKEYPorts::OutPorts::portf7; outPort++) {
@@ -933,7 +933,7 @@ public:
         , initialized(false)
     {}
 
-    virtual void process(Packet in, int port) {
+    virtual void process(Packet in, MicroFlo::PortId port) {
         using namespace LedMatrixMaxPorts;
         if (port == InPorts::in) {
             if (in.isInteger() && in.asInteger() < 38) {

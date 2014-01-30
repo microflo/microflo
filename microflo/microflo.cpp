@@ -661,7 +661,7 @@ void SubGraph::connectOutport(MicroFlo::PortId outPort, Component *child, MicroF
     outputConnections[outPort].targetPort = childOutPort;
 }
 
-void SubGraph::process(Packet in, int port) {
+void SubGraph::process(Packet in, MicroFlo::PortId port) {
     if (port >= 0) {
         MICROFLO_DEBUG(network, DebugLevelError, DebugSubGraphReceivedNormalMessage);
     }

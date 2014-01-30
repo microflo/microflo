@@ -250,7 +250,7 @@ public:
 
     Component(Connection *outPorts, int ports) : connections(outPorts), nPorts(ports) {}
     virtual ~Component() {}
-    virtual void process(Packet in, int port) = 0; // TODO: make port a MicroFlo::PortId
+    virtual void process(Packet in, MicroFlo::PortId port) = 0;
 
     MicroFlo::NodeId id() const { return nodeId; }
     int component() const { return componentId; }
@@ -281,7 +281,7 @@ public:
     virtual ~SubGraph() {}
 
     // Implements Component
-    virtual void process(Packet in, int port);
+    virtual void process(Packet in, MicroFlo::PortId port);
 
     void connectInport(MicroFlo::PortId inPort, Component *child, MicroFlo::PortId childInPort);
     void connectOutport(MicroFlo::PortId outPort, Component *child, MicroFlo::PortId childOutPort);
