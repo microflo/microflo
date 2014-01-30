@@ -40,3 +40,4 @@ package.json
 README.md
 CHANGES.md
 binding.gyp
+test/subgraph.js
