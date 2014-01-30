@@ -34,7 +34,7 @@ const int MICROFLO_MAX_MESSAGES = 50;
 
 namespace MicroFlo {
     typedef uint8_t NodeId;
-
+    typedef int8_t PortId;
 };
 
 // Packet
@@ -95,7 +95,7 @@ class Component;
 
 struct Message {
     Component *target;
-    char targetPort;
+    MicroFlo::PortId targetPort;
     Packet pkg;
 };
 
@@ -119,17 +119,20 @@ public:
     void reset();
     void start();
 
-    int addNode(Component *node, MicroFlo::NodeId parentId);
-    void connect(Component *src, int srcPort, Component *target, int targetPort);
-    void connect(MicroFlo::NodeId srcId, int srcPort, MicroFlo::NodeId targetId, int targetPort);
-    void connectSubgraph(bool isOutput, MicroFlo::NodeId subgraphNode, int subgraphPort,
-                         MicroFlo::NodeId childNode, int childPort);
+    MicroFlo::NodeId addNode(Component *node, MicroFlo::NodeId parentId);
+    void connect(Component *src, MicroFlo::PortId srcPort,
+                 Component *target, MicroFlo::PortId targetPort);
+    void connect(MicroFlo::NodeId srcId, MicroFlo::PortId srcPort,
+                 MicroFlo::NodeId targetId, MicroFlo::PortId targetPort);
+    void connectSubgraph(bool isOutput,
+                         MicroFlo::NodeId subgraphNode, MicroFlo::PortId subgraphPort,
+                         MicroFlo::NodeId childNode, MicroFlo::PortId childPort);
 
-    void sendMessage(Component *target, int targetPort, const Packet &pkg,
-                     Component *sender=0, int senderPort=-1);
-    void sendMessage(MicroFlo::NodeId targetId, int targetPort, const Packet &pkg);
+    void sendMessage(Component *target, MicroFlo::PortId targetPort, const Packet &pkg,
+                     Component *sender=0, MicroFlo::PortId senderPort=-1);
+    void sendMessage(MicroFlo::NodeId targetId, MicroFlo::PortId targetPort, const Packet &pkg);
 
-    void subscribeToPort(MicroFlo::NodeId nodeId, int portId, bool enable);
+    void subscribeToPort(MicroFlo::NodeId nodeId, MicroFlo::PortId portId, bool enable);
 
     void setNotificationHandler(NetworkNotificationHandler *handler) { notificationHandler = handler; }
 
@@ -157,19 +160,21 @@ private:
 
 class NetworkNotificationHandler {
 public:
-    virtual void packetSent(int index, Message m, Component *sender, int senderPort) = 0;
+    virtual void packetSent(int index, Message m, Component *sender, MicroFlo::PortId senderPort) = 0;
     virtual void packetDelivered(int index, Message m) = 0;
 
-    virtual void nodeAdded(Component *c, int parentId) = 0;
-    virtual void nodesConnected(Component *src, int srcPort, Component *target, int targetPort) = 0;
+    virtual void nodeAdded(Component *c, MicroFlo::NodeId parentId) = 0;
+    virtual void nodesConnected(Component *src, MicroFlo::PortId srcPort,
+                                Component *target, MicroFlo::PortId targetPort) = 0;
     virtual void networkStateChanged(Network::State s) = 0;
-    virtual void subgraphConnected(bool isOutput, MicroFlo::NodeId subgraphNode, int subgraphPort,
-                                   MicroFlo::NodeId childNode, int childPort);
+    virtual void subgraphConnected(bool isOutput,
+                                   MicroFlo::NodeId subgraphNode, MicroFlo::PortId subgraphPort,
+                                   MicroFlo::NodeId childNode, MicroFlo::PortId childPort);
 
 
     virtual void emitDebug(DebugLevel level, DebugId id) = 0;
     virtual void debugChanged(DebugLevel level) = 0;
-    virtual void portSubscriptionChanged(MicroFlo::NodeId nodeId, int portId, bool enable);
+    virtual void portSubscriptionChanged(MicroFlo::NodeId nodeId, MicroFlo::PortId portId, bool enable);
 };
 
 struct Connection {
@@ -245,17 +250,17 @@ public:
 
     Component(Connection *outPorts, int ports) : connections(outPorts), nPorts(ports) {}
     virtual ~Component() {}
-    virtual void process(Packet in, int port) = 0;
+    virtual void process(Packet in, int port) = 0; // TODO: make port a MicroFlo::PortId
 
     MicroFlo::NodeId id() const { return nodeId; }
     int component() const { return componentId; }
 
 protected:
-    void send(Packet out, int port=0);
+    void send(Packet out, MicroFlo::PortId port=0);
     IO *io;
 private:
     void setParent(int parentId) { parentNodeId = parentId; }
-    void connect(int outPort, Component *target, int targetPort);
+    void connect(MicroFlo::PortId outPort, Component *target, MicroFlo::PortId targetPort);
     void setNetwork(Network *net, int n, IO *io);
 private:
     Connection *connections; // one per output port
@@ -278,8 +283,8 @@ public:
     // Implements Component
     virtual void process(Packet in, int port);
 
-    void connectInport(int inPort, Component *child, int childInPort);
-    void connectOutport(int outPort, Component *child, int childOutPort);
+    void connectInport(MicroFlo::PortId inPort, Component *child, MicroFlo::PortId childInPort);
+    void connectOutport(MicroFlo::PortId outPort, Component *child, MicroFlo::PortId childOutPort);
 private:
     Connection inputConnections[MICROFLO_SUBGRAPH_MAXPORTS];
     Connection outputConnections[MICROFLO_SUBGRAPH_MAXPORTS];
@@ -300,16 +305,17 @@ public:
     void parseByte(char b);
 
     // Implements NetworkNotificationHandler
-    virtual void packetSent(int index, Message m, Component *sender, int senderPort);
+    virtual void packetSent(int index, Message m, Component *sender, MicroFlo::PortId senderPort);
     virtual void packetDelivered(int index, Message m);
-    virtual void nodeAdded(Component *c, int parentId);
-    virtual void nodesConnected(Component *src, int srcPort, Component *target, int targetPort);
+    virtual void nodeAdded(Component *c, MicroFlo::NodeId parentId);
+    virtual void nodesConnected(Component *src, MicroFlo::PortId srcPort,
+                                Component *target, MicroFlo::PortId targetPort);
     virtual void networkStateChanged(Network::State s);
     virtual void emitDebug(DebugLevel level, DebugId id);
     virtual void debugChanged(DebugLevel level);
-    virtual void portSubscriptionChanged(MicroFlo::NodeId nodeId, int portId, bool enable);
+    virtual void portSubscriptionChanged(MicroFlo::NodeId nodeId, MicroFlo::PortId portId, bool enable);
     virtual void subgraphConnected(bool isOutput, MicroFlo::NodeId subgraphNode,
-                                   int subgraphPort, MicroFlo::NodeId childNode, int childPort);
+                                   MicroFlo::PortId subgraphPort, MicroFlo::NodeId childNode, MicroFlo::PortId childPort);
 
 private:
     void parseCmd();
@@ -340,7 +346,7 @@ public:
 
 class SerialHostTransport : public HostTransport {
 public:
-    SerialHostTransport(int serialPort, int baudRate);
+    SerialHostTransport(uint8_t serialPort, int baudRate);
 
     // implements HostTransport
     virtual void setup(IO *i, HostCommunication *c);
