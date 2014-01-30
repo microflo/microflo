@@ -565,3 +565,14 @@ I/O                 Digital,PWM,ADC     Digital GPIO
                     i2c,SPI,USART       i2c,SPI,USART
                     USB device          USB host, Ethernet, HDMI, audio out
 
+
+Beautiful documentation
+=========================
+
+Web technology and JavaScript libraries often have quite aesthetically pleasing documentation,
+compared to typical C++,Java etc tech. It gives a sense of quality, of thouroughness, style
+and attention to detail.
+At the same time, while very 'engineering' in style, typical electronics ICs datasheets can also be
+quite beautiful - and also describe in details the performance/behavioural characteristics of the device
+- not just reference/usage.
+A combination of these two styles would be a nice documentation goal for MicroFlo.
