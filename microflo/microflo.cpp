@@ -450,7 +450,7 @@ void Network::start() {
 void Network::emitDebug(DebugLevel level, DebugId id) {
     if (level <= debugLevel) {
         if (notificationHandler) {
-            notificationHandler->emitDebug(id);
+            notificationHandler->emitDebug(level, id);
         }
     }
 }
@@ -572,10 +572,11 @@ void HostCommunication::packetDelivered(int index, Message m) {
     printPacket(&m.pkg);*/
 }
 
-void HostCommunication::emitDebug(DebugId id) {
+void HostCommunication::emitDebug(DebugLevel level, DebugId id) {
     transport->sendCommandByte(GraphCmdDebugMessage);
+    transport->sendCommandByte(level);
     transport->sendCommandByte(id);
-    transport->padCommandWithNArguments(1);
+    transport->padCommandWithNArguments(2);
 }
 
 void HostCommunication::debugChanged(DebugLevel level) {

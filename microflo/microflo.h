@@ -167,7 +167,7 @@ public:
                                    MicroFlo::NodeId childNode, int childPort);
 
 
-    virtual void emitDebug(DebugId id) = 0;
+    virtual void emitDebug(DebugLevel level, DebugId id) = 0;
     virtual void debugChanged(DebugLevel level) = 0;
     virtual void portSubscriptionChanged(MicroFlo::NodeId nodeId, int portId, bool enable);
 };
@@ -305,7 +305,7 @@ public:
     virtual void nodeAdded(Component *c, int parentId);
     virtual void nodesConnected(Component *src, int srcPort, Component *target, int targetPort);
     virtual void networkStateChanged(Network::State s);
-    virtual void emitDebug(DebugId id);
+    virtual void emitDebug(DebugLevel level, DebugId id);
     virtual void debugChanged(DebugLevel level);
     virtual void portSubscriptionChanged(MicroFlo::NodeId nodeId, int portId, bool enable);
     virtual void subgraphConnected(bool isOutput, MicroFlo::NodeId subgraphNode,
