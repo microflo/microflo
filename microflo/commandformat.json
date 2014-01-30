@@ -69,6 +69,9 @@
         "SubGraphConnectNotASubgraph": {"id": 20},
         "SubGraphConnectInvalidNodes": {"id": 21},
         "SubGraphReceivedNormalMessage": {"id": 22},
+        "SendMessageInvalidNode": {"id": 23},
+        "AddNodeInvalidParent": {"id": 24},
+        "SubscribePortInvalidNode": {"id": 25},
 
         "Max": { "id": 255 }
     },

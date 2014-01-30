@@ -108,6 +108,7 @@ class Network {
 #endif
 
 public:
+    static const MicroFlo::NodeId firstNodeId = 1; // 0=reserved: no-parent-node
     enum State {
         Invalid = -1,
         Stopped,

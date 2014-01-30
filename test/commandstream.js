@@ -28,7 +28,7 @@ describe('Commandstream generation', function(){
                            15,1,0,0,0,0,0,0,
                            11,8,0,0,0,0,0,0,
                            11,3,0,0,0,0,0,0, 11,9,0,0,0,0,0,0,
-                           12,0,1,0,0,0,0,0, 12,1,2,0,0,0,0,0,
+                           12,1,2,0,0,0,0,0, 12,2,3,0,0,0,0,0,
                            14,0,0,0,0,0,0,0 ]);
       it('parsing should give known valid output', function(){
           var out = microflo.commandstream.cmdStreamFromGraph(componentLib, fbp.parse(input));

@@ -485,10 +485,12 @@ v8::Handle<v8::Value> JavaScriptNetwork::GetNodes(const v8::Arguments& args) {
   v8::HandleScope scope;
   JavaScriptNetwork* obj = node::ObjectWrap::Unwrap<JavaScriptNetwork>(args.This());
 
-  v8::Handle<v8::Array> nodeArray = v8::Array::New(obj->lastAddedNodeIndex);
-  for (int i=0; i<obj->lastAddedNodeIndex; i++) {
+  v8::Handle<v8::Array> nodeArray = v8::Array::New(obj->lastAddedNodeIndex-Network::firstNodeId);
+  for (int i=Network::firstNodeId; i<obj->lastAddedNodeIndex; i++) {
       const Component *node = obj->nodes[i];
-      nodeArray->Set(i, v8::Integer::New(node->component()));
+      if (node) {
+          nodeArray->Set(i-Network::firstNodeId, v8::Integer::New(node->component()));
+      }
   }
 
   return scope.Close(nodeArray);

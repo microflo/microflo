@@ -24,18 +24,22 @@ describe('Network', function(){
             messages[i] = i;
         }
 
+        var firstNode = -1;
         for (i=0; i<nodes; i++) {
-            net.addNode(componentLib.getComponent("Forward").id);
+            var node = net.addNode(componentLib.getComponent("Forward").id);
+            if (firstNode < 0) {
+                firstNode = node;
+            }
         }
 
-        for (i=0; i<nodes-1; i++) {
+        for (i=firstNode; i<nodes; i++) {
             net.connect(i, 0, i+1, 0);
         }
 
         compare.expected = messages;
         net.connect(nodes-1, 0, net.addNode(compare), 0);
         for (i=0; i<messages.length; i++) {
-            net.sendMessage(0, 0, messages[i]);
+            net.sendMessage(1, 0, messages[i]);
         }
 
         var deadline = new Date().getTime() + 1*1000; // ms

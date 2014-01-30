@@ -10,6 +10,9 @@ do { \
     net->emitDebug(level, code); \
 } while(0)
 
+#define MICROFLO_VALID_NODEID(id) \
+   (id >= Network::firstNodeId && id <= lastAddedNodeIndex)
+
 #ifdef HOST_BUILD
 #include <cstring>
 #endif
@@ -251,7 +254,7 @@ void Component::connect(MicroFlo::PortId outPort, Component *target, MicroFlo::P
 }
 
 void Component::setNetwork(Network *net, int n, IO *i) {
-    parentNodeId = 0;
+    parentNodeId = 0; // no parent
     network = net;
     nodeId = n;
     io = i;
@@ -263,7 +266,7 @@ void Component::setNetwork(Network *net, int n, IO *i) {
 }
 
 Network::Network(IO *io)
-    : lastAddedNodeIndex(0)
+    : lastAddedNodeIndex(Network::firstNodeId)
     , messageWriteIndex(0)
     , messageReadIndex(0)
     , notificationHandler(0)
@@ -320,7 +323,7 @@ void Network::sendMessage(Component *target, MicroFlo::PortId targetPort, const 
     }
     const int msgIndex = messageWriteIndex++;
 
-    const bool senderIsChild = sender && sender->parentNodeId > 0;
+    const bool senderIsChild = sender && sender->parentNodeId >= Network::firstNodeId;
     if (senderIsChild) {
         SubGraph *parent = (SubGraph *)nodes[sender->parentNodeId];
         if (target == parent) {
@@ -352,6 +355,11 @@ void Network::sendMessage(Component *target, MicroFlo::PortId targetPort, const 
 }
 
 void Network::sendMessage(MicroFlo::NodeId targetId, MicroFlo::PortId targetPort, const Packet &pkg) {
+    if (!MICROFLO_VALID_NODEID(targetId)) {
+        MICROFLO_DEBUG(this, DebugLevelError, DebugSendMessageInvalidNode);
+        return;
+    }
+
     sendMessage(nodes[targetId], targetPort, pkg);
 }
 
@@ -386,8 +394,9 @@ void Network::runTick() {
     }
 }
 
-void Network::connect(MicroFlo::NodeId srcId, MicroFlo::PortId srcPort, MicroFlo::NodeId targetId, MicroFlo::PortId targetPort) {
-    if (srcId > lastAddedNodeIndex || targetId > lastAddedNodeIndex) {
+void Network::connect(MicroFlo::NodeId srcId, MicroFlo::PortId srcPort,
+                      MicroFlo::NodeId targetId,MicroFlo::PortId targetPort) {
+    if (!MICROFLO_VALID_NODEID(srcId) || !MICROFLO_VALID_NODEID(targetId)) {
         MICROFLO_DEBUG(this, DebugLevelError, DebugNetworkConnectInvalidNodes);
         return;
     }
@@ -395,7 +404,8 @@ void Network::connect(MicroFlo::NodeId srcId, MicroFlo::PortId srcPort, MicroFlo
     connect(nodes[srcId], srcPort, nodes[targetId], targetPort);
 }
 
-void Network::connect(Component *src, MicroFlo::PortId srcPort, Component *target, MicroFlo::PortId targetPort) {
+void Network::connect(Component *src, MicroFlo::PortId srcPort,
+                      Component *target, MicroFlo::PortId targetPort) {
     src->connect(srcPort, target, targetPort);
     if (notificationHandler) {
         notificationHandler->nodesConnected(src, srcPort, target, targetPort);
@@ -405,7 +415,11 @@ void Network::connect(Component *src, MicroFlo::PortId srcPort, Component *targe
 MicroFlo::NodeId Network::addNode(Component *node, MicroFlo::NodeId parentId) {
     if (!node) {
         MICROFLO_DEBUG(this, DebugLevelError, DebugAddNodeInvalidInstance);
-        return -1;
+        return 0;
+    }
+    if (parentId > lastAddedNodeIndex) {
+        MICROFLO_DEBUG(this, DebugLevelError, DebugAddNodeInvalidParent);
+        return 0;
     }
 
     const int nodeId = lastAddedNodeIndex;
@@ -433,7 +447,7 @@ void Network::reset() {
             nodes[i] = 0;
         }
     }
-    lastAddedNodeIndex = 0;
+    lastAddedNodeIndex = Network::firstNodeId;
     messageWriteIndex = 0;
     messageReadIndex = 0;
 }
@@ -463,13 +477,10 @@ void Network::setDebugLevel(DebugLevel level) {
 }
 
 void Network::subscribeToPort(MicroFlo::NodeId nodeId, MicroFlo::PortId portId, bool enable) {
-    /* FIXME: does not trigger
-    if (nodeId < 1 || nodeId > lastAddedNodeIndex) {
+    if (!MICROFLO_VALID_NODEID(nodeId)) {
+        MICROFLO_DEBUG(this, DebugLevelError, DebugSubscribePortInvalidNode);
         return;
     }
-    */
-
-    //MICROFLO_DEBUG(this, DebugLevelDetailed, DebugPortSubscription);
 
     Component *c = nodes[nodeId];
     if (portId >= c->nPorts) {
@@ -483,17 +494,18 @@ void Network::subscribeToPort(MicroFlo::NodeId nodeId, MicroFlo::PortId portId, 
     }
 }
 
-void Network::connectSubgraph(bool isOutput, MicroFlo::NodeId subgraphNode, MicroFlo::PortId subgraphPort,
+void Network::connectSubgraph(bool isOutput,
+                              MicroFlo::NodeId subgraphNode, MicroFlo::PortId subgraphPort,
                               MicroFlo::NodeId childNode, MicroFlo::PortId childPort) {
 
-    if (subgraphNode >= lastAddedNodeIndex || childNode >= lastAddedNodeIndex) {
+    if (!MICROFLO_VALID_NODEID(subgraphNode) || !MICROFLO_VALID_NODEID(childNode)) {
         MICROFLO_DEBUG(this, DebugLevelError, DebugSubGraphConnectInvalidNodes);
         return;
     }
 
     Component *comp = nodes[subgraphNode];
     Component *child = nodes[childNode];
-    if (comp->component() != IdSubGraph || child->parentNodeId < 1) {
+    if (comp->component() != IdSubGraph || child->parentNodeId < Network::firstNodeId) {
         MICROFLO_DEBUG(this, DebugLevelError, DebugSubGraphConnectNotASubgraph);
         return;
     }
