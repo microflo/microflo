@@ -568,6 +568,12 @@ void HostCommunication::packetSent(int index, Message m, Component *src, MicroFl
             transport->padCommandWithNArguments(6);
         } else if (m.pkg.isVoid()) {
             transport->padCommandWithNArguments(5);
+        } else if (m.pkg.isNumber()){
+            // FIXME: truncates
+            const int i = m.pkg.asInteger();
+            transport->sendCommandByte(i>>0);
+            transport->sendCommandByte(i>>8);
+            transport->padCommandWithNArguments(8);
         } else {
             // FIXME: support all types
             transport->padCommandWithNArguments(5); // finish command before sending debug
