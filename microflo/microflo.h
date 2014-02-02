@@ -170,12 +170,12 @@ public:
     virtual void networkStateChanged(Network::State s) = 0;
     virtual void subgraphConnected(bool isOutput,
                                    MicroFlo::NodeId subgraphNode, MicroFlo::PortId subgraphPort,
-                                   MicroFlo::NodeId childNode, MicroFlo::PortId childPort);
+                                   MicroFlo::NodeId childNode, MicroFlo::PortId childPort) = 0;
 
 
     virtual void emitDebug(DebugLevel level, DebugId id) = 0;
     virtual void debugChanged(DebugLevel level) = 0;
-    virtual void portSubscriptionChanged(MicroFlo::NodeId nodeId, MicroFlo::PortId portId, bool enable);
+    virtual void portSubscriptionChanged(MicroFlo::NodeId nodeId, MicroFlo::PortId portId, bool enable) = 0;
 };
 
 struct Connection {
