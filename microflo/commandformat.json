@@ -72,6 +72,7 @@
         "SendMessageInvalidNode": {"id": 23},
         "AddNodeInvalidParent": {"id": 24},
         "SubscribePortInvalidNode": {"id": 25},
+        "IoOperationNotImplemented": {"id": 26},
 
         "Max": { "id": 255 }
     },

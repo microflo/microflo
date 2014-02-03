@@ -31,6 +31,12 @@ const int MICROFLO_MAX_MESSAGES = MICROFLO_MESSAGE_LIMIT;
 const int MICROFLO_MAX_MESSAGES = 50;
 #endif
 
+#define MICROFLO_DEBUG(handler, level, code) \
+do { \
+    if (handler) { \
+        handler->emitDebug(level, code); \
+    } \
+} while(0)
 
 namespace MicroFlo {
     typedef uint8_t NodeId;
@@ -135,7 +141,7 @@ public:
 
     void subscribeToPort(MicroFlo::NodeId nodeId, MicroFlo::PortId portId, bool enable);
 
-    void setNotificationHandler(NetworkNotificationHandler *handler) { notificationHandler = handler; }
+    void setNotificationHandler(NetworkNotificationHandler *handler);
 
     void runTick();
 
@@ -159,7 +165,13 @@ private:
     DebugLevel debugLevel;
 };
 
-class NetworkNotificationHandler {
+class DebugHandler {
+public:
+    virtual void emitDebug(DebugLevel level, DebugId id) = 0;
+    virtual void debugChanged(DebugLevel level) = 0;
+};
+
+class NetworkNotificationHandler : public DebugHandler {
 public:
     virtual void packetSent(int index, Message m, Component *sender, MicroFlo::PortId senderPort) = 0;
     virtual void packetDelivered(int index, Message m) = 0;
@@ -172,9 +184,6 @@ public:
                                    MicroFlo::NodeId subgraphNode, MicroFlo::PortId subgraphPort,
                                    MicroFlo::NodeId childNode, MicroFlo::PortId childPort) = 0;
 
-
-    virtual void emitDebug(DebugLevel level, DebugId id) = 0;
-    virtual void debugChanged(DebugLevel level) = 0;
     virtual void portSubscriptionChanged(MicroFlo::NodeId nodeId, MicroFlo::PortId portId, bool enable) = 0;
 };
 
@@ -192,6 +201,9 @@ struct Connection {
 typedef void (*IOInterruptFunction)(void *user);
 
 class IO {
+    friend class Network; // for setting up debug
+protected:
+    DebugHandler *debug;
 public:
     virtual ~IO() {}
 

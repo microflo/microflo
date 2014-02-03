@@ -23,24 +23,26 @@ public:
     // Serial
     // FIXME: implement
     virtual void SerialBegin(int serialDevice, int baudrate) {
-
+        MICROFLO_DEBUG(debug, DebugLevelError, DebugIoOperationNotImplemented);
     }
     virtual long SerialDataAvailable(int serialDevice) {
+        MICROFLO_DEBUG(debug, DebugLevelError, DebugIoOperationNotImplemented);
         return false;
     }
     virtual unsigned char SerialRead(int serialDevice) {
+        MICROFLO_DEBUG(debug, DebugLevelError, DebugIoOperationNotImplemented);
         return 0;
     }
     virtual void SerialWrite(int serialDevice, unsigned char b) {
-
+        MICROFLO_DEBUG(debug, DebugLevelError, DebugIoOperationNotImplemented);
     }
 
     // Pin config
     virtual void PinSetMode(int pin, IO::PinMode mode) {
-        
+        MICROFLO_DEBUG(debug, DebugLevelError, DebugIoOperationNotImplemented);
     }
     virtual void PinEnablePullup(int pin, bool enable) {
-
+        MICROFLO_DEBUG(debug, DebugLevelError, DebugIoOperationNotImplemented);
     }
 
     // Digital
@@ -55,10 +57,11 @@ public:
     // Analog
     // FIXME: implement
     virtual long AnalogRead(int pin) {
+        MICROFLO_DEBUG(debug, DebugLevelError, DebugIoOperationNotImplemented);
         return 0;
     }
     virtual void PwmWrite(int pin, long dutyPercent) {
-
+        MICROFLO_DEBUG(debug, DebugLevelError, DebugIoOperationNotImplemented);
     }
 
     // Timer
@@ -68,7 +71,7 @@ public:
 
     virtual void AttachExternalInterrupt(int interrupt, IO::Interrupt::Mode mode,
                                          IOInterruptFunction func, void *user) {
-
+        MICROFLO_DEBUG(debug, DebugLevelError, DebugIoOperationNotImplemented);
     }
 };
 

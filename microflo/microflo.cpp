@@ -5,10 +5,6 @@
 
 #include "microflo.h"
 
-#define MICROFLO_DEBUG(net, level, code) \
-do { \
-    net->emitDebug(level, code); \
-} while(0)
 
 #define MICROFLO_VALID_NODEID(id) \
    (id >= Network::firstNodeId && id <= lastAddedNodeIndex)
@@ -277,6 +273,11 @@ Network::Network(IO *io)
     for (int i=0; i<MICROFLO_MAX_NODES; i++) {
         nodes[i] = 0;
     }
+}
+
+void Network::setNotificationHandler(NetworkNotificationHandler *handler) {
+    notificationHandler = handler;
+    io->debug = handler;
 }
 
 void Network::deliverMessages(int firstIndex, int lastIndex) {
