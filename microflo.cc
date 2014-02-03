@@ -67,10 +67,10 @@ public: // Implements IO
 
     // Pin config
     virtual void PinSetMode(int pin, PinMode mode) {
-        MICROFLO_DEBUG(debug, DebugLevelError, DebugIoOperationNotImplemented);
+        // TODO: set, and don't allow write if wrong mode
     }
     virtual void PinEnablePullup(int pin, bool enable) {
-        MICROFLO_DEBUG(debug, DebugLevelError, DebugIoOperationNotImplemented);
+        // TODO: set
     }
 
     // Digital
