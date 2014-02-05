@@ -10,6 +10,8 @@
 #define MICROFLO_NO_MAIN
 #include "microflo/microflo.hpp"
 
+#include <string>
+
 // Packet
 v8::Handle<v8::Value> PacketToJsObject(const Packet &p) {
     v8::HandleScope scope;
