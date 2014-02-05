@@ -2,6 +2,8 @@
 GRAPH=examples/blink.fbp
 MODEL=uno
 AVRMODEL=at90usb1287
+MBED_GRAPH=examples/blink-mbed.fbp
+UPLOAD_DIR=/mnt
 
 # SERIALPORT=/dev/somecustom
 # ARDUINO=/home/user/Arduino-1.0.5
@@ -67,9 +69,16 @@ build-avr: install
 	cd build/avr && $(AVROBJCOPY) -j .text -j .data -O ihex firmware.elf firmware.hex
 	$(AVRSIZE) -A build/avr/firmware.elf
 
+build-mbed:
+	cd thirdparty/mbed && python2 workspace_tools/build.py -t GCC_ARM -m LPC1768
+	mkdir -p build/mbed
+	node microflo.js generate $(MBED_GRAPH) build/mbed/main.cpp mbed
+	cp Makefile.mbed build/mbed/Makefile
+	cd build/mbed && make ROOT_DIR=./../../
+
 build: build-arduino build-avr
 
-upload: build
+upload: build-arduino
 	cd build/arduino && ino upload $(INOUPLOADOPTIONS) $(INOOPTIONS)
 
 upload-dfu: build-avr
@@ -77,6 +86,9 @@ upload-dfu: build-avr
 	sleep 1
 	cd build/avr && sudo $(DFUPROGRAMMER) $(AVRMODEL) flash firmware.hex || sudo $(DFUPROGRAMMER) $(AVRMODEL) flash firmware.hex || sudo $(DFUPROGRAMMER) $(AVRMODEL) flash firmware.hex || sudo $(DFUPROGRAMMER) $(AVRMODEL) flash firmware.hex || sudo $(DFUPROGRAMMER) $(AVRMODEL) flash firmware.hex
 	sudo $(DFUPROGRAMMER) $(AVRMODEL) start
+
+upload-mbed: build-mbed
+	cd build/mbed && sudo cp firmware.bin $(UPLOAD_DIR)
 
 clean:
 	git clean -dfx --exclude=node_modules
