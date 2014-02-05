@@ -21,20 +21,19 @@ public:
     }
 
     // Serial
-    // FIXME: implement
     virtual void SerialBegin(int serialDevice, int baudrate) {
-        MICROFLO_DEBUG(debug, DebugLevelError, DebugIoOperationNotImplemented);
+        // FIXME
     }
     virtual long SerialDataAvailable(int serialDevice) {
-        MICROFLO_DEBUG(debug, DebugLevelError, DebugIoOperationNotImplemented);
+        // FIXME
         return false;
     }
     virtual unsigned char SerialRead(int serialDevice) {
-        MICROFLO_DEBUG(debug, DebugLevelError, DebugIoOperationNotImplemented);
+        // FIXME
         return 0;
     }
     virtual void SerialWrite(int serialDevice, unsigned char b) {
-        MICROFLO_DEBUG(debug, DebugLevelError, DebugIoOperationNotImplemented);
+        // FIXME
     }
 
     // Pin config
@@ -47,8 +46,7 @@ public:
 
     // Digital
     virtual void DigitalWrite(int pin, bool val) {
-        //DigitalOut((PinName)pin).write(val);
-        DigitalOut((PinName)LED2).write(val);
+        DigitalOut((PinName)pin).write(val);
     }
     virtual bool DigitalRead(int pin) {
         return DigitalIn((PinName)pin).read();

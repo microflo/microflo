@@ -17,6 +17,7 @@ microflo/microflo.cpp
 microflo/microflo.h
 microflo/microflo.hpp
 microflo/avr.hpp
+microflo/mbed.hpp
 lib/runtime.js
 lib/commandstream.js
 lib/generate.js

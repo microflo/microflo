@@ -15,6 +15,19 @@
 #include <DallasTemperature.h>
 #endif
 
+#ifdef HOST_BUILD
+#include <stdio.h>
+#include <time.h>
+#include <stdlib.h>
+#include <string.h>
+#include <string>
+#include <sstream>
+#endif
+
+#ifdef TARGET_LPC1768
+#include <mbed.h>
+#endif
+
 namespace Components {
 
 
@@ -672,16 +685,6 @@ private:
     bool mCurrentState;
 };
 
-#ifdef HOST_BUILD
-#include <stdio.h>
-#include <time.h>
-#include <stdlib.h>
-#include <string.h>
-
-#include <string>
-#include <sstream>
-#endif
-
 // IDEA: ability to express components as finite state machines using a DSL and/or GUI
 class BreakBeforeMake : public Component
 {
@@ -887,6 +890,29 @@ public:
 private:
     Connection outPorts[ATUSBKEYPorts::OutPorts::portf7];
 };
+
+
+#ifdef TARGET_LPC1768
+
+class MbedLPC : public Component {
+public:
+    MbedLPC() : Component(outPorts, 4) {}
+    virtual void process(Packet in, MicroFlo::PortId port) {
+        using namespace MbedLPCPorts;
+        if (in.isSetup()) {
+            send(Packet((long)LED1), OutPorts::led1);
+            send(Packet((long)LED2), OutPorts::led2);
+            send(Packet((long)LED3), OutPorts::led3);
+            send(Packet((long)LED4), OutPorts::led4);
+        }
+    }
+private:
+    Connection outPorts[4];
+};
+
+#else
+class MbedLPC : public DummyComponent { };
+#endif
 
 
 static const unsigned char max7219_characters[38][8]={

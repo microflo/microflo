@@ -11,10 +11,12 @@
 
 #ifdef HOST_BUILD
 #include <cstring>
-#endif
-#ifdef AVR
+#else
 #include "string.h"
 #endif
+
+
+
 
 
 static const char MICROFLO_GRAPH_MAGIC[] = { 'u','C','/','F','l','o', '0', '1' };

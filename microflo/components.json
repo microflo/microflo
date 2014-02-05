@@ -309,6 +309,18 @@
             "inPorts": {}
         },
 
+
+        "MbedLPC": { "id": 52,
+            "description": "Convenient definition of pins available on Mbed LPC1768",
+            "outPorts": {
+                "led1": { "id": 0 },
+                "led2": { "id": 1 },
+                "led3": { "id": 2 },
+                "led4": { "id": 3 }
+            },
+            "inPorts": {}
+        },
+
         "SubGraph": { "id": 100,
             "description": "Not for normal use. Used internally for handling subgraphs",
             "inPorts": {},
