@@ -10,12 +10,20 @@
 
 #include "components-gen-top.hpp"
 
+#ifdef HAVE_DALLAS_TEMPERATURE
+#include <OneWire.h>
+#include <DallasTemperature.h>
+#endif
+
+namespace Components {
+
+
 // FIXME: using any of these should result in error
 class DummyComponent : public Component {
 public:
     DummyComponent() : Component(0, 0) {}
     virtual void process(Packet in, MicroFlo::PortId port) {
-        // NOOP
+        MICROFLO_DEBUG(network, DebugLevelError, DebugInvalidComponentUsed);
     }
 };
 class Invalid : public DummyComponent {};
@@ -354,8 +362,6 @@ private:
 };
 
 #ifdef HAVE_DALLAS_TEMPERATURE
-#include <OneWire.h>
-#include <DallasTemperature.h>
 
 class ReadDallasTemperature : public SingleOutputComponent {
 public:
@@ -403,9 +409,9 @@ private:
 
     int pin;
     int addressIndex;
-    DeviceAddress address;
-    OneWire oneWire;
-    DallasTemperature sensors;
+    ::DeviceAddress address;
+    ::OneWire oneWire;
+    ::DallasTemperature sensors;
 };
 #else
 class ReadDallasTemperature : public DummyComponent {};
@@ -423,7 +429,7 @@ class ReadDallasTemperature : public DummyComponent {};
 //  In order for this to work now,
 // The pin should have a 1+Megaohm resistor pulling
 //  it up to +5v.
-uint8_t readCapacitivePin(int pinToMeasure){
+uint8_t readCapacitivePin(int pinToMeasure) {
   // This is how you declare a variable which
   //  will hold the PORT, PIN, and DDR registers
   //  on an AVR
@@ -1007,5 +1013,7 @@ private:
     bool initialized;
     uint8_t charIndex;
 };
+
+} // namespace Components
 
 #include "components-gen-bottom.hpp"

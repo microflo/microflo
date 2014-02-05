@@ -73,6 +73,7 @@
         "AddNodeInvalidParent": {"id": 24},
         "SubscribePortInvalidNode": {"id": 25},
         "IoOperationNotImplemented": {"id": 26},
+        "InvalidComponentUsed": {"id": 27},
 
         "Max": { "id": 255 }
     },

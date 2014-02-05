@@ -41,7 +41,12 @@ do { \
 namespace MicroFlo {
     typedef uint8_t NodeId;
     typedef int8_t PortId;
-};
+}
+
+namespace Components {
+    class SubGraph;
+    class DummyComponent;
+}
 
 // Packet
 // TODO: implement a proper variant type, or type erasure
@@ -257,7 +262,8 @@ public:
 // IDEA: a decentral way of declaring component introspection data. JSON embedded in comment?
 class Component {
     friend class Network;
-    friend class SubGraph;
+    friend class Components::DummyComponent;
+    friend class Components::SubGraph;
 public:
     static Component *create(ComponentId id);
 
@@ -287,8 +293,10 @@ private:
 
 #define MICROFLO_SUBGRAPH_MAXPORTS 10
 
+namespace Components {
+
 class SubGraph : public Component {
-    friend class Network;
+    friend class ::Network;
 public:
     SubGraph();
     virtual ~SubGraph() {}
@@ -302,6 +310,9 @@ private:
     Connection inputConnections[MICROFLO_SUBGRAPH_MAXPORTS];
     Connection outputConnections[MICROFLO_SUBGRAPH_MAXPORTS];
 };
+
+}
+
 
 // Graph format
 #include <stddef.h>
