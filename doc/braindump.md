@@ -582,3 +582,49 @@ At the same time, while very 'engineering' in style, typical electronics ICs dat
 quite beautiful - and also describe in details the performance/behavioural characteristics of the device
 - not just reference/usage.
 A combination of these two styles would be a nice documentation goal for MicroFlo.
+
+
+
+FBP/data-flow representation of electronics hardware
+====================================================
+
+In context of Microflo, it would be interesting to integrate the electronics
+hardware in a data-flow centric mindset and workflow; primarily from two perspectives:
+1) Providing hardware mocks to interactively simulate, and automatically test code/behaviour
+2) Allowing user who can express data-flow (and thus program uControllers) to also do HW design
+
+Being able to do sketch out the high-level architecture of a design idea quickly
+may be generally useful, especially if the system can calculate costs of the design.
+
+Thus, it is particulary things that the microcontroller cannot do, or which is better done in HW.
+Examples of this include:
+
+* Audio processing.
+Differential amplifier. Inverting amp, non-inverting amp.
+Low-pass, high-pass, band-pass, notch, peak filters.
+Generators, noise, sine, saw, etc.
+* Signal conditioning.
+DC- amplification, impedance matching and transformation
+* Sensor/actuator interfacing.
+Multiplexing/demultiplexing (eg shift register),
+adapting logic-levels (TTL, CMOS etc),
+controlling bigger devices (BJT/MOSFET as on-off switches, motor drivers, relays)
+
+Can one use constraint solving to automatically suggest, or even implement,
+the "adapter" components that the uses needs to connect two different things
+together?
+This would require being able to describe and evaluate all the relevant constraints
+of the various components, and to calcuate if they are being exeeced.
+Meaning, full-blown circuit simulation ala SPICE.
+Maximum current, voltage, power. Voltage thresholds for logic levels.
+Required bandwidth in analog designs. Temperature drift.
+
+Prototyping/proof-of-concept ideas:
+* A way to define a component as a schematic/layout.
+http://upverter.com or http://circuits.io or one of the FOSS EDA tools (KiCad,Geda,Fritzing)?
+* A set of these components, enough for a simple test case/program
+* A "runtime" which can stich components together, output new schematic/layout
+* A way to define component behavior as software for mock/simulation
+* Produce a PCB
+
+https://github.com/zupolgec/circuit-simulator
