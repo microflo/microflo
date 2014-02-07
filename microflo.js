@@ -37,8 +37,9 @@ var uploadGraphCommand = function(graphPath, env) {
 var generateFwCommand = function(env) {
     var inputFile = process.argv[3];
     var outputFile = process.argv[4] || inputFile.replace(path.extname(inputFile), "");
+    var target = process.argv[5] || 'arduino'
 
-    microflo.runtime.generateOutput(componentLib, inputFile, outputFile);
+    microflo.runtime.generateOutput(componentLib, inputFile, outputFile, target);
 }
 
 var main = function() {

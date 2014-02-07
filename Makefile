@@ -56,13 +56,13 @@ build-arduino: install
 	cd build/arduino/lib && test -e patched || patch -p0 < ../../../thirdparty/DallasTemperature.patch
 	cd build/arduino/lib && test -e patched || patch -p0 < ../../../thirdparty/OneWire.patch
 	touch build/arduino/lib/patched
-	node microflo.js generate $(GRAPH) build/arduino/src/firmware.cpp
+	node microflo.js generate $(GRAPH) build/arduino/src/firmware.cpp arduino
 	cd build/arduino && ino build $(INOOPTIONS) --cppflags="$(CPPFLAGS) $(DEFINES)"
 	$(AVRSIZE) -A build/arduino/.build/$(MODEL)/firmware.elf
 
 build-avr: install
 	mkdir -p build/avr
-	node microflo.js generate $(GRAPH) build/avr/firmware.cpp
+	node microflo.js generate $(GRAPH) build/avr/firmware.cpp avr
 	cd build/avr && $(AVRGCC) -o firmware.elf firmware.cpp -I../../microflo -DF_CPU=$(AVR_FCPU) -DAVR=1 -Wall -Werror -Wno-error=overflow -mmcu=$(AVRMODEL) -fno-exceptions -fno-rtti $(CPPFLAGS)
 	cd build/avr && $(AVROBJCOPY) -j .text -j .data -O ihex firmware.elf firmware.hex
 	$(AVRSIZE) -A build/avr/firmware.elf
