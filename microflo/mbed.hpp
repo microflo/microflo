@@ -14,23 +14,23 @@ public:
 
 private:
     Timer timer;
+    Serial usbSerial;
 public:
     MbedIO()
+        : usbSerial(USBTX, USBRX)
     {
         timer.start();
     }
 
     // Serial
     virtual void SerialBegin(int serialDevice, int baudrate) {
-        // FIXME
+        usbSerial.baud(baudrate);
     }
     virtual long SerialDataAvailable(int serialDevice) {
-        // FIXME
-        return false;
+        return usbSerial.readable();
     }
     virtual unsigned char SerialRead(int serialDevice) {
-        // FIXME
-        return 0;
+        return usbSerial.getc();
     }
     virtual void SerialWrite(int serialDevice, unsigned char b) {
         // FIXME

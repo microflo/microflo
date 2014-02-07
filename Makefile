@@ -69,8 +69,9 @@ build-avr: install
 	cd build/avr && $(AVROBJCOPY) -j .text -j .data -O ihex firmware.elf firmware.hex
 	$(AVRSIZE) -A build/avr/firmware.elf
 
-build-mbed:
+build-mbed: install
 	cd thirdparty/mbed && python2 workspace_tools/build.py -t GCC_ARM -m LPC1768
+	rm -rf build/mbed
 	mkdir -p build/mbed
 	node microflo.js generate $(MBED_GRAPH) build/mbed/main.cpp mbed
 	cp Makefile.mbed build/mbed/Makefile

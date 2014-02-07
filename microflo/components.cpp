@@ -896,7 +896,7 @@ private:
 
 class MbedLPC : public Component {
 public:
-    MbedLPC() : Component(outPorts, 4) {}
+    MbedLPC() : Component(outPorts, MbedLPCPorts::OutPorts::pin24+1) {}
     virtual void process(Packet in, MicroFlo::PortId port) {
         using namespace MbedLPCPorts;
         if (in.isSetup()) {
@@ -904,10 +904,14 @@ public:
             send(Packet((long)LED2), OutPorts::led2);
             send(Packet((long)LED3), OutPorts::led3);
             send(Packet((long)LED4), OutPorts::led4);
+            send(Packet((long)p21), OutPorts::pin21);
+            send(Packet((long)p22), OutPorts::pin22);
+            send(Packet((long)p23), OutPorts::pin23);
+            send(Packet((long)p24), OutPorts::pin24);
         }
     }
 private:
-    Connection outPorts[4];
+    Connection outPorts[MbedLPCPorts::OutPorts::pin24+1];
 };
 
 #else
