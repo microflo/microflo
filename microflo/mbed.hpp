@@ -38,14 +38,20 @@ public:
 
     // Pin config
     virtual void PinSetMode(int pin, IO::PinMode mode) {
-        MICROFLO_DEBUG(debug, DebugLevelError, DebugIoOperationNotImplemented);
+        if (mode == IO::InputPin) {
+            DigitalInOut((PinName)pin).input();
+        } else if (mode == IO::OutputPin) {
+            DigitalInOut((PinName)pin).output();
+        } else {
+            MICROFLO_DEBUG(debug, DebugLevelError, DebugIoOperationNotImplemented);
+        }
     }
     virtual void PinSetPullup(int pin, IO::PullupMode mode) {
         DigitalIn in((PinName)pin);
         if (mode == IO::PullNone) {
-            in.mode(PullNone);
+            in.mode(::PullNone);
         } else if (mode == IO::PullUp) {
-            in.mode(PullUp);
+            in.mode(::PullUp);
         } else {
             MICROFLO_DEBUG(debug, DebugLevelError, DebugIoOperationNotImplemented);
         }
