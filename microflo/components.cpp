@@ -1037,9 +1037,9 @@ private:
     }
 
 private:
-    int8_t pin_cs;
-    int8_t pin_din;
-    int8_t pin_clk;
+    int pin_cs;
+    int pin_din;
+    int pin_clk;
     bool initialized;
     uint8_t charIndex;
 };
