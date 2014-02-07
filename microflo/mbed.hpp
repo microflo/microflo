@@ -33,15 +33,22 @@ public:
         return usbSerial.getc();
     }
     virtual void SerialWrite(int serialDevice, unsigned char b) {
-        // FIXME
+        usbSerial.putc(b);
     }
 
     // Pin config
     virtual void PinSetMode(int pin, IO::PinMode mode) {
         MICROFLO_DEBUG(debug, DebugLevelError, DebugIoOperationNotImplemented);
     }
-    virtual void PinEnablePullup(int pin, bool enable) {
-        MICROFLO_DEBUG(debug, DebugLevelError, DebugIoOperationNotImplemented);
+    virtual void PinSetPullup(int pin, IO::PullupMode mode) {
+        DigitalIn in((PinName)pin);
+        if (mode == IO::PullNone) {
+            in.mode(PullNone);
+        } else if (mode == IO::PullUp) {
+            in.mode(PullUp);
+        } else {
+            MICROFLO_DEBUG(debug, DebugLevelError, DebugIoOperationNotImplemented);
+        }
     }
 
     // Digital

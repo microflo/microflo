@@ -157,7 +157,7 @@ private:
         pin = newPin;
         pullup = newPullup;
         io->PinSetMode(pin, IO::InputPin);
-        io->PinEnablePullup(pin, pullup);
+        io->PinSetPullup(pin, pullup ? IO::PullUp : IO::PullNone);
     }
     int pin;
     bool pullup;
@@ -178,7 +178,7 @@ public:
             } else if (pin == 3) {
                 intr = 1;
             }
-            io->PinEnablePullup(pin, true);
+            io->PinSetPullup(pin, IO::PullUp);
             io->AttachExternalInterrupt(intr, IO::Interrupt::OnChange, interrupt, this);
             send(Packet(io->DigitalRead(pin)));
         }

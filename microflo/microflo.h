@@ -223,8 +223,12 @@ public:
         InputPin,
         OutputPin
     };
+    enum PullupMode {
+        PullNone,
+        PullUp
+    };
     virtual void PinSetMode(int pin, PinMode mode) = 0;
-    virtual void PinEnablePullup(int pin, bool enable) = 0;
+    virtual void PinSetPullup(int pin, PullupMode mode) = 0;
 
     // Digital
     virtual void DigitalWrite(int pin, bool val) = 0;

@@ -95,12 +95,15 @@ public:
             avrPinClear(DDR, pin);
         }
     }
-    virtual void PinEnablePullup(int pin, bool enable) {
+    virtual void PinSetPullup(int pin, IO::PullupMode mode) {
         // assumes pin has been configured as input
-        if (enable)
+        if (mode == IO::PullUp) {
             avrPinSet(PORT, pin);
-        else
+        } else if (mode == IO::PullNone) {
             avrPinClear(PORT, pin);
+        } else {
+            MICROFLO_DEBUG(debug, DebugLevelError, DebugIoOperationNotImplemented);
+        }
     }
 
     // Digital

@@ -76,8 +76,14 @@ public:
             pinMode(pin, OUTPUT);
         }
     }
-    virtual void PinEnablePullup(int pin, bool enable) {
-        digitalWrite(pin, enable ? HIGH : LOW);
+    virtual void PinSetPullup(int pin, IO::PullupMode mode) {
+        if (mode == IO::PullNone) {
+            digitalWrite(pin, LOW);
+        } else if (mode == IO::PullUp) {
+            digitalWrite(pin, HIGH);
+        } else {
+            MICROFLO_DEBUG(debug, DebugLevelError, DebugIoOperationNotImplemented);
+        }
     }
 
     // Digital

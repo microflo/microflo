@@ -71,7 +71,7 @@ public: // Implements IO
     virtual void PinSetMode(int pin, PinMode mode) {
         // TODO: set, and don't allow write if wrong mode
     }
-    virtual void PinEnablePullup(int pin, bool enable) {
+    virtual void PinSetPullup(int pin, IO::PullupMode mode) {
         // TODO: set
     }
 
