@@ -256,6 +256,12 @@ That could be part of a hetrogenous system
 * Real-time audio synthesis, algoritmic composition. Hook into SuperCollider?
 * GPU programming, both GLSL shaders and GPGPU with OpenCL.
 * FPGA devices. Sadly extremely propritary, would probably need to generate HDL/Verilog
+* Modelling and manufacturing of physical objects.
+http://openjscad.org/ and http://joostn.github.io/OpenJsCad/ provides pure-JS+WebGL parametric solid modelling library
+http://www.freecadweb.org provideds a Python API to C++ library for solid modelling
+One could also go crazy and consider whole manufacturing processes to be FBP modelled:
+http://www.reddit.com/r/DataflowProgramming/comments/1x6r11/why_3d_printing_is_a_pure_function_and_dataflow/
+
 
 Testing strategy
 ----------------
