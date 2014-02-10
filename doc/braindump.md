@@ -145,7 +145,19 @@ It could also be interesting for some to combine MicroFlo with an existing RTOS.
 
 Correctness, Testing
 =====================
-Can one generate/create some general tests for a component by describing/classifying the component?
+Testing needs to be an integral part of development, with a strong level of testing being done by default,
+also of application/thirdparty code that uses the framework. This should be achieved through painfree tools/infrastructure,
+demonstrated usefulness, and culture building.
+
+* Static analysis. TODO: Integrate clang-analyzer, cppcheck as minimum?
+* Testing coverage. TODO: Integrate llvm-cov/gcov as a minimum?
+* Code quality metrics?
+
+Can we apply black-box testing techniques to component (and graph/app) testing?
+* Fuzz testing inputs, assert no crashes/hangs
+* Boundary/equivalence partitioning by guessing on input values?
+
+IDEA: Can one generate/create some fairely-general grey box tests for a component by describing/classifying the component?
 
 Possible Classes, Invariants.
 
@@ -165,6 +177,8 @@ Are there formalisms which can be provably correct that are suited for component
 * Truth tables
 * Boolean algebra/logic
 * Mathematical expression
+
+
 
 Arduino, advancements and lacks
 ================================
