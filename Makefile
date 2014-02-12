@@ -119,7 +119,10 @@ release-microflo:
 	cp -r thirdparty/node-serialport/build/Release/Darwin build/microflo/node_modules/serialport/build/Release
 	cp -r thirdparty/node-serialport/build/Release/Windows_NT build/microflo/node_modules/serialport/build/Release
 
-release: install build release-microflo release-arduino release-ui
+release-mbed: build-mbed
+    # TODO: package into something usable with MBed tools
+
+release: install build release-mbed release-microflo release-arduino release-ui
 	rm -rf build/microflo-$(VERSION)
 	mkdir -p build/microflo-$(VERSION)
 	cp -r build/microflo-arduino.zip build/microflo-$(VERSION)/
