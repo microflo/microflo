@@ -14,3 +14,10 @@ script:
     - make
     - npm test
     - make check-release
+
+notifications:
+  irc:
+    channels:
+      - "chat.freenode.net#fbp"
+    template:
+      - "%{repository} (%{commit}) : %{message} : %{build_url}"
