@@ -372,6 +372,15 @@ public:
     void padCommandWithNArguments(int arguments);
 };
 
+class NullHostTransport : public HostTransport {
+public:
+    // implements HostTransport
+    virtual void setup(IO *i, HostCommunication *c) { ; }
+    virtual void runTick() { ; }
+    virtual void sendCommandByte(uint8_t b) { ; }
+private:
+};
+
 class SerialHostTransport : public HostTransport {
 public:
     SerialHostTransport(uint8_t serialPort, int baudRate);

@@ -325,6 +325,16 @@
             "inPorts": {}
         },
 
+        "RaspberryPi": { "id": 53,
+            "description": "Convenient definition of pins available for GPIO on Raspberry PI (rev2)",
+            "outPorts": {
+                "pin3": { "id": 1 },
+                "pin5": { "id": 2 },
+                "pin7": { "id": 3 }
+            },
+            "inPorts": {}
+        },
+
         "SubGraph": { "id": 100,
             "description": "Not for normal use. Used internally for handling subgraphs",
             "inPorts": {},

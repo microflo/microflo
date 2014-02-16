@@ -29,9 +29,7 @@ void loadFromEEPROM(HostCommunication *controller) {
 }
 #endif
 
-const int serialPort = 0;
-const int serialBaudrate = 9600;
-
+// I/O backend to use
 #ifdef ARDUINO
 ArduinoIO io;
 #else
@@ -46,9 +44,24 @@ Avr8IO io;
 MbedIO io;
 #endif
 
+#ifdef LINUX
+#include "linux.hpp"
+LinuxIO io;
+#endif
+
+
+
+const int serialPort = 0;
+const int serialBaudrate = 9600;
 Network network(&io);
 HostCommunication controller;
+
+#ifdef LINUX
+// TODO: add IP-based host transport
+NullHostTransport transport;
+#else
 SerialHostTransport transport(serialPort, serialBaudrate);
+#endif
 
 void setup()
 {

@@ -3,6 +3,7 @@ GRAPH=examples/blink.fbp
 MODEL=uno
 AVRMODEL=at90usb1287
 MBED_GRAPH=examples/blink-mbed.fbp
+LINUX_GRAPH=examples/blink-rpi.fbp
 UPLOAD_DIR=/mnt
 
 # SERIALPORT=/dev/somecustom
@@ -76,6 +77,12 @@ build-mbed: install
 	node microflo.js generate $(MBED_GRAPH) build/mbed/main.cpp mbed
 	cp Makefile.mbed build/mbed/Makefile
 	cd build/mbed && make ROOT_DIR=./../../
+
+build-linux: install
+	rm -rf build/linux
+	mkdir -p build/linux
+	node microflo.js generate $(LINUX_GRAPH) build/linux/main.cpp linux
+	cd build/linux && g++ -o firmware main.cpp -std=c++0x -I../../microflo -DLINUX -Wall -Werror
 
 build: build-arduino build-avr
 

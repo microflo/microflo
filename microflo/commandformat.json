@@ -74,6 +74,7 @@
         "SubscribePortInvalidNode": {"id": 25},
         "IoOperationNotImplemented": {"id": 26},
         "InvalidComponentUsed": {"id": 27},
+        "IoFailure": {"id": 28},
 
         "Max": { "id": 255 }
     },

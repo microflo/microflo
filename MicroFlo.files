@@ -1,5 +1,7 @@
 examples/analogInOut.fbp
 examples/blink.fbp
+examples/blink-mbed.fbp
+examples/blink-rpi.fbp
 examples/echo.fbp
 examples/fridge.fbp
 examples/monitorPin.fbp
@@ -18,6 +20,7 @@ microflo/microflo.h
 microflo/microflo.hpp
 microflo/avr.hpp
 microflo/mbed.hpp
+microflo/linux.hpp
 lib/runtime.js
 lib/commandstream.js
 lib/generate.js
