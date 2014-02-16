@@ -101,8 +101,10 @@ void operator delete(void * p)
 }
 #endif
 
+// TODO: move into a HAVE_CXX_HANDLERS define
 #ifndef TOOLCHAIN_GCC_ARM
 #ifndef ARDUINO
+#ifndef LINUX
 // http://www.avrfreaks.net/index.php?name=PNphpBB2&file=printview&t=59453
 extern "C"
 {
@@ -115,6 +117,7 @@ extern "C"
         ;
     }
 }
+#endif
 #endif
 #endif
 
