@@ -178,6 +178,11 @@ Are there formalisms which can be provably correct that are suited for component
 * Boolean algebra/logic
 * Mathematical expression
 
+Simulators
+-----------
+AVR8
+* https://gitorious.org/simavr
+* http://www.nongnu.org/simulavr/download.html
 
 
 Arduino, advancements and lacks
