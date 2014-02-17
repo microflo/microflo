@@ -10,6 +10,10 @@
 #include "avr.hpp"
 #endif
 #endif // ARDUINO
+#ifdef LINUX
+#include "linux.hpp"
+#include <unistd.h>
+#endif
 
 #ifdef AVR
 #include <avr/pgmspace.h>
@@ -45,7 +49,6 @@ MbedIO io;
 #endif
 
 #ifdef LINUX
-#include "linux.hpp"
 LinuxIO io;
 #endif
 
@@ -127,6 +130,10 @@ int main(void) {
     setup();
     while(1) {
         loop();
+#ifdef LINUX
+        // HACK: do some sane scheduling instead
+        usleep(1);
+#endif
     }
 }
 #endif

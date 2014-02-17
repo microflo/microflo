@@ -129,7 +129,10 @@ release-microflo:
 release-mbed: build-mbed
     # TODO: package into something usable with MBed tools
 
-release: install build release-mbed release-microflo release-arduino release-ui
+release-linux: build-linux
+    # TODO: package?
+
+release: install build release-mbed release-linux release-microflo release-arduino release-ui
 	rm -rf build/microflo-$(VERSION)
 	mkdir -p build/microflo-$(VERSION)
 	cp -r build/microflo-arduino.zip build/microflo-$(VERSION)/
