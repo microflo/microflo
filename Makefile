@@ -82,7 +82,7 @@ build-linux: install
 	rm -rf build/linux
 	mkdir -p build/linux
 	node microflo.js generate $(LINUX_GRAPH) build/linux/main.cpp linux
-	cd build/linux && g++ -o firmware main.cpp -std=c++0x -I../../microflo -DLINUX -Wall -Werror
+	cd build/linux && g++ -o firmware main.cpp -std=c++0x -I../../microflo -DLINUX -Wall -Werror -lrt
 
 build: build-arduino build-avr
 
