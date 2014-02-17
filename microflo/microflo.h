@@ -194,7 +194,7 @@ public:
 
 struct Connection {
     Component *target;
-    char targetPort;
+    MicroFlo::PortId targetPort;
     bool subscribed;
 };
 
