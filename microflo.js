@@ -23,8 +23,9 @@ var setupRuntimeCommand = function(env) {
     var port = env.parent.port || 3569;
     var debugLevel = env.parent.debug || "Error";
     var ip = env.parent.ip || "127.0.0.1"
+    var reg = env.parent.registry || ""
 
-    microflo.runtime.setupRuntime(serialPortToUse, port, debugLevel, ip);
+    microflo.runtime.setupRuntime(serialPortToUse, port, debugLevel, ip, reg);
 }
 
 var uploadGraphCommand = function(graphPath, env) {
@@ -51,6 +52,7 @@ var main = function() {
         .option('-d, --debug <LEVEL>', 'set debug level')
         .option('-p, --port <PORT>', 'which port to use for WebSocket')
         .option('-i, --ip <IP>', 'which IP to use for WebSocket')
+        .option('-r, --registry <URL>', 'Flowhub registry')
 
     commander
         .command('generate')
