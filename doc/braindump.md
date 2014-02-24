@@ -275,6 +275,7 @@ That could be part of a hetrogenous system
 * Real-time audio synthesis, algoritmic composition. Hook into SuperCollider?
 * GPU programming, both GLSL shaders and GPGPU with OpenCL.
 * FPGA devices. Sadly extremely propritary, would probably need to generate HDL/Verilog
+** Start of open FGPA toolchain:  http://www.clifford.at/yosys
 * Modelling and manufacturing of physical objects.
 http://openjscad.org/ and http://joostn.github.io/OpenJsCad/ provides pure-JS+WebGL parametric solid modelling library
 http://www.freecadweb.org provideds a Python API to C++ library for solid modelling
@@ -543,7 +544,7 @@ Other contacts
 Finite State Machines & Flow-based programming
 ==============================================
 
-TODO: check for prior art around this design pattern.
+TODO: check for prior art around this design pattern. Ask on FBP mailing list
 
 Consider the StateMachine (SM) as a FBP component, containing one flows/graphs for
 each of the possible states.
@@ -575,6 +576,48 @@ functions are standard C++ code.
 Challenges:
 * Having a sensible mapping from C++ code back to model definition, especially for debugging
 * Injecting code snippets into the appropriate context when generating, so they have access to the state/data needed
+
+Finito State Machines
+---------------
+Should probably be a project of its own
+
+* High-level definition of machine: states,transitions (action,predicates)
+* Do we need to specify inputs? For C/C++, should it include the type?
+* JSON as canonical format, possibly a DSL over time (ala .FBP)
+* Use a naming convention for mapping, but allow to be overriden
+
+* Absolutely minimal amount of code generation.
+For embedded C/C++, just the transition function (predicate checking) and runtime introspection data
+In higher-level languages, just interpret the FSM definition at runtime
+* Generated code go into separate file, that can be included together with framework/library import
+* The code that is wired together into a state machine have no dependencies/knowledge of the STM
+
+Question: which FSM style? one or multiple? I want to have at least an event-driven FSM
+
+Support multiple output targets:
+* C (state as context pointers)
+* C++ (method calls on instance)
+* Python, JavaScript
+* FBP
+
+How should the STM input be encoded and passed to actions/predicates?.
+It will need to be (one or more) generic type. Just a pointer/reference?
+Is it acceptable to have only one?
+Disadvantages: 
+* implicit dependencies in actions
+* reduces encapsulation, actions can grab anything they'd like
+* may need to create temporary objects, change signatures of existing functions
+Should probably allow multiple, opt-in
+
+Allow in MicroFlo to easily create a component which uses FSM (actions+predicates plain C/C++)
+Allow in NoFlo to make a subgraph/component which uses FSM (no code gen, action+predicates are sub-flows)
+
+Tool should be able to run in browser (JavaScript) and have web UI. Usable standalone or integrated into NoFlo UI
+Even allow created STMs to run in the browser, when possible.
+
+Make testing easy, also of C/C++ based code. Have a set of typical test-classes one ones to perform.
+Do testing by default, if possible. Can one expose a useful interface in a high-level language (JS/CS)?
+Problem: for most tests, will need to manipulate inputs, and can't wrap those automatically
 
 
 Arduino versus RPi
