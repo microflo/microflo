@@ -619,6 +619,9 @@ Make testing easy, also of C/C++ based code. Have a set of typical test-classes 
 Do testing by default, if possible. Can one expose a useful interface in a high-level language (JS/CS)?
 Problem: for most tests, will need to manipulate inputs, and can't wrap those automatically
 
+* http://www.cse.ohio-state.edu/~lee/english/pdf/ieee-proceeding-survey.pdf
+* http://en.wikipedia.org/wiki/UML_state_machine#Orthogonal_regions
+
 
 Arduino versus RPi
 ===================
