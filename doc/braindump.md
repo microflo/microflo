@@ -693,3 +693,39 @@ http://upverter.com or http://circuits.io or one of the FOSS EDA tools (KiCad,Ge
 * Produce a PCB
 
 https://github.com/zupolgec/circuit-simulator
+
+
+Deployment scenarios
+---------------------
+* !Multiple microcontrollers connected
+* !Connection may come and go
+
+1:Desktop development, Windows/OSX/Linux
+* MicroFlo host: Embedded in Flowhub Chrome application
+* UI transport: iframe
+* uC graph transport: USB-serial, Bluetooth-serial (WiFi or Ethernet)
+* Build toolchain: Runs locally, or a service
+* uC flashing: USB-serial, USB-mass-storage, USB-DFU or specialized programmer: ISP,JTAG
+
+2:Embedded device, Linux
+* MicroFlo host: Standalone or embedded Node.js/NoFlo service
+* UI transport: websocket/webrtc
+* uC graph transport: Ethernet, USB-serial, Bluetooth-serial, WiFi, RS232/485 serial, TTL serial, SPI, I2C, custom
+* Build toolchain: Service or uns locally
+* uC flashing: USB-serial, USB-mass-storage, USB-DFU
+* !MicroFlo runtime may run on the embedded Linux device
+
+3:Mobile development, Android/iOS
+* MicroFlo host: Embedded in Flowhub Mobile Chrome application
+* UI transport: iframe
+* uC graph transport: Bluetooth-serial, WiFi (Ethernet, USB-serial OTG)
+* Build toolchain: Service
+* uC flashing: Possible for some devices with Bluetooth-serial, or USB mass-storage
+
+4:Interactive Simulator, Windows/OSX/Linux/Android/iOS
+* MicroFlo host: Embedded in Flowhub application
+* UI transport: iframe
+* uC graph transport: direct JS, iframe?
+* Build toolchain: Service, compiles to Emscripten
+* uC flashing: Load new JavaScript
+* !MicroFlo runtime compiled with Emscripten, runs in browser
