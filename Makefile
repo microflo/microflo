@@ -111,14 +111,6 @@ release-arduino:
 	cp build/arduino/src/firmware.cpp build/microflo-arduino/microflo/examples/Standalone/Standalone.pde
 	cd build/microflo-arduino && zip -q -r ../microflo-arduino.zip microflo
 
-release-microflo:
-	rm -rf build/microflo
-	git checkout-index -f -a --prefix=build/microflo/
-	mkdir -p build/microflo/node_modules
-	cd build/microflo && npm install ../../thirdparty/node-serialport && npm install
-	cp -r thirdparty/node-serialport/build/Release/Darwin build/microflo/node_modules/serialport/build/Release
-	cp -r thirdparty/node-serialport/build/Release/Windows_NT build/microflo/node_modules/serialport/build/Release
-
 release-mbed: build-mbed
     # TODO: package into something usable with MBed tools
 
@@ -129,14 +121,15 @@ release: install build release-mbed release-linux release-microflo release-ardui
 	rm -rf build/microflo-$(VERSION)
 	mkdir -p build/microflo-$(VERSION)
 	cp -r build/microflo-arduino.zip build/microflo-$(VERSION)/
-	cp -r build/microflo build/microflo-$(VERSION)/
+    # FIXME: copy in a README/HTML pointing to Flowhub app, and instructions to flash device
 	cd build && zip -q --symlinks -r microflo-$(VERSION).zip microflo-$(VERSION)
 
 check-release: release
 	rm -rf build/check-release
 	mkdir -p build/check-release
 	cd build/check-release && unzip -q ../microflo-$(VERSION)
-	cd build/check-release/microflo-$(VERSION)/microflo && npm test
+    # TODO: check npm and component.io packages
+    # TODO: check arduino package by importing with ino, building
 
 .PHONY: all build install clean release release-microflo release-arduino check-release
 

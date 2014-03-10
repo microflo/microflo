@@ -1,6 +1,3 @@
-[submodule "thirdparty/node-serialport"]
-	path = thirdparty/node-serialport
-	url = ../node-serialport.git
 [submodule "thirdparty/mbed"]
 	path = thirdparty/mbed
 	url = https://github.com/mbedmicro/mbed.git
