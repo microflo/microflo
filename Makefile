@@ -111,13 +111,6 @@ release-arduino:
 	cp build/arduino/src/firmware.cpp build/microflo-arduino/microflo/examples/Standalone/Standalone.pde
 	cd build/microflo-arduino && zip -q -r ../microflo-arduino.zip microflo
 
-release-ui:
-	rm -rf build/noflo-ui
-	cd thirdparty/noflo-ui && git checkout-index -f -a --prefix=../../build/noflo-ui/
-	cd build/noflo-ui && npm install && npm install grunt-cli
-	cd build/noflo-ui && ./node_modules/.bin/grunt build
-	rm -r build/noflo-ui/node_modules
-
 release-microflo:
 	rm -rf build/microflo
 	git checkout-index -f -a --prefix=build/microflo/
@@ -132,11 +125,10 @@ release-mbed: build-mbed
 release-linux: build-linux
     # TODO: package?
 
-release: install build release-mbed release-linux release-microflo release-arduino release-ui
+release: install build release-mbed release-linux release-microflo release-arduino
 	rm -rf build/microflo-$(VERSION)
 	mkdir -p build/microflo-$(VERSION)
 	cp -r build/microflo-arduino.zip build/microflo-$(VERSION)/
-	cp -r build/noflo-ui build/microflo-$(VERSION)/
 	cp -r build/microflo build/microflo-$(VERSION)/
 	cd build && zip -q --symlinks -r microflo-$(VERSION).zip microflo-$(VERSION)
 
@@ -146,5 +138,5 @@ check-release: release
 	cd build/check-release && unzip -q ../microflo-$(VERSION)
 	cd build/check-release/microflo-$(VERSION)/microflo && npm test
 
-.PHONY: all build install clean release release-microflo release-arduino release-ui check-release
+.PHONY: all build install clean release release-microflo release-arduino check-release
 
