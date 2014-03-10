@@ -1,7 +1,9 @@
 node_modules/
 .build
 build
+components
 *.user*
 *-gen*.*
 *~
 *.autosave
+test/result.*

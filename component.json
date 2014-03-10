@@ -1,0 +1,24 @@
+{
+  "name": "microflo",
+  "description": "MicroFlo host functionality for browser",
+  "author": "Jon Nordby <jononor@gmail.com>",
+  "repo": "jonnor/microflo",
+  "version": "0.2.1",
+  "keywords": [
+    "FBP"
+  ],
+  "dependencies": {
+    "noflo/noflo": "*"
+  },
+  "main": "lib/microflo.js",
+  "scripts": [
+    "lib/util.js",
+    "lib/generate.js",
+    "lib/componentlib.js",
+    "lib/commandstream.js",
+    "lib/microflo.js"
+  ],
+  "json": [
+    "component.json"
+  ]
+}
