@@ -33,9 +33,6 @@ describe('WebSocket API', function(){
                 connection.on('error', function(error) {
                     assert.fail("connect OK", "connect error", error.toString());
                 });
-                connection.on('close', function() {
-
-                });
                 connection.on('message', function(message) {
                     if (message.type === 'utf8') {
                         var response = JSON.parse(message.utf8Data);
@@ -49,14 +46,8 @@ describe('WebSocket API', function(){
                         }
                     }
                 });
-
-                function listComponents() {
-                    if (connection.connected) {
-                        var m = {"protocol": "component", "command": "list"};
-                        connection.sendUTF(JSON.stringify(m));
-                    }
-                }
-                listComponents();
+                var m = {"protocol": "component", "command": "list"};
+                connection.sendUTF(JSON.stringify(m));
             });
 
             client.connect('ws://localhost:3888/', "noflo");
