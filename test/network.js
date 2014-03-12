@@ -6,7 +6,7 @@
 var assert = require("assert")
 var microflo = require("../lib/microflo");
 
-var componentLib = new microflo.componentlib.ComponentLibrary(require("../microflo/components.json"), "./microflo")
+var componentLib = new microflo.componentlib.ComponentLibrary();
 var fbp = require("fbp");
 
 describe('Network', function(){

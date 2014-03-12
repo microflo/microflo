@@ -4,9 +4,8 @@
  */
 
 var cmdFormat = require("./microflo/commandformat.json");
-var components = require("./microflo/components.json");
 var c = require("./lib/componentlib");
-var componentLib = new c.ComponentLibrary(components, "./microflo");
+var componentLib = new c.ComponentLibrary(c.defaultComponent, "./microflo");
 
 if (process.argv[2] == "update-defs") {
     // Special, runs before dependencies has been installed and thus cannot import any of them.

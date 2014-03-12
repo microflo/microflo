@@ -3,9 +3,15 @@
  * MicroFlo may be freely distributed under the MIT license
  */
 
-var assert = require("assert")
-var microflo = require("../lib/microflo");
-var componentLib = new microflo.componentlib.ComponentLibrary(require("../microflo/components.json"), "./microflo")
+
+if (typeof process !== 'undefined' && process.execPath && process.execPath.indexOf('node') !== -1) {
+    var chai = require('chai');
+    var componentlib = require("../lib/componentlib");
+} else {
+    var componentlib = require("microflo/lib/componentlib");
+}
+
+var componentLib = new componentlib.ComponentLibrary()
 
 describe('ComponentLibrary', function(){
     describe('listing all components', function(){
@@ -14,22 +20,22 @@ describe('ComponentLibrary', function(){
         var skipped = all.filter(function(n) { return normal.indexOf(n) === -1 });
 
         it('should give above 20 normal', function(){
-            assert.ok(normal.length > 20, "normal.length "+normal.length);
+            chai.expect(normal.length > 20, "normal.length "+normal.length);
         })
         it('and 3 skipped', function(){
-            assert.equal(skipped.length, 3);
+            chai.expect(skipped.length).to.equal(3);
         })
         it("Max,Invalid should be skipped", function() {
-            assert.ok(normal.indexOf("_Max") === -1);
-            assert.ok(normal.indexOf("Invalid") === -1);
-            assert.ok(skipped.indexOf("_Max") !== -1);
-            assert.ok(skipped.indexOf("Invalid") !== -1);
+            chai.expect(normal.indexOf("_Max") === -1);
+            chai.expect(normal.indexOf("Invalid") === -1);
+            chai.expect(skipped.indexOf("_Max") !== -1);
+            chai.expect(skipped.indexOf("Invalid") !== -1);
         })
         it("Split,Forward should be available", function() {
-            assert.ok(skipped.indexOf("Split") === -1);
-            assert.ok(skipped.indexOf("Forward") === -1);
-            assert.ok(normal.indexOf("Split") !== -1);
-            assert.ok(normal.indexOf("Forward") !== -1);
+            chai.expect(skipped.indexOf("Split") === -1);
+            chai.expect(skipped.indexOf("Forward") === -1);
+            chai.expect(normal.indexOf("Split") !== -1);
+            chai.expect(normal.indexOf("Forward") !== -1);
         })
         it("no components have same id", function() {
             var defs = componentLib.getComponents(true);
@@ -40,7 +46,7 @@ describe('ComponentLibrary', function(){
                     if (I === J) {
                         continue;
                     }
-                    assert.ok(defs[I].id !== defs[J].id, I+" has same ID as "+J + " : " + defs[I].id);
+                    chai.expect(defs[I].id !== defs[J].id, I+" has same ID as "+J + " : " + defs[I].id);
                 }
             }
         })

@@ -8,7 +8,8 @@
     "FBP"
   ],
   "dependencies": {
-    "noflo/noflo": "*"
+    "noflo/noflo": "*",
+    "noflo/fbp": "*"
   },
   "main": "lib/microflo.js",
   "scripts": [
@@ -16,9 +17,12 @@
     "lib/generate.js",
     "lib/componentlib.js",
     "lib/commandstream.js",
+    "lib/commandformat.js",
     "lib/microflo.js"
   ],
   "json": [
-    "component.json"
+    "component.json",
+    "microflo/components.json",
+    "microflo/commandformat.json"
   ]
 }

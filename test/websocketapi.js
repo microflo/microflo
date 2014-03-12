@@ -7,7 +7,7 @@ var assert = require("assert")
 var microflo = require("../lib/microflo");
 var websocket = require("websocket");
 
-var componentLib = new microflo.componentlib.ComponentLibrary(require("../microflo/components.json"));
+var componentLib = new microflo.componentlib.ComponentLibrary();
 
 describe('WebSocket API', function(){
     before(function () {
