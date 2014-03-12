@@ -9,7 +9,8 @@
   ],
   "dependencies": {
     "noflo/noflo": "*",
-    "noflo/fbp": "*"
+    "noflo/fbp": "*",
+    "jonnor/buffer": "*"
   },
   "main": "lib/microflo.js",
   "scripts": [

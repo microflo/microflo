@@ -30,7 +30,7 @@ var assertStreamsEqual = function(actual, expected) {
 describe('Commandstream generation', function(){
   describe('from a simple input FBP', function(){
       var input = "in(SerialIn) OUT -> IN f(Forward) OUT -> IN out(SerialOut)";
-      var expect = Buffer([117,67,47,70,108,111,48,49,
+      var expect = commandstream.Buffer([117,67,47,70,108,111,48,49,
                            10,0,0,0,0,0,0,0,
                            15,1,0,0,0,0,0,0,
                            11,8,0,0,0,0,0,0,
