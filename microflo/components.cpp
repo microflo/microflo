@@ -15,6 +15,10 @@
 #include <DallasTemperature.h>
 #endif
 
+#ifdef HAVE_ADAFRUIT_NEOPIXEL
+#include <Adafruit_NeoPixel.h>
+#endif
+
 #ifdef HOST_BUILD
 #include <stdio.h>
 #include <time.h>
@@ -1059,6 +1063,92 @@ private:
     bool initialized;
     uint8_t charIndex;
 };
+
+
+
+class LedChainWS : public Component {
+public:
+    LedChainWS()
+        : Component(outPorts, 2)
+        , pin(-1)
+        , number(-1)
+        , initialized(false)
+        , currentPixelAddress(-1)
+#ifdef HAVE_ADAFRUIT_NEOPIXEL
+        , neoPixel(0)
+#endif
+    {}
+
+    virtual void process(Packet in, MicroFlo::PortId port) {
+        using namespace LedChainWSPorts;
+        if (port == InPorts::in) {
+            if (currentPixelAddress == -1 && in.isData()) {
+                currentPixelAddress = in.asInteger();
+            } else if (currentPixelAddress != -1 && in.isData()) {
+                updateCurrentPixel((uint32_t)in.asInteger());
+                currentPixelAddress = -1;
+            } else if (in.isEndBracket() || in.isStartBracket()) {
+                // To recover in case someone sent us non-grouped
+                // data which got us into a bogus state
+                currentPixelAddress = -1;
+            }
+        } else if (port == InPorts::pin) {
+            pin = in.asInteger();
+            initialized = false;
+            send(Packet(initialized), LedChainWSPorts::OutPorts::ready);
+            tryInitialize();
+        } else if (port == InPorts::pixels) {
+            number = in.asInteger();
+            initialized = false;
+            send(Packet(initialized), LedChainWSPorts::OutPorts::ready);
+            tryInitialize();
+        }
+    }
+private:
+    void tryInitialize() {
+        if (initialized || number < 0 || pin < 0) {
+            return;
+        }
+#ifdef HAVE_ADAFRUIT_NEOPIXEL
+        neoPixel.setNumber(number);
+        neoPixel.setPin(pin);
+        neoPixel.begin();
+        neoPixel.setPixelColor(0, 255, 255, 255);
+        neoPixel.setPixelColor(1, 0, 0, 255);
+        neoPixel.setPixelColor(2, 255, 0, 0);
+        neoPixel.setPixelColor(3, 0, 255, 0);
+        neoPixel.show();
+#endif
+        initialized = true;
+        send(Packet(initialized), LedChainWSPorts::OutPorts::ready);
+    }
+
+    void updateCurrentPixel(uint32_t rgb) {
+        if (!initialized || currentPixelAddress < 0
+                || currentPixelAddress >= number) {
+            return;
+        }
+#ifdef HAVE_ADAFRUIT_NEOPIXEL
+        neoPixel.setPixelColor(currentPixelAddress, rgb);
+#endif
+        const MicroFlo::PortId p = LedChainWSPorts::OutPorts::pixelset;
+        send(Packet(MsgBracketStart), p);
+        send(Packet((long)currentPixelAddress));
+        send(Packet((long)rgb));
+        send(Packet(MsgBracketEnd), p);
+    }
+
+private:
+    int8_t pin;
+    int8_t number;
+    bool initialized;
+    int currentPixelAddress; // -1 means waiting for pixel index, else waiting for value
+    Connection outPorts[2];
+#ifdef HAVE_ADAFRUIT_NEOPIXEL
+    Adafruit_NeoPixel neoPixel;
+#endif
+};
+
 
 } // namespace Components
 

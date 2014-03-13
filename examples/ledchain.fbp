@@ -1,0 +1,5 @@
+'6' -> PIN ledchain(LedChainWS)
+'30' -> PIXELS ledchain
+
+#INPORT=ledchain.IN:PIXEL
+#OUTPORT=ledchain.READY:READY

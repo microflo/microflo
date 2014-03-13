@@ -211,7 +211,7 @@
         },
 
         "LedMatrixMax": { "id": 28,
-            "description": "Constraina a number within a the range [@lower,@upper]",
+            "description": "Set characters on MAX7219 display",
             "inPorts": {
                 "in": { "id": 0 },
                 "pincs": { "id": 1 },
@@ -219,6 +219,19 @@
                 "pinclk": { "id": 3 }
             }
         },
+
+        "LedChainWS": { "id": 29,
+            "description": "Display colors on RGB strips/chains using WS2812 controller",
+            "inPorts": {
+                "in": { "id": 0 },
+                "pin": { "id": 1 },
+                "pixels": { "id": 2 }
+            }, "outPorts": {
+                "ready": { "id": 0 },
+                "pixelset": { "id": 1 }
+            }
+        },
+
 
         "ArduinoUno": { "id": 50,
             "description": "Convenient definition of pins available on Arduino Uno",

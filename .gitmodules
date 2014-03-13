@@ -1,3 +1,6 @@
 [submodule "thirdparty/mbed"]
 	path = thirdparty/mbed
 	url = https://github.com/mbedmicro/mbed.git
+[submodule "thirdparty/Adafruit_NeoPixel"]
+	path = thirdparty/Adafruit_NeoPixel
+	url = https://github.com/jonnor/Adafruit_NeoPixel.git

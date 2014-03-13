@@ -19,7 +19,7 @@ AVR_FCPU=1000000UL
 
 # Not normally customized
 CPPFLAGS=-ffunction-sections -fdata-sections -g -Os -w
-DEFINES=-DHAVE_DALLAS_TEMPERATURE
+DEFINES='-DHAVE_DALLAS_TEMPERATURE -DHAVE_ADAFRUIT_NEOPIXEL'
 
 
 INOOPTIONS=--board-model=$(MODEL)
@@ -56,11 +56,12 @@ build-arduino: install
 	ln -sf `pwd`/microflo build/arduino/lib/
 	unzip -q -n ./thirdparty/OneWire.zip -d build/arduino/lib/
 	unzip -q -n ./thirdparty/DallasTemperature.zip -d build/arduino/lib/
+	cd thirdparty/Adafruit_NeoPixel && git checkout-index -f -a --prefix=../../build/arduino/lib/Adafruit_NeoPixel/
 	cd build/arduino/lib && test -e patched || patch -p0 < ../../../thirdparty/DallasTemperature.patch
 	cd build/arduino/lib && test -e patched || patch -p0 < ../../../thirdparty/OneWire.patch
 	touch build/arduino/lib/patched
 	node microflo.js generate $(GRAPH) build/arduino/src/firmware.cpp arduino
-	cd build/arduino && ino build $(INOOPTIONS) --cppflags="$(CPPFLAGS) $(DEFINES)"
+	cd build/arduino && ino build $(INOOPTIONS) --verbose --cppflags="$(CPPFLAGS) $(DEFINES)"
 	$(AVRSIZE) -A build/arduino/.build/$(MODEL)/firmware.elf
 
 build-avr: install
