@@ -121,16 +121,21 @@ public:
     virtual void process(Packet in, MicroFlo::PortId port) {
         using namespace DigitalWritePorts;
         if (in.isSetup()) {
-            outPin = 13; // default
+            outPin = -1;
             currentState = false;
         } else if (port == InPorts::in && in.isBool()) {
             currentState = in.asBool();
-            io->DigitalWrite(outPin, currentState);
-            send(in, OutPorts::out);
+            if (outPin >= 0) {
+                io->DigitalWrite(outPin, currentState);
+                send(in, OutPorts::out);
+            }
         } else if (port == InPorts::pin && in.isNumber()) {
             outPin = in.asInteger();
             io->PinSetMode(outPin, IO::OutputPin);
-            io->DigitalWrite(outPin, currentState);
+            if (outPin >= 0) {
+                io->DigitalWrite(outPin, currentState);
+                send(in, OutPorts::out);
+            }
         }
     }
 private:
@@ -1152,7 +1157,7 @@ private:
 
 
 
-#ifdef TARGET_STELLARIS
+#ifdef STELLARIS
 class TivaC : public Component {
 public:
     TivaC() : Component(outPorts, TivaCPorts::OutPorts::pf2+1) {}
