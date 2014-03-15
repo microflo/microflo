@@ -62,8 +62,10 @@ ${COMPILER}/main.axf: ${ROOT}/driverlib/${COMPILER}-cm4f/libdriver-cm4f.a
 ${COMPILER}/main.axf: stellaris.ld
 SCATTERgcc_main=stellaris.ld
 ENTRY_main=ResetISR
-CFLAGSgcc=-DTARGET_IS_BLIZZARD_RA1 -DUART_BUFFERED -DSTELLARIS
-CXXFLAGS=-std=gnu++03 -fno-exceptions -fno-rtti
+CFLAGSgcc=-DTARGET_IS_BLIZZARD_RA1 -DUART_BUFFERED -DSTELLARIS -g
+CXXFLAGS=-std=gnu++03 -fno-exceptions -fno-rtti -fno-unwind-tables
+LDFLAGS+=-Map=afile.map
+
 #
 # Include the automatically generated dependency files.
 #

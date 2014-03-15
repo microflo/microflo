@@ -24,6 +24,11 @@
 
 #include "inc/hw_nvic.h"
 #include "inc/hw_types.h"
+#include <sys/types.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 //*****************************************************************************
 //
@@ -237,6 +242,47 @@ extern unsigned long _data;
 extern unsigned long _edata;
 extern unsigned long _bss;
 extern unsigned long _ebss;
+extern unsigned long __preinit_array_start;
+extern unsigned long __preinit_array_end;
+extern unsigned long __init_array_start;
+extern unsigned long __init_array_end;
+extern unsigned long _ctor_start;
+extern unsigned long _ctor_end;
+extern unsigned long _eheap;
+extern unsigned long _heap;
+
+void
+ResetISR(void);
+
+static void call_constructors(unsigned long *start, unsigned long *end) __attribute__((noinline));
+
+char *heap_end = 0;
+caddr_t _sbrk(unsigned int incr)
+{
+    static char *prev_heap_end;
+
+    if (heap_end == 0) {
+        heap_end = (caddr_t)&_heap;
+    }
+
+    prev_heap_end = heap_end;
+
+    if (heap_end + incr > (caddr_t)&_eheap) {
+        return (caddr_t)0;
+    }
+
+    heap_end += incr;
+
+    return (caddr_t)prev_heap_end;
+}
+
+static void call_constructors(unsigned long *start, unsigned long *end)
+{
+    for (unsigned long *i = start; i < end; i++) {
+        void (*funcptr)() =(void (*)())(*i);
+        funcptr();
+    }
+}
 
 //*****************************************************************************
 //
@@ -288,6 +334,11 @@ ResetISR(void)
     HWREG(NVIC_CPAC) = ((HWREG(NVIC_CPAC) &
                          ~(NVIC_CPAC_CP10_M | NVIC_CPAC_CP11_M)) |
                         NVIC_CPAC_CP10_FULL | NVIC_CPAC_CP11_FULL);
+
+    // Call C++ global constructors
+    call_constructors(&__preinit_array_start, &__preinit_array_end);
+    call_constructors(&__init_array_start, &__init_array_end);
+    call_constructors(&_ctor_start, &_ctor_end);
 
     //
     // Call the application's entry point.
@@ -348,3 +399,7 @@ IntDefaultHandler(void)
     {
     }
 }
+
+#ifdef __cplusplus
+}
+#endif

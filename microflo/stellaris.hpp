@@ -31,11 +31,14 @@ extern "C" {
     }
 }
 
+static const char * const gMagic = "MAGIC!012";
+
 class StellarisIO : public IO {
 public:
 
 public:
     StellarisIO()
+        : magic(gMagic)
     {
         MAP_SysTickPeriodSet(MAP_SysCtlClockGet() / 1000); // 1ms
         MAP_SysTickIntEnable();
@@ -58,19 +61,17 @@ public:
 
     // Pin config
     virtual void PinSetMode(int pin, IO::PinMode mode) {
+        // FIXME: support other ports than F!
         if (mode == IO::InputPin) {
-
+            //MAP_GPIOPinTypeGPIOInput(GPIO_PORTF_BASE, pin);
         } else if (mode == IO::OutputPin) {
-
+            //MAP_GPIOPinTypeGPIOOutput(GPIO_PORTF_BASE, pin);
         } else {
             MICROFLO_DEBUG(debug, DebugLevelError, DebugIoOperationNotImplemented);
         }
     }
     virtual void PinSetPullup(int pin, IO::PullupMode mode) {
-
         if (mode == IO::PullNone) {
-
-        } else if (mode == IO::PullUp) {
 
         } else {
             MICROFLO_DEBUG(debug, DebugLevelError, DebugIoOperationNotImplemented);
@@ -79,7 +80,8 @@ public:
 
     // Digital
     virtual void DigitalWrite(int pin, bool val) {
-
+        // FIXME: support other ports than F!
+        //GPIOPinWrite(GPIO_PORTF_BASE, pin, val ? pin : 0x00);
     }
     virtual bool DigitalRead(int pin) {
         MICROFLO_DEBUG(debug, DebugLevelError, DebugIoOperationNotImplemented);
@@ -105,5 +107,8 @@ public:
                                          IOInterruptFunction func, void *user) {
         MICROFLO_DEBUG(debug, DebugLevelError, DebugIoOperationNotImplemented);
     }
+
+private:
+    const char *magic;
 };
 
