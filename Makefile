@@ -128,7 +128,9 @@ release-mbed: build-mbed
 release-linux: build-linux
     # TODO: package?
 
-release: install build release-mbed release-linux release-microflo release-arduino
+release-stellaris: build-stellaris
+
+release: install build release-mbed release-linux release-microflo release-arduino release-stellaris
 	rm -rf build/microflo-$(VERSION)
 	mkdir -p build/microflo-$(VERSION)
 	cp -r build/microflo-arduino.zip build/microflo-$(VERSION)/
