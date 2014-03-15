@@ -1082,9 +1082,9 @@ public:
     virtual void process(Packet in, MicroFlo::PortId port) {
         using namespace LedChainWSPorts;
         if (port == InPorts::in) {
-            if (currentPixelAddress == -1 && in.isData()) {
+            if (currentPixelAddress == -1 && in.isNumber()) {
                 currentPixelAddress = in.asInteger();
-            } else if (currentPixelAddress != -1 && in.isData()) {
+            } else if (currentPixelAddress != -1 && in.isInteger()) {
                 updateCurrentPixel((uint32_t)in.asInteger());
                 currentPixelAddress = -1;
             } else if (in.isEndBracket() || in.isStartBracket()) {
@@ -1102,6 +1102,12 @@ public:
             initialized = false;
             send(Packet(initialized), LedChainWSPorts::OutPorts::ready);
             tryInitialize();
+        } else if (port == InPorts::show) {
+            if (initialized) {
+#ifdef HAVE_ADAFRUIT_NEOPIXEL
+                neoPixel.show();
+#endif
+            }
         }
     }
 private:
@@ -1113,18 +1119,13 @@ private:
         neoPixel.setNumber(number);
         neoPixel.setPin(pin);
         neoPixel.begin();
-        neoPixel.setPixelColor(0, 255, 255, 255);
-        neoPixel.setPixelColor(1, 0, 0, 255);
-        neoPixel.setPixelColor(2, 255, 0, 0);
-        neoPixel.setPixelColor(3, 0, 255, 0);
-        neoPixel.show();
 #endif
         initialized = true;
         send(Packet(initialized), LedChainWSPorts::OutPorts::ready);
     }
 
     void updateCurrentPixel(uint32_t rgb) {
-        if (!initialized || currentPixelAddress < 0
+        if (!initialized || currentPixelAddress <= 0
                 || currentPixelAddress >= number) {
             return;
         }

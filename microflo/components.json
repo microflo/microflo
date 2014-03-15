@@ -225,7 +225,8 @@
             "inPorts": {
                 "in": { "id": 0 },
                 "pin": { "id": 1 },
-                "pixels": { "id": 2 }
+                "pixels": { "id": 2 },
+                "show": { "id": 3 }
             }, "outPorts": {
                 "ready": { "id": 0 },
                 "pixelset": { "id": 1 }
