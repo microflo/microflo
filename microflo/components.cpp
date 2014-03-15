@@ -1151,6 +1151,29 @@ private:
 };
 
 
+
+#ifdef TARGET_STELLARIS
+class TivaC : public Component {
+public:
+    TivaC() : Component(outPorts, TivaCPorts::OutPorts::pf2+1) {}
+    virtual void process(Packet in, MicroFlo::PortId port) {
+        using namespace TivaCPorts;
+        if (in.isSetup()) {
+            // FIXME: also send out the port, GPIO_PORTF_BASE
+            send(Packet((long)GPIO_PIN_0), OutPorts::pf0);
+            send(Packet((long)GPIO_PIN_1), OutPorts::pf1);
+            send(Packet((long)GPIO_PIN_2), OutPorts::pf2);
+        }
+    }
+private:
+    Connection outPorts[TivaCPorts::OutPorts::pf2+1];
+};
+
+#else
+class TivaC : public DummyComponent { };
+#endif
+
+
 } // namespace Components
 
 #include "components-gen-bottom.hpp"

@@ -4,3 +4,6 @@
 [submodule "thirdparty/Adafruit_NeoPixel"]
 	path = thirdparty/Adafruit_NeoPixel
 	url = https://github.com/jonnor/Adafruit_NeoPixel.git
+[submodule "thirdparty/stellaris"]
+	path = thirdparty/stellaris
+	url = https://github.com/yuvadm/stellaris.git

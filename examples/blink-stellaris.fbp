@@ -1,0 +1,4 @@
+timer(Timer) OUT -> IN toggle(ToggleBoolean)
+toggle() OUT -> IN led(DigitalWrite)
+'300' -> INTERVAL timer()
+board(TivaC) PF1 -> PIN led()

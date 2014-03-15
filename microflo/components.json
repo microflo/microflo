@@ -349,6 +349,17 @@
             "inPorts": {}
         },
 
+        "TivaC": { "id": 54,
+            "description": "Convenient definition of pins available for GPIO Texas Instruments Tiva-C",
+            "outPorts": {
+                "pf0": { "id": 1 },
+                "pf1": { "id": 2 },
+                "pf2": { "id": 3 }
+            },
+            "inPorts": {}
+        },
+
+
         "SubGraph": { "id": 100,
             "description": "Not for normal use. Used internally for handling subgraphs",
             "inPorts": {},

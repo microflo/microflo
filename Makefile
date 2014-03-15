@@ -4,6 +4,7 @@ MODEL=uno
 AVRMODEL=at90usb1287
 MBED_GRAPH=examples/blink-mbed.fbp
 LINUX_GRAPH=examples/blink-rpi.fbp
+STELLARIS_GRAPH=examples/blink-stellaris.fbp
 UPLOAD_DIR=/mnt
 
 # SERIALPORT=/dev/somecustom
@@ -78,6 +79,15 @@ build-mbed: install
 	node microflo.js generate $(MBED_GRAPH) build/mbed/main.cpp mbed
 	cp Makefile.mbed build/mbed/Makefile
 	cd build/mbed && make ROOT_DIR=./../../
+
+build-stellaris: install
+	rm -rf build/stellaris
+	mkdir -p build/stellaris
+	node microflo.js generate $(STELLARIS_GRAPH) build/stellaris/main.cpp stellaris
+	cp Makefile.stellaris build/stellaris/Makefile
+	cp startup_gcc.c build/stellaris/
+	cp stellaris.ld build/stellaris/
+	cd build/stellaris && make ROOT=../../thirdparty/stellaris
 
 build-linux: install
 	rm -rf build/linux

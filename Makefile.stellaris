@@ -1,0 +1,72 @@
+# Defines the part type that this project uses.
+PART=LM4F120H5QR
+# Set the processor variant.
+VARIANT=cm4f
+# The base directory for StellarisWare.
+ROOT=../stellaris
+
+# Include the common make definitions.
+include ${ROOT}/makedefs
+# Where to find source files that do not live in this directory.
+VPATH=
+VPATH+=${ROOT}/utils
+# Where to find header files that do not live in the source directory.
+IPATH=${ROOT} ../../microflo
+
+#
+# The default rule, which causes the USB device bulk example to be built.
+#
+all: ${COMPILER}
+all: ${COMPILER}/main.axf
+
+#
+# The rule to clean out all the build products.
+#
+clean:
+	@rm -rf ${COMPILER} ${wildcard *~}
+
+#
+# The rule to create the target directory.
+#
+${COMPILER}:
+	@mkdir -p ${COMPILER}
+
+CXX=arm-none-eabi-g++
+
+#
+# The rule for building the object file from each CPP source file.
+#
+${COMPILER}${SUFFIX}/%.o: %.cpp
+	@if [ 'x${VERBOSE}' = x ];                            \
+	 then                                                 \
+		 echo "  CXX    ${<}";                             \
+	 else                                                 \
+		 echo ${CXX} ${CFLAGS} ${CXXFLAGS} -D${COMPILER} -o ${@} ${<}; \
+	 fi
+	@${CXX} ${CFLAGS} ${CXXFLAGS} -D${COMPILER} -o ${@} ${<}
+ifneq ($(findstring CYGWIN, ${os}), )
+	@sed -i -r 's/ ([A-Za-z]):/ \/cygdrive\/\1/g' ${@:.o=.d}
+endif
+
+
+#
+# Rules for building the USB device bulk example.
+#
+${COMPILER}/main.axf: ${COMPILER}/startup_${COMPILER}.o
+${COMPILER}/main.axf: ${COMPILER}/uartstdio.o
+#${COMPILER}/main.axf: ${COMPILER}/usb_bulk_structs.o
+${COMPILER}/main.axf: ${COMPILER}/main.o
+${COMPILER}/main.axf: ${COMPILER}/ustdlib.o
+${COMPILER}/main.axf: ${ROOT}/usblib/${COMPILER}-cm4f/libusb-cm4f.a
+${COMPILER}/main.axf: ${ROOT}/driverlib/${COMPILER}-cm4f/libdriver-cm4f.a
+${COMPILER}/main.axf: stellaris.ld
+SCATTERgcc_main=stellaris.ld
+ENTRY_main=ResetISR
+CFLAGSgcc=-DTARGET_IS_BLIZZARD_RA1 -DUART_BUFFERED -DSTELLARIS
+CXXFLAGS=-std=gnu++03 -fno-exceptions -fno-rtti
+#
+# Include the automatically generated dependency files.
+#
+ifneq (${MAKECMDGOALS},clean)
+-include ${wildcard ${COMPILER}/*.d} __dummy__
+endif

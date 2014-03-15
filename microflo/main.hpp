@@ -52,7 +52,10 @@ MbedIO io;
 LinuxIO io;
 #endif
 
-
+#ifdef STELLARIS
+#include "stellaris.hpp"
+StellarisIO io;
+#endif
 
 const int serialPort = 0;
 const int serialBaudrate = 9600;
@@ -123,6 +126,36 @@ extern "C"
 #endif
 #endif
 #endif
+
+
+#ifdef STELLARIS
+#include <sys/types.h>
+
+char *heap_end = 0;
+extern "C" {
+
+    caddr_t _sbrk(unsigned int incr)
+    {
+        extern unsigned long _heap_bottom;
+        extern unsigned long _heap_top;
+        static char *prev_heap_end;
+
+        if (heap_end == 0) {
+            heap_end = (caddr_t)&_heap_bottom;
+        }
+
+        prev_heap_end = heap_end;
+
+        if (heap_end + incr > (caddr_t)&_heap_top) {
+            return (caddr_t)0;
+        }
+
+        heap_end += incr;
+
+        return (caddr_t) prev_heap_end;
+    }
+}
+#endif // STELLARIS
 
 
 #ifndef ARDUINO
