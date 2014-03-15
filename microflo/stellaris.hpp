@@ -40,6 +40,14 @@ public:
     StellarisIO()
         : magic(gMagic)
     {
+        MAP_FPULazyStackingEnable();
+
+        /* Set clock to PLL at 50MHz */
+        MAP_SysCtlClockSet(SYSCTL_SYSDIV_4 | SYSCTL_USE_PLL | SYSCTL_OSC_MAIN | SYSCTL_XTAL_16MHZ);
+
+        // Enable port F
+        MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOF);
+
         MAP_SysTickPeriodSet(MAP_SysCtlClockGet() / 1000); // 1ms
         MAP_SysTickIntEnable();
         MAP_SysTickEnable();
