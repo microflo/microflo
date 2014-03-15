@@ -20,4 +20,6 @@ notifications:
     channels:
       - "chat.freenode.net#fbp"
     template:
-      - "%{repository} (%{commit}) : %{message} : %{build_url}"
+      - "%{repository}@%{branch} (%{commit}) : %{message} : %{build_url}"
+    on_success: change
+    on_failure: change
