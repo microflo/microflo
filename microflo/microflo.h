@@ -41,6 +41,11 @@ do { \
 namespace MicroFlo {
     typedef uint8_t NodeId;
     typedef int8_t PortId;
+#ifdef STELLARIS
+    typedef long PinId;
+#else
+    typedef int PinId;
+#endif
 }
 
 namespace Components {
@@ -227,20 +232,20 @@ public:
         PullNone,
         PullUp
     };
-    virtual void PinSetMode(int pin, PinMode mode) = 0;
-    virtual void PinSetPullup(int pin, PullupMode mode) = 0;
+    virtual void PinSetMode(MicroFlo::PinId pin, PinMode mode) = 0;
+    virtual void PinSetPullup(MicroFlo::PinId pin, PullupMode mode) = 0;
 
     // Digital
-    virtual void DigitalWrite(int pin, bool val) = 0;
-    virtual bool DigitalRead(int pin) = 0;
+    virtual void DigitalWrite(MicroFlo::PinId pin, bool val) = 0;
+    virtual bool DigitalRead(MicroFlo::PinId pin) = 0;
 
     // Analog
     // Values should be [0..1023], for now
-    virtual long AnalogRead(int pin) = 0;
+    virtual long AnalogRead(MicroFlo::PinId pin) = 0;
 
     // Pwm
     // [0..100]
-    virtual void PwmWrite(int pin, long dutyPercent) = 0;
+    virtual void PwmWrite(MicroFlo::PinId pin, long dutyPercent) = 0;
 
     // Timer
     virtual long TimerCurrentMs() = 0;

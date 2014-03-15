@@ -60,17 +60,17 @@ public:
     }
 
     // Pin config
-    virtual void PinSetMode(int pin, IO::PinMode mode) {
+    virtual void PinSetMode(MicroFlo::PinId pin, IO::PinMode mode) {
         // FIXME: support other ports than F!
         if (mode == IO::InputPin) {
-            //MAP_GPIOPinTypeGPIOInput(GPIO_PORTF_BASE, pin);
+            MAP_GPIOPinTypeGPIOInput(GPIO_PORTF_BASE, pin);
         } else if (mode == IO::OutputPin) {
-            //MAP_GPIOPinTypeGPIOOutput(GPIO_PORTF_BASE, pin);
+            MAP_GPIOPinTypeGPIOOutput(GPIO_PORTF_BASE, pin);
         } else {
             MICROFLO_DEBUG(debug, DebugLevelError, DebugIoOperationNotImplemented);
         }
     }
-    virtual void PinSetPullup(int pin, IO::PullupMode mode) {
+    virtual void PinSetPullup(MicroFlo::PinId pin, IO::PullupMode mode) {
         if (mode == IO::PullNone) {
 
         } else {
@@ -79,22 +79,22 @@ public:
     }
 
     // Digital
-    virtual void DigitalWrite(int pin, bool val) {
+    virtual void DigitalWrite(MicroFlo::PinId pin, bool val) {
         // FIXME: support other ports than F!
-        //GPIOPinWrite(GPIO_PORTF_BASE, pin, val ? pin : 0x00);
+        GPIOPinWrite(GPIO_PORTF_BASE, pin, val ? pin : 0x00);
     }
-    virtual bool DigitalRead(int pin) {
+    virtual bool DigitalRead(MicroFlo::PinId pin) {
         MICROFLO_DEBUG(debug, DebugLevelError, DebugIoOperationNotImplemented);
         return false;
     }
 
     // Analog
     // FIXME: implement
-    virtual long AnalogRead(int pin) {
+    virtual long AnalogRead(MicroFlo::PinId pin) {
         MICROFLO_DEBUG(debug, DebugLevelError, DebugIoOperationNotImplemented);
         return 0;
     }
-    virtual void PwmWrite(int pin, long dutyPercent) {
+    virtual void PwmWrite(MicroFlo::PinId pin, long dutyPercent) {
         MICROFLO_DEBUG(debug, DebugLevelError, DebugIoOperationNotImplemented);
     }
 
