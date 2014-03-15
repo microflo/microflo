@@ -23,7 +23,7 @@
     },
     "dependencies": {
         "noflo": "~0.4.0",
-        "fbp": "~1.0.2",
+        "fbp": "^1.1.0",
         "flowhub-registry": "~0.0.1",
         "websocket": "~1.0.8",
         "serialport": "~1.1.3",
