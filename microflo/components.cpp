@@ -1205,23 +1205,23 @@ public:
             ontime = in.asInteger();
         }
         if (in.isTick()) {
-            runTick(io->TimerCurrentMs());
+            runTick(io->TimerCurrentMicros());
         }
     }
 private:
-    void runTick(unsigned long timeMs) {
+    void runTick(unsigned long timeMicro) {
         if (pin < 0 || period < 0 || ontime < 0) {
             return;
         }
 
         bool newState = currentState;
         if (currentState) {
-            if (timeMs > currentPeriodStart+ontime) {
+            if (timeMicro > currentPeriodStart+ontime) {
                 newState = false;
             }
         }
-        if (timeMs > currentPeriodStart+period) {
-            currentPeriodStart = timeMs;
+        if (timeMicro >= currentPeriodStart+period) {
+            currentPeriodStart = timeMicro;
             newState = true;
         }
 

@@ -249,6 +249,7 @@ public:
 
     // Timer
     virtual long TimerCurrentMs() = 0;
+    virtual long TimerCurrentMicros() { return TimerCurrentMs()*1000; }
 
     // Interrupts
     struct Interrupt {
