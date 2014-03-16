@@ -31,6 +31,9 @@ class MicroFloComponent extends noflo.Component
       graph:
         datatype: 'string'
         description: 'Path to a JSON or FBP graph definition'
+      upload:
+        datatype: 'boolean'
+        description: 'Whether to upload the graph or use the one flashed in'
     @outPorts = new noflo.OutPorts
       error:
         datatype: 'object'
@@ -38,6 +41,7 @@ class MicroFloComponent extends noflo.Component
 
     @inPorts.graph.on 'data', (graph) =>
       @loadGraph graph
+
 
     @inPorts.devicename.on 'data', (@devname) =>
       do @checkConnect
