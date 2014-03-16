@@ -57,9 +57,10 @@ class MicroFloComponent extends noflo.Component
       if graph.outports
         @prepareOutport port, priv for port, priv of graph.outports
 
-      process.nextTick =>
-        @ready = true
-        @emit 'ready'
+      unless @devname
+        process.nextTick =>
+          @ready = true
+          @emit 'ready'
 
       do @checkConnect
 
