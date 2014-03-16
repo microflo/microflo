@@ -22,6 +22,8 @@
 #include "driverlib/rom_map.h"
 #include "driverlib/udma.h"
 #include "driverlib/ssi.h"
+#include "utils/uartstdio.h"
+#include "utils/ustdlib.h"
 
 static const unsigned long ports[6] = {
     GPIO_PORTA_BASE,
@@ -73,15 +75,37 @@ public:
 
     // Serial
     virtual void SerialBegin(int serialDevice, int baudrate) {
-
+        if (serialDevice == 0) {
+            MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOA);
+            MAP_GPIOPinConfigure(GPIO_PA0_U0RX);
+            MAP_GPIOPinConfigure(GPIO_PA1_U0TX);
+            MAP_GPIOPinTypeUART(GPIO_PORTA_BASE, GPIO_PIN_0 | GPIO_PIN_1);
+            UARTStdioInit(0);
+             // FIXME: get rid of this hack. But for some reason Charput does not work without??
+            UARTprintf("\n");
+            //UARTEnable(UART0_BASE);
+        }
     }
     virtual long SerialDataAvailable(int serialDevice) {
-        return 0;
+        if (serialDevice == 0) {
+            return UARTCharsAvail(UART0_BASE);
+        } else {
+            return 0;
+        }
+
     }
     virtual unsigned char SerialRead(int serialDevice) {
-        return '\0';
+        if (serialDevice == 0) {
+            return UARTCharGetNonBlocking(UART0_BASE);
+        } else {
+            return '\0';
+        }
+
     }
     virtual void SerialWrite(int serialDevice, unsigned char b) {
+        if (serialDevice == 0) {
+            UARTCharPut(UART0_BASE, b);
+        }
 
     }
 
