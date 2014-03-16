@@ -49,6 +49,7 @@
         "grunt-combine": "~0.8.3"
     },
     "noflo": {
+      "loader": "nodejs/ComponentLoader.coffee",
       "components": {
             "MicroFloComponent": "nodejs/MicroFloComponent"
       }
