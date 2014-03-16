@@ -81,9 +81,7 @@ public:
             MAP_GPIOPinConfigure(GPIO_PA1_U0TX);
             MAP_GPIOPinTypeUART(GPIO_PORTA_BASE, GPIO_PIN_0 | GPIO_PIN_1);
             UARTStdioInit(0);
-             // FIXME: get rid of this hack. But for some reason Charput does not work without??
-            UARTprintf("\n");
-            //UARTEnable(UART0_BASE);
+            UARTEnable(UART0_BASE);
         }
     }
     virtual long SerialDataAvailable(int serialDevice) {
