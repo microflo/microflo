@@ -23,15 +23,36 @@
 #include "driverlib/udma.h"
 #include "driverlib/ssi.h"
 
+static const unsigned long ports[6] = {
+    GPIO_PORTA_BASE,
+    GPIO_PORTB_BASE,
+    GPIO_PORTC_BASE,
+    GPIO_PORTD_BASE,
+    GPIO_PORTE_BASE,
+    GPIO_PORTF_BASE
+};
+
+static const unsigned long portPeripherals[6] = {
+    SYSCTL_PERIPH_GPIOA,
+    SYSCTL_PERIPH_GPIOB,
+    SYSCTL_PERIPH_GPIOC,
+    SYSCTL_PERIPH_GPIOD,
+    SYSCTL_PERIPH_GPIOE,
+    SYSCTL_PERIPH_GPIOF,
+};
+
+#define peripheral(pinNumber) portPeripherals[pinNumber/8]
+#define portBase(pinNumber) ports[pinNumber/8]
+#define pinMask(pinNumber) 0x01 << (pinNumber%8)
+
 volatile unsigned long g_ulSysTickCount = 0;
+static const char * const gMagic = "MAGIC!012";
 
 extern "C" {
     void SysTickIntHandler(void) {
         g_ulSysTickCount++;
     }
 }
-
-static const char * const gMagic = "MAGIC!012";
 
 class StellarisIO : public IO {
 public:
@@ -44,9 +65,6 @@ public:
 
         /* Set clock to PLL at 50MHz */
         MAP_SysCtlClockSet(SYSCTL_SYSDIV_4 | SYSCTL_USE_PLL | SYSCTL_OSC_MAIN | SYSCTL_XTAL_16MHZ);
-
-        // Enable port F
-        MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOF);
 
         MAP_SysTickPeriodSet(MAP_SysCtlClockGet() / 1000); // 1ms
         MAP_SysTickIntEnable();
@@ -69,11 +87,12 @@ public:
 
     // Pin config
     virtual void PinSetMode(MicroFlo::PinId pin, IO::PinMode mode) {
-        // FIXME: support other ports than F!
+
+        MAP_SysCtlPeripheralEnable(peripheral(pin));
         if (mode == IO::InputPin) {
-            MAP_GPIOPinTypeGPIOInput(GPIO_PORTF_BASE, pin);
+            MAP_GPIOPinTypeGPIOInput(portBase(pin), pinMask(pin));
         } else if (mode == IO::OutputPin) {
-            MAP_GPIOPinTypeGPIOOutput(GPIO_PORTF_BASE, pin);
+            MAP_GPIOPinTypeGPIOOutput(portBase(pin), pinMask(pin));
         } else {
             MICROFLO_DEBUG(debug, DebugLevelError, DebugIoOperationNotImplemented);
         }
@@ -87,9 +106,8 @@ public:
     }
 
     // Digital
-    virtual void DigitalWrite(MicroFlo::PinId pin, bool val) {
-        // FIXME: support other ports than F!
-        GPIOPinWrite(GPIO_PORTF_BASE, pin, val ? pin : 0x00);
+    virtual void DigitalWrite(MicroFlo::PinId pin, bool val) {;
+        GPIOPinWrite(portBase(pin), pinMask(pin), val ? pinMask(pin) : 0x00);
     }
     virtual bool DigitalRead(MicroFlo::PinId pin) {
         MICROFLO_DEBUG(debug, DebugLevelError, DebugIoOperationNotImplemented);
