@@ -58,6 +58,10 @@ class MicroFloComponent extends noflo.Component
       if graph.outports
         @prepareOutport port, priv for port, priv of graph.outports
 
+      process.nextTick =>
+        @ready = true
+        @emit 'ready'
+
       do @checkConnect
 
   getNodeId: (node) ->
@@ -124,12 +128,16 @@ class MicroFloComponent extends noflo.Component
       unless @upload
         @ready = true
         @emit 'ready'
+        return
+
+      console.error 'Preparing upload', @devname
 
       debugLevel = 'Detailed'
       data = microflo.commandstream.cmdStreamFromGraph componentLib, @graph, debugLevel
       microflo.runtime.uploadGraph @transport, data, @graph, @handleRecv
 
   handleRecv: (args...) =>
+    console.error args
     if args[0] is 'NETSTART'
       @ready = true
       @emit 'ready'
