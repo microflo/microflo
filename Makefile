@@ -80,7 +80,7 @@ build-mbed: install
 	cp Makefile.mbed build/mbed/Makefile
 	cd build/mbed && make ROOT_DIR=./../../
 
-build-stellaris: install
+build-stellaris:
 	rm -rf build/stellaris
 	mkdir -p build/stellaris
 	node microflo.js generate $(STELLARIS_GRAPH) build/stellaris/main.cpp stellaris
