@@ -23,15 +23,17 @@ var setupRuntimeCommand = function(env) {
     var debugLevel = env.parent.debug || "Error";
     var ip = env.parent.ip || "127.0.0.1"
     var reg = env.parent.registry || ""
+    var baud = parseInt(env.parent.baudrate) || 9600
 
-    microflo.runtime.setupRuntime(serialPortToUse, port, debugLevel, ip, reg);
+    microflo.runtime.setupRuntime(serialPortToUse, baud, port, debugLevel, ip, reg);
 }
 
 var uploadGraphCommand = function(graphPath, env) {
     var serialPortName = env.parent.serial || "auto";
     var debugLevel = env.parent.debug
+    var baud = parseInt(env.parent.baudrate) || 9600
 
-    microflo.runtime.uploadGraphFromFile(graphPath, serialPortName, debugLevel);
+    microflo.runtime.uploadGraphFromFile(graphPath, serialPortName, baud, debugLevel);
 }
 
 var generateFwCommand = function(env) {
@@ -48,6 +50,7 @@ var main = function() {
     commander
         .version(module.exports.version)
         .option('-s, --serial <PORT>', 'which serial port to use')
+        .option('-b, --baudrate <RATE>', 'baudrate for serialport')
         .option('-d, --debug <LEVEL>', 'set debug level')
         .option('-p, --port <PORT>', 'which port to use for WebSocket')
         .option('-i, --ip <IP>', 'which IP to use for WebSocket')
