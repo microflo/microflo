@@ -131,8 +131,9 @@ class MicroFloComponent extends noflo.Component
       console.error 'Preparing upload', @devname
 
       debugLevel = 'Detailed'
+      dummyUpload = false
       data = microflo.commandstream.cmdStreamFromGraph componentLib, @graph, debugLevel
-      microflo.runtime.uploadGraph @transport, data, @graph, @handleRecv
+      microflo.runtime.uploadGraph @transport, data, @graph, @handleRecv, dummyUpload
 
       # (Re)open data transmission
       buffer = new Buffer 8
