@@ -18,9 +18,8 @@ class MicroFloComponent extends noflo.Component
     metadata = {} unless metadata
     @devname = metadata.device or null
     @baudrate = metadata.baudrate or 9600
-    @upload = true
+    @upload = yes
     @graph = null
-    @isConnected = no
     @transport = null
     @ready = true
 
@@ -123,7 +122,6 @@ class MicroFloComponent extends noflo.Component
         @outPorts.error.disconnect()
         return
       @transport = transport
-      @isConnected = true
 
       unless @upload
         @ready = true
