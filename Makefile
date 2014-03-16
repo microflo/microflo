@@ -109,8 +109,11 @@ upload-dfu: build-avr
 upload-mbed: build-mbed
 	cd build/mbed && sudo cp firmware.bin $(UPLOAD_DIR)
 
-upload-stellaris:
+debug-stellaris:
 	arm-none-eabi-gdb build/stellaris/gcc/main.axf --command=./stellaris.load.gdb
+
+upload-stellaris: build-stellaris
+	sudo lm4flash build/stellaris/gcc/main.bin
 
 clean:
 	git clean -dfx --exclude=node_modules
