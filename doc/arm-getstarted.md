@@ -18,7 +18,9 @@ Prerequisites
 2. Download and install an 'gcc-arm-none-eabi' toolchain
 For Ubuntu use the PPA [terry.guo/gcc-arm-embedded](https://launchpad.net/~terry.guo/+archive/gcc-arm-embedded)
 
-3. Download and install [OpenOCD]. As of March 2014 you need to build it from source to get Tiva-C support.
+3. Download and install [lm4flash](https://github.com/utzig/lm4tools)
+
+4. (for debugging) Download and install [OpenOCD]. As of March 2014 you need to build it from source to get Tiva-C support.
 
 
 Building MicroFlo
@@ -35,10 +37,16 @@ It is assumed that you have common build tools such as 'make', 'git' and 'screen
     npm install
     make build-stellaris
 
+3. Upload/flash
 
-Running on Tiva-C
+    make upload-stellaris
+
+
+Debugging on Tiva-C
 ------------------
-Follow the steps under [Run OpenOCD](http://processors.wiki.ti.com/index.php/Stellaris_Launchpad_with_OpenOCD_and_Linux),
+
+
+For debugging follow the steps under [Run OpenOCD](http://processors.wiki.ti.com/index.php/Stellaris_Launchpad_with_OpenOCD_and_Linux),
 but use:
 
 * AFX file: build/stellaris/gcc/main.afx
