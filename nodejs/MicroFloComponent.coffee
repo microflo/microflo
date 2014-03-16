@@ -18,7 +18,7 @@ class MicroFloComponent extends noflo.Component
     metadata = {} unless metadata
     @devname = metadata.device or null
     @baudrate = metadata.baudrate or 9600
-    @upload = yes
+    @upload = no
     @graph = null
     @transport = null
     @ready = true
