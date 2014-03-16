@@ -1,5 +1,7 @@
 noflo = require 'noflo'
 microflo = require '../lib/microflo'
+c = require "../lib/componentlib"
+componentLib = new c.ComponentLibrary c.defaultComponents, '../microflo'
 
 # FIXME: should be shielded inside microflo.js
 serialport = require 'serialport'
@@ -13,11 +15,14 @@ class MicroFloComponent extends noflo.Component
   icon: 'lightbulb-o'
   description: 'MicroFlo graph running on a microcontroller'
   constructor: (metadata) ->
+    metadata = {} unless metadata
     @devname = metadata.device or null
-    @upload = metadata.upload
+    @baudrate = metadata.baudrate or 9600
+    @upload = true
     @graph = null
     @isConnected = no
     @transport = null
+    @ready = true
 
     @inPorts = new noflo.InPorts
       devicename:
@@ -27,10 +32,6 @@ class MicroFloComponent extends noflo.Component
       graph:
         datatype: 'string'
         description: 'Path to a JSON or FBP graph definition'
-      upload:
-        datatype: 'boolean'
-        description: 'Whether to flash the microcontroller when connected'
-        required: false
     @outPorts = new noflo.OutPorts
       error:
         datatype: 'object'
@@ -38,23 +39,15 @@ class MicroFloComponent extends noflo.Component
 
     @inPorts.graph.on 'data', (graph) =>
       @loadGraph graph
-      do @checkConnect
 
     @inPorts.devicename.on 'data', (@devname) =>
       do @checkConnect
 
-    @inPorts.upload.on 'data', (@upload) =>
-
     # We already got a device name via node metadata, no need to expose port
     @inPorts.remove 'devicename' if @devname
 
-    # Remove upload port if defined via node metadata, otherwise go with default value
-    if typeof @upload isnt 'undefined'
-      @inPorts.remove 'upload'
-    else
-      @upload = true
-
-  loadGraph: (path) ->
+  loadGraph: (path, callback) ->
+    @ready = false
     microflo.runtime.loadFile path, (err, graph) =>
       return if err
       @graph = graph
@@ -65,10 +58,36 @@ class MicroFloComponent extends noflo.Component
       if graph.outports
         @prepareOutport port, priv for port, priv of graph.outports
 
+      do @checkConnect
+      process.nextTick =>
+        @ready = true
+        @emit 'ready'
+
+  getNodeId: (node) ->
+    return null unless @graph.nodeMap
+    @graph.nodeMap[node].id
+
+  getPortId: (component, port) ->
+    component = componentLib.getComponent component
+    return null unless component
+    return null unless component.inPorts[port]
+    component.inPorts[port].id
+
   prepareInport: (name, priv) ->
-    process = (event, packet) ->
+    proc = (event, packet) =>
       unless @transport
         @outPorts.error.send new Error 'Cannot send to microcontroller, no connection'
+        @outPorts.error.disconnect()
+        return
+
+      nodeId = @getNodeId priv.process
+      if nodeId is null
+        @outPorts.error.send new Error 'Cannot send to microcontroller, no node ID found'
+        @outPorts.error.disconnect()
+        return
+      portId = @getPortId @graph.processes[priv.process].component, priv.port
+      if portId is null
+        @outPorts.error.send new Error 'Cannot send to microcontroller, no port ID found'
         @outPorts.error.disconnect()
         return
 
@@ -77,12 +96,15 @@ class MicroFloComponent extends noflo.Component
 
       buffer = new Buffer 16
       microflo.commandstream.writeString buffer, 0, microflo.commandstream.cmdFormat.magicString
-      b = (microflo.commandstream.dataLiteralToCommand obj.toString(), 1, 0)
+      b = microflo.commandstream.dataLiteralToCommand packet.toString(), nodeId, portId
       microflo.commandstream.writeCmd buffer, 8, b
       @transport.write buffer
 
     # TODO: Detect type information from graph
-    @inPorts.add port, {}, process
+    @inPorts.add name, {}, proc
+
+  isReady: ->
+    @ready
 
   prepareOutport: (name, priv) ->
     # TODO: Reading from microcontroller
@@ -92,7 +114,9 @@ class MicroFloComponent extends noflo.Component
     return unless @graph
     return unless @devname
 
-    microflo.serial.openTransport @devname, (err, transport) =>
+    @ready = false
+
+    microflo.serial.openTransport @devname, @baudrate, (err, transport) =>
       if err
         @outPorts.error.send err
         @outPorts.error.disconnect()
@@ -100,13 +124,21 @@ class MicroFloComponent extends noflo.Component
       @transport = transport
       @isConnected = true
 
-      return unless @upload
+      unless @upload
+        @ready = true
+        @emit 'ready'
 
       debugLevel = 'Detailed'
       data = microflo.commandstream.cmdStreamFromGraph componentLib, @graph, debugLevel
       microflo.runtime.uploadGraph @transport, data, @graph, @handleRecv
+      process.nextTick =>
+        @ready = true
+        @emit 'ready'
 
   handleRecv: (args...) =>
+    if args[0] == "NETSTART"
+      console.log 'NETSTART'
+    return
     if args[0] == "SEND"
       @outPorts.out.send(args[4])
       #console.log args[3], args[4]
@@ -132,6 +164,6 @@ exports.getComponentForGraph = (graph) ->
     instance.inPorts.graph.attach graphSocket
     graphSocket.send graph
     graphSocket.disconnect()
-    graph.inPorts.remove 'graph'
+    instance.inPorts.remove 'graph'
 
     instance

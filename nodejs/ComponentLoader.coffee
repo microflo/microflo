@@ -3,21 +3,24 @@ MicroFloComponent = require './MicroFloComponent'
 path = require 'path'
 fs = require 'fs'
 
-registerComponent (loader, name, path) ->
+registerComponent = (loader, prefix, name, path) ->
   bound = MicroFloComponent.getComponentForGraph path
-  loader.registerComponent 'microflo', name, bound
+  loader.registerComponent prefix, name, bound
 
-module.exports = (loader) ->
+module.exports = (loader, done) ->
   # Read MicroFlo graph definitions from package.json
   packageFile = path.resolve loader.baseDir, 'package.json'
-  fs.readFile packageFile, (err, def) ->
-    return if err
+  fs.readFile packageFile, 'utf-8', (err, def) ->
+    return done() if err
     try
       packageDef = JSON.parse def
     catch e
       return
-    return unless packageDef.microflo
-    return unless packageDef.microflo.graphs
+    return done() unless packageDef.microflo
+    return done() unless packageDef.microflo.graphs
+
+    prefix = loader.getModulePrefix packageDef.name
 
     for name, path of packageDef.microflo.graphs
-      registerComponent loader, name, path
+      registerComponent loader, prefix, name, path
+    done()
