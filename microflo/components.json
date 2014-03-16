@@ -233,6 +233,15 @@
             }
         },
 
+        "PseudoPwmWrite": { "id": 30,
+            "description": "Software PWM. Will be jittery and slow, but can be used on any GPIO pin/platform",
+            "inPorts": {
+                "period": { "id": 0 },
+                "ontime": { "id": 1 },
+                "dutycycle": { "id": 2 },
+                "pin": { "id": 3 }
+            }
+        },
 
         "ArduinoUno": { "id": 50,
             "description": "Convenient definition of pins available on Arduino Uno",
