@@ -130,7 +130,7 @@ class MicroFloComponent extends noflo.Component
 
       console.error 'Preparing upload', @devname
 
-      debugLevel = 'Detailed'
+      debugLevel = 'VeryDetailed'
       dummyUpload = false
       data = microflo.commandstream.cmdStreamFromGraph componentLib, @graph, debugLevel
       microflo.runtime.uploadGraph @transport, data, @graph, @handleRecv, dummyUpload
