@@ -95,11 +95,9 @@ class MicroFloComponent extends noflo.Component
       # TODO: Support for the other event types
       return unless event is 'data'
 
-      buffer = new Buffer 16
-      microflo.commandstream.writeString buffer, 0, microflo.commandstream.cmdFormat.magicString
+      # Assumes microcontroller is ready to accept commands (ie: magic string has been sent)
       b = microflo.commandstream.dataLiteralToCommand packet.toString(), nodeId, portId
-      microflo.commandstream.writeCmd buffer, 8, b
-      @transport.write buffer
+      @transport.write b
 
     # TODO: Detect type information from graph
     @inPorts.add name, {}, proc
@@ -135,6 +133,11 @@ class MicroFloComponent extends noflo.Component
       debugLevel = 'Detailed'
       data = microflo.commandstream.cmdStreamFromGraph componentLib, @graph, debugLevel
       microflo.runtime.uploadGraph @transport, data, @graph, @handleRecv
+
+      # (Re)open data transmission
+      buffer = new Buffer 8
+      microflo.commandstream.writeString buffer, 0, microflo.commandstream.cmdFormat.magicString
+      @transport.write buffer
 
   handleRecv: (args...) =>
     console.error args
