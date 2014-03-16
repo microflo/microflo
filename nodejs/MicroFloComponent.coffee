@@ -42,6 +42,7 @@ class MicroFloComponent extends noflo.Component
     @inPorts.graph.on 'data', (graph) =>
       @loadGraph graph
 
+    @inPorts.upload.on 'data', (@upload) =>
 
     @inPorts.devicename.on 'data', (@devname) =>
       do @checkConnect
