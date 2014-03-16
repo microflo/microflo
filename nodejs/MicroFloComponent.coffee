@@ -123,22 +123,23 @@ class MicroFloComponent extends noflo.Component
       @transport = transport
       @isConnected = true
 
-      unless @upload
-        @ready = true
-        @emit 'ready'
-        return
-
-      console.error 'Preparing upload', @devname
+      if @upload
+        console.error 'Preparing upload', @devname
+      else
+        console.error 'Opening communication', @devname
 
       debugLevel = 'VeryDetailed'
-      dummyUpload = false
       data = microflo.commandstream.cmdStreamFromGraph componentLib, @graph, debugLevel
-      microflo.runtime.uploadGraph @transport, data, @graph, @handleRecv, dummyUpload
+      microflo.runtime.uploadGraph @transport, data, @graph, @handleRecv, not @upload
 
       # (Re)open data transmission
       buffer = new Buffer 8
       microflo.commandstream.writeString buffer, 0, microflo.commandstream.cmdFormat.magicString
       @transport.write buffer
+
+      unless @upload
+        @ready = true
+        @emit 'ready'
 
   handleRecv: (args...) =>
     console.error args
