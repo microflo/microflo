@@ -1,3 +1,3 @@
-'2000' -> PERIOD led(PseudoPwmWrite)
-'1950' -> ONTIME led
+'220' -> PERIOD led(PseudoPwmWrite)
+'200' -> ONTIME led
 board(TivaC) PF4 -> PIN led()
