@@ -1199,6 +1199,7 @@ public:
             pindata = in.asInteger();
             initialized = false;
             send(Packet(initialized), OutPorts::ready);
+            tryInitialize();
         } else if (port == InPorts::pinclk) {
             pinclk = in.asInteger();
             initialized = false;
