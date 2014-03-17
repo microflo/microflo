@@ -14,7 +14,7 @@ AVRSIZE=avr-size
 AVRGCC=avr-g++
 AVROBJCOPY=avr-objcopy
 DFUPROGRAMMER=dfu-programmer
-VERSION=$(shell git describe --tags)
+VERSION=$(shell git describe --tags --always)
 OSX_ARDUINO_APP=/Applications/Arduino.app
 AVR_FCPU=1000000UL
 
