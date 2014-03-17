@@ -42,6 +42,7 @@ class MicroFloComponent extends noflo.Component
     @inPorts.graph.on 'data', (graph) =>
       @loadGraph graph
 
+    @inPorts.upload.on 'data', (@upload) =>
 
     @inPorts.devicename.on 'data', (@devname) =>
       do @checkConnect
@@ -100,7 +101,7 @@ class MicroFloComponent extends noflo.Component
       return unless event is 'data'
 
       # Assumes microcontroller is ready to accept commands (ie: magic string has been sent)
-      b = microflo.commandstream.dataLiteralToCommand packet.toString(), nodeId, portId
+      b = microflo.commandstream.dataLiteralToCommand '' + packet, nodeId, portId
       @transport.write b
 
     # TODO: Detect type information from graph
