@@ -1205,7 +1205,7 @@ public:
             ontime = in.asInteger();
         }
         if (in.isTick()) {
-            runTick(io->TimerCurrentMicros());
+            runTick(io->TimerCurrentMicros()/100);
         }
     }
 private:
@@ -1222,6 +1222,13 @@ private:
         }
         if (timeMicro >= currentPeriodStart+period) {
             currentPeriodStart = timeMicro;
+            newState = true;
+        }
+
+        if (ontime < 5) {
+            newState = false;
+        }
+        if (period-ontime < 10) {
             newState = true;
         }
 
