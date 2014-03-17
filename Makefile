@@ -20,7 +20,7 @@ AVR_FCPU=1000000UL
 
 # Not normally customized
 CPPFLAGS=-ffunction-sections -fdata-sections -g -Os -w
-DEFINES='-DHAVE_DALLAS_TEMPERATURE -DHAVE_ADAFRUIT_NEOPIXEL'
+DEFINES='-DHAVE_DALLAS_TEMPERATURE -DHAVE_ADAFRUIT_NEOPIXEL -DHAVE_ADAFRUIT_WS2801'
 
 
 INOOPTIONS=--board-model=$(MODEL)
@@ -58,6 +58,7 @@ build-arduino: install
 	unzip -q -n ./thirdparty/OneWire.zip -d build/arduino/lib/
 	unzip -q -n ./thirdparty/DallasTemperature.zip -d build/arduino/lib/
 	cd thirdparty/Adafruit_NeoPixel && git checkout-index -f -a --prefix=../../build/arduino/lib/Adafruit_NeoPixel/
+	cd thirdparty/Adafruit_WS2801 && git checkout-index -f -a --prefix=../../build/arduino/lib/Adafruit_WS2801/
 	cd build/arduino/lib && test -e patched || patch -p0 < ../../../thirdparty/DallasTemperature.patch
 	cd build/arduino/lib && test -e patched || patch -p0 < ../../../thirdparty/OneWire.patch
 	touch build/arduino/lib/patched

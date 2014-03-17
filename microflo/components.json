@@ -243,6 +243,20 @@
             }
         },
 
+        "LedChainWS": { "id": 31,
+            "description": "Display colors on RGB strips/chains using WS2812 controller",
+            "inPorts": {
+                "in": { "id": 0 },
+                "pindata": { "id": 1 },
+                "pinclk": { "id": 2 },
+                "pixels": { "id": 3 },
+                "show": { "id": 3 }
+            }, "outPorts": {
+                "ready": { "id": 0 },
+                "pixelset": { "id": 1 }
+            }
+        },
+
         "ArduinoUno": { "id": 50,
             "description": "Convenient definition of pins available on Arduino Uno",
             "outPorts": {
