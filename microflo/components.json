@@ -220,7 +220,7 @@
             }
         },
 
-        "LedChainWS": { "id": 29,
+        "LedChainNeoPixel": { "id": 29,
             "description": "Display colors on RGB strips/chains using WS2812 controller",
             "inPorts": {
                 "in": { "id": 0 },

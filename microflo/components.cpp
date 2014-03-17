@@ -1071,9 +1071,9 @@ private:
 
 
 
-class LedChainWS : public Component {
+class LedChainNeoPixel : public Component {
 public:
-    LedChainWS()
+    LedChainNeoPixel()
         : Component(outPorts, 2)
         , pin(-1)
         , number(-1)
@@ -1085,7 +1085,7 @@ public:
     {}
 
     virtual void process(Packet in, MicroFlo::PortId port) {
-        using namespace LedChainWSPorts;
+        using namespace LedChainNeoPixelPorts;
         if (port == InPorts::in) {
             if (currentPixelAddress == -1 && in.isNumber()) {
                 currentPixelAddress = in.asInteger();
@@ -1100,12 +1100,12 @@ public:
         } else if (port == InPorts::pin) {
             pin = in.asInteger();
             initialized = false;
-            send(Packet(initialized), LedChainWSPorts::OutPorts::ready);
+            send(Packet(initialized), OutPorts::ready);
             tryInitialize();
         } else if (port == InPorts::pixels) {
             number = in.asInteger();
             initialized = false;
-            send(Packet(initialized), LedChainWSPorts::OutPorts::ready);
+            send(Packet(initialized), OutPorts::ready);
             tryInitialize();
         } else if (port == InPorts::show) {
             if (initialized) {
@@ -1117,6 +1117,8 @@ public:
     }
 private:
     void tryInitialize() {
+        using namespace LedChainNeoPixelPorts;
+
         if (initialized || number < 0 || pin < 0) {
             return;
         }
@@ -1126,10 +1128,11 @@ private:
         neoPixel.begin();
 #endif
         initialized = true;
-        send(Packet(initialized), LedChainWSPorts::OutPorts::ready);
+        send(Packet(initialized), OutPorts::ready);
     }
 
     void updateCurrentPixel(uint32_t rgb) {
+        using namespace LedChainNeoPixelPorts;
         if (!initialized || currentPixelAddress <= 0
                 || currentPixelAddress >= number) {
             return;
@@ -1137,7 +1140,7 @@ private:
 #ifdef HAVE_ADAFRUIT_NEOPIXEL
         neoPixel.setPixelColor(currentPixelAddress, rgb);
 #endif
-        const MicroFlo::PortId p = LedChainWSPorts::OutPorts::pixelset;
+        const MicroFlo::PortId p = OutPorts::pixelset;
         send(Packet(MsgBracketStart), p);
         send(Packet((long)currentPixelAddress));
         send(Packet((long)rgb));
