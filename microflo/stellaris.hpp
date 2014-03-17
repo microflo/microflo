@@ -68,7 +68,7 @@ public:
         /* Set clock to PLL at 50MHz */
         MAP_SysCtlClockSet(SYSCTL_SYSDIV_4 | SYSCTL_USE_PLL | SYSCTL_OSC_MAIN | SYSCTL_XTAL_16MHZ);
 
-        MAP_SysTickPeriodSet(MAP_SysCtlClockGet() / (1000*1000)); // 1us
+        MAP_SysTickPeriodSet(MAP_SysCtlClockGet() / (1000)); // 1us
         MAP_SysTickIntEnable();
         MAP_SysTickEnable();
     }
@@ -148,11 +148,11 @@ public:
 
     // Timer
     virtual long TimerCurrentMs() {
-        return g_ulSysTickCount/1000;
+        return g_ulSysTickCount;
     }
 
     virtual long TimerCurrentMicros() {
-        return g_ulSysTickCount;
+        return g_ulSysTickCount*1000;
     }
 
     virtual void AttachExternalInterrupt(int interrupt, IO::Interrupt::Mode mode,
