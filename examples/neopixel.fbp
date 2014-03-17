@@ -1,4 +1,4 @@
-'6' -> PIN ledchain(LedChainWS)
+'6' -> PIN ledchain(LedChainNeoPixel)
 '30' -> PIXELS ledchain
 '[29, "0xFF00FF"]' -> IN ledchain
 'true' -> SHOW ledchain
