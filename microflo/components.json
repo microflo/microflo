@@ -250,7 +250,8 @@
                 "pindata": { "id": 1 },
                 "pinclk": { "id": 2 },
                 "pixels": { "id": 3 },
-                "show": { "id": 4 }
+                "show": { "id": 4 },
+                "hwspi": { "id": 5 }
             }, "outPorts": {
                 "ready": { "id": 0 },
                 "pixelset": { "id": 1 }

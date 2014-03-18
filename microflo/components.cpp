@@ -1174,12 +1174,10 @@ public:
         : Component(outPorts, 2)
         , pindata(-1)
         , pinclk(-1)
+        , useHardwareSpi(false)
         , number(-1)
         , initialized(false)
         , currentPixelAddress(-1)
-#ifdef HAVE_ADAFRUIT_WS2801
-        , ws(0, 2, 3) // N,DPIN,CLKPIN. We update these things later
-#endif
     {}
 
     virtual void process(Packet in, MicroFlo::PortId port) {
@@ -1205,6 +1203,11 @@ public:
             initialized = false;
             send(Packet(initialized), OutPorts::ready);
             tryInitialize();
+        } else if (port == InPorts::hwspi) {
+            useHardwareSpi = in.asBool();
+            initialized = false;
+            send(Packet(initialized), OutPorts::ready);
+            tryInitialize();
         } else if (port == InPorts::pixels) {
             number = in.asInteger();
             initialized = false;
@@ -1221,13 +1224,19 @@ public:
 private:
     void tryInitialize() {
         using namespace LedChainWSPorts;
-        if (initialized || number < 0 || pindata < 0 || pinclk < 0) {
+        const bool pinConfigReady = useHardwareSpi || (pindata >= 0 && pinclk >= 0);
+        if (initialized || number < 0 || !pinConfigReady) {
             return;
         }
 #ifdef HAVE_ADAFRUIT_WS2801
         ws.updateLength(number);
-        ws.updatePins(pindata, pinclk);
+        if (useHardwareSpi) {
+            ws.updatePins();
+        } else {
+            ws.updatePins(pindata, pinclk);
+        }
         ws.begin();
+        ws.show();
 #endif
         initialized = true;
         send(Packet(initialized), OutPorts::ready);
@@ -1252,6 +1261,7 @@ private:
 private:
     int8_t pindata;
     int8_t pinclk;
+    bool useHardwareSpi;
     int8_t number;
     bool initialized;
     int currentPixelAddress; // -1 means waiting for pixel index, else waiting for value

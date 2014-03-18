@@ -1,6 +1,10 @@
-'2' -> PINDATA ledchain(LedChainWS)
-'3' -> PINCLK ledchain
-'30' -> PIXELS ledchain
+'30' -> PIXELS ledchain(LedChainWS)
+
+# If wanting to use software SPI instead
+# '2' -> PINDATA ledchain
+# '3' -> PINCLK ledchain
+'true' -> HWSPI ledchain
+
 '[29, "0xFF00FF"]' -> IN ledchain
 'true' -> SHOW ledchain
 
