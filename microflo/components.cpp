@@ -1140,7 +1140,7 @@ private:
 
     void updateCurrentPixel(uint32_t rgb) {
         using namespace LedChainNeoPixelPorts;
-        if (!initialized || currentPixelAddress <= 0
+        if (!initialized || currentPixelAddress < 0
                 || currentPixelAddress >= number) {
             return;
         }
@@ -1244,7 +1244,7 @@ private:
 
     void updateCurrentPixel(uint32_t rgb) {
         using namespace LedChainWSPorts;
-        if (!initialized || currentPixelAddress <= 0
+        if (!initialized || currentPixelAddress < 0
                 || currentPixelAddress >= number) {
             return;
         }
