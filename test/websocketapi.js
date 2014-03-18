@@ -11,7 +11,7 @@ var componentLib = new microflo.componentlib.ComponentLibrary();
 
 describe('WebSocket API', function(){
     before(function () {
-        microflo.runtime.setupRuntime(undefined, 3888);
+        microflo.runtime.setupRuntime(undefined, 9600, 3888);
     });
 
     after(function () {
