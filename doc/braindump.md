@@ -653,8 +653,23 @@ Deployment scenarios
 
 
 
-Related
----------
+Project skeleton
+----------------
+* Allow custom MicroFlo components, graphs
+* Compatible with NoFlo UI
+* Allow custom NoFlo components, graphs
+* Allow simulator/mock UIs
+* Automated tests set up by default
+* Ideally also static analysis
+* Travis CI config?
+
+Either a git repo people can clone from, or executable that
+creates the skeleton.
+
+
+
+Related tools,project,links
+-------------------------------
 
 Flow-based/dataflow concepts
 
@@ -677,10 +692,12 @@ Visual programming for Arduino etc.
 * http://seaside.citilab.eu/scratch/arduino
 * http://sourceforge.net/projects/qpc/
 * http://playground.arduino.cc/Code/QP
+* http://ardomotic.com/ (web-UI GUI builder)
 * http://sourceforge.net/projects/ktechlab (poorly maintained)
 * http://www.flowol.com/InterfaceArduino.aspx (non-free)
 * http://microuml.net/microuml.html (non-free service)
 * http://www.3d-svs.com/3dmicro-toolkit (non-free LabVIEW addon)
+
 
 Other alternative Arduino programming models (RTOS, event-driven)
 
