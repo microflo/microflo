@@ -227,8 +227,9 @@ void HostCommunication::parseCmd() {
         network->connectSubgraph(isOutput, subgraphNode, subgraphPort, childNode, childPort);
 
     } else if (cmd >= GraphCmdInvalid) {
-        MICROFLO_DEBUG(network, DebugLevelError, DebugParserInvalidCommand);
-        // state = Invalid; // XXX: or maybe just ignore?
+        if (memcmp(buffer, MICROFLO_GRAPH_MAGIC, sizeof(MICROFLO_GRAPH_MAGIC)) != 0) {
+            MICROFLO_DEBUG(network, DebugLevelError, DebugParserInvalidCommand);
+        }
     } else {
         MICROFLO_DEBUG(network, DebugLevelError, DebugParserUnknownCommand);
     }
