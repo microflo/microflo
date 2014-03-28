@@ -3,6 +3,11 @@ module.exports = ->
   @initConfig
     pkg: @file.readJSON 'package.json'
 
+    unzip:
+        chromedeps:
+            src: "thirdparty/chrome-app-samples-websocket-server.zip"
+            dest: "build/browser"
+
     # Browser version building
     component:
       install:
@@ -65,6 +70,7 @@ module.exports = ->
 
 
   # Grunt plugins used for building
+  @loadNpmTasks 'grunt-zip'
   @loadNpmTasks 'grunt-contrib-coffee'
   @loadNpmTasks 'grunt-component'
   @loadNpmTasks 'grunt-component-build'
@@ -82,6 +88,7 @@ module.exports = ->
   @registerTask 'build', 'Build MicroFlo for the chosen target platform', (target = 'all') =>
     #@task.run 'coffee'
     if target is 'all' or target is 'browser'
+      @task.run 'unzip'
       @task.run 'component'
       @task.run 'component_build'
       @task.run 'combine'
@@ -91,6 +98,7 @@ module.exports = ->
     if target is 'all' or target is 'nodejs'
       @task.run 'cafemocha'
     if target is 'all' or target is 'browser'
+      @task.run 'unzip'
       @task.run 'connect'
       @task.run 'component'
       @task.run 'component_build'
