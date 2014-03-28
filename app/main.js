@@ -1,51 +1,52 @@
+
+
 var onLoad = function() {
     console.log("onload");
     var microflo = require('microflo');
+    var util = microflo.util;
 
-    // Testing Chrome serial connection API
-    console.log("Attempting to get serial devices using Chrome API")
+    // TODO: filter obviously invalid connections, like ttySx
+
+    var select = document.getElementById("serialportSelect");
     var onGetDevices = function(ports) {
       for (var i=0; i<ports.length; i++) {
-        console.log(ports[i].path);
+        var port = ports[i];
+        console.log(port.path, port);
+
+        var option = document.createElement('option');
+        option.text = port.path;
+        select.add(option);
       }
     }
     chrome.serial.getDevices(onGetDevices);
 
-    var stringReceived = '';
-    var connectionId = null;
+    var addBaudRates = function(id) {
+        var select = document.getElementById(id);
+        var rates = [
+            [9600, "Arduino"],
+            [115200, "Tiva-C"]
+        ];
+        rates.forEach(function(item, idx) {
+            var option = document.createElement('option');
+            option.value = item[0];
+            var desc = item[1] ? item[0] + " ("+item[1]+")" : item[0];
+            option.text = desc;
+            select.add(option);
+        });
+    }
+    addBaudRates('baudrateSelect');
 
-    var onReceiveCallback = function(info) {
-        console.log("onReceiveCallback", info);
-        if (info.connectionId == connectionId && info.data) {
-          var str = convertArrayBufferToString(info.data);
-          if (str.charAt(str.length-1) === '\n') {
-            stringReceived += str.substring(0, str.length-1);
-            onLineReceived(stringReceived);
-            stringReceived = '';
-          } else {
-            stringReceived += str;
-          }
-        }
-    };
 
-    chrome.serial.onReceive.addListener(onReceiveCallback);
+    document.configForm.onsubmit = function() {
+        var devName = document.getElementById("serialportSelect").value;
+        var baudRate = parseInt(document.getElementById("baudrateSelect").value);
+        var port = 3569;
 
-    var onConnect = function(connectionInfo) {
-        if (connectionInfo) {
-            connectionId = connectionInfo.connectionId;
-            console.log("connected", connectionInfo);
+        microflo.runtime.setupRuntime(devName, baudRate, port, "Error", "localhost");
 
-            chrome.serial.send(connectionId, "ss", function(sendinfo, error) {
-                console.log("Attempted send: ", sendinfo, error);
-            });
-        } else {
-            console.log("Connection to serialport failed!");
-        }
+        return true;
     }
 
-    // Connect to the serial port
-    var devName = "/dev/ttyUSB1";
-    chrome.serial.connect(devName, {bitrate: 9600}, onConnect);
 }
 
 window.addEventListener('load', onLoad, false);
