@@ -51,3 +51,4 @@ index.html
 app/main.js
 lib/microflo.js
 lib/util.js
+Gruntfile.coffee
