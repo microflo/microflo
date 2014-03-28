@@ -1,0 +1,16 @@
+{
+  "name": "MicroFlo",
+  "description": "",
+  "version": "0.3.0",
+  "app": {
+    "background": {
+      "scripts": ["app/background.js"]
+    }
+  },
+  "permissions": [
+    "https://api.flowhub.io/",
+    "serial"
+  ],
+  "icons": {
+  }
+}

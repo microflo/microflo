@@ -45,3 +45,9 @@ README.md
 CHANGES.md
 binding.gyp
 Makefile
+manifest.json
+app/background.js
+index.html
+app/main.js
+lib/microflo.js
+lib/util.js
