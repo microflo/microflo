@@ -8,6 +8,7 @@
     "FBP"
   ],
   "dependencies": {
+    "component/emitter": "*",
     "noflo/noflo": "*",
     "noflo/fbp": "*",
     "jonnor/buffer": "*"
@@ -19,6 +20,9 @@
     "lib/componentlib.js",
     "lib/commandstream.js",
     "lib/commandformat.js",
+    "lib/serial.js",
+    "lib/runtime.js",
+    "lib/simulator.js",
     "lib/microflo.js"
   ],
   "json": [
