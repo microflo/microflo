@@ -9,6 +9,11 @@ config {
           box-sizing: border-box;
 }
 
+uuid {
+   /* Disabled, does not do anything yet */
+    display:none;
+}
+
 .line  {
   height: 25px;
 }

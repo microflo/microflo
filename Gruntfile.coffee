@@ -68,6 +68,31 @@ module.exports = ->
           reporter: 'spec'
           urls: ['http://localhost:8000/test/runner.html']
 
+    clean:
+      app:
+        src: ['build/microflo']
+
+    copy:
+      apptop:
+        src: ['manifest.json', 'index.html']
+        dest: 'build/microflo/'
+      appdir:
+        src: ['app/*']
+        dest: 'build/microflo/'
+      appdeps:
+        src: ['build/browser/*']
+        dest: 'build/microflo/'
+
+    compress:
+      app:
+        options:
+          archive: 'build/microflo-<%= pkg.version %>.zip'
+        files: [
+          expand: true
+          cwd: 'build/microflo'
+          src: ['**/*']
+        ]
+
 
   # Grunt plugins used for building
   @loadNpmTasks 'grunt-zip'
@@ -76,6 +101,9 @@ module.exports = ->
   @loadNpmTasks 'grunt-component-build'
   @loadNpmTasks 'grunt-contrib-uglify'
   @loadNpmTasks 'grunt-combine'
+  @loadNpmTasks 'grunt-contrib-copy'
+  @loadNpmTasks 'grunt-contrib-compress'
+  @loadNpmTasks 'grunt-contrib-clean'
 
   # Grunt plugins used for testing
   @loadNpmTasks 'grunt-contrib-connect'
@@ -93,6 +121,9 @@ module.exports = ->
       @task.run 'component_build'
       @task.run 'combine'
       @task.run 'uglify'
+      @task.run 'clean'
+      @task.run 'copy'
+      @task.run 'compress'
 
   @registerTask 'test', 'Build MicroFlo and run automated tests', (target = 'all') =>
     if target is 'all' or target is 'nodejs'
