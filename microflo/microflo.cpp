@@ -152,12 +152,16 @@ void HostCommunication::parseByte(char b) {
     } else if (state == Invalid) {
         MICROFLO_DEBUG(network, DebugLevelError, DebugParserInvalidState);
         // try to recover
-        currentByte = 0;
+        if (b != MICROFLO_GRAPH_MAGIC[0]) {
+            currentByte = 0;
+        }
         state = LookForHeader;
     } else {
         MICROFLO_DEBUG(network, DebugLevelError,DebugParserUnknownState);
         // try to recover
-        currentByte = 0;
+        if (b != MICROFLO_GRAPH_MAGIC[0]) {
+            currentByte = 0;
+        }
         state = LookForHeader;
     }
 }
