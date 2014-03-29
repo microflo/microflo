@@ -10,9 +10,6 @@
 
 #include "components-gen-top.hpp"
 
-#ifdef ARDUINO
-#define HAVE_ADAFRUIT_WS2801
-#endif
 
 #ifdef HAVE_DALLAS_TEMPERATURE
 #include <OneWire.h>
