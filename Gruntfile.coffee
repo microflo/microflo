@@ -75,18 +75,18 @@ module.exports = ->
     copy:
       apptop:
         src: ['manifest.json', 'index.html']
-        dest: 'build/microflo/'
+        dest: 'build/microflo-app/'
       appdir:
         src: ['app/*']
-        dest: 'build/microflo/'
+        dest: 'build/microflo-app/'
       appdeps:
         src: ['build/browser/*']
-        dest: 'build/microflo/'
+        dest: 'build/microflo-app/'
 
     compress:
       app:
         options:
-          archive: 'build/microflo-<%= pkg.version %>.zip'
+          archive: 'build/microflo-app-<%= pkg.version %>.zip'
         files: [
           expand: true
           cwd: 'build/microflo'
