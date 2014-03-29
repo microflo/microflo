@@ -13,6 +13,10 @@ var onLoad = function() {
         var port = ports[i];
         console.log(port.path, port);
 
+        if (port.path.search("/dev/ttyS") !== -1) {
+            continue;
+        }
+
         var option = document.createElement('option');
         option.text = port.path;
         select.add(option);
