@@ -5,6 +5,8 @@ var onLoad = function() {
     var microflo = require('microflo');
     var util = microflo.util;
 
+    var port = 3569;
+
     // TODO: filter obviously invalid connections, like ttySx
 
     var select = document.getElementById("serialportSelect");
@@ -41,16 +43,33 @@ var onLoad = function() {
     addBaudRates('baudrateSelect');
 
 
-    document.configForm.onsubmit = function() {
+    document.getElementById("runButton").onclick = function() {
         var devName = document.getElementById("serialportSelect").value;
         var baudRate = parseInt(document.getElementById("baudrateSelect").value);
-        var port = 3569;
 
         microflo.runtime.setupRuntime(devName, baudRate, port, "Error", "localhost");
 
-        return true;
+        return false;
     }
 
+
+    document.getElementById("registerButton").onclick = function() {
+        var user = document.getElementById("uuidInput").value;
+        var ip = "localhost";
+
+        console.log("Attempting to register with Flowhub")
+        var rt = microflo.runtime.createFlowhubRuntime(user, ip, port);
+        microflo.runtime.registerFlowhubRuntime(rt, function(err, ok) {
+            if (err) {
+                console.log("Could not register runtime with Flowhub", err);
+                process.exit(1);
+            } else {
+                console.log("Runtime registered with id:", rt.runtime.id);
+            }
+        });
+
+        return false;
+    }
 }
 
 window.addEventListener('load', onLoad, false);

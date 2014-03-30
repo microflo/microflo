@@ -9,6 +9,7 @@
   ],
   "dependencies": {
     "component/emitter": "*",
+    "the-grid/flowhub-registry": "*",
     "noflo/noflo": "*",
     "noflo/fbp": "*",
     "jonnor/buffer": "*"

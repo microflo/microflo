@@ -8,6 +8,7 @@
     <meta name="description" content="MicroFlo host, for use with Flowhub">
     <script src="build/browser/sha1.js"></script>
     <script src="build/browser/http.js"></script>
+    <script src="build/browser/uuid.js"></script>
     <script src="build/browser/microflo.js"></script>
     <script src="app/main.js"></script>
     <link rel="stylesheet" href="app/style.css">
@@ -15,6 +16,19 @@
 
   <body>
     <div id="main">
+
+    <div id="registrationView">
+    <form name="configForm" target="_blank" id="config">
+        <div id="uuid" class="line">
+            <label>Flowhub.io User UUID</label>
+            <input class="input" type="text" id="uuidInput">
+        </div>
+        <div class="line">
+            <input type="button" id="registerButton" value="Register">
+        </div>
+    </form>
+    </div>
+
     <form name="configForm" target="_blank" id="config">
         <div id="serial" class="line">
             <label>Serial port:</label>
@@ -24,10 +38,12 @@
             <label>Baudrate:</label>
             <select class="input" id="baudrateSelect" name="baudrate"></select>
         </div>
-        <div id="submit"class="line">
-            <input type="submit" value="Run">
+        <div class="line">
+            <input type="button" id="runButton" value="Run">
         </div>
+        <a href="app.flowhub.io">Flowhub</a>
     </form>
+
     </div>
   </body>
 </html>

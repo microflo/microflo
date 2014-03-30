@@ -73,6 +73,10 @@ module.exports = ->
         src: ['build/microflo']
 
     copy:
+      browserdeps:
+        flatten: true
+        src: ['node_modules/node-uuid/uuid.js']
+        dest: 'build/browser/uuid.js'
       apptop:
         src: ['manifest.json', 'index.html']
         dest: 'build/microflo-app/'
