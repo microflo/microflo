@@ -39,7 +39,8 @@
     "websocket": "~1.0.8",
     "serialport": "~1.1.3",
     "commander": "~2.1.0",
-    "pkginfo": "~0.3.0"
+    "pkginfo": "~0.3.0",
+    "node-uuid": "^1.4.1"
   },
   "devDependencies": {
     "grunt": "~0.4.1",

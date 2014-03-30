@@ -44,6 +44,21 @@ var generateFwCommand = function(env) {
     microflo.runtime.generateOutput(componentLib, inputFile, outputFile, target);
 }
 
+var registerRuntimeCommand = function(user, env) {
+    var ip = env.ip || 'auto';
+    var port = parseInt(env.port) || 3569;
+
+    var rt = microflo.runtime.createFlowhubRuntime(user, ip, port);
+    microflo.runtime.registerFlowhubRuntime(rt, function(err, ok) {
+        if (err) {
+            console.log("Could not register runtime with Flowhub", err);
+            process.exit(1);
+        } else {
+            console.log(rt);
+        }
+    });
+}
+
 var main = function() {
     componentLib.load();
 
@@ -70,6 +85,13 @@ var main = function() {
         .command('runtime')
         .description('Run as a server, for use with the NoFlo UI.')
         .action(setupRuntimeCommand)
+
+    commander
+        .command('register <USER>')
+        .description('Register the runtime with Flowhub registry')
+        .option('-p, --port <PORT>', 'which WebSocket port to use for ')
+        .option('-i, --ip <IP>', 'which IP to use for WebSocket')
+        .action(registerRuntimeCommand)
 
     commander.parse(process.argv)
     if (process.argv.length <= 2) {
