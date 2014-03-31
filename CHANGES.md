@@ -1,5 +1,5 @@
-MicroFlo NEXT: "Node in a Node, to infinity"
-=============================================
+MicroFlo 0.3.0: "Node in a Node, to infinity"
+===========================
 Released: Not yet
 
 NoFlo UI updated to latest version on 'the-graph' branch, and MicroFlo gives upload feedback and

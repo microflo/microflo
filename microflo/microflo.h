@@ -270,6 +270,7 @@ public:
 // Component
 // TODO: add a way of doing subgraphs as components, both programatically and using .fbp format
 // IDEA: a decentral way of declaring component introspection data. JSON embedded in comment?
+// PERFORMANCE: allow to disable nodeId,componentId, io and network pointers to minimize usage per node
 class Component {
     friend class Network;
     friend class Components::DummyComponent;
