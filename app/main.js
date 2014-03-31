@@ -6,8 +6,7 @@ var onLoad = function() {
     var util = microflo.util;
 
     var port = 3569;
-
-    // TODO: filter obviously invalid connections, like ttySx
+    var ip = "localhost";
 
     var select = document.getElementById("serialportSelect");
     var onGetDevices = function(ports) {
@@ -43,32 +42,66 @@ var onLoad = function() {
     addBaudRates('baudrateSelect');
 
 
-    document.getElementById("runButton").onclick = function() {
+    var userInput = document.getElementById("uuidInput");
+    chrome.storage.local.get('user-id', function(items) {
+        var id = items['user-id'];
+        if (id) {
+            userInput.value = id;
+        }
+    });
+
+    var runButton = document.getElementById("runButton");
+    runButton.onclick = function() {
         var devName = document.getElementById("serialportSelect").value;
         var baudRate = parseInt(document.getElementById("baudrateSelect").value);
+        var statusField = document.getElementById("runtimeStatus");
 
-        microflo.runtime.setupRuntime(devName, baudRate, port, "Error", "localhost");
+        // FIXME: this is not really a robust detection of runtime state
+        runButton.disabled = true;
+        statusField.innerHTML = "Starting";
+        try {
+            microflo.runtime.setupRuntime(devName, baudRate, port, "Error", "localhost");
+        } catch (e) {
+            statusField.innerHTML = "Error: " + e.message;
+            runButton.disabled = false;
+            throw e;
+        }
 
-        return false;
-    }
+        var registerButton = document.getElementById("registerButton");
 
+        chrome.storage.local.get('runtime-id', function(items) {
+            var id = items['runtime-id'];
 
-    document.getElementById("registerButton").onclick = function() {
-        var user = document.getElementById("uuidInput").value;
-        var ip = "localhost";
+            var user = userInput.value;
+            try {
+                var rt = microflo.runtime.createFlowhubRuntime(user, ip, port, id);
+                if (!id) {
+                    microflo.runtime.registerFlowhubRuntime(rt, function(err, ok) {
+                        if (err) {
+                            statusField.innerHTML = "Error: unable to register\n" + err;
+                        } else {
+                            var items = {
+                                'runtime-id': rt.runtime.id,
+                                'user-id': user
+                            }
+                            chrome.storage.local.set(items, function() {
+                                //
+                            });
+                            statusField.innerHTML = "Running";
+                        }
+                    });
+                } else {
+                    statusField.innerHTML = "Running";
+                    // TODO: ping registry
+                }
 
-        console.log("Attempting to register with Flowhub")
-        var rt = microflo.runtime.createFlowhubRuntime(user, ip, port);
-        microflo.runtime.registerFlowhubRuntime(rt, function(err, ok) {
-            if (err) {
-                console.log("Could not register runtime with Flowhub", err);
-                process.exit(1);
-            } else {
-                console.log("Runtime registered with id:", rt.runtime.id);
+            } catch (e) {
+                statusField.innerHTML = "Error: " + e.message;
+                throw e;
             }
+
         });
 
-        return false;
     }
 }
 

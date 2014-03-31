@@ -17,19 +17,11 @@
   <body>
     <div id="main">
 
-    <div id="registrationView">
     <form name="configForm" target="_blank" id="config">
-        <div id="uuid" class="line">
+        <div class="longline">
             <label>Flowhub.io User UUID</label>
-            <input class="input" type="text" id="uuidInput">
         </div>
-        <div class="line">
-            <input type="button" id="registerButton" value="Register">
-        </div>
-    </form>
-    </div>
-
-    <form name="configForm" target="_blank" id="config">
+        <input class="longline" type="text" id="uuidInput">
         <div id="serial" class="line">
             <label>Serial port:</label>
             <select class="input" id="serialportSelect" name="serialport"></select>
@@ -40,8 +32,8 @@
         </div>
         <div class="line">
             <input type="button" id="runButton" value="Run">
+            <p id="runtimeStatus" class="input">Stopped</p>
         </div>
-        <a href="app.flowhub.io">Flowhub</a>
     </form>
 
     </div>

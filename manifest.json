@@ -10,7 +10,8 @@
   "permissions": [
     "https://api.flowhub.io/",
     "serial",
-    {"socket": [ "tcp-connect", "tcp-listen"]}
+    {"socket": [ "tcp-connect", "tcp-listen"]},
+    "storage"
   ],
   "icons": {
   }

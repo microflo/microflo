@@ -1,17 +1,11 @@
-main {
-    width: 500px;
+main, body {
+    height: 400px;
 }
 
 config {
-    width: 200px;
     -webkit-box-sizing: border-box; /* For legacy WebKit based browsers */
      -moz-box-sizing: border-box; /* For all Gecko based browsers */
           box-sizing: border-box;
-}
-
-uuid {
-   /* Disabled, does not do anything yet */
-    display:none;
 }
 
 .line  {
@@ -23,3 +17,13 @@ uuid {
   width : 150px;
   margin: 0;
 }
+
+runtimeStatus {
+    float: right;
+}
+
+.longline  {
+  width: 285px;
+}
+
+
