@@ -1,4 +1,6 @@
 
+// TODO: add appicon
+// TODO: use Grid login API to get user UUID
 
 var onLoad = function() {
     console.log("onload");
@@ -69,6 +71,9 @@ var onLoad = function() {
 
         var registerButton = document.getElementById("registerButton");
 
+        // FIXME: add indicator that NoFlo UI is connected
+        // FIXME: add indicator that communication with microcontroller is happening
+        // FIXME: add button for Stopping
         chrome.storage.local.get('runtime-id', function(items) {
             var id = items['runtime-id'];
 
