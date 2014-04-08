@@ -402,77 +402,7 @@ Can one provide a cheap, encapsulated box which provides a standard set of senso
 running on battery power and with wireless communication to allow it to easily form larger
 systems in addition to running autonomously?
 
-Usecases: Interactive art installations; smart homes, factories and cities.
-
-Communication
---------------
-Devices should be able to communicate directly with eachother, to collaborate as
-equals on tasks. But, it should also be possible for them to take part in a centrally
-controlled network.
-* 433 Mhz?
-* Random 2.4Ghz net?
-* Bluetooth 4.0/LE
-
-Sensors
------------
-* Light. Ambient, infrared
-* Sound. Microphone
-* Distance. infrared and/or ultrasound
-* Temperature, moisture. Precense of gasses.
-* Motion. Accelerometer, gyro, PID.
-* Vibration, shock, pressure.
-* Hall-sensor
-* Capasitive switches/button
-* Current sensing
-* IR/UL laser photodiodes.
-
-Other generally useful pheriperals:
-* LEDs (RGB?) for basic user interactions
-* SDcard/Flash for logging data
-
-Each sensor (subsystem) must be able to be turned off from software,
-and should probably be off by default, to conserve power.
-
-Actuators
-----------
-Either be able to wirelessly talk to standard devices, or must also
-deliver a actuator-class device also.
-Maybe more challenging than sensors, as many (most?) actuators must often
-physically act on something, or be eletrically connected to something that does?
-Also, power requirements...
-
-* Relays. AC lights, heating, motors.
-* Triac. AC lights
-* MOSFET transistors. DC/step motors, DC lighting.
-* IR transmitter, laser.
-
-Power
--------
-Should, in a minimal config, at least last a month on one charge. Ideally last a year.
-* LiPoly rechargable battery?
-* Wireless/inductive charging (Qi standard)?
-
-Idea: Have a way of "tagging" a device as fulfilling a specific role, and
-allow another device to "take over" its function automatically. This could
-allow to work around missing battery times by making switchovers with a spare painless.
-
-Mechanics 
-----------
-Ideally something like 40x40x10 mm (HxWxD). Should be easily to place on walls, cealings,
-Could be made out of leveral layers of plastic/acrylic: Front, body, back?
-Front will need to accomodate the needs of the various sensors for interfacing with the world, 
-the body the electronics found inside, and the back various ways of fastening.
-The device should be easy to disassemble, for repairs and hacking.
-
-Idea: Use paper on top surface, and allow to write/draw on it to reflect the
-(software defined) functionality of the device.
-
-Could one encapsulate the whole thing well enough to withstand weather?
-
-Realistically there is probably a need for different models. The hardware should be
-open source and easy to produce and hack with the tools available at typical
-hackerspaces/makerspaces/fablabs, to facilitate derivatives targeting more specific
-problems or simply improving the initial designs.
+See [Sensorblock](http://github.com/jonnor/sensorblock) project
 
 
 Marketing/Outreach
@@ -577,50 +507,7 @@ Challenges:
 * Having a sensible mapping from C++ code back to model definition, especially for debugging
 * Injecting code snippets into the appropriate context when generating, so they have access to the state/data needed
 
-Finito State Machines
----------------
-Should probably be a project of its own
-
-* High-level definition of machine: states,transitions (action,predicates)
-* Do we need to specify inputs? For C/C++, should it include the type?
-* JSON as canonical format, possibly a DSL over time (ala .FBP)
-* Use a naming convention for mapping, but allow to be overriden
-
-* Absolutely minimal amount of code generation.
-For embedded C/C++, just the transition function (predicate checking) and runtime introspection data
-In higher-level languages, just interpret the FSM definition at runtime
-* Generated code go into separate file, that can be included together with framework/library import
-* The code that is wired together into a state machine have no dependencies/knowledge of the STM
-
-Question: which FSM style? one or multiple? I want to have at least an event-driven FSM
-
-Support multiple output targets:
-* C (state as context pointers)
-* C++ (method calls on instance)
-* Python, JavaScript
-* FBP
-
-How should the STM input be encoded and passed to actions/predicates?.
-It will need to be (one or more) generic type. Just a pointer/reference?
-Is it acceptable to have only one?
-Disadvantages: 
-* implicit dependencies in actions
-* reduces encapsulation, actions can grab anything they'd like
-* may need to create temporary objects, change signatures of existing functions
-Should probably allow multiple, opt-in
-
-Allow in MicroFlo to easily create a component which uses FSM (actions+predicates plain C/C++)
-Allow in NoFlo to make a subgraph/component which uses FSM (no code gen, action+predicates are sub-flows)
-
-Tool should be able to run in browser (JavaScript) and have web UI. Usable standalone or integrated into NoFlo UI
-Even allow created STMs to run in the browser, when possible.
-
-Make testing easy, also of C/C++ based code. Have a set of typical test-classes one ones to perform.
-Do testing by default, if possible. Can one expose a useful interface in a high-level language (JS/CS)?
-Problem: for most tests, will need to manipulate inputs, and can't wrap those automatically
-
-* http://www.cse.ohio-state.edu/~lee/english/pdf/ieee-proceeding-survey.pdf
-* http://en.wikipedia.org/wiki/UML_state_machine#Orthogonal_regions
+See [Finito](http://github.com/jonnor/finito) project
 
 
 Arduino versus RPi
@@ -693,6 +580,40 @@ http://upverter.com or http://circuits.io or one of the FOSS EDA tools (KiCad,Ge
 * Produce a PCB
 
 https://github.com/zupolgec/circuit-simulator
+
+
+
+Value proposition
+=================
+Visual programming
+* Self-documenting architecture, easy to understand
+* Integrate non-programmers; designers, business and domain-experts
+* Introspection and visual debugging built-in
+
+Interactive simulation
+* Prototyping program without device
+* Validating and demonstrating concepts
+
+Testability
+* Know that your program is correct
+* Minimal setup
+* Continious automated testing
+* On-device testing
+* Acceptance testing of combined HW/SW systems
+
+Portability
+* Use any microcontroller you have available to start creating
+* Take program with you from one uC to another when needed
+* Use the best hardware available for your usecase
+
+Integration
+* Personal devices as user interfaces
+* Seemless combination with desktop/embedded computers and cloud servers
+* Domain-specific runtimes
+* One programming model across device classes and domains
+
+Performance
+* Power-saving by default
 
 
 Deployment scenarios
