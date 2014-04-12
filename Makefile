@@ -51,7 +51,7 @@ endif
 # Rules
 all: build
 
-build-arduino: install
+build-arduino: update-defs
 	mkdir -p build/arduino/src
 	mkdir -p build/arduino/lib
 	ln -sf `pwd`/microflo build/arduino/lib/
@@ -66,14 +66,14 @@ build-arduino: install
 	cd build/arduino && ino build $(INOOPTIONS) --verbose --cppflags="$(CPPFLAGS) $(DEFINES)"
 	$(AVRSIZE) -A build/arduino/.build/$(MODEL)/firmware.elf
 
-build-avr: install
+build-avr: update-defs
 	mkdir -p build/avr
 	node microflo.js generate $(GRAPH) build/avr/firmware.cpp avr
 	cd build/avr && $(AVRGCC) -o firmware.elf firmware.cpp -I../../microflo -DF_CPU=$(AVR_FCPU) -DAVR=1 -Wall -Werror -Wno-error=overflow -mmcu=$(AVRMODEL) -fno-exceptions -fno-rtti $(CPPFLAGS)
 	cd build/avr && $(AVROBJCOPY) -j .text -j .data -O ihex firmware.elf firmware.hex
 	$(AVRSIZE) -A build/avr/firmware.elf
 
-build-mbed: install
+build-mbed: update-defs
 	cd thirdparty/mbed && python2 workspace_tools/build.py -t GCC_ARM -m LPC1768
 	rm -rf build/mbed
 	mkdir -p build/mbed
@@ -81,7 +81,7 @@ build-mbed: install
 	cp Makefile.mbed build/mbed/Makefile
 	cd build/mbed && make ROOT_DIR=./../../
 
-build-stellaris:
+build-stellaris: update-defs
 	rm -rf build/stellaris
 	mkdir -p build/stellaris
 	node microflo.js generate $(STELLARIS_GRAPH) build/stellaris/main.cpp stellaris
@@ -90,11 +90,14 @@ build-stellaris:
 	cp stellaris.ld build/stellaris/
 	cd build/stellaris && make ROOT=../../thirdparty/stellaris
 
-build-linux: install
+build-linux: update-defs
 	rm -rf build/linux
 	mkdir -p build/linux
 	node microflo.js generate $(LINUX_GRAPH) build/linux/main.cpp linux
 	cd build/linux && g++ -o firmware main.cpp -std=c++0x -I../../microflo -DLINUX -Wall -Werror -lrt
+
+build-gyp: update-defs
+	npm run gyp
 
 build: build-arduino build-avr
 
@@ -119,8 +122,8 @@ upload-stellaris: build-stellaris
 clean:
 	git clean -dfx --exclude=node_modules
 
-install:
-	npm install
+update-defs:
+	node microflo.js update-defs
 
 release-arduino:
 	rm -rf build/microflo-arduino
@@ -140,7 +143,7 @@ release-app:
 
 release-stellaris: build-stellaris
 
-release: install build release-mbed release-linux release-microflo release-arduino release-stellaris release-app
+release: update-defs build release-mbed release-linux release-microflo release-arduino release-stellaris release-app
 	rm -rf build/microflo-$(VERSION)
 	mkdir -p build/microflo-$(VERSION)
 	cp -r build/microflo-arduino.zip build/microflo-$(VERSION)/
@@ -155,5 +158,8 @@ check-release: release
     # TODO: check npm and component.io packages
     # TODO: check arduino package by importing with ino, building
 
-.PHONY: all build install clean release release-microflo release-arduino check-release
+check: build-gyp
+	npm test
+
+.PHONY: all build update-defs clean release release-microflo release-arduino check-release
 

@@ -25,8 +25,8 @@
     "microflo": "./microflo.js"
   },
   "scripts": {
+    "gyp": "./node_modules/.bin/node-gyp rebuild",
     "start": "node microflo.js runtime",
-    "preinstall": "node microflo.js update-defs && node-gyp rebuild",
     "test": "grunt test"
   },
   "engines": {
