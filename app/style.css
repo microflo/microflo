@@ -110,6 +110,7 @@ input.longline {
 
 #runtimeStatus {
   margin: 0px;
+  margin-top: -36px;
   float: right;
   box-sizing: border-box;
   width: 144px;
