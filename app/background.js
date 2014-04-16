@@ -3,7 +3,7 @@ chrome.app.runtime.onLaunched.addListener(function() {
     id: 'microflo-ui',
     bounds: {
       width: 400,
-      height: 600
+      height: 400
     },
     resizable: false
   });
