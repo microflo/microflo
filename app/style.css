@@ -31,7 +31,7 @@ config {
 
 .input {
   float: right;
-  width : 150px;
+  width : 144px;
   margin: 0;
 }
 
@@ -108,7 +108,7 @@ input.longline {
   margin-top: -36px;
   float: right;
   box-sizing: border-box;
-  width: 150px;
+  width: 144px;
   line-height: 36px;
   text-align: center;
   font-size: 18px;
