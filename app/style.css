@@ -21,7 +21,7 @@ config {
 
 .line  {
   height: 36px;
-  margin-bottom: 18px;
+  margin-bottom: 36px;
   line-height: 36px;
 }
 
@@ -62,7 +62,6 @@ runtimeStatus {
 }
 
 input.longline {
-  width: 361px;
   box-sizing: border-box;
   background-color: hsl(10,9%,8%);
   color: rgb(230, 230, 230);
@@ -71,7 +70,7 @@ input.longline {
   margin: 0px;
   margin-bottom: 36px;
   border: 1px solid hsl(190, 99%, 49%);
-  width: 364px;
+  width: 361px;
   box-sizing: border-box;
   height: 36px;
   font-size: 18px;
@@ -88,7 +87,7 @@ input.longline {
   text-shadow: 0px 0px 1px hsl(210, 100%, 90%);
   transition: all 0.3s ease;
   color: hsl(0, 0%, 0%);
-  padding: 10px;
+  padding: 0px;
   padding-right: 18px;
   padding-left: 18px;
   -moz-border-radius: 8px;
@@ -98,6 +97,8 @@ input.longline {
   box-sizing: border-box;
   width: 108px;
   outline: none;
+  font-size: 18px;
+  line-height: 36px;
 }
 
 #runButton:hover {
@@ -108,7 +109,7 @@ input.longline {
 
 #runtimeStatus {
   margin: 0px;
-  margin-top: -36px;
+  margin-top: -38px;
   float: right;
   box-sizing: border-box;
   width: 144px;
