@@ -62,7 +62,6 @@ runtimeStatus {
 }
 
 input.longline {
-  width: 361px;
   box-sizing: border-box;
   background-color: hsl(10,9%,8%);
   color: rgb(230, 230, 230);
@@ -71,7 +70,7 @@ input.longline {
   margin: 0px;
   margin-bottom: 36px;
   border: 1px solid hsl(190, 99%, 49%);
-  width: 364px;
+  width: 361px;
   box-sizing: border-box;
   height: 36px;
   font-size: 18px;
