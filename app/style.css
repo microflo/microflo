@@ -2,6 +2,17 @@ main, body {
     height: 400px;
 }
 
+body {
+  background-color: rgba(0, 0, 0, 0.980392);
+  color: white;
+  background-image: radial-gradient(2px at 0px 0px, hsla(0, 100%, 100%, 0.4) 1px, hsla(0, 0%, 0%, 0) 1.1px);
+  background-size: 36px 36px;
+  background-position: 18px 18px;
+  margin: 0px;
+  padding: 18px;
+  padding-right: 21px;
+}
+
 config {
     -webkit-box-sizing: border-box; /* For legacy WebKit based browsers */
      -moz-box-sizing: border-box; /* For all Gecko based browsers */
@@ -9,7 +20,13 @@ config {
 }
 
 .line  {
-  height: 25px;
+  height: 36px;
+  margin-bottom: 18px;
+  line-height: 36px;
+}
+
+.line label {
+  font-size: 18px;
 }
 
 .input {
@@ -18,12 +35,85 @@ config {
   margin: 0;
 }
 
+select {
+  background-image: none;
+  border: 1px solid hsl(190, 99%, 49%);
+  background-color: hsl(10,9%,8%);
+  color: rgb(230, 230, 230);
+  font-size: 15px;
+  padding: 9px;
+  border-radius: 8px;
+  outline: none;
+  -webkit-appearance: none;
+}
+
 runtimeStatus {
     float: right;
 }
 
-.longline  {
-  width: 285px;
+.longline label {
+  line-height: 36px;
+  width: calc(100% - 10px);
+  font-size: 18px;
 }
 
+.line label {
+  font-size: 18px;
+}
 
+input.longline {
+  width: 361px;
+  box-sizing: border-box;
+  background-color: hsl(10,9%,8%);
+  color: rgb(230, 230, 230);
+  font-size: 10px;
+  padding: 9px;
+  margin: 0px;
+  margin-bottom: 36px;
+  border: 1px solid hsl(190, 99%, 49%);
+  width: 364px;
+  box-sizing: border-box;
+  height: 36px;
+  font-size: 18px;
+  text-align: center;
+  outline: none;
+  border-radius: 4px;
+}
+
+#runButton {
+  border: 1px solid hsl(206, 54%, 5%);
+  background-color: hsl(190, 99%, 49%);
+  -webkit-box-shadow: inset 0 0 0 1px rgba(255,255,255,.2);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.2);
+  text-shadow: 0px 0px 1px hsl(210, 100%, 90%);
+  transition: all 0.3s ease;
+  color: hsl(0, 0%, 0%);
+  padding: 10px;
+  padding-right: 18px;
+  padding-left: 18px;
+  -moz-border-radius: 8px;
+  -webkit-border-radius: 8px;
+  border-radius: 8px;
+  margin: 0px;
+}
+
+#runButton:hover {
+  border: 1px solid hsl(190, 99%, 49%);
+  background-color: transparent;
+  color: hsl(190, 99%, 49%);
+}
+
+#runtimeStatus {
+  margin: 0px;
+  margin-top: -36px;
+  float: right;
+  box-sizing: border-box;
+  width: 150px;
+  line-height: 36px;
+  text-align: center;
+  font-size: 18px;
+  text-transform: uppercase;
+  color: hsl(210, 100%, 90%);
+  background-color: hsl(10,9%,8%);
+  border-radius: 8px;
+}
