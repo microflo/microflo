@@ -95,6 +95,9 @@ input.longline {
   -webkit-border-radius: 8px;
   border-radius: 8px;
   margin: 0px;
+  box-sizing: border-box;
+  width: 108px;
+  outline: none;
 }
 
 #runButton:hover {
