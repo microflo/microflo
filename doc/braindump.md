@@ -668,6 +668,34 @@ creates the skeleton.
 
 
 
+Rapid prototyping, simulation and MicroFlo
+==============================
+
+Rich, interachive simulations of embedded electronics products (constisting of mechanics, hardware, software)
+are becoming more and more popular, both in startups and established enterprises.
+The motivations are many:
+* Communicating core concept within team/company, and towards potential investors and customers
+* Validation of overall product concept, including feasibility, cost and risk factors
+* Validation of user interaction concepts before hardware+software is ready
+* Fast experimentation with several different approaches to the problem
+* Using parts of simulation as a "mock", both for developing real solution against, reducing interdependence between teams,
+and for making it easier to run continious testing (reducing test dependencies on speciality hardware)
+
+However, the conventional tools used for simulation often live in isolation from the tools used for implementation.
+For simulation, companies use tools like SolidWorks, Rhino, Grasshopper - but neither of these are suitable for realizing
+an embedded electronics product, at least not the software parts of it. This often means that one builds the two things
+separately; the simulated version and the real implementation. This leads to a duplication of effort, reducing the value
+of the simulation as the implementation cannot reuse the validated pieces as-is, creating a risk of the simulation being
+correct, but the implementation differing. Usually, when the implementation is "done", the simulation is discarded due to
+the maintenance costs - even if it could provide value for continious validation, future product modifications and enhancements.
+A notable exception is LabVIEW.
+
+Ideally one would be able to build a simulation, that can run entirely on commodity hardware, with exectutable acceptance tests (the spec) againts this simulation.
+Then once can seamlessly move parts of the simulation into the real target environment and product, and replace the low-level simulated parts
+with real implementations. The acceptance tests should continue to run with no/minimal modifications, and be able to target both the simulation and implementation seamlessly.
+This way one ensures that both the simulation and implementation is correct, and thus that one can use either for validation.
+
+
 Related tools,project,links
 -------------------------------
 
