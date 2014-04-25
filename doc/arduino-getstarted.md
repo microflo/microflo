@@ -10,6 +10,7 @@ MicroFlo has been tested working with:
 * Arduino Nano R3
 * Arduino Lenonardo R3
 * Arduino Mega 2560
+* Teensy++ 2.0
 
 Other AVR-based Ardunino boards will probably work.
 ARM- (Arduino Due) and x86-based (Intel Gallileo) boards I have no idea.
