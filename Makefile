@@ -99,6 +99,12 @@ build-linux: update-defs
 build-gyp: update-defs
 	npm run gyp
 
+build-emscripten: update-defs
+	rm -rf build/emscripten
+	mkdir -p build/emscripten
+	node microflo.js generate $(LINUX_GRAPH) build/emscripten/main.cpp emscripten
+	cd build/emscripten && emcc -o microflo-runtime.js main.cpp -I../../microflo -Wall -Werror
+
 build: build-arduino build-avr
 
 upload: build-arduino
@@ -142,6 +148,10 @@ release-app:
 	grunt build
 
 release-stellaris: build-stellaris
+    # TODO: package?
+
+release-emscripten: build-emscripten
+    # TODO: package?
 
 release: update-defs build release-mbed release-linux release-microflo release-arduino release-stellaris release-app
 	rm -rf build/microflo-$(VERSION)
