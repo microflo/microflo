@@ -30,5 +30,8 @@
     "component.json",
     "microflo/components.json",
     "microflo/commandformat.json"
+  ],
+  "remotes": [
+    "https://raw.githubusercontent.com"
   ]
 }
