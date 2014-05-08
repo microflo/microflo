@@ -12,7 +12,7 @@ before_install:
 
 script:
     - make
-    - npm test
+    - make check
     - make check-release
 
 notifications:
