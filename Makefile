@@ -103,7 +103,7 @@ build-emscripten: update-defs
 	rm -rf build/emscripten
 	mkdir -p build/emscripten
 	node microflo.js generate $(LINUX_GRAPH) build/emscripten/main.cpp emscripten
-	cd build/emscripten && emcc -o microflo-runtime.js main.cpp -I../../microflo -Wall -Werror
+	cd build/emscripten && emcc -o microflo-runtime.js main.cpp -I../../microflo -Wall
 
 build: build-arduino build-avr
 
