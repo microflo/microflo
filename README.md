@@ -34,10 +34,8 @@ or IRC channel [#fbp@freenode.org](irc://fbp.freenode.org).
 Milestones
 -----------
 
-* [0.3.0](https://github.com/jonnor/microflo/issues?milestone=3), "Runtime persistable, Introspectable":
+* [0.4.0](https://github.com/jonnor/microflo/issues?milestone=4), "Runtime persistable, Introspectable":
 Uploaded graphs can be persisted to EEPROM, be monitored at runtime, and be composed of sub-graphs
-* [0.4.0](https://github.com/jonnor/microflo/issues?milestone=4), "Hetrogenous FBP":
-One can create systems using FBP in NoFlo UI which spans rich clients (browser), servers (Node.js) and microcontrollers (MicroFlo)
 * 0.5.0, "Simulated":
 One can program and test MicroFlo programs in a simulator, before putting it on device
 * 0.?.0, "Generally useful":

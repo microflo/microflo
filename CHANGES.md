@@ -1,19 +1,24 @@
 MicroFlo 0.3.0: "Node in a Node, to infinity"
 ===========================
-Released: Not yet
+Released: May 8, 2014
 
-NoFlo UI updated to latest version on 'the-graph' branch, and MicroFlo gives upload feedback and
-allows basic visual debugging.
+The IDE used is now the officially supported app.flowhub.io, and there is basic support for several
+non-Arduino platforms. A Chrome app can act as the communications adapter between IDE and runtime on device,
+making running node.js in the terminal no longer neccesary.
 
 New:
 * One can now introspect data flowing along edges in NoFlo UI
 * Upload output is now shown in NoFlo UI
 * _Experimental_ Atmel AVR8 backend, without any Arduino dependencies. Tested on AT90USB1287 w/ AT90USBKEY
+* Basic mbed backed, tested on mbed LPC 1768
+* Basic Tiva/Stellaris backed, tested on Tiva-C TM4C123G
+* _Experimental_ Embedded Linux backend, using standard sysfs GPIO interface.
 * Makefile now has additional variables for overriding: ARDUINO, SERIALPORT
 * Host/simulator API has been extended to also cover HostCommunication/commandstream
+* Programs can be automatically tested when running in simulator, driven from JavaScript/CoffeeScript
 
 Added components:
-* LedMatrixMax, NumberEquals, BooleanAnd
+* LedMatrixMax, LedChainWS, LedChainNeoPixel, PseudoPwmWrite, NumberEquals, BooleanAnd
 
 
 MicroFlo 0.2.1
