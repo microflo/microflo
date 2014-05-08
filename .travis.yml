@@ -4,13 +4,25 @@ node_js:
 
 before_install:
     - sudo add-apt-repository -y ppa:terry.guo/gcc-arm-embedded
+    - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+    - sudo add-apt-repository -y "deb http://llvm.org/apt/precise/ llvm-toolchain-precise-3.4 main"
+    - wget -O - http://llvm.org/apt/llvm-snapshot.gpg.key | sudo apt-key add -
     - sudo apt-get update -qq
     - sudo apt-get install -qq arduino-core arduino-mk
     - sudo apt-get install -qq -y gcc-arm-none-eabi
+    - sudo apt-get install -qq -y clang-3.4
     - sudo pip install ino
     - git submodule update --init --recursive
+    - git clone https://github.com/kripken/emscripten.git
 
 script:
+    - export LLVM=/usr/lib/llvm-3.4/bin/
+    - export PATH=`pwd`/emscripten/:/usr/lib/llvm-3.4/bin/:$PATH
+    - sudo ln -s `which clang++` /usr/lib/llvm-3.4/bin/clang++
+    - sudo ln -s `which clang` /usr/lib/llvm-3.4/bin/clang
+    - export EMCC_FAST_COMPILER=0
+    - export EMCC_DEBUG=1
+    - emcc # first run, sets up config
     - make
     - make check
     - make check-release

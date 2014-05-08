@@ -153,7 +153,7 @@ release-stellaris: build-stellaris
 release-emscripten: build-emscripten
     # TODO: package?
 
-release: update-defs build release-mbed release-linux release-microflo release-arduino release-stellaris release-app
+release: update-defs build release-mbed release-linux release-microflo release-arduino release-stellaris release-app release-emscripten
 	rm -rf build/microflo-$(VERSION)
 	mkdir -p build/microflo-$(VERSION)
 	cp -r build/microflo-arduino.zip build/microflo-$(VERSION)/
