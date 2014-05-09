@@ -1,0 +1,15 @@
+class SerialOut : public SingleOutputComponent {
+public:
+    virtual void process(Packet in, MicroFlo::PortId port) {
+        // FIXME: make device and baudrate configurable
+        const int serialDevice = -1;
+
+        if (in.isSetup()) {
+            io->SerialBegin(serialDevice, 9600);
+        } else if (in.isByte()) {
+            io->SerialWrite(serialDevice, in.asByte());
+        } else if (in.isAscii()) {
+            io->SerialWrite(serialDevice, in.asAscii());
+        }
+    }
+};

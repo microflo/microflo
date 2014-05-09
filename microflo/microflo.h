@@ -8,10 +8,6 @@
 
 #include <stdint.h>
 
-#ifdef ARDUINO
-#include <Arduino.h>
-#endif
-
 #include "components.h"
 #include "commandformat.h"
 
@@ -273,8 +269,8 @@ public:
 // PERFORMANCE: allow to disable nodeId,componentId, io and network pointers to minimize usage per node
 class Component {
     friend class Network;
-    friend class Components::DummyComponent;
-    friend class Components::SubGraph;
+    friend class DummyComponent;
+    friend class SubGraph;
 public:
     static Component *create(ComponentId id);
 
@@ -304,8 +300,6 @@ private:
 
 #define MICROFLO_SUBGRAPH_MAXPORTS 10
 
-namespace Components {
-
 class SubGraph : public Component {
     friend class ::Network;
 public:
@@ -321,8 +315,6 @@ private:
     Connection inputConnections[MICROFLO_SUBGRAPH_MAXPORTS];
     Connection outputConnections[MICROFLO_SUBGRAPH_MAXPORTS];
 };
-
-}
 
 
 // Graph format

@@ -1,7 +1,7 @@
 node_modules/
 .build
 build
-components
+./components/
 *.user*
 *-gen*.*
 *~

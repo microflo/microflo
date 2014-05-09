@@ -329,7 +329,7 @@ void Network::sendMessage(Component *target, MicroFlo::PortId targetPort, const 
 
     const bool senderIsChild = sender && sender->parentNodeId >= Network::firstNodeId;
     if (senderIsChild) {
-        Components::SubGraph *parent = (Components::SubGraph *)nodes[sender->parentNodeId];
+        SubGraph *parent = (SubGraph *)nodes[sender->parentNodeId];
         if (target == parent) {
             // Redirect output message from child outport, emit message on the parent outport
             // FIXME: should we change @sender / @senderPort, for debugging?
@@ -340,7 +340,7 @@ void Network::sendMessage(Component *target, MicroFlo::PortId targetPort, const 
 
     const bool targetIsSubGraph = target->componentId == IdSubGraph;
     if (targetIsSubGraph) {
-        Components::SubGraph *targetSubGraph = (Components::SubGraph *)target;
+        SubGraph *targetSubGraph = (SubGraph *)target;
         // Redirect input message from, send to desired port on child
         // FIXME: should we change @sender / @senderPort, for debugging?
         target = targetSubGraph->inputConnections[targetPort].target;
@@ -514,7 +514,7 @@ void Network::connectSubgraph(bool isOutput,
         return;
     }
 
-    Components::SubGraph *subgraph = (Components::SubGraph *)comp;
+    SubGraph *subgraph = (SubGraph *)comp;
     if (isOutput) {
         subgraph->connectOutport(subgraphPort, child, childPort);
     } else {
@@ -662,8 +662,6 @@ void SerialHostTransport::sendCommandByte(uint8_t b) {
 }
 
 
-namespace Components {
-
 SubGraph::SubGraph()
     : Component(outputConnections, MICROFLO_SUBGRAPH_MAXPORTS)
 {
@@ -689,6 +687,4 @@ void SubGraph::process(Packet in, MicroFlo::PortId port) {
     if (port >= 0) {
         MICROFLO_DEBUG(network, DebugLevelError, DebugSubGraphReceivedNormalMessage);
     }
-}
-
 }

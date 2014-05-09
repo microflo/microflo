@@ -92,8 +92,9 @@ void loop()
     network.runTick();
 }
 
-#ifndef ARDUINO
 #include "microflo.hpp"
+
+#ifndef ARDUINO
 #include <stddef.h>
 #include <stdlib.h>
 #endif

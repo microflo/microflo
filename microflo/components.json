@@ -435,6 +435,7 @@
 
 
         "SubGraph": { "id": 100,
+            ".skip": true,
             "description": "Not for normal use. Used internally for handling subgraphs",
             "inPorts": {},
             "outPorts": {}

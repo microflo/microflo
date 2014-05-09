@@ -7,6 +7,8 @@
 
 #include "microflo.h"
 
+#include <Arduino.h>
+
 static const int MAX_EXTERNAL_INTERRUPTS = 3;
 
 struct InterruptHandler {
