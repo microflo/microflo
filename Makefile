@@ -20,7 +20,7 @@ OSX_ARDUINO_APP=/Applications/Arduino.app
 AVR_FCPU=1000000UL
 
 # Not normally customized
-CPPFLAGS=-ffunction-sections -fdata-sections -g -Os -w
+CPPFLAGS=-ffunction-sections -fshort-enums -fdata-sections -g -Os -w
 DEFINES='-DHAVE_DALLAS_TEMPERATURE -DHAVE_ADAFRUIT_NEOPIXEL -DHAVE_ADAFRUIT_WS2801'
 
 ifndef NO_DEBUG
