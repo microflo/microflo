@@ -74,7 +74,7 @@ public:
     }
 
     // Serial
-    virtual void SerialBegin(int serialDevice, int baudrate) {
+    virtual void SerialBegin(uint8_t serialDevice, int baudrate) {
         if (serialDevice == 0) {
             MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOA);
             MAP_GPIOPinConfigure(GPIO_PA0_U0RX);
@@ -84,7 +84,7 @@ public:
             UARTEnable(UART0_BASE);
         }
     }
-    virtual long SerialDataAvailable(int serialDevice) {
+    virtual long SerialDataAvailable(uint8_t serialDevice) {
         if (serialDevice == 0) {
             return UARTCharsAvail(UART0_BASE);
         } else {
@@ -92,7 +92,7 @@ public:
         }
 
     }
-    virtual unsigned char SerialRead(int serialDevice) {
+    virtual unsigned char SerialRead(uint8_t serialDevice) {
         if (serialDevice == 0) {
             return UARTCharGetNonBlocking(UART0_BASE);
         } else {
@@ -100,7 +100,7 @@ public:
         }
 
     }
-    virtual void SerialWrite(int serialDevice, unsigned char b) {
+    virtual void SerialWrite(uint8_t serialDevice, unsigned char b) {
         if (serialDevice == 0) {
             UARTCharPut(UART0_BASE, b);
         }
@@ -155,7 +155,7 @@ public:
         return g_ulSysTickCount*100;
     }
 
-    virtual void AttachExternalInterrupt(int interrupt, IO::Interrupt::Mode mode,
+    virtual void AttachExternalInterrupt(uint8_t interrupt, IO::Interrupt::Mode mode,
                                          IOInterruptFunction func, void *user) {
         MICROFLO_DEBUG(debug, DebugLevelError, DebugIoOperationNotImplemented);
     }

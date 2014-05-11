@@ -77,7 +77,7 @@ namespace MicroFlo {
 #ifdef STELLARIS
     typedef long PinId;
 #else
-    typedef int PinId;
+    typedef int8_t PinId;
 #endif
 }
 
@@ -263,10 +263,10 @@ public:
     virtual ~IO() {}
 
     // Serial
-    virtual void SerialBegin(int serialDevice, int baudrate) = 0;
-    virtual long SerialDataAvailable(int serialDevice) = 0;
-    virtual unsigned char SerialRead(int serialDevice) = 0;
-    virtual void SerialWrite(int serialDevice, unsigned char b) = 0;
+    virtual void SerialBegin(uint8_t serialDevice, int baudrate) = 0;
+    virtual long SerialDataAvailable(uint8_t serialDevice) = 0;
+    virtual unsigned char SerialRead(uint8_t serialDevice) = 0;
+    virtual void SerialWrite(uint8_t serialDevice, unsigned char b) = 0;
 
     // Pin config
     enum PinMode {
@@ -308,7 +308,7 @@ public:
     };
 
     // XXX: user responsible for mapping pin number to interrupt number
-    virtual void AttachExternalInterrupt(int interrupt, IO::Interrupt::Mode mode,
+    virtual void AttachExternalInterrupt(uint8_t interrupt, IO::Interrupt::Mode mode,
                                          IOInterruptFunction func, void *user) = 0;
 };
 

@@ -57,28 +57,28 @@ public:
 
     // Serial
     // TODO: support multiple serial devices
-    virtual void SerialBegin(int serialDevice, int baudrate) {
+    virtual void SerialBegin(uint8_t serialDevice, int baudrate) {
         Serial.begin(baudrate);
     }
-    virtual long SerialDataAvailable(int serialDevice) {
+    virtual long SerialDataAvailable(uint8_t serialDevice) {
         return Serial.available();
     }
-    virtual unsigned char SerialRead(int serialDevice) {
+    virtual unsigned char SerialRead(uint8_t serialDevice) {
         return Serial.read();
     }
-    virtual void SerialWrite(int serialDevice, unsigned char b) {
+    virtual void SerialWrite(uint8_t serialDevice, unsigned char b) {
         Serial.write(b);
     }
 
     // Pin config
-    virtual void PinSetMode(int pin, IO::PinMode mode) {
+    virtual void PinSetMode(MicroFlo::PinId pin, IO::PinMode mode) {
         if (mode == IO::InputPin) {
             pinMode(pin, INPUT);
         } else if (mode == IO::OutputPin) {
             pinMode(pin, OUTPUT);
         }
     }
-    virtual void PinSetPullup(int pin, IO::PullupMode mode) {
+    virtual void PinSetPullup(MicroFlo::PinId pin, IO::PullupMode mode) {
         if (mode == IO::PullNone) {
             digitalWrite(pin, LOW);
         } else if (mode == IO::PullUp) {
@@ -89,18 +89,18 @@ public:
     }
 
     // Digital
-    virtual void DigitalWrite(int pin, bool val) {
+    virtual void DigitalWrite(MicroFlo::PinId pin, bool val) {
         digitalWrite(pin, val);
     }
-    virtual bool DigitalRead(int pin) {
+    virtual bool DigitalRead(MicroFlo::PinId pin) {
         return digitalRead(pin);
     }
 
     // Analog
-    virtual long AnalogRead(int pin) {
+    virtual long AnalogRead(MicroFlo::PinId pin) {
         return analogRead(pin);
     }
-    virtual void PwmWrite(int pin, long dutyPercent) {
+    virtual void PwmWrite(MicroFlo::PinId pin, long dutyPercent) {
         analogWrite(pin, (dutyPercent*255)/100); // normalize to [0..255]
     }
 
@@ -109,7 +109,8 @@ public:
         return millis();
     }
 
-    virtual void AttachExternalInterrupt(int interrupt, IO::Interrupt::Mode mode, IOInterruptFunction func, void *user) {
+    virtual void AttachExternalInterrupt(uint8_t interrupt, IO::Interrupt::Mode mode,
+                                         IOInterruptFunction func, void *user) {
         externalInterruptHandlers[interrupt].func = func;
         externalInterruptHandlers[interrupt].user = user;
         uint8_t m = InterruptModeToArduino(mode);

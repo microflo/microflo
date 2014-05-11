@@ -52,31 +52,31 @@ private:
 public: // Implements IO
 
     // Serial
-    virtual void SerialBegin(int serialDevice, int baudrate) {
+    virtual void SerialBegin(uint8_t serialDevice, int baudrate) {
         MICROFLO_DEBUG(debug, DebugLevelError, DebugIoOperationNotImplemented);
     }
-    virtual long SerialDataAvailable(int serialDevice) {
+    virtual long SerialDataAvailable(uint8_t serialDevice) {
         MICROFLO_DEBUG(debug, DebugLevelError, DebugIoOperationNotImplemented);
         return 0;
     }
-    virtual unsigned char SerialRead(int serialDevice) {
+    virtual unsigned char SerialRead(uint8_t serialDevice) {
         MICROFLO_DEBUG(debug, DebugLevelError, DebugIoOperationNotImplemented);
         return '\0';
     }
-    virtual void SerialWrite(int serialDevice, unsigned char b) {
+    virtual void SerialWrite(uint8_t serialDevice, unsigned char b) {
         MICROFLO_DEBUG(debug, DebugLevelError, DebugIoOperationNotImplemented);
     }
 
     // Pin config
-    virtual void PinSetMode(int pin, PinMode mode) {
+    virtual void PinSetMode(MicroFlo::PinId pin, PinMode mode) {
         // TODO: set, and don't allow write if wrong mode
     }
-    virtual void PinSetPullup(int pin, IO::PullupMode mode) {
+    virtual void PinSetPullup(MicroFlo::PinId pin, IO::PullupMode mode) {
         // TODO: set
     }
 
     // Digital
-    virtual void DigitalWrite(int pin, bool val) {
+    virtual void DigitalWrite(MicroFlo::PinId pin, bool val) {
         const int argc = 3;
         v8::Local<v8::Value> argv[argc] = {
             v8::Local<v8::Value>::New(v8::String::NewSymbol("digitalOutputs")),
@@ -85,7 +85,7 @@ public: // Implements IO
         };
         setValueFunc->Call(v8::Context::GetCurrent()->Global(), argc, argv);
     }
-    virtual bool DigitalRead(int pin) {
+    virtual bool DigitalRead(MicroFlo::PinId pin) {
         const int argc = 2;
         v8::Local<v8::Value> argv[argc] = {
             v8::Local<v8::Value>::New(v8::String::NewSymbol("digitalInputs")),
@@ -108,15 +108,15 @@ public: // Implements IO
     }
 
     // Analog
-    virtual long AnalogRead(int pin) {
+    virtual long AnalogRead(MicroFlo::PinId pin) {
         MICROFLO_DEBUG(debug, DebugLevelError, DebugIoOperationNotImplemented);
         return 0;
     }
-    virtual void PwmWrite(int pin, long dutyPercent) {
+    virtual void PwmWrite(MicroFlo::PinId pin, long dutyPercent) {
         MICROFLO_DEBUG(debug, DebugLevelError, DebugIoOperationNotImplemented);
     }
 
-    virtual void AttachExternalInterrupt(int interrupt, IO::Interrupt::Mode mode, IOInterruptFunction func, void *user) {
+    virtual void AttachExternalInterrupt(uint8_t interrupt, IO::Interrupt::Mode mode, IOInterruptFunction func, void *user) {
         MICROFLO_DEBUG(debug, DebugLevelError, DebugIoOperationNotImplemented);
     }
 };

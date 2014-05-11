@@ -57,48 +57,48 @@ public:
     ~EmscriptenIO() {}
 
     // Serial
-    virtual void SerialBegin(int serialDevice, int baudrate) {
+    virtual void SerialBegin(uint8_t serialDevice, int baudrate) {
         MICROFLO_DEBUG(debug, DebugLevelError, DebugIoOperationNotImplemented);
     }
-    virtual long SerialDataAvailable(int serialDevice) {
+    virtual long SerialDataAvailable(uint8_t serialDevice) {
         MICROFLO_DEBUG(debug, DebugLevelError, DebugIoOperationNotImplemented);
         return 0;
     }
-    virtual unsigned char SerialRead(int serialDevice) {
+    virtual unsigned char SerialRead(uint8_t serialDevice) {
         MICROFLO_DEBUG(debug, DebugLevelError, DebugIoOperationNotImplemented);
         return '\0';
     }
-    virtual void SerialWrite(int serialDevice, unsigned char b) {
+    virtual void SerialWrite(uint8_t serialDevice, unsigned char b) {
         MICROFLO_DEBUG(debug, DebugLevelError, DebugIoOperationNotImplemented);
     }
 
     // Pin config
-    virtual void PinSetMode(int pin, IO::PinMode mode) {
+    virtual void PinSetMode(MicroFlo::PinId pin, IO::PinMode mode) {
         printf("%s: timeMs=%ld, pin=%d, mode=%s\n",
                 __PRETTY_FUNCTION__, TimerCurrentMs(), pin, (mode == IO::InputPin) ? "INPUT" : "OUTPUT");
         MICROFLO_DEBUG(debug, DebugLevelError, DebugIoOperationNotImplemented);
     }
-    virtual void PinSetPullup(int pin, IO::PullupMode mode) {
+    virtual void PinSetPullup(MicroFlo::PinId pin, IO::PullupMode mode) {
         MICROFLO_DEBUG(debug, DebugLevelError, DebugIoOperationNotImplemented);
     }
 
     // Digital
-    virtual void DigitalWrite(int pin, bool val) {
+    virtual void DigitalWrite(MicroFlo::PinId pin, bool val) {
         printf("%s: timeMs=%ld, pin=%d, value=%s\n",
                 __PRETTY_FUNCTION__, TimerCurrentMs(), pin, val ? "ON" : "OFF");
         MICROFLO_DEBUG(debug, DebugLevelError, DebugIoOperationNotImplemented);
     }
-    virtual bool DigitalRead(int pin) {
+    virtual bool DigitalRead(MicroFlo::PinId pin) {
         MICROFLO_DEBUG(debug, DebugLevelError, DebugIoOperationNotImplemented);
 	return false;
     }
 
     // Analog
-    virtual long AnalogRead(int pin) {
+    virtual long AnalogRead(MicroFlo::PinId pin) {
         MICROFLO_DEBUG(debug, DebugLevelError, DebugIoOperationNotImplemented);
         return 0;
     }
-    virtual void PwmWrite(int pin, long dutyPercent) {
+    virtual void PwmWrite(MicroFlo::PinId pin, long dutyPercent) {
         MICROFLO_DEBUG(debug, DebugLevelError, DebugIoOperationNotImplemented);
     }
 
@@ -108,7 +108,7 @@ public:
 	    return timeMs;
     }
 
-    virtual void AttachExternalInterrupt(int interrupt, IO::Interrupt::Mode mode,
+    virtual void AttachExternalInterrupt(uint8_t interrupt, IO::Interrupt::Mode mode,
                                         IOInterruptFunction func, void *user) {
         MICROFLO_DEBUG(debug, DebugLevelError, DebugIoOperationNotImplemented);
     }
