@@ -123,52 +123,37 @@ void HostCommunication::parseCmd() {
     } else if (cmd == GraphCmdReset) {
         network->reset();
     } else if (cmd == GraphCmdCreateComponent) {
-        const ComponentId id = (ComponentId)buffer[1];
-        const int parentId = (int)buffer[2];
-        // FIXME: validate
         MICROFLO_DEBUG(this, DebugLevelDetailed, DebugComponentCreateStart);
-        Component *c = Component::create(id);
+        Component *c = Component::create((ComponentId)buffer[1]);
         MICROFLO_DEBUG(this, DebugLevelDetailed, DebugComponentCreateEnd);
-        network->addNode(c, parentId);
+        network->addNode(c, buffer[2]);
     } else if (cmd == GraphCmdConnectNodes) {
-        // FIXME: validate
         MICROFLO_DEBUG(this, DebugLevelDetailed, DebugConnectNodesStart);
-        const int src = (unsigned int)buffer[1];
-        const int target = (unsigned int)buffer[2];
-        const int srcPort = (unsigned int)buffer[3];
-        const int targetPort = (unsigned int)buffer[4];
-        network->connect(src, srcPort, target, targetPort);
+        network->connect(buffer[1], buffer[3], buffer[2], buffer[4]);
     } else if (cmd == GraphCmdSendPacket) {
-        // FIXME: validate
-        const int target = (unsigned int)buffer[1];
-        const int targetPort = (unsigned int)buffer[2];
         const Msg packetType = (Msg)buffer[3];
+        Packet p;
         if (packetType == MsgBracketStart || packetType == MsgBracketEnd
                 || packetType == MsgVoid) {
-            network->sendMessage(target, targetPort, Packet(packetType));
+            p = Packet(packetType);
         } else if (packetType == MsgInteger) {
             const long val = buffer[4] + 256*buffer[5] + 256*256*buffer[6] + 256*256*256*buffer[7];
-            network->sendMessage(target, targetPort, Packet(val));
+            p = Packet(val);
         } else if (packetType == MsgByte) {
-            const unsigned char b = buffer[4];
-            network->sendMessage(target, targetPort, Packet(b));
+            p = Packet(buffer[4]);
         } else if (packetType == MsgBoolean) {
-            const bool b = !(buffer[4] == 0);
-            network->sendMessage(target, targetPort, Packet(b));
+            p = Packet(!(buffer[4] == 0));
+        }
+
+        if (p.isValid()) {
+            network->sendMessage(buffer[1], buffer[2], p);
         } else {
             MICROFLO_DEBUG(this, DebugLevelError, DebugParserUnknownPacketType);
         }
-
     } else if (cmd == GraphCmdConfigureDebug) {
-        const DebugLevel l = (DebugLevel)buffer[1];
-        network->setDebugLevel(l);
-
+        network->setDebugLevel((DebugLevel)buffer[1]);
     } else if (cmd == GraphCmdSubscribeToPort) {
-        const int nodeId = (unsigned int)buffer[1];
-        const int portId = (unsigned int)buffer[2];
-        const bool enable = (bool)buffer[3];
-        network->subscribeToPort(nodeId, portId, enable);
-
+        network->subscribeToPort(buffer[1], buffer[2], (bool)buffer[3]);
     } else if (cmd == GraphCmdConnectSubgraphPort) {
         // FIXME: validate
         const bool isOutput = (unsigned int)buffer[1];
