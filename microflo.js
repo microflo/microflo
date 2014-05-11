@@ -3,19 +3,13 @@
  * MicroFlo may be freely distributed under the MIT license
  */
 
+var fs = require("fs");
 var cmdFormat = require("./microflo/commandformat.json");
-var c = require("./lib/componentlib");
-var componentLib = new c.ComponentLibrary(c.defaultComponent, "./microflo");
-
-if (process.argv[2] == "update-defs") {
-    // Special, runs before dependencies has been installed and thus cannot import any of them.
-    require("./lib/generate").updateDefinitions(componentLib, "./microflo");
-    process.exit(0);
-}
-
 var microflo = require("./lib/microflo");
 var commander = require("commander");
 var pkginfo = require('pkginfo')(module);
+
+var componentLib = null;
 
 var setupRuntimeCommand = function(env) {
     var serialPortToUse = env.serial || "auto";
@@ -61,11 +55,36 @@ var registerRuntimeCommand = function(user, env) {
     });
 }
 
+var updateDefsCommand = function(env) {
+    // FIXME: move this code somewhere else, make more general
+    // For now, default to all components (like before)
+    if (typeof env.library !== 'undefined') {
+        console.log(env.library);
+        var included = JSON.parse(fs.readFileSync(env.library)).components;
+        console.log(included);
+        var filtered = {};
+        included.forEach(function(name){
+            filtered[name] = componentLib.definition.components[name];
+        });
+        componentLib.definition.components = filtered;
+    }
+
+    microflo.generate.updateDefinitions(componentLib, "./microflo");
+}
+
 var main = function() {
+
+    componentLib = new microflo.componentlib.ComponentLibrary(null, "./microflo");
     componentLib.load();
 
     commander
         .version(module.exports.version)
+
+    commander
+        .command('update-defs')
+        .description('(internal use) Update the generated C++ headers from .json definitions.')
+        .option('-l, --library <FILE>', 'which component library to use')
+        .action(updateDefsCommand);
 
     commander
         .command('generate')

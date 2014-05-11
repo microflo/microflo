@@ -9,6 +9,7 @@ UPLOAD_DIR=/mnt
 
 # SERIALPORT=/dev/somecustom
 # ARDUINO=/home/user/Arduino-1.0.5
+# LIBRARY= arduino-standard|arduino-minimal
 
 AVRSIZE=avr-size
 AVRGCC=avr-g++
@@ -22,6 +23,9 @@ AVR_FCPU=1000000UL
 CPPFLAGS=-ffunction-sections -fdata-sections -g -Os -w
 DEFINES='-DHAVE_DALLAS_TEMPERATURE -DHAVE_ADAFRUIT_NEOPIXEL -DHAVE_ADAFRUIT_WS2801'
 
+ifdef LIBRARY
+LIBRARYOPTION=--library=microflo/components/$(LIBRARY).json
+endif
 
 INOOPTIONS=--board-model=$(MODEL)
 
@@ -129,7 +133,7 @@ clean:
 	git clean -dfx --exclude=node_modules
 
 update-defs:
-	node microflo.js update-defs
+	node microflo.js update-defs $(LIBRARYOPTION)
 
 release-arduino:
 	rm -rf build/microflo-arduino

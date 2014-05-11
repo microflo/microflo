@@ -110,3 +110,6 @@ microflo/components/ToggleBoolean.hpp
 microflo/components/BooleanOr.hpp
 microflo/components/BooleanAnd.hpp
 microflo/components/PseudoPwm.hpp
+microflo/components/arduino-standard.json
+microflo/components/arduino-minimal.json
+microflo/components/null.json
