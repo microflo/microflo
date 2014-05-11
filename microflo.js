@@ -59,9 +59,7 @@ var updateDefsCommand = function(env) {
     // FIXME: move this code somewhere else, make more general
     // For now, default to all components (like before)
     if (typeof env.library !== 'undefined') {
-        console.log(env.library);
         var included = JSON.parse(fs.readFileSync(env.library)).components;
-        console.log(included);
         var filtered = {};
         included.forEach(function(name){
             filtered[name] = componentLib.definition.components[name];
