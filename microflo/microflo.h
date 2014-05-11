@@ -86,6 +86,7 @@ namespace MicroFlo {
     typedef uint8_t NodeId;
     typedef int8_t PortId;
     typedef uint8_t MessageId;
+    typedef uint8_t ComponentId;
 #ifdef STELLARIS
     typedef long PinId;
 #else
@@ -340,7 +341,7 @@ public:
     virtual void process(Packet in, MicroFlo::PortId port) = 0;
 
     MicroFlo::NodeId id() const { return nodeId; }
-    int component() const { return componentId; }
+    MicroFlo::ComponentId component() const { return componentId; }
 
 protected:
     void send(Packet out, MicroFlo::PortId port=0);
@@ -351,11 +352,11 @@ private:
     void setNetwork(Network *net, int n, IO *io);
 private:
     Connection *connections; // one per output port
-    int nPorts;
+    MicroFlo::PortId nPorts;
 
     Network *network;
     MicroFlo::NodeId nodeId; // identifier in the network
-    int componentId; // what type of component this is
+    MicroFlo::ComponentId componentId; // what type of component this is
     MicroFlo::NodeId parentNodeId; // if <0, a top-level component, else subcomponent
 };
 
@@ -442,8 +443,7 @@ public:
     virtual void setup(IO *i, HostCommunication *c) = 0;
     virtual void runTick() = 0;
 
-    virtual void sendCommandByte(uint8_t b) = 0;
-    void padCommandWithNArguments(int arguments);
+    virtual void sendCommand(const uint8_t *buf, uint8_t len) = 0;
 };
 
 class NullHostTransport : public HostTransport {
@@ -451,7 +451,7 @@ public:
     // implements HostTransport
     virtual void setup(IO *i, HostCommunication *c) { ; }
     virtual void runTick() { ; }
-    virtual void sendCommandByte(uint8_t b) { ; }
+    virtual void sendCommand(const uint8_t *buf, uint8_t len) { ; }
 private:
 };
 
@@ -462,7 +462,7 @@ public:
     // implements HostTransport
     virtual void setup(IO *i, HostCommunication *c);
     virtual void runTick();
-    virtual void sendCommandByte(uint8_t b);
+    virtual void sendCommand(const uint8_t *buf, uint8_t len);
 
 private:
     IO *io;

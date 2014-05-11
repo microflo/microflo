@@ -251,7 +251,7 @@ public:
     // implements HostTransport
     virtual void setup(IO *i, HostCommunication *c);
     virtual void runTick();
-    virtual void sendCommandByte(uint8_t b);
+    virtual void sendCommand(const uint8_t *b, uint8_t len);
 public:
     static void Init(v8::Handle<v8::Object> exports);
 
@@ -279,13 +279,15 @@ void JavaScriptHostTransport::runTick() {
     pullFunc->Call(v8::Context::GetCurrent()->Global(), argc, argv);
 }
 
-void JavaScriptHostTransport::sendCommandByte(uint8_t b) {
+void JavaScriptHostTransport::sendCommand(const uint8_t *buf, uint8_t valid) {
 
-    const int argc = 1;
-    v8::Local<v8::Value> argv[argc] = {
-        v8::Local<v8::Value>::New(v8::Number::New(b)),
-    };
-    receiveFunc->Call(v8::Context::GetCurrent()->Global(), argc, argv);
+    const int length = MICROFLO_CMD_SIZE;
+    v8::Local<v8::Value> argv[length];
+    for (uint8_t i=0; i<length; i++) {
+        const uint8_t b = (i < valid) ? buf[i] : 0x00;
+        argv[i] = v8::Local<v8::Value>::New(v8::Number::New(b));
+    }
+    receiveFunc->Call(v8::Context::GetCurrent()->Global(), length, argv);
 }
 
 void JavaScriptHostTransport::Init(v8::Handle<v8::Object> exports) {

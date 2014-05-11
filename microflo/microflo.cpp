@@ -446,23 +446,17 @@ void Network::connectSubgraph(bool isOutput,
 #endif
 }
 
-// PERFORMANCE: sendCommandByte API seems to generate very large program code
 void HostCommunication::nodeAdded(Component *c, MicroFlo::NodeId parentId) {
-    transport->sendCommandByte(GraphCmdNodeAdded);
-    transport->sendCommandByte(c->component());
-    transport->sendCommandByte(c->id());
-    transport->sendCommandByte(parentId);
-    transport->padCommandWithNArguments(3);
+    const uint8_t cmd[] = { GraphCmdNodeAdded, c->component(), c->id(), parentId };
+    transport->sendCommand(cmd, sizeof(cmd));
 }
 
 void HostCommunication::nodesConnected(Component *src, MicroFlo::PortId srcPort,
                                        Component *target, MicroFlo::PortId targetPort) {
-    transport->sendCommandByte(GraphCmdNodesConnected);
-    transport->sendCommandByte(src->id());
-    transport->sendCommandByte(srcPort);
-    transport->sendCommandByte(target->id());
-    transport->sendCommandByte(targetPort);
-    transport->padCommandWithNArguments(4);
+
+    const uint8_t cmd[] = { GraphCmdNodesConnected, src->id(), (uint8_t)srcPort,
+                            target->id(), (uint8_t)targetPort };
+    transport->sendCommand(cmd, sizeof(cmd));
 }
 
 void HostCommunication::networkStateChanged(Network::State s) {
@@ -472,8 +466,7 @@ void HostCommunication::networkStateChanged(Network::State s) {
     } else if (s == Network::Stopped) {
         cmd = GraphCmdNetworkStopped;
     }
-    transport->sendCommandByte(cmd);
-    transport->padCommandWithNArguments(0);
+    transport->sendCommand((uint8_t *)&cmd, 1);
 }
 
 void HostCommunication::packetSent(int index, Message m, Component *src, MicroFlo::PortId srcPort) {
@@ -481,33 +474,23 @@ void HostCommunication::packetSent(int index, Message m, Component *src, MicroFl
         return;
     }
 
-    transport->sendCommandByte(GraphCmdPacketSent);
-    transport->sendCommandByte(src->id());
-    transport->sendCommandByte(srcPort);
-    transport->sendCommandByte(m.target->id());
-    transport->sendCommandByte(m.targetPort);
-    transport->sendCommandByte(m.pkg.type());
+    uint8_t cmd[MICROFLO_CMD_SIZE] = { GraphCmdPacketSent, src->id(), (uint8_t)srcPort, m.target->id(),
+                                        (uint8_t)m.targetPort, m.pkg.type(), 0, 0 };
 
     if (m.pkg.isData()) {
         if (m.pkg.isBool()) {
-            transport->sendCommandByte(m.pkg.asBool());
-            transport->padCommandWithNArguments(6);
-        } else if (m.pkg.isVoid()) {
-            transport->padCommandWithNArguments(5);
+            cmd[6] = m.pkg.asBool();
         } else if (m.pkg.isNumber()){
             // FIXME: truncates
             const int i = m.pkg.asInteger();
-            transport->sendCommandByte(i>>0);
-            transport->sendCommandByte(i>>8);
-            transport->padCommandWithNArguments(8);
+            cmd[6] = i>>0;
+            cmd[7] = i>>8;
         } else {
             // FIXME: support all types
-            transport->padCommandWithNArguments(5); // finish command before sending debug
             MICROFLO_DEBUG(this, DebugLevelError, DebugNotImplemented);
         }
-    } else {
-        transport->padCommandWithNArguments(5);
     }
+    transport->sendCommand(cmd, sizeof(cmd));
 }
 
 // FIXME: implement
@@ -520,45 +503,28 @@ void HostCommunication::packetDelivered(int index, Message m) {
 void HostCommunication::emitDebug(DebugLevel level, DebugId id) {
 #ifdef MICROFLO_ENABLE_DEBUG
     if (level <= debugLevel) {
-        transport->sendCommandByte(GraphCmdDebugMessage);
-        transport->sendCommandByte(level);
-        transport->sendCommandByte(id);
-        transport->padCommandWithNArguments(2);
+        const uint8_t cmd[] = { GraphCmdDebugMessage, level, id};
+        transport->sendCommand(cmd, sizeof(cmd));
     }
 #endif
 }
 
 void HostCommunication::debugChanged(DebugLevel level) {
-    transport->sendCommandByte(GraphCmdDebugChanged);
-    transport->sendCommandByte(level);
-    transport->padCommandWithNArguments(1);
+    const uint8_t cmd[] = { GraphCmdDebugChanged, level};
+    transport->sendCommand(cmd, sizeof(cmd));
 }
 
 void HostCommunication::portSubscriptionChanged(MicroFlo::NodeId nodeId, MicroFlo::PortId portId, bool enable) {
-    transport->sendCommandByte(GraphCmdPortSubscriptionChanged);
-    transport->sendCommandByte(nodeId);
-    transport->sendCommandByte(portId);
-    transport->sendCommandByte(enable);
-    transport->padCommandWithNArguments(3);
+    const uint8_t cmd[] = { GraphCmdPortSubscriptionChanged, nodeId, (uint8_t)portId, enable};
+    transport->sendCommand(cmd, sizeof(cmd));
 }
 
 void HostCommunication::subgraphConnected(bool isOutput,
                                       MicroFlo::NodeId subgraphNode, MicroFlo::PortId subgraphPort,
                                       MicroFlo::NodeId childNode, MicroFlo::PortId childPort) {
-    transport->sendCommandByte(GraphCmdSubgraphPortConnected);
-    transport->sendCommandByte(isOutput);
-    transport->sendCommandByte(subgraphNode);
-    transport->sendCommandByte(subgraphPort);
-    transport->sendCommandByte(childNode);
-    transport->sendCommandByte(childPort);
-    transport->padCommandWithNArguments(5);
-}
-
-void HostTransport::padCommandWithNArguments(int arguments) {
-    const int padding = MICROFLO_CMD_SIZE - (arguments+1);
-    for (int i=0; i<padding; i++) {
-        sendCommandByte(0x00);
-    }
+    const uint8_t cmd[] = { GraphCmdSubgraphPortConnected, isOutput,
+                            subgraphNode, (uint8_t)subgraphPort, childNode, (uint8_t)childPort };
+    transport->sendCommand(cmd, sizeof(cmd));
 }
 
 SerialHostTransport::SerialHostTransport(uint8_t port, int baudRate)
@@ -583,10 +549,12 @@ void SerialHostTransport::runTick() {
     }
 }
 
-void SerialHostTransport::sendCommandByte(uint8_t b) {
-    io->SerialWrite(serialPort, b);
+void SerialHostTransport::sendCommand(const uint8_t *b, uint8_t len) {
+    // Make sure to pad to the cmd size
+    for (uint8_t i=0; i<MICROFLO_CMD_SIZE; i++) {
+        io->SerialWrite(serialPort, (i < len) ?  b[i] : 0x00);
+    }
 }
-
 
 #ifdef MICROFLO_ENABLE_SUBGRAPHS
 SubGraph::SubGraph()
