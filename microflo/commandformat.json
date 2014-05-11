@@ -75,6 +75,7 @@
         "IoOperationNotImplemented": {"id": 26},
         "InvalidComponentUsed": {"id": 27},
         "IoFailure": {"id": 28},
+        "DeliverMessagesInvalidMessageId": {"id": 29},
 
         "Max": { "id": 255 }
     },

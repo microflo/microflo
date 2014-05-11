@@ -283,21 +283,20 @@ void Network::setNotificationHandler(NetworkNotificationHandler *handler) {
 }
 
 void Network::deliverMessages(MicroFlo::MessageId firstIndex, MicroFlo::MessageId lastIndex) {
-        if (firstIndex > lastIndex || lastIndex > MICROFLO_MAX_MESSAGES-1 || firstIndex < 0) {
-            return;
-        }
+    MICROFLO_RETURN_IF_FAIL(firstIndex < MICROFLO_MAX_MESSAGES && lastIndex < MICROFLO_MAX_MESSAGES,
+                            this, DebugLevelError, DebugDeliverMessagesInvalidMessageId);
 
-        for (MicroFlo::MessageId i=firstIndex; i<=lastIndex; i++) {
-            Component *target = messages[i].target;
-            if (!target) {
-                // FIXME: this should not happen
-                continue;
-            }
-            target->process(messages[i].pkg, messages[i].targetPort);
-            if (notificationHandler) {
-                notificationHandler->packetDelivered(i, messages[i]);
-            }
+    for (MicroFlo::MessageId i=firstIndex; i<=lastIndex; i++) {
+        Component *target = messages[i].target;
+        if (!target) {
+            // FIXME: this should not happen
+            continue;
         }
+        target->process(messages[i].pkg, messages[i].targetPort);
+        if (notificationHandler) {
+            notificationHandler->packetDelivered(i, messages[i]);
+        }
+    }
 }
 
 void Network::processMessages() {
