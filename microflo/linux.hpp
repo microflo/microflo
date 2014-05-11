@@ -73,23 +73,23 @@ public:
 
     // Serial
     // TODO: support serial
-    virtual void SerialBegin(int serialDevice, int baudrate) {
+    virtual void SerialBegin(uint8_t serialDevice, int baudrate) {
         MICROFLO_DEBUG(debug, DebugLevelError, DebugIoOperationNotImplemented);
     }
-    virtual long SerialDataAvailable(int serialDevice) {
+    virtual long SerialDataAvailable(uint8_t serialDevice) {
         MICROFLO_DEBUG(debug, DebugLevelError, DebugIoOperationNotImplemented);
         return 0;
     }
-    virtual unsigned char SerialRead(int serialDevice) {
+    virtual unsigned char SerialRead(uint8_t serialDevice) {
         MICROFLO_DEBUG(debug, DebugLevelError, DebugIoOperationNotImplemented);
         return '\0';
     }
-    virtual void SerialWrite(int serialDevice, unsigned char b) {
+    virtual void SerialWrite(uint8_t serialDevice, unsigned char b) {
         MICROFLO_DEBUG(debug, DebugLevelError, DebugIoOperationNotImplemented);
     }
 
     // Pin config
-    virtual void PinSetMode(int pin, IO::PinMode mode) {
+    virtual void PinSetMode(MicroFlo::PinId pin, IO::PinMode mode) {
         if (!write_sys_file(SYS_GPIO_BASE+"export", std::to_string(pin))) {
             MICROFLO_DEBUG(debug, DebugLevelError, DebugIoFailure);
             return;
@@ -107,7 +107,7 @@ public:
             MICROFLO_DEBUG(debug, DebugLevelError, DebugIoOperationNotImplemented);
         }
     }
-    virtual void PinSetPullup(int pin, IO::PullupMode mode) {
+    virtual void PinSetPullup(MicroFlo::PinId pin, IO::PullupMode mode) {
         // TODO: support pullup/pulldown config on common boards like RPi
         // Not exposed in sysfs, need to prod registers directly.
         // http://elinux.org/RPi_Low-level_peripherals#GPIO_Pull_Up.2FPull_Down_Register_Example
@@ -115,19 +115,19 @@ public:
     }
 
     // Digital
-    virtual void DigitalWrite(int pin, bool val) {
+    virtual void DigitalWrite(MicroFlo::PinId pin, bool val) {
         return gpio_write(pin, val);
     }
-    virtual bool DigitalRead(int pin) {
+    virtual bool DigitalRead(MicroFlo::PinId pin) {
         return gpio_read(pin);
     }
 
     // Analog
-    virtual long AnalogRead(int pin) {
+    virtual long AnalogRead(MicroFlo::PinId pin) {
         MICROFLO_DEBUG(debug, DebugLevelError, DebugIoOperationNotImplemented);
         return 0;
     }
-    virtual void PwmWrite(int pin, long dutyPercent) {
+    virtual void PwmWrite(MicroFlo::PinId pin, long dutyPercent) {
         MICROFLO_DEBUG(debug, DebugLevelError, DebugIoOperationNotImplemented);
     }
 
@@ -141,7 +141,7 @@ public:
         return (since_start.tv_sec*1000)+(since_start.tv_nsec/1000000);
     }
 
-    virtual void AttachExternalInterrupt(int interrupt, IO::Interrupt::Mode mode,
+    virtual void AttachExternalInterrupt(uint8_t interrupt, IO::Interrupt::Mode mode,
                                         IOInterruptFunction func, void *user) {
         MICROFLO_DEBUG(debug, DebugLevelError, DebugIoOperationNotImplemented);
     }
