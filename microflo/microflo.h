@@ -49,14 +49,14 @@ do { \
 
 #define MICROFLO_ASSERT(assertion, handler, level, code) \
 do { \
-    if ((assertion)) { \
+    if (!(assertion)) { \
         microflo_debug(handler, level, code); \
     } \
 } while(0)
 
 #define MICROFLO_RETURN_IF_FAIL(assertion, handler, level, code) \
 do { \
-    if ((assertion)) { \
+    if (!(assertion)) { \
         microflo_debug(handler, level, code); \
         return; \
     } \
@@ -64,7 +64,7 @@ do { \
 
 #define MICROFLO_RETURN_VAL_IF_FAIL(assertion, retval, handler, level, code) \
 do { \
-    if ((assertion)) { \
+    if (!(assertion)) { \
         microflo_debug(handler, level, code); \
         return retval; \
     } \
