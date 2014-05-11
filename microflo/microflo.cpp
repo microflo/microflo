@@ -258,9 +258,11 @@ void Network::setNotificationHandler(NetworkNotificationHandler *handler) {
 }
 
 void Network::deliverMessages(MicroFlo::MessageId firstIndex, MicroFlo::MessageId lastIndex) {
+#ifndef HOST_BUILD
+    // complains that the check can never hit
     MICROFLO_RETURN_IF_FAIL(firstIndex < MICROFLO_MAX_MESSAGES && lastIndex < MICROFLO_MAX_MESSAGES,
                             this, DebugLevelError, DebugDeliverMessagesInvalidMessageId);
-
+#endif
     for (MicroFlo::MessageId i=firstIndex; i<=lastIndex; i++) {
         Component *target = messages[i].target;
         if (!target) {

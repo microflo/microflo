@@ -234,11 +234,13 @@ public:
     virtual void portSubscriptionChanged(MicroFlo::NodeId nodeId, MicroFlo::PortId portId, bool enable) = 0;
 };
 
+#ifdef MICROFLO_ENABLE_DEBUG
 static void microflo_debug(DebugHandler *handler, DebugLevel level, DebugId code) {
     if (handler) {
         handler->emitDebug(level, code);
     }
 }
+#endif
 
 struct Connection {
     Component *target;
