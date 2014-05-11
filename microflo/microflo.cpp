@@ -475,7 +475,7 @@ void HostCommunication::packetSent(int index, Message m, Component *src, MicroFl
     }
 
     uint8_t cmd[MICROFLO_CMD_SIZE] = { GraphCmdPacketSent, src->id(), (uint8_t)srcPort, m.target->id(),
-                                        (uint8_t)m.targetPort, m.pkg.type(), 0, 0 };
+                                        (uint8_t)m.targetPort, (uint8_t)m.pkg.type(), 0, 0 };
 
     if (m.pkg.isData()) {
         if (m.pkg.isBool()) {
@@ -503,14 +503,14 @@ void HostCommunication::packetDelivered(int index, Message m) {
 void HostCommunication::emitDebug(DebugLevel level, DebugId id) {
 #ifdef MICROFLO_ENABLE_DEBUG
     if (level <= debugLevel) {
-        const uint8_t cmd[] = { GraphCmdDebugMessage, level, id};
+        const uint8_t cmd[] = { GraphCmdDebugMessage, (uint8_t)level, (uint8_t)id };
         transport->sendCommand(cmd, sizeof(cmd));
     }
 #endif
 }
 
 void HostCommunication::debugChanged(DebugLevel level) {
-    const uint8_t cmd[] = { GraphCmdDebugChanged, level};
+    const uint8_t cmd[] = { GraphCmdDebugChanged, (uint8_t)level};
     transport->sendCommand(cmd, sizeof(cmd));
 }
 
