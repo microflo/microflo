@@ -19,58 +19,32 @@
 static const char MICROFLO_GRAPH_MAGIC[] = { 'u','C','/','F','l','o', '0', '1' };
 
 bool Packet::asBool() const {
-    if (msg == MsgBoolean) {
-        return data.boolean;
-    } else if (msg == MsgByte) {
-        return data.byte;
-    } else if (msg == MsgInteger) {
-        return data.lng;
-    } else if (msg == MsgFloat) {
-        return data.flt;
+    if (msg == MsgVoid) {
+        return true;
     } else {
-        return false;
+        return data.boolean;
     }
 }
 long Packet::asInteger() const {
-    if (msg == MsgBoolean){
-        return data.boolean;
-    } else if (msg == MsgByte) {
-        return data.byte;
-    } else if (msg == MsgInteger) {
-        return data.lng;
-    } else if (msg == MsgFloat) {
-        return data.flt;
+    if (msg == MsgVoid) {
+        return 0;
     } else {
-        return -33;
+        return data.lng;
     }
 }
 float Packet::asFloat() const {
-    if (msg == MsgBoolean){
-        return data.boolean;
-    } else if (msg == MsgByte) {
-        return data.byte;
-    } else if (msg == MsgInteger) {
-        return data.lng;
-    } else if (msg == MsgFloat) {
-        return data.flt;
-    } else if (msg == MsgVoid) {
+    if (msg == MsgVoid) {
         return 0.0;
     } else {
-        return -44.0;
+        return data.flt;
     }
 }
 
 unsigned char Packet::asByte() const {
-    if (msg == MsgBoolean){
-        return data.boolean;
-    } else if (msg == MsgByte) {
-        return data.byte;
-    } else if (msg == MsgInteger) {
-        return data.lng;
-    } else if (msg == MsgFloat) {
-        return data.flt;
-    } else {
+    if (msg == MsgVoid) {
         return 0;
+    } else {
+        return data.byte;
     }
 }
 
