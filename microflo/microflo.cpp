@@ -573,12 +573,14 @@ void HostCommunication::packetDelivered(int index, Message m) {
 }
 
 void HostCommunication::emitDebug(DebugLevel level, DebugId id) {
+#ifdef MICROFLO_ENABLE_DEBUG
     if (level <= debugLevel) {
         transport->sendCommandByte(GraphCmdDebugMessage);
         transport->sendCommandByte(level);
         transport->sendCommandByte(id);
         transport->padCommandWithNArguments(2);
     }
+#endif
 }
 
 void HostCommunication::debugChanged(DebugLevel level) {
