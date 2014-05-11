@@ -113,3 +113,4 @@ microflo/components/PseudoPwm.hpp
 microflo/components/arduino-standard.json
 microflo/components/arduino-minimal.json
 microflo/components/null.json
+microflo/components/PseudoPwmWrite.hpp

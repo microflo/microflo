@@ -2,20 +2,18 @@ class HysteresisLatch : public SingleOutputComponent
 {
 public:
     virtual void process(Packet in, MicroFlo::PortId port) {
-        const int inputPort = 0;
-        const int lowThresholdPort = 1;
-        const int highThresholdPort = 2;
+        using namespace HysteresisLatchPorts;
 
         if (in.isSetup()) {
             // defaults
             mHighThreshold = 30;
             mLowThreshold = 24;
             mCurrentState = true; // TODO: make tristate or configurable?
-        } else if (port == lowThresholdPort && in.isNumber()) {
+        } else if (port == InPorts::lowthreshold && in.isNumber()) {
             mLowThreshold = in.asFloat();
-        } else if (port == highThresholdPort && in.isNumber()) {
+        } else if (port == InPorts::highthreshold && in.isNumber()) {
             mHighThreshold = in.asFloat();
-        } else if (port == inputPort && in.isNumber()) {
+        } else if (port == InPorts::in && in.isNumber()) {
             updateValue(in.asFloat());
         }
     }

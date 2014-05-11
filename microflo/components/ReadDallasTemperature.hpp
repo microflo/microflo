@@ -47,8 +47,8 @@ private:
         sensors.setResolution(newResolution);
     }
 
-    int pin;
-    int addressIndex;
+    MicroFlo::PortId pin;
+    int8_t addressIndex;
     ::DeviceAddress address;
     ::OneWire oneWire;
     ::DallasTemperature sensors;

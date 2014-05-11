@@ -57,7 +57,7 @@ private:
     }
 
 private:
-    int pin;
+    MicroFlo::PortId pin;
     int period; // milliseconds
     int ontime;
 

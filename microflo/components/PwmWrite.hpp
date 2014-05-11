@@ -13,5 +13,5 @@ public:
         }
     }
 private:
-    int outPin;
+    MicroFlo::PortId outPin;
 };

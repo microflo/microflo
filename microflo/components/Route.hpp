@@ -2,7 +2,7 @@ class Route : public SingleOutputComponent {
 
 public:
     Route() : activePort(0) {
-        for (int i=0; i<RoutePorts::InPorts::in9; i++) {
+        for (MicroFlo::PortId i=0; i<RoutePorts::InPorts::in9; i++) {
             lastPackets[i] = Packet(MsgInvalid);
         }
     }
@@ -28,5 +28,5 @@ public:
     }
 private:
     Packet lastPackets[RoutePorts::InPorts::in9];
-    int activePort;
+    MicroFlo::PortId activePort;
 };

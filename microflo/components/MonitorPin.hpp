@@ -6,7 +6,7 @@ public:
             pin = in.asInteger();
             // FIXME: report error when attempting to use pin without interrupt
             // TODO: support pin mappings for other devices than than Uno/Micro
-            int intr = 0;
+            uint8_t intr = 0;
             if (pin == 2) {
                 intr = 0;
             } else if (pin == 3) {
@@ -22,5 +22,5 @@ private:
         MonitorPin *thisptr = static_cast<MonitorPin *>(user);
         thisptr->send(Packet(thisptr->io->DigitalRead(thisptr->pin)));
     }
-    int pin;
+    MicroFlo::PortId pin;
 };

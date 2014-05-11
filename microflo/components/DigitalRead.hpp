@@ -23,6 +23,6 @@ private:
         io->PinSetMode(pin, IO::InputPin);
         io->PinSetPullup(pin, pullup ? IO::PullUp : IO::PullNone);
     }
-    int pin;
+    MicroFlo::PortId pin;
     bool pullup;
 };
