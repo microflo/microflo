@@ -127,6 +127,9 @@ public:
 
     bool operator==(const Packet& rhs) const;
 
+    operator long () { return data.lng; }
+    operator bool () { return data.boolean; }
+
 private:
     union PacketData {
         bool boolean;
@@ -137,6 +140,7 @@ private:
     } data;
     enum Msg msg;
 };
+
 
 // Network
 
