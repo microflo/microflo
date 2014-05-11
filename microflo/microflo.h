@@ -32,13 +32,40 @@ const int MICROFLO_MAX_MESSAGES = 50;
 
 #define MICROFLO_DEBUG(handler, level, code) \
 do { \
-    if (handler) { \
-        handler->emitDebug(level, code); \
+    microflo_debug(handler, level, code); \
+} while(0)
+
+#define MICROFLO_ASSERT(assertion, handler, level, code) \
+do { \
+    if ((assertion)) { \
+        microflo_debug(handler, level, code); \
+    } \
+} while(0)
+
+#define MICROFLO_RETURN_IF_FAIL(assertion, handler, level, code) \
+do { \
+    if ((assertion)) { \
+        microflo_debug(handler, level, code); \
+        return; \
+    } \
+} while(0)
+
+#define MICROFLO_RETURN_VAL_IF_FAIL(assertion, retval, handler, level, code) \
+do { \
+    if ((assertion)) { \
+        microflo_debug(handler, level, code); \
+        return retval; \
     } \
 } while(0)
 
 #else
 #define MICROFLO_DEBUG(handler, level, code) \
+
+#define MICROFLO_ASSERT(assertion, handler, level, code) \
+
+#define MICROFLO_RETURN_IF_FAIL(assertion, handler, level, code) \
+
+#define MICROFLO_RETURN_VAL_IF_FAIL(assertion, retval, handler, level, code) \
 
 #endif
 
@@ -124,7 +151,18 @@ struct Message {
 class NetworkNotificationHandler;
 class IO;
 
-class Network {
+class DebugHandler {
+public:
+    virtual void emitDebug(DebugLevel level, DebugId id) = 0;
+    virtual void debugChanged(DebugLevel level) = 0;
+};
+
+
+class Network  {
+    // For emitting debug on notificationHandler
+    friend class Component;
+    friend class DummyComponent;
+    friend class SubGraph;
 #ifdef HOST_BUILD
     friend class JavaScriptNetwork;
 #endif
@@ -161,7 +199,6 @@ public:
 
     void runTick();
 
-    void emitDebug(DebugLevel level, DebugId id);
     void setDebugLevel(DebugLevel level);
 
 private:
@@ -178,13 +215,6 @@ private:
     NetworkNotificationHandler *notificationHandler;
     IO *io;
     State state;
-    DebugLevel debugLevel;
-};
-
-class DebugHandler {
-public:
-    virtual void emitDebug(DebugLevel level, DebugId id) = 0;
-    virtual void debugChanged(DebugLevel level) = 0;
 };
 
 class NetworkNotificationHandler : public DebugHandler {
@@ -202,6 +232,12 @@ public:
 
     virtual void portSubscriptionChanged(MicroFlo::NodeId nodeId, MicroFlo::PortId portId, bool enable) = 0;
 };
+
+static void microflo_debug(DebugHandler *handler, DebugLevel level, DebugId code) {
+    if (handler) {
+        handler->emitDebug(level, code);
+    }
+}
 
 struct Connection {
     Component *target;
@@ -370,6 +406,7 @@ private:
     uint8_t currentByte;
     unsigned char buffer[MICROFLO_CMD_SIZE];
     enum State state;
+    DebugLevel debugLevel;
 };
 
 

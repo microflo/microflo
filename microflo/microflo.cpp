@@ -108,11 +108,14 @@ HostCommunication::HostCommunication()
     , transport(0)
     , currentByte(0)
     , state(LookForHeader)
+    , debugLevel(DebugLevelError)
 {}
 
 void HostCommunication::setup(Network *net, HostTransport *t) {
     network = net;
     transport = t;
+
+    MICROFLO_DEBUG(this, DebugLevelInfo, DebugProgramStart);
     network->setNotificationHandler(this);
 }
 
@@ -122,25 +125,25 @@ void HostCommunication::parseByte(char b) {
     buffer[currentByte++] = b;
 
     if (state == ParseHeader) {
-        MICROFLO_DEBUG(network, DebugLevelVeryDetailed, DebugParseHeader);
+        MICROFLO_DEBUG(this, DebugLevelVeryDetailed, DebugParseHeader);
         if (currentByte == sizeof(MICROFLO_GRAPH_MAGIC)) {
 
             if (memcmp(buffer, MICROFLO_GRAPH_MAGIC, sizeof(MICROFLO_GRAPH_MAGIC)) == 0) {
                 state = ParseCmd;
             } else {
-                MICROFLO_DEBUG(network, DebugLevelError, DebugMagicMismatch);
+                MICROFLO_DEBUG(this, DebugLevelError, DebugMagicMismatch);
                 state = Invalid;
             }
             currentByte = 0;
         }
     } else if (state == ParseCmd) {
-        MICROFLO_DEBUG(network, DebugLevelVeryDetailed, DebugParseCommand);
+        MICROFLO_DEBUG(this, DebugLevelVeryDetailed, DebugParseCommand);
         if (currentByte == MICROFLO_CMD_SIZE) {
             parseCmd();
             currentByte = 0;
         }
     } else if (state == LookForHeader) {
-        MICROFLO_DEBUG(network, DebugLevelVeryDetailed, DebugParseLookForHeader);
+        MICROFLO_DEBUG(this, DebugLevelVeryDetailed, DebugParseLookForHeader);
         if (b == MICROFLO_GRAPH_MAGIC[0]) {
             state = ParseHeader;
             buffer[0] = b;
@@ -150,12 +153,12 @@ void HostCommunication::parseByte(char b) {
         }
 
     } else if (state == Invalid) {
-        MICROFLO_DEBUG(network, DebugLevelError, DebugParserInvalidState);
+        MICROFLO_DEBUG(this, DebugLevelError, DebugParserInvalidState);
         // try to recover
         currentByte = 0;
         state = LookForHeader;
     } else {
-        MICROFLO_DEBUG(network, DebugLevelError,DebugParserUnknownState);
+        MICROFLO_DEBUG(this, DebugLevelError,DebugParserUnknownState);
         // try to recover
         currentByte = 0;
         state = LookForHeader;
@@ -174,13 +177,13 @@ void HostCommunication::parseCmd() {
         const ComponentId id = (ComponentId)buffer[1];
         const int parentId = (int)buffer[2];
         // FIXME: validate
-        MICROFLO_DEBUG(network, DebugLevelDetailed, DebugComponentCreateStart);
+        MICROFLO_DEBUG(this, DebugLevelDetailed, DebugComponentCreateStart);
         Component *c = Component::create(id);
-        MICROFLO_DEBUG(network, DebugLevelDetailed, DebugComponentCreateEnd);
+        MICROFLO_DEBUG(this, DebugLevelDetailed, DebugComponentCreateEnd);
         network->addNode(c, parentId);
     } else if (cmd == GraphCmdConnectNodes) {
         // FIXME: validate
-        MICROFLO_DEBUG(network, DebugLevelDetailed, DebugConnectNodesStart);
+        MICROFLO_DEBUG(this, DebugLevelDetailed, DebugConnectNodesStart);
         const int src = (unsigned int)buffer[1];
         const int target = (unsigned int)buffer[2];
         const int srcPort = (unsigned int)buffer[3];
@@ -204,7 +207,7 @@ void HostCommunication::parseCmd() {
             const bool b = !(buffer[4] == 0);
             network->sendMessage(target, targetPort, Packet(b));
         } else {
-            MICROFLO_DEBUG(network, DebugLevelError, DebugParserUnknownPacketType);
+            MICROFLO_DEBUG(this, DebugLevelError, DebugParserUnknownPacketType);
         }
 
     } else if (cmd == GraphCmdConfigureDebug) {
@@ -227,19 +230,16 @@ void HostCommunication::parseCmd() {
         network->connectSubgraph(isOutput, subgraphNode, subgraphPort, childNode, childPort);
 
     } else if (cmd >= GraphCmdInvalid) {
-        if (memcmp(buffer, MICROFLO_GRAPH_MAGIC, sizeof(MICROFLO_GRAPH_MAGIC)) != 0) {
-            MICROFLO_DEBUG(network, DebugLevelError, DebugParserInvalidCommand);
-        }
+        MICROFLO_ASSERT(memcmp(buffer, MICROFLO_GRAPH_MAGIC, sizeof(MICROFLO_GRAPH_MAGIC)) == 0,
+                        this, DebugLevelError, DebugParserInvalidCommand);
     } else {
-        MICROFLO_DEBUG(network, DebugLevelError, DebugParserUnknownCommand);
+        MICROFLO_DEBUG(this, DebugLevelError, DebugParserUnknownCommand);
     }
 }
 
 void Component::send(Packet out, MicroFlo::PortId port) {
-    if (port >= nPorts) {
-        MICROFLO_DEBUG(network, DebugLevelError, DebugComponentSendInvalidPort);
-        return;
-    }
+    MICROFLO_RETURN_IF_FAIL(port < nPorts,
+                            network->notificationHandler, DebugLevelError, DebugComponentSendInvalidPort);
 
     if (connections[port].target && connections[port].targetPort >= 0) {
         network->sendMessage(connections[port].target, connections[port].targetPort, out,
@@ -271,7 +271,6 @@ Network::Network(IO *io)
     , notificationHandler(0)
     , io(io)
     , state(Stopped)
-    , debugLevel(DebugLevelError)
 {
     for (int i=0; i<MICROFLO_MAX_NODES; i++) {
         nodes[i] = 0;
@@ -359,10 +358,8 @@ void Network::sendMessage(Component *target, MicroFlo::PortId targetPort, const 
 }
 
 void Network::sendMessage(MicroFlo::NodeId targetId, MicroFlo::PortId targetPort, const Packet &pkg) {
-    if (!MICROFLO_VALID_NODEID(targetId)) {
-        MICROFLO_DEBUG(this, DebugLevelError, DebugSendMessageInvalidNode);
-        return;
-    }
+    MICROFLO_RETURN_IF_FAIL(MICROFLO_VALID_NODEID(targetId),
+                            notificationHandler, DebugLevelError, DebugSendMessageInvalidNode);
 
     sendMessage(nodes[targetId], targetPort, pkg);
 }
@@ -400,10 +397,8 @@ void Network::runTick() {
 
 void Network::connect(MicroFlo::NodeId srcId, MicroFlo::PortId srcPort,
                       MicroFlo::NodeId targetId,MicroFlo::PortId targetPort) {
-    if (!MICROFLO_VALID_NODEID(srcId) || !MICROFLO_VALID_NODEID(targetId)) {
-        MICROFLO_DEBUG(this, DebugLevelError, DebugNetworkConnectInvalidNodes);
-        return;
-    }
+    MICROFLO_RETURN_IF_FAIL(MICROFLO_VALID_NODEID(srcId) && MICROFLO_VALID_NODEID(targetId),
+                            notificationHandler, DebugLevelError, DebugNetworkConnectInvalidNodes);
 
     connect(nodes[srcId], srcPort, nodes[targetId], targetPort);
 }
@@ -417,14 +412,11 @@ void Network::connect(Component *src, MicroFlo::PortId srcPort,
 }
 
 MicroFlo::NodeId Network::addNode(Component *node, MicroFlo::NodeId parentId) {
-    if (!node) {
-        MICROFLO_DEBUG(this, DebugLevelError, DebugAddNodeInvalidInstance);
-        return 0;
-    }
-    if (parentId > lastAddedNodeIndex) {
-        MICROFLO_DEBUG(this, DebugLevelError, DebugAddNodeInvalidParent);
-        return 0;
-    }
+    MICROFLO_RETURN_VAL_IF_FAIL(node, 0,
+                                notificationHandler, DebugLevelError, DebugAddNodeInvalidInstance);
+
+    MICROFLO_RETURN_VAL_IF_FAIL(parentId <= lastAddedNodeIndex, 0,
+                                notificationHandler, DebugLevelError, DebugAddNodeInvalidParent);
 
     const int nodeId = lastAddedNodeIndex;
     nodes[nodeId] = node;
@@ -465,26 +457,15 @@ void Network::start() {
     runSetup();
 }
 
-void Network::emitDebug(DebugLevel level, DebugId id) {
-    if (level <= debugLevel) {
-        if (notificationHandler) {
-            notificationHandler->emitDebug(level, id);
-        }
-    }
-}
-
 void Network::setDebugLevel(DebugLevel level) {
-    debugLevel = level;
     if (notificationHandler) {
-        notificationHandler->debugChanged(debugLevel);
+        notificationHandler->debugChanged(level);
     }
 }
 
 void Network::subscribeToPort(MicroFlo::NodeId nodeId, MicroFlo::PortId portId, bool enable) {
-    if (!MICROFLO_VALID_NODEID(nodeId)) {
-        MICROFLO_DEBUG(this, DebugLevelError, DebugSubscribePortInvalidNode);
-        return;
-    }
+    MICROFLO_RETURN_IF_FAIL(MICROFLO_VALID_NODEID(nodeId),
+                            notificationHandler, DebugLevelError, DebugSubscribePortInvalidNode);
 
     Component *c = nodes[nodeId];
     if (portId >= c->nPorts) {
@@ -502,17 +483,13 @@ void Network::connectSubgraph(bool isOutput,
                               MicroFlo::NodeId subgraphNode, MicroFlo::PortId subgraphPort,
                               MicroFlo::NodeId childNode, MicroFlo::PortId childPort) {
 
-    if (!MICROFLO_VALID_NODEID(subgraphNode) || !MICROFLO_VALID_NODEID(childNode)) {
-        MICROFLO_DEBUG(this, DebugLevelError, DebugSubGraphConnectInvalidNodes);
-        return;
-    }
+    MICROFLO_RETURN_IF_FAIL(MICROFLO_VALID_NODEID(subgraphNode) && MICROFLO_VALID_NODEID(childNode),
+                    notificationHandler, DebugLevelError, DebugSubGraphConnectInvalidNodes);
 
     Component *comp = nodes[subgraphNode];
     Component *child = nodes[childNode];
-    if (comp->component() != IdSubGraph || child->parentNodeId < Network::firstNodeId) {
-        MICROFLO_DEBUG(this, DebugLevelError, DebugSubGraphConnectNotASubgraph);
-        return;
-    }
+    MICROFLO_ASSERT(comp->component() == IdSubGraph && child->parentNodeId >= Network::firstNodeId,
+                    notificationHandler, DebugLevelError, DebugSubGraphConnectNotASubgraph);
 
     SubGraph *subgraph = (SubGraph *)comp;
     if (isOutput) {
@@ -582,7 +559,7 @@ void HostCommunication::packetSent(int index, Message m, Component *src, MicroFl
         } else {
             // FIXME: support all types
             transport->padCommandWithNArguments(5); // finish command before sending debug
-            MICROFLO_DEBUG(network, DebugLevelError, DebugNotImplemented);
+            MICROFLO_DEBUG(this, DebugLevelError, DebugNotImplemented);
         }
     } else {
         transport->padCommandWithNArguments(5);
@@ -597,10 +574,12 @@ void HostCommunication::packetDelivered(int index, Message m) {
 }
 
 void HostCommunication::emitDebug(DebugLevel level, DebugId id) {
-    transport->sendCommandByte(GraphCmdDebugMessage);
-    transport->sendCommandByte(level);
-    transport->sendCommandByte(id);
-    transport->padCommandWithNArguments(2);
+    if (level <= debugLevel) {
+        transport->sendCommandByte(GraphCmdDebugMessage);
+        transport->sendCommandByte(level);
+        transport->sendCommandByte(id);
+        transport->padCommandWithNArguments(2);
+    }
 }
 
 void HostCommunication::debugChanged(DebugLevel level) {
@@ -685,7 +664,6 @@ void SubGraph::connectOutport(MicroFlo::PortId outPort, Component *child, MicroF
 }
 
 void SubGraph::process(Packet in, MicroFlo::PortId port) {
-    if (port >= 0) {
-        MICROFLO_DEBUG(network, DebugLevelError, DebugSubGraphReceivedNormalMessage);
-    }
+    MICROFLO_ASSERT(port < 0,
+                    network->notificationHandler,DebugLevelError, DebugSubGraphReceivedNormalMessage);
 }

@@ -78,7 +78,6 @@ SerialHostTransport transport(serialPort, serialBaudrate);
 void setup()
 {
     transport.setup(&io, &controller);
-    network.emitDebug(DebugLevelInfo, DebugProgramStart);
     controller.setup(&network, &transport);
 
 #ifdef MICROFLO_EMBED_GRAPH
