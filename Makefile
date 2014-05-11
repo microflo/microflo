@@ -27,6 +27,10 @@ ifndef NO_DEBUG
 DEFINES+="-DMICROFLO_ENABLE_DEBUG"
 endif
 
+ifndef NO_SUBGRAPHS
+DEFINES+="-DMICROFLO_ENABLE_SUBGRAPHS"
+endif
+
 ifdef LIBRARY
 LIBRARYOPTION=--library=microflo/components/$(LIBRARY).json
 endif

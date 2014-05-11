@@ -155,6 +155,7 @@ void HostCommunication::parseCmd() {
     } else if (cmd == GraphCmdSubscribeToPort) {
         network->subscribeToPort(buffer[1], buffer[2], (bool)buffer[3]);
     } else if (cmd == GraphCmdConnectSubgraphPort) {
+#ifdef MICROFLO_ENABLE_SUBGRAPHS
         // FIXME: validate
         const bool isOutput = (unsigned int)buffer[1];
         const int subgraphNode = (unsigned int)buffer[2];
@@ -162,7 +163,9 @@ void HostCommunication::parseCmd() {
         const int childNode = (unsigned int)buffer[4];
         const int childPort = (unsigned int)buffer[5];
         network->connectSubgraph(isOutput, subgraphNode, subgraphPort, childNode, childPort);
-
+#else
+        MICROFLO_DEBUG(this, DebugLevelError, DebugNotSupported);
+#endif
     } else if (cmd >= GraphCmdInvalid) {
         MICROFLO_ASSERT(memcmp(buffer, MICROFLO_GRAPH_MAGIC, sizeof(MICROFLO_GRAPH_MAGIC)) == 0,
                         this, DebugLevelError, DebugParserInvalidCommand);
@@ -261,6 +264,7 @@ void Network::sendMessage(Component *target, MicroFlo::PortId targetPort, const 
     }
     const MicroFlo::MessageId msgIndex = messageWriteIndex++;
 
+#ifdef MICROFLO_ENABLE_SUBGRAPHS
     const bool senderIsChild = sender && sender->parentNodeId >= Network::firstNodeId;
     if (senderIsChild) {
         SubGraph *parent = (SubGraph *)nodes[sender->parentNodeId];
@@ -280,6 +284,7 @@ void Network::sendMessage(Component *target, MicroFlo::PortId targetPort, const 
         target = targetSubGraph->inputConnections[targetPort].target;
         targetPort = targetSubGraph->inputConnections[targetPort].targetPort;
     }
+#endif
 
     Message &msg = messages[msgIndex];
     msg.target = target;
@@ -417,6 +422,7 @@ void Network::subscribeToPort(MicroFlo::NodeId nodeId, MicroFlo::PortId portId, 
 void Network::connectSubgraph(bool isOutput,
                               MicroFlo::NodeId subgraphNode, MicroFlo::PortId subgraphPort,
                               MicroFlo::NodeId childNode, MicroFlo::PortId childPort) {
+#ifdef MICROFLO_ENABLE_SUBGRAPHS
 
     MICROFLO_RETURN_IF_FAIL(MICROFLO_VALID_NODEID(subgraphNode) && MICROFLO_VALID_NODEID(childNode),
                     notificationHandler, DebugLevelError, DebugSubGraphConnectInvalidNodes);
@@ -435,6 +441,9 @@ void Network::connectSubgraph(bool isOutput,
     if (notificationHandler) {
         notificationHandler->subgraphConnected(isOutput, subgraphNode, subgraphPort, childNode, childPort);
     }
+#else
+    MICROFLO_DEBUG(this, DebugLevelError, DebugNotSupported);
+#endif
 }
 
 // PERFORMANCE: sendCommandByte API seems to generate very large program code
@@ -579,6 +588,7 @@ void SerialHostTransport::sendCommandByte(uint8_t b) {
 }
 
 
+#ifdef MICROFLO_ENABLE_SUBGRAPHS
 SubGraph::SubGraph()
     : Component(outputConnections, MICROFLO_SUBGRAPH_MAXPORTS)
 {
@@ -604,3 +614,4 @@ void SubGraph::process(Packet in, MicroFlo::PortId port) {
     MICROFLO_ASSERT(port < 0,
                     network->notificationHandler,DebugLevelError, DebugSubGraphReceivedNormalMessage);
 }
+#endif

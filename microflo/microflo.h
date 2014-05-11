@@ -347,8 +347,17 @@ private:
     MicroFlo::NodeId parentNodeId; // if <0, a top-level component, else subcomponent
 };
 
+class DummyComponent : public Component {
+public:
+    DummyComponent() : Component(0, 0) {}
+    virtual void process(Packet in, MicroFlo::PortId port) {
+        MICROFLO_DEBUG(network->notificationHandler, DebugLevelError, DebugInvalidComponentUsed);
+    }
+};
+
 #define MICROFLO_SUBGRAPH_MAXPORTS 10
 
+#ifdef MICROFLO_ENABLE_SUBGRAPHS
 class SubGraph : public Component {
     friend class ::Network;
 public:
@@ -364,6 +373,9 @@ private:
     Connection inputConnections[MICROFLO_SUBGRAPH_MAXPORTS];
     Connection outputConnections[MICROFLO_SUBGRAPH_MAXPORTS];
 };
+#else
+class SubGraph : public DummyComponent {};
+#endif
 
 // PERFORMANCE: allow to disable host communication at build time to reduce progmem?
 

@@ -10,13 +10,6 @@
 
 #include "components-gen-top.hpp"
 
-class DummyComponent : public Component {
-public:
-    DummyComponent() : Component(0, 0) {}
-    virtual void process(Packet in, MicroFlo::PortId port) {
-        MICROFLO_DEBUG(network->notificationHandler, DebugLevelError, DebugInvalidComponentUsed);
-    }
-};
 class Invalid : public DummyComponent {};
 class _Max : public DummyComponent {};
 

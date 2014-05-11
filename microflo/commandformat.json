@@ -75,6 +75,7 @@
         "InvalidComponentUsed": {"id": 27},
         "IoFailure": {"id": 28},
         "DeliverMessagesInvalidMessageId": {"id": 29},
+        "NotSupported": {"id": 30},
 
         "Max": { "id": 255 }
     },
