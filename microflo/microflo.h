@@ -318,6 +318,7 @@ private:
     Connection outputConnections[MICROFLO_SUBGRAPH_MAXPORTS];
 };
 
+// PERFORMANCE: allow to disable host communication at build time to reduce progmem?
 
 // Graph format
 #include <stddef.h>

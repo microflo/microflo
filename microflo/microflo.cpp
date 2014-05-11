@@ -525,6 +525,7 @@ void Network::connectSubgraph(bool isOutput,
     }
 }
 
+// PERFORMANCE: sendCommandByte API seems to generate very large program code
 void HostCommunication::nodeAdded(Component *c, MicroFlo::NodeId parentId) {
     transport->sendCommandByte(GraphCmdNodeAdded);
     transport->sendCommandByte(c->component());
