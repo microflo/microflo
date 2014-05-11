@@ -55,8 +55,8 @@ public:
         if (port == InPorts::in) {
             if (in.isInteger() && in.asInteger() < 38) {
                 charIndex = in.asInteger();
-            } else if (in.isAscii()) {
-                const unsigned char c = in.asAscii();
+            } else if (in.isByte()) {
+                const unsigned char c = in.asByte();
                 if (c > 'A' && c <= 'Z') {
                     charIndex = 10 + c-'A';
                 }

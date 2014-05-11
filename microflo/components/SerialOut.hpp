@@ -8,8 +8,6 @@ public:
             io->SerialBegin(serialDevice, 9600);
         } else if (in.isByte()) {
             io->SerialWrite(serialDevice, in.asByte());
-        } else if (in.isAscii()) {
-            io->SerialWrite(serialDevice, in.asAscii());
         }
     }
 };

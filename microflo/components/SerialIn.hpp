@@ -9,7 +9,7 @@ public:
             io->SerialBegin(serialDevice, 9600);
         } else if (in.isTick()) {
             if (io->SerialDataAvailable(serialDevice) > 0) {
-                char c = io->SerialRead(serialDevice);
+                const unsigned char c = io->SerialRead(serialDevice);
                 send(Packet(c));
             }
         }

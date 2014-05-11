@@ -16,9 +16,6 @@
 #endif
 
 
-
-
-
 static const char MICROFLO_GRAPH_MAGIC[] = { 'u','C','/','F','l','o', '0', '1' };
 
 bool Packet::asBool() const {
@@ -30,8 +27,6 @@ bool Packet::asBool() const {
         return data.lng;
     } else if (msg == MsgFloat) {
         return data.flt;
-    } else if (msg == MsgAscii) {
-        return data.ch;
     } else {
         return false;
     }
@@ -45,8 +40,6 @@ long Packet::asInteger() const {
         return data.lng;
     } else if (msg == MsgFloat) {
         return data.flt;
-    } else if (msg == MsgAscii) {
-        return data.ch;
     } else {
         return -33;
     }
@@ -60,29 +53,13 @@ float Packet::asFloat() const {
         return data.lng;
     } else if (msg == MsgFloat) {
         return data.flt;
-    } else if (msg == MsgAscii) {
-        return data.ch;
     } else if (msg == MsgVoid) {
         return 0.0;
     } else {
         return -44.0;
     }
 }
-char Packet::asAscii() const {
-    if (msg == MsgBoolean){
-        return data.boolean;
-    } else if (msg == MsgByte) {
-        return data.byte;
-    } else if (msg == MsgInteger) {
-        return data.lng;
-    } else if (msg == MsgFloat) {
-        return data.flt;
-    } else if (msg == MsgAscii) {
-        return data.ch;
-    } else {
-        return '\0';
-    }
-}
+
 unsigned char Packet::asByte() const {
     if (msg == MsgBoolean){
         return data.boolean;
@@ -92,8 +69,6 @@ unsigned char Packet::asByte() const {
         return data.lng;
     } else if (msg == MsgFloat) {
         return data.flt;
-    } else if (msg == MsgAscii) {
-        return data.ch;
     } else {
         return 0;
     }

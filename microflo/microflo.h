@@ -94,7 +94,6 @@ class Packet {
 public:
     Packet(): msg(MsgVoid) {}
     Packet(bool b): msg(MsgBoolean) { data.boolean = b; }
-    Packet(char c): msg(MsgAscii) { data.ch = c; }
     Packet(unsigned char by): msg(MsgByte) { data.byte = by; }
     Packet(long l): msg(MsgInteger) { data.lng = l; }
     Packet(float f): msg(MsgFloat) { data.flt = f; }
@@ -114,15 +113,13 @@ public:
     bool isData() const { return isValid() && !isSpecial(); }
     bool isBool() const { return msg == MsgBoolean; }
     bool isByte() const { return msg == MsgByte; }
-    bool isAscii() const { return msg == MsgAscii; }
-    bool isInteger() const { return msg == MsgInteger; } // TODO: make into a long or long long
+    bool isInteger() const { return msg == MsgInteger; }
     bool isFloat() const { return msg == MsgFloat; }
     bool isNumber() const { return isInteger() || isFloat(); }
 
     bool asBool() const ;
     float asFloat() const ;
     long asInteger() const ;
-    char asAscii() const ;
     unsigned char asByte() const ;
 
     bool operator==(const Packet& rhs) const;

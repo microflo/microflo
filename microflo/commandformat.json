@@ -34,7 +34,6 @@
         "Void": { "id": 3,
             "description": "No data payload, can be used like a 'bang' in other flow-based systems" },
         "Byte": { "id": 4 },
-        "Ascii": { "id": 5 },
         "Boolean": { "id": 6 },
         "Integer": { "id": 7 },
         "Float": { "id": 8 },
