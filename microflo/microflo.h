@@ -28,6 +28,18 @@ const int MICROFLO_MAX_MESSAGES = MICROFLO_MESSAGE_LIMIT;
 const int MICROFLO_MAX_MESSAGES = 50;
 #endif
 
+// Default to enabled
+#ifdef MICROFLO_DISABLE_SUBGRAPHS
+#else
+#define MICROFLO_ENABLE_SUBGRAPHS
+#endif
+
+#ifdef MICROFLO_DISABLE_DEBUG
+#else
+#define MICROFLO_ENABLE_DEBUG
+#endif
+
+
 #ifdef MICROFLO_ENABLE_DEBUG
 
 #define MICROFLO_DEBUG(handler, level, code) \
