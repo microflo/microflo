@@ -28,12 +28,20 @@ const int MICROFLO_MAX_MESSAGES = MICROFLO_MESSAGE_LIMIT;
 const int MICROFLO_MAX_MESSAGES = 50;
 #endif
 
+#ifdef MICROFLO_ENABLE_DEBUG
+
 #define MICROFLO_DEBUG(handler, level, code) \
 do { \
     if (handler) { \
         handler->emitDebug(level, code); \
     } \
 } while(0)
+
+#else
+#define MICROFLO_DEBUG(handler, level, code) \
+
+#endif
+
 
 namespace MicroFlo {
     typedef uint8_t NodeId;

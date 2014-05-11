@@ -23,6 +23,10 @@ AVR_FCPU=1000000UL
 CPPFLAGS=-ffunction-sections -fdata-sections -g -Os -w
 DEFINES='-DHAVE_DALLAS_TEMPERATURE -DHAVE_ADAFRUIT_NEOPIXEL -DHAVE_ADAFRUIT_WS2801'
 
+ifndef NO_DEBUG
+DEFINES+="-DMICROFLO_ENABLE_DEBUG"
+endif
+
 ifdef LIBRARY
 LIBRARYOPTION=--library=microflo/components/$(LIBRARY).json
 endif
