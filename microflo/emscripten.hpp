@@ -123,7 +123,6 @@ void emscripten_main() {
     NullHostTransport transport;
 
     transport.setup(&io, &controller);
-    network.emitDebug(DebugLevelInfo, DebugProgramStart);
     controller.setup(&network, &transport);
     loadFromEEPROM(&controller);
 
