@@ -13,6 +13,7 @@
 
 const int MICROFLO_MAX_PORTS = 255;
 
+// Warning: may need to also adjust NodeId type
 #ifdef MICROFLO_NODE_LIMIT
 const int MICROFLO_MAX_NODES = MICROFLO_NODE_LIMIT;
 #else
@@ -20,7 +21,7 @@ const int MICROFLO_MAX_NODES = 50;
 #endif
 
 
-
+// Warning: may need to also adjust MessageId type
 #ifdef MICROFLO_MESSAGE_LIMIT
 const int MICROFLO_MAX_MESSAGES = MICROFLO_MESSAGE_LIMIT;
 #else
@@ -37,6 +38,7 @@ do { \
 namespace MicroFlo {
     typedef uint8_t NodeId;
     typedef int8_t PortId;
+    typedef uint8_t MessageId;
 #ifdef STELLARIS
     typedef long PinId;
 #else
@@ -156,15 +158,15 @@ public:
 
 private:
     void runSetup();
-    void deliverMessages(int firstIndex, int lastIndex);
+    void deliverMessages(MicroFlo::MessageId firstIndex, MicroFlo::MessageId lastIndex);
     void processMessages();
 
 private:
     Component *nodes[MICROFLO_MAX_NODES];
     MicroFlo::NodeId lastAddedNodeIndex;
     Message messages[MICROFLO_MAX_MESSAGES];
-    int messageWriteIndex;
-    int messageReadIndex;
+    MicroFlo::MessageId messageWriteIndex;
+    MicroFlo::MessageId messageReadIndex;
     NetworkNotificationHandler *notificationHandler;
     IO *io;
     State state;

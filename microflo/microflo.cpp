@@ -283,12 +283,12 @@ void Network::setNotificationHandler(NetworkNotificationHandler *handler) {
     io->debug = handler;
 }
 
-void Network::deliverMessages(int firstIndex, int lastIndex) {
+void Network::deliverMessages(MicroFlo::MessageId firstIndex, MicroFlo::MessageId lastIndex) {
         if (firstIndex > lastIndex || lastIndex > MICROFLO_MAX_MESSAGES-1 || firstIndex < 0) {
             return;
         }
 
-        for (int i=firstIndex; i<=lastIndex; i++) {
+        for (MicroFlo::MessageId i=firstIndex; i<=lastIndex; i++) {
             Component *target = messages[i].target;
             if (!target) {
                 // FIXME: this should not happen
@@ -303,8 +303,8 @@ void Network::deliverMessages(int firstIndex, int lastIndex) {
 
 void Network::processMessages() {
     // Messages may be emitted during delivery, so copy the range we intend to deliver
-    const int readIndex = messageReadIndex;
-    const int writeIndex = messageWriteIndex;
+    const MicroFlo::MessageId readIndex = messageReadIndex;
+    const MicroFlo::MessageId writeIndex = messageWriteIndex;
     if (readIndex > writeIndex) {
         deliverMessages(readIndex, MICROFLO_MAX_MESSAGES-1);
         deliverMessages(0, writeIndex-1);
@@ -325,7 +325,7 @@ void Network::sendMessage(Component *target, MicroFlo::PortId targetPort, const 
     if (messageWriteIndex > MICROFLO_MAX_MESSAGES-1) {
         messageWriteIndex = 0;
     }
-    const int msgIndex = messageWriteIndex++;
+    const MicroFlo::MessageId msgIndex = messageWriteIndex++;
 
     const bool senderIsChild = sender && sender->parentNodeId >= Network::firstNodeId;
     if (senderIsChild) {
