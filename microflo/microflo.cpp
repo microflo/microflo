@@ -304,16 +304,20 @@ void Network::sendMessage(MicroFlo::NodeId targetId, MicroFlo::PortId targetPort
     sendMessage(nodes[targetId], targetPort, pkg);
 }
 
+void Network::distributePacket(const Packet &packet, MicroFlo::PortId port) {
+
+    for (MicroFlo::NodeId i=0; i<MICROFLO_MAX_NODES; i++) {
+        if (nodes[i]) {
+            nodes[i]->process(packet, port);
+        }
+    }
+}
+
 void Network::runSetup() {
     if (state != Running) {
         return;
     }
-
-    for (int i=0; i<MICROFLO_MAX_NODES; i++) {
-        if (nodes[i]) {
-            nodes[i]->process(Packet(MsgSetup), -1);
-        }
-    }
+    distributePacket(Packet(MsgSetup), -1);
 }
 
 void Network::runTick() {
@@ -327,12 +331,7 @@ void Network::runTick() {
     processMessages();
 
     // Schedule
-    for (int i=0; i<MICROFLO_MAX_NODES; i++) {
-        Component *t = nodes[i];
-        if (t) {
-            t->process(Packet(MsgTick), -1);
-        }
-    }
+    distributePacket(Packet(MsgTick), -1);
 }
 
 void Network::connect(MicroFlo::NodeId srcId, MicroFlo::PortId srcPort,

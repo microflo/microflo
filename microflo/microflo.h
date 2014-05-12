@@ -217,6 +217,7 @@ public:
 
 private:
     void runSetup();
+    void distributePacket(const Packet &packet, MicroFlo::PortId port);
     void deliverMessages(MicroFlo::MessageId firstIndex, MicroFlo::MessageId lastIndex);
     void processMessages();
 
