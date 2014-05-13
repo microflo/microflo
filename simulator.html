@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>MicroFlo Simulator test</title>
+
+    <script src="build/browser/sha1.js"></script>
+    <script src="build/browser/http.js"></script>
+    <script src="build/browser/uuid.js"></script>
+    <script src="build/browser/microflo.js"></script>
+    <script src="build/emscripten/microflo-runtime.js"></script>
+    <script src="simulator/main.js"></script>
+
+    <link rel="stylesheet" href="simulator/style.css">
+  </head>
+
+  <body>
+    <div id="main">
+
+        <div id="simulator">
+            <object id="controller" type="image/svg+xml" data="simulator/assets/controller_arduino_uno_r3.svg">No SVG support!</object>
+        </div>
+
+    </div>
+  </body>
+</html>

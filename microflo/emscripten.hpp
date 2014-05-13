@@ -114,26 +114,37 @@ public:
     }
 };
 
+class EmscriptenRuntime {
 
-void emscripten_main() {
+public:
+    EmscriptenRuntime()
+        : network(&io)
+    {
+        transport.setup(&io, &controller);
+        controller.setup(&network, &transport);
 
-    EmscriptenIO io;
-    Network network(&io);
-    HostCommunication controller;
-    NullHostTransport transport;
+        loadFromEEPROM(&controller); // TEMP
+    }
 
-    transport.setup(&io, &controller);
-    controller.setup(&network, &transport);
-    loadFromEEPROM(&controller);
-
-    for (int i=0; i<50; i++) {
+    void runIteration() {
         transport.runTick();
         network.runTick();
         io.timeMs += 100; // Fast-forward time
     }
-}
 
-int main(void) {
-    emscripten_main();
-    return 0;
+private:
+    EmscriptenIO io;
+    Network network;
+    HostCommunication controller;
+    NullHostTransport transport;
+};
+
+#include <emscripten/bind.h>
+using namespace emscripten;
+
+EMSCRIPTEN_BINDINGS(my_class_example) {
+    class_<EmscriptenRuntime>("Runtime")
+        .constructor()
+        .function("runIteration", &EmscriptenRuntime::runIteration)
+        ;
 }
