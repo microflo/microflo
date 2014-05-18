@@ -742,3 +742,9 @@ Other notable dataflow programming environments
 * http://en.wikipedia.org/wiki/Reaktor (audio, non-free)
 * http://en.wikipedia.org/wiki/Quartz_Composer (graphics, non-free)
 
+Visions on programming
+========
+
+* http://www.lighttable.com/2014/05/16/pain-we-forgot/
+
+
