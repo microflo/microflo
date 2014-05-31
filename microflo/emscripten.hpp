@@ -143,7 +143,7 @@ private:
 using namespace emscripten;
 
 EMSCRIPTEN_BINDINGS(my_class_example) {
-    class_<EmscriptenRuntime>("Runtime")
+    class_<EmscriptenRuntime>("MicroFloRuntime")
         .constructor()
         .function("runIteration", &EmscriptenRuntime::runIteration)
         ;
