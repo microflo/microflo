@@ -115,7 +115,7 @@ build-emscripten: update-defs
 	rm -rf build/emscripten
 	mkdir -p build/emscripten
 	node microflo.js generate $(GRAPH) build/emscripten/main.cpp emscripten
-	cd build/emscripten && emcc --bind -o microflo-runtime.html main.cpp -I../../microflo -Wall
+	cd build/emscripten && EMCC_FAST_COMPILER=0 emcc --bind -o microflo-runtime.html main.cpp -I../../microflo -Wall -s NO_DYNAMIC_EXECUTION=1
 
 build: build-arduino build-avr
 
