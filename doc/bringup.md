@@ -19,6 +19,12 @@ Optionally, you may want to add
 
 In the future, one may also include UI components for the interactive simulator.
 
+Supported and planned devices
+----------------
+See [platform wishlist](https://github.com/jonnor/microflo/issues/24).
+Feel free to share your wishes and plans there.
+
+
 Getting started
 ---------------
 MicroFlo hardware support is in the main git repository. [README](../README.md).
