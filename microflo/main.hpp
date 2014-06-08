@@ -114,21 +114,21 @@ void operator delete(void * p)
 
 // TODO: move into a HAVE_CXX_HANDLERS define
 #ifndef TOOLCHAIN_GCC_ARM
-#ifndef ARDUINO
 #ifndef LINUX
 // http://www.avrfreaks.net/index.php?name=PNphpBB2&file=printview&t=59453
 extern "C"
 {
 
     void *__dso_handle = NULL;
+#ifndef ARDUINO
     void __cxa_pure_virtual() {
         while (1);
     }
+#endif
     void __cxa_atexit() {
         ;
     }
 }
-#endif
 #endif
 #endif
 
