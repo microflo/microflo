@@ -10,8 +10,11 @@
     <script src="build/browser/http.js"></script>
     <script src="build/browser/uuid.js"></script>
     <script src="build/browser/microflo.js"></script>
+    <script src="build/emscripten/microflo-runtime.js"></script>
     <script src="app/main.js"></script>
+    <script src="simulator/main.js"></script>
     <link rel="stylesheet" href="app/style.css">
+    <link rel="stylesheet" href="simulator/style.css">
   </head>
 
   <body>
@@ -34,6 +37,11 @@
             <input type="button" id="runButton" value="Run">
             <p id="runtimeStatus" class="input">Stopped</p>
         </div>
+
+        <div id="simulator">
+            <object id="controller" type="image/svg+xml" data="simulator/assets/controller_arduino_uno_r3.svg">No SVG support!</object>
+        </div>
+
     </form>
 
     </div>

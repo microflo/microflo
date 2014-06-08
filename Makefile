@@ -48,6 +48,8 @@ ifdef ARDUINO
 INOOPTIONS+=--arduino-dist=$(ARDUINO)
 endif
 
+EMSCRIPTEN_EXPORTS='["_emscripten_runtime_new", "_emscripten_runtime_free", "_emscripten_runtime_run"]'
+
 # Platform specifics
 ifeq ($(OS),Windows_NT)
 	# TODO, test and fix
@@ -118,7 +120,7 @@ build-emscripten: update-defs
 	rm -rf build/emscripten
 	mkdir -p build/emscripten
 	node microflo.js generate $(GRAPH) build/emscripten/main.cpp emscripten
-	cd build/emscripten && EMCC_FAST_COMPILER=0 emcc --bind -o microflo-runtime.html main.cpp -I../../microflo -Wall -s NO_DYNAMIC_EXECUTION=1
+	cd build/emscripten && EMCC_FAST_COMPILER=0 emcc -o microflo-runtime.html main.cpp -I../../microflo -Wall -s NO_DYNAMIC_EXECUTION=1 -s EXPORTED_FUNCTIONS=$(EMSCRIPTEN_EXPORTS)
 
 build: build-arduino build-avr
 

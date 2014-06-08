@@ -28,9 +28,9 @@ var onLoad = function() {
     var microflo = require('microflo');
 
     // From Emscripten
-    var runtime = new Module.MicroFloRuntime();
+    var runtime = Module['_emscripten_runtime_new']();
     setInterval(function() {
-        runtime.runIteration();
+        Module['_emscripten_runtime_run'](runtime);
     }, 100);
 }
 

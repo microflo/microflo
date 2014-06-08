@@ -41,7 +41,7 @@ void print_foo(int ignored) {
 }
 
 extern "C" {
-    void emscripten_main();
+
 }
 
 class EmscriptenIO : public IO {
@@ -139,12 +139,18 @@ private:
     NullHostTransport transport;
 };
 
-#include <emscripten/bind.h>
-using namespace emscripten;
+extern "C" {
 
-EMSCRIPTEN_BINDINGS(my_class_example) {
-    class_<EmscriptenRuntime>("MicroFloRuntime")
-        .constructor()
-        .function("runIteration", &EmscriptenRuntime::runIteration)
-        ;
+EmscriptenRuntime *emscripten_runtime_new() {
+    return new EmscriptenRuntime;
+}
+
+void emscripten_runtime_free(EmscriptenRuntime *self) {
+    delete self;
+}
+
+void emscripten_runtime_run(EmscriptenRuntime *self) {
+    self->runIteration();
+}
+
 }
