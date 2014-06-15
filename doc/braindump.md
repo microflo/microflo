@@ -721,9 +721,12 @@ A blinking sequence at start(+stop?) on robot acts as a "clapper" for syncronizi
 As the robot moves around, move a corresponding 3d-model around in the virtual world in IDE.
 Visualize sensor information from robot in this world, including line/edge detection and opponent location
 Also visualize intended motion vectors based on robot motor control output.
+Could also allow a robot first-person-view, based on its actual sensory knowledge overlayed with the
+syntesized information provided by the motion tracking cameras. Could also allow manual override of
+the control over the robot, such that one can navigate around to explore behavior of sensing systems.
 
 Data collection, storage and processing done on dedicated embedded Linux box. Intel NUC or generic PC.
-Web APIs and interface allows access to the system.
+Web APIs and interface allows access to the system. 
 
 IDE tools
 ----------
