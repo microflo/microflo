@@ -737,6 +737,22 @@ IDE tools
 
 Further ideas
 ------------
+End-to-end automated tests:
+
+By exposing the camera tracking system, as well as manual control of both robot-under-test
+and an opponent robot, one could write tests of the entire software+hardware system.
+For instance in BDD style:
+* When robot is facing opponent straight on, opponent is detected and attacked
+* When robot is near line on left/right side, turn right/left to avoid
+The tests would actually move the robots into desired position/orientation to set up the scenario,
+let it play out and verify that correct results occurred. One can start with very basic cases,
+and then progress to trickier/edgier cases. Should probably be data-driven to allow to easily add variation to cases.
+Cases where the opponent is active during scenarion probably the most advanced, can potentially
+test actual battle scenarios being played out:
+* When pushed from the front-right side, spin clockwise
+Might also want to run tests where a set of invariants are verified periodically, like:
+* When opponent moves around, robot is always facing it
+
 Augmented reality projection:
 
 By using a projector mounted together with the cameras, the sensor information and processed
@@ -754,7 +770,8 @@ Or, run a simultan run at both locations - where have to win in both places for 
 Evolutionary development of fighting algorithm:
 
 Automate determination of which robot wins round, and pick-up-and-return-to-start hardware.
-If 30 seconds per generation, can iterate ~2500 times per day.
+For each generation, evolve the software, run a set of fights for, determine fitness
+If 300 seconds per generation (10 fights), can iterate ~250 times per day.
 
 
 
