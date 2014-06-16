@@ -774,9 +774,17 @@ For each generation, evolve the software, run a set of fights for, determine fit
 If 300 seconds per generation (10 fights), can iterate ~250 times per day.
 
 
+Implementation
+---------------
+Can use blob or Houghcircles from OpenCV to track IR points.
+* http://www.keithlantz.net/2011/04/using-opencv-to-process-images-for-blob-detection-with-sdl-and-opengl-for-rendering/
+* http://docs.opencv.org/modules/features2d/doc/common_interfaces_of_feature_detectors.html#simpleblobdetector
+* https://code.google.com/p/touchlib/
+TODO: figure out how to calculate orientation.
+
 
 Related tools,project,links
--------------------------------
+============================
 
 Flow-based/dataflow concepts
 
