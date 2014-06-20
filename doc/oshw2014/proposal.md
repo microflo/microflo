@@ -1,6 +1,6 @@
 * [Open Hardware Summit 2014](http://2014.oshwa.org)
 * September the 30th and October the 1st in Rome, Italy
-* Proposal delivered
+* Proposal accepted
 
 
 Death to Black Boxes: lets make introspectable devices
