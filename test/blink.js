@@ -6,6 +6,11 @@
 var assert = require("assert")
 var microflo = require("../lib/microflo");
 
+if (!microflo.simulator.RuntimeSimulator) {
+    console.log("Skipping tests needing simulator");
+    return;
+}
+
 // TODO: get rid of boilerplate. Use noflo-test + should,
 // instantiate simulator, load graph automatically?
 // TODO: also test that there are no side-effects of program,
