@@ -441,14 +441,19 @@
             },
             "inPorts": {}
         },
-
+        
+        "ForwardIf": { "id": 55,
+            "description": "Forward a packet only if it contains a Boolean 'true' value."
+        },
 
         "SubGraph": { "id": 100,
             "description": "Not for normal use. Used internally for handling subgraphs",
             "inPorts": {},
             "outPorts": {}
         },
-
+        
         "_Max": { "id": 255, ".skip": true }
+        
+        
     }
 }
