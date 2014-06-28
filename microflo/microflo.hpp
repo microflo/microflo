@@ -4,5 +4,7 @@
  */
 
 #include "microflo.h"
+#ifndef ARDUINO
 #include "microflo.cpp"
+#endif
 #include "components.hpp"
