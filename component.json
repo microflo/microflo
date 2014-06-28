@@ -24,7 +24,9 @@
     "lib/serial.js",
     "lib/runtime.js",
     "lib/simulator.js",
-    "lib/microflo.js"
+    "lib/microflo.js",
+    "microflo/components.json",
+    "microflo/commandformat.json"
   ],
   "json": [
     "component.json",
