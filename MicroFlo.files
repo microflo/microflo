@@ -116,3 +116,4 @@ microflo/components/null.json
 microflo/components/PseudoPwmWrite.hpp
 simulator/main.js
 simulator.html
+microflo/components/BoolToInt.hpp

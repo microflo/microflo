@@ -28,6 +28,7 @@
         "Split",
         "SubGraph",
         "Timer",
-        "ToggleBoolean"
+        "ToggleBoolean",
+        "BoolToInt"
     ]
 }
