@@ -97,7 +97,7 @@ For a list of models, use
 To see existing or add new components, check the files
 
 * [./microflo/components.json](./microflo/components.json)
-* [./microflo/components.cpp](./microflo/components.cpp)
+* [./microflo/components/](./microflo/components)
 
 To see existing or add microcontroller targets, see
 
