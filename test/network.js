@@ -6,10 +6,16 @@
 var assert = require("assert")
 var microflo = require("../lib/microflo");
 
+if (microflo.simulator.RuntimeSimulator) {
+    describeIfHasSimulator = describe
+} else {
+    describeIfHasSimulator = describe.skip
+}
+
 var componentLib = new microflo.componentlib.ComponentLibrary();
 var fbp = require("fbp");
 
-describe('Network', function(){
+describeIfHasSimulator('Network', function(){
   describe('sending packets into graph of Forward components', function(){
     it('should give the same packets out on other side', function(){
 

@@ -263,6 +263,10 @@
             }
         },
 
+        "BoolToInt": { "id": 32,
+            "description": "Convert boolean input to integer. true->1, false->0"
+        },
+
         "ArduinoUno": { "id": 50,
             "description": "Convenient definition of pins available on Arduino Uno",
             "outPorts": {
