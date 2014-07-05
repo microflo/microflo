@@ -161,20 +161,17 @@ release-mbed: build-mbed
 release-linux: build-linux
     # TODO: package?
 
-release-app:
-	grunt build
-
 release-stellaris: build-stellaris
     # TODO: package?
 
 release-emscripten: build-emscripten
     # TODO: package?
 
-release: update-defs build release-mbed release-linux release-microflo release-arduino release-stellaris release-app release-emscripten
+release: update-defs build release-mbed release-linux release-microflo release-arduino release-stellaris release-emscripten
 	rm -rf build/microflo-$(VERSION)
 	mkdir -p build/microflo-$(VERSION)
 	cp -r build/microflo-arduino.zip build/microflo-$(VERSION)/
-	cp -r build/microflo-app build/microflo-$(VERSION)/
+	cp README.release.txt build/microflo-$(VERSION)/README.txt
     # FIXME: copy in a README/HTML pointing to Flowhub app, and instructions to flash device
 	cd build && zip -q --symlinks -r microflo-$(VERSION).zip microflo-$(VERSION)
 
