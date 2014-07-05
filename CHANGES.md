@@ -1,3 +1,18 @@
+MicroFlo 0.3.2
+===========================
+Released: July 5, 2014
+
+Removed MicroFlo Chrome app in favor of integrated MicroFlo serial support
+in NoFlo UI. A release of NoFlo UI is bundled with this release.
+
+
+MicroFlo 0.3.1
+===========================
+Released: June 30, 2014
+
+TODO: document
+
+
 MicroFlo 0.3.0: "Node in a Node, to infinity"
 ===========================
 Released: May 8, 2014
