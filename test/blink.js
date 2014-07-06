@@ -15,7 +15,7 @@ if (!microflo.simulator.RuntimeSimulator) {
 // instantiate simulator, load graph automatically?
 // TODO: also test that there are no side-effects of program,
 // and that output does not fire before it's time
-describe('a Blink program', function(){
+describe.skip('a Blink program', function(){
     var simulator = new microflo.simulator.RuntimeSimulator();
     var prog = "\
             timer(Timer) OUT -> IN toggle(ToggleBoolean)\

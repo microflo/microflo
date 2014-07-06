@@ -53,7 +53,7 @@ ifdef ARDUINO
 INOOPTIONS+=--arduino-dist=$(ARDUINO)
 endif
 
-EMSCRIPTEN_EXPORTS='["_emscripten_runtime_new", "_emscripten_runtime_free", "_emscripten_runtime_run"]'
+EMSCRIPTEN_EXPORTS='["_emscripten_runtime_new", "_emscripten_runtime_free", "_emscripten_runtime_run", "_emscripten_runtime_send", "_emscripten_runtime_setup"]'
 
 # Platform specifics
 ifeq ($(OS),Windows_NT)
@@ -117,9 +117,6 @@ build-linux: update-defs
 	mkdir -p build/linux
 	node microflo.js generate $(LINUX_GRAPH) build/linux/main.cpp linux
 	cd build/linux && g++ -o firmware main.cpp -std=c++0x -I../../microflo -DLINUX -Wall -Werror -lrt
-
-build-gyp: update-defs
-	npm run gyp
 
 build-emscripten: update-defs
 	rm -rf build/emscripten
@@ -187,7 +184,7 @@ check-release: release
     # TODO: check npm and component.io packages
     # TODO: check arduino package by importing with ino, building
 
-check: build-gyp
+check: build-emscripten
 	npm test
 
 .PHONY: all build update-defs clean release release-microflo release-arduino check-release

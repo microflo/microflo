@@ -16,7 +16,7 @@ var componentLib = new microflo.componentlib.ComponentLibrary();
 var fbp = require("fbp");
 
 describeIfHasSimulator('Network', function(){
-  describe('sending packets into graph of Forward components', function(){
+  describe.skip('sending packets into graph of Forward components', function(){
     it('should give the same packets out on other side', function(){
 
         var compare = microflo.simulator.createCompare()
@@ -63,7 +63,7 @@ describeIfHasSimulator('Network', function(){
     })
   })
 
-  describe('sending packets through subgraph', function(){
+  describe.skip('sending packets through subgraph', function(){
     it('should give the same packets out on other side', function(){
 
         var messages = [0,1,2,3];
