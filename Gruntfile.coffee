@@ -47,6 +47,17 @@ module.exports = ->
         files:
           './build/browser/microflo.min.js': ['./build/browser/microflo.js']
 
+    # CoffeeScript build
+    coffee:
+      spec:
+        options:
+          bare: true
+        expand: true
+        cwd: 'test'
+        src: ['**.coffee']
+        dest: 'test'
+        ext: '.js'
+
     # BDD tests on Node.js
     cafemocha:
       nodejs:
@@ -118,7 +129,7 @@ module.exports = ->
 
   # Our local tasks
   @registerTask 'build', 'Build MicroFlo for the chosen target platform', (target = 'all') =>
-    #@task.run 'coffee'
+    @task.run 'coffee'
     if target is 'all' or target is 'browser'
       @task.run 'unzip'
       @task.run 'component'
@@ -130,6 +141,7 @@ module.exports = ->
       @task.run 'compress'
 
   @registerTask 'test', 'Build MicroFlo and run automated tests', (target = 'all') =>
+    @task.run 'coffee'
     if target is 'all' or target is 'nodejs'
       @task.run 'cafemocha'
     if target is 'all' or target is 'browser'

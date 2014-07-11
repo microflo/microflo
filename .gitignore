@@ -7,3 +7,4 @@ build
 *~
 *.autosave
 test/result.*
+test/*.js
