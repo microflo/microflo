@@ -70,6 +70,16 @@ var updateDefsCommand = function(env) {
     microflo.generate.updateDefinitions(componentLib, "./microflo");
 }
 
+var flashCommand = function(file, env) {
+    require('coffee-script/register');
+    var upload = require('./lib/flash.coffee');
+    var tty = env.serial;
+    var baud = parseInt(env.baudrate) || 115200;
+    upload.avrUploadHexFile(file, tty, baud, function(err, written) {
+        console.log(err, written);
+    });
+}
+
 var main = function() {
 
     componentLib = new microflo.componentlib.ComponentLibrary(null, "./microflo");
@@ -114,6 +124,13 @@ var main = function() {
         .option('-i, --ip <IP>', 'WebSocket IP')
         .option('-l, --label <PORT>', 'Label to show in UI for this runtime')
         .action(registerRuntimeCommand)
+
+    commander
+        .command('flash <FILE.hex>')
+        .description('Flash runtime onto device')
+        .option('-s, --serial <PORT>', 'which serial port to use')
+        .option('-b, --baudrate <RATE>', 'baudrate for serialport')
+        .action(flashCommand)
 
     commander.parse(process.argv)
     if (process.argv.length <= 2) {
