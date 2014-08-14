@@ -10,6 +10,7 @@ UPLOAD_DIR=/mnt
 # SERIALPORT=/dev/somecustom
 # ARDUINO=/home/user/Arduino-1.0.5
 # LIBRARY= arduino-standard|arduino-minimal
+# BAUDRATE=foo
 
 AVRSIZE=avr-size
 AVRGCC=avr-g++
@@ -41,7 +42,11 @@ endif
 INOOPTIONS=--board-model=$(MODEL)
 
 ifdef SERIALPORT
-INOUPLOADOPTIONS=--serial-port=$(SERIALPORT)
+FLASHOPTIONS=--serial=$(SERIALPORT)
+endif
+
+ifdef BAUDRATE
+FLASHOPTIONS+=--baudrate=$(BAUDRATE)
 endif
 
 ifdef ARDUINO
@@ -125,7 +130,7 @@ build-emscripten: update-defs
 build: build-arduino build-avr
 
 upload: build-arduino
-	cd build/arduino && ino upload $(INOUPLOADOPTIONS) $(INOOPTIONS)
+	node microflo.js flash build/arduino/.build/$(MODEL)/firmware.hex $(FLASHOPTIONS)
 
 upload-dfu: build-avr
 	cd build/avr && sudo $(DFUPROGRAMMER) $(AVRMODEL) erase
