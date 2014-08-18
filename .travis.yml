@@ -18,8 +18,6 @@ before_install:
 script:
     - export LLVM=/usr/lib/llvm-3.4/bin/
     - export PATH=`pwd`/emscripten/:/usr/lib/llvm-3.4/bin/:$PATH
-    - sudo ln -s `which clang++` /usr/lib/llvm-3.4/bin/clang++
-    - sudo ln -s `which clang` /usr/lib/llvm-3.4/bin/clang
     - export EMCC_FAST_COMPILER=0
     - export EMCC_DEBUG=1
     - emcc # first run, sets up config
