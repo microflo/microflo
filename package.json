@@ -25,8 +25,6 @@
     "microflo": "./microflo.js"
   },
   "scripts": {
-    "gyp": "./node_modules/.bin/node-gyp rebuild",
-    "preinstall": "echo To build Node.js addon for simulation run 'make build-gyp'",
     "start": "node microflo.js runtime",
     "test": "grunt test"
   },
