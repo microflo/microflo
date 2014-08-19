@@ -13,6 +13,7 @@
         "Ping": {"id": 18},
         "CommunicationOpen": {"id": 19},
         "StartNetwork": {"id": 20},
+        "SetIoValue": {"id": 21},
 
         "NetworkStopped": {"id": 100},
         "NodeAdded": {"id": 101},
@@ -26,6 +27,7 @@
         "Pong": {"id": 109},
         "PacketDelivered": {"id": 110},
         "TransmissionEnded": {"id": 111},
+        "IoValueChanged":  {"id": 112},
 
         "Invalid": { },
         "Max": { "id": 255 }
@@ -82,6 +84,8 @@
         "NotSupported": {"id": 30},
         "MagicMatched": {"id": 31},
         "EndOfTransmission": {"id": 32},
+        "IoInvalidValueSet": {"id": 33},
+        "UnknownIoType": {"id": 34},
 
         "Max": { "id": 255 }
     },
@@ -92,6 +96,16 @@
         "Info": {"id": 2},
         "Detailed": {"id": 3},
         "VeryDetailed": {"id": 4},
+
+        "Max": {"id": 255}
+    },
+    "ioTypes": {
+        "Invalid": {"id": 0},
+
+        "Analog": {"id": 1},
+        "Digital": {"id": 2},
+        "TimeMs": {"id": 3},
+        "PinMode": {"id": 4},
 
         "Max": {"id": 255}
     }

@@ -214,6 +214,7 @@ public:
     void runTick();
 
     void setDebugLevel(DebugLevel level);
+    void setIoValue(const uint8_t *buf, uint8_t len);
 
 private:
     void runSetup();
@@ -275,6 +276,11 @@ protected:
     DebugHandler *debug;
 public:
     virtual ~IO() {}
+
+    // Testing
+    virtual void setIoValue(const uint8_t *, uint8_t ) {
+        MICROFLO_DEBUG(debug, DebugLevelError, DebugIoOperationNotImplemented);
+    }
 
     // Serial
     virtual void SerialBegin(uint8_t serialDevice, int baudrate) = 0;

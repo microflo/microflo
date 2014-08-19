@@ -164,9 +164,51 @@ class DeviceCommunication extends EventEmitter
         args.unshift 'response'
         @emit.apply this, args
 
+
+keyFromId = (map, wantedId) ->
+    for name, val of map
+        #console.log name, val
+        id = if val.id? then  val.id else val
+        return name if  id == wantedId
+
+# Handles host part of I/O mocking/control/introspection. Mostly used for testing
+class RemoteIo extends EventEmitter
+    constructor: (comm) ->
+        @comm = comm
+        @latestState =
+            digitalOutputs: []
+            timeMs: 0
+
+        @comm.on 'IOCHANGE', (buf) => @onIoChange buf
+
+    onIoChange: (buf) ->
+        type = keyFromId commandstream.cmdFormat.ioTypes, buf.readUInt8 1
+        if type == 'Digital'
+            pin = buf.readUInt8 2
+            val = (buf.readUInt8 3) != 0
+            @latestState.digitalOutputs[pin] = val
+            @emit 'digital', @latestState.digitalOutputs
+
+        @emit 'change', @latestState
+
+    forwardTime: (increment, cb) ->
+        c = commandstream.cmdFormat
+        buffer = commandstream.Buffer c.commandSize
+        # FIXME: effective time change dependent on latency
+        commandstream.writeCmd buffer, 0, c.commands.SetIoValue.id, c.ioTypes.TimeMs.id
+        newTime = @latestState.timeMs+increment
+        buffer.writeInt32LE newTime, 2
+        # FIXME: assumtes it was set correctly
+        @latestState.timeMs = newTime
+        @comm.sendCommands buffer, cb
+
+
+
 exports.DeviceTransport = DeviceTransport
 exports.DeviceCommunication = DeviceCommunication
+exports.RemoteIo = RemoteIo
 exports.DeviceCommunicationError = DeviceCommunicationError
+
 
 
 

@@ -6,6 +6,7 @@
  */
 
 #include "microflo.h"
+#include "io-gen.h"
 
 #include <stdio.h>
 #include <unistd.h>
@@ -36,17 +37,48 @@ void operator delete(void * p) throw()
   free(p);
 }
 
+static const long readLong(const uint8_t *buf) {
+    return buf[0] + 256*buf[1] + 256*256*buf[2] + 256*256*256*buf[3];
+}
+
+static const uint8_t DIGITAL_PINS = 20;
+
 class EmscriptenIO : public IO {
 
-
-
 public:
-    long timeMs;
-
     EmscriptenIO() {
         timeMs = 0;
+        transport = 0;
+        for (uint8_t i=0; i<DIGITAL_PINS; i++) {
+            digitalInputs[i] = false;
+        }
     }
     ~EmscriptenIO() {}
+
+    void setup(HostTransport *t) {
+        transport = t;
+    }
+
+    virtual void setIoValue(const uint8_t *buf, uint8_t len) {
+        IoType type = (IoType)buf[1];
+        if (type == IoTypeAnalog) {
+            // TEMP: implement
+            MICROFLO_DEBUG(debug, DebugLevelError, DebugUnknownIoType);
+        } else if (type == IoTypeDigital) {
+            const uint8_t pin = buf[2];
+            const bool val = buf[3];
+            if (pin < DIGITAL_PINS) {
+                digitalInputs[pin] = val;
+            } else {
+                MICROFLO_DEBUG(debug, DebugLevelError, DebugIoInvalidValueSet);
+            }
+        } else if (type == IoTypeTimeMs) {
+            // Perhaps also support incrementing?
+            timeMs = readLong(buf+2);
+        } else {
+            MICROFLO_DEBUG(debug, DebugLevelError, DebugUnknownIoType);
+        }
+    }
 
     // Serial
     virtual void SerialBegin(uint8_t serialDevice, int baudrate) {
@@ -68,7 +100,8 @@ public:
     virtual void PinSetMode(MicroFlo::PinId pin, IO::PinMode mode) {
         printf("%s: timeMs=%ld, pin=%d, mode=%s\n",
                 __PRETTY_FUNCTION__, TimerCurrentMs(), pin, (mode == IO::InputPin) ? "INPUT" : "OUTPUT");
-        //MICROFLO_DEBUG(debug, DebugLevelError, DebugIoOperationNotImplemented);
+        const uint8_t b[] = { GraphCmdIoValueChanged, IoTypePinMode, pin, mode };
+        transport->sendCommand(b, sizeof(b));
     }
     virtual void PinSetPullup(MicroFlo::PinId pin, IO::PullupMode mode) {
         MICROFLO_DEBUG(debug, DebugLevelError, DebugIoOperationNotImplemented);
@@ -78,11 +111,11 @@ public:
     virtual void DigitalWrite(MicroFlo::PinId pin, bool val) {
         printf("%s: timeMs=%ld, pin=%d, value=%s\n",
                 __PRETTY_FUNCTION__, TimerCurrentMs(), pin, val ? "ON" : "OFF");
-        //MICROFLO_DEBUG(debug, DebugLevelError, DebugIoOperationNotImplemented);
+        const uint8_t b[] = { GraphCmdIoValueChanged, IoTypeDigital, pin, val };
+        transport->sendCommand(b, sizeof(b));
     }
     virtual bool DigitalRead(MicroFlo::PinId pin) {
-        MICROFLO_DEBUG(debug, DebugLevelError, DebugIoOperationNotImplemented);
-	return false;
+        return digitalInputs[pin];
     }
 
     // Analog
@@ -96,7 +129,6 @@ public:
 
     // Timer
     virtual long TimerCurrentMs() {
-        //MICROFLO_DEBUG(debug, DebugLevelError, DebugIoOperationNotImplemented);
 	    return timeMs;
     }
 
@@ -104,6 +136,12 @@ public:
                                         IOInterruptFunction func, void *user) {
         MICROFLO_DEBUG(debug, DebugLevelError, DebugIoOperationNotImplemented);
     }
+
+public:
+    long timeMs;
+private:
+    bool digitalInputs[DIGITAL_PINS];
+    HostTransport *transport; // for sending I/O values across
 };
 
 
@@ -166,6 +204,7 @@ public:
     void setup() {
         transport.setup(&io, &controller);
         controller.setup(&network, &transport);
+        io.setup(&transport);
 
         loadFromEEPROM(&controller); // TEMP
     }

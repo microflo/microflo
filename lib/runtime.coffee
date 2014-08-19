@@ -92,7 +92,7 @@ printReceived = ->
     console.log args.join(", ")
     return
 
-uploadGraph = (transport, data, graph, receiveHandler, onlyRegisterHandler) ->
+uploadGraph = (transport, data, graph, receiveHandler, onlyRegisterHandler, callback) ->
     throw new Error("Use the DeviceCommunication API instead!") if onlyRegisterHandler
     handler = (if receiveHandler then receiveHandler else printReceived)
 
@@ -109,6 +109,7 @@ uploadGraph = (transport, data, graph, receiveHandler, onlyRegisterHandler) ->
         comm.sendCommands data, (err) ->
             comm.close (err) ->
                 graph.uploadInProgress = false
+                callback null if callback
 
 listComponents = (connection) ->
     for name of componentLib.getComponents()

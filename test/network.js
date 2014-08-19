@@ -113,7 +113,9 @@ describeIfHasSimulator('Network', function(){
         var actualResponses = 0;
         // TODO: API should allow to get callback when everything is completed
         var handleFunc = function() {
-            actualResponses++;
+            if (arguments[0] != 'IOCHANGE') {
+                actualResponses++;
+            }
             if (arguments[0] === "NETSTART") {
                 chai.expect(actualResponses).to.equal(expectedResponses);
                 finish();

@@ -122,3 +122,5 @@ test/release.md
 test/generate.js
 test/communication.coffee
 lib/runtime.coffee
+lib/runtime.coffee
+lib/devicecommunication.coffee

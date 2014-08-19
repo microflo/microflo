@@ -176,6 +176,8 @@ void HostCommunication::parseCmd() {
     } else if (cmd == GraphCmdPing) {
         const uint8_t cmd[] = { GraphCmdPong, cmd[1], cmd[2], cmd[3], cmd[4], cmd[5], cmd[6], cmd[7] };
         transport->sendCommand(cmd, sizeof(cmd));
+    } else if (cmd == GraphCmdSetIoValue) {
+        network->setIoValue(buffer, MICROFLO_CMD_SIZE);
     } else if (cmd >= GraphCmdInvalid) {
         MICROFLO_ASSERT(memcmp(buffer, MICROFLO_GRAPH_MAGIC, sizeof(MICROFLO_GRAPH_MAGIC)) == 0,
                         this, DebugLevelError, DebugParserInvalidCommand);
@@ -411,6 +413,10 @@ void Network::setDebugLevel(DebugLevel level) {
     if (notificationHandler) {
         notificationHandler->debugChanged(level);
     }
+}
+
+void Network::setIoValue(const uint8_t *buf, uint8_t len) {
+    io->setIoValue(buf, len);
 }
 
 void Network::subscribeToPort(MicroFlo::NodeId nodeId, MicroFlo::PortId portId, bool enable) {
