@@ -719,7 +719,7 @@ Physical computing with JavaScript
 * http://breakoutjs.com/
 * https://github.com/jadonk/bonescript
 
-Visual programming for Arduino etc.
+Visual programming for Arduino/microcontrollers/embedded etc.
 
 * http://www.mindplus.cc/
 * http://www.modk.it/
@@ -733,6 +733,16 @@ Visual programming for Arduino etc.
 * http://microuml.net/microuml.html (non-free service)
 * http://www.3d-svs.com/3dmicro-toolkit (non-free LabVIEW addon)
 
+Modelling and meta-programming tool
+* http://www.oooneida.org/RD_projects_ODC_Environment.html
+* http://www.jetbrains.com/mps
+* http://www.eclipse.org/modeling/emf/
+* http://openembedd.org/MDE
+
+Online Arduino IDEs
+
+* https://codebender.cc/ (open source)
+* https://mbed.org/handbook/mbed-Compiler (proprietary)
 
 Other alternative Arduino programming models (RTOS, event-driven)
 
