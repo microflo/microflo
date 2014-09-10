@@ -10,9 +10,9 @@ module.exports = ->
 
     # Browser version building
     component:
-      install:
-        options:
-          action: 'install'
+      default: [ 'lib/**/*' ]
+      options:
+        out: './build/browser/'
     component_build:
       microflo:
         output: './build/browser/'
@@ -112,7 +112,7 @@ module.exports = ->
   # Grunt plugins used for building
   @loadNpmTasks 'grunt-zip'
   @loadNpmTasks 'grunt-contrib-coffee'
-  @loadNpmTasks 'grunt-component'
+  @loadNpmTasks 'grunt-component-io'
   @loadNpmTasks 'grunt-component-build'
   @loadNpmTasks 'grunt-contrib-uglify'
   @loadNpmTasks 'grunt-combine'
