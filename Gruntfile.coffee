@@ -3,11 +3,6 @@ module.exports = ->
   @initConfig
     pkg: @file.readJSON 'package.json'
 
-    unzip:
-        chromedeps:
-            src: "thirdparty/chrome-app-samples-websocket-server.zip"
-            dest: "build/browser"
-
     # Browser version building
     component:
       default: [ 'lib/**/*' ]
@@ -79,34 +74,11 @@ module.exports = ->
           reporter: 'spec'
           urls: ['http://localhost:8000/test/runner.html']
 
-    clean:
-      app:
-        src: ['build/microflo']
-
     copy:
       browserdeps:
         flatten: true
         src: ['node_modules/node-uuid/uuid.js']
         dest: 'build/browser/uuid.js'
-      apptop:
-        src: ['manifest.json', 'index.html']
-        dest: 'build/microflo-app/'
-      appdir:
-        src: ['app/*']
-        dest: 'build/microflo-app/'
-      appdeps:
-        src: ['build/browser/*']
-        dest: 'build/microflo-app/'
-
-    compress:
-      app:
-        options:
-          archive: 'build/microflo-app-<%= pkg.version %>.zip'
-        files: [
-          expand: true
-          cwd: 'build/microflo'
-          src: ['**/*']
-        ]
 
 
   # Grunt plugins used for building
@@ -131,21 +103,17 @@ module.exports = ->
   @registerTask 'build', 'Build MicroFlo for the chosen target platform', (target = 'all') =>
     @task.run 'coffee'
     if target is 'all' or target is 'browser'
-      @task.run 'unzip'
       @task.run 'component'
       @task.run 'component_build'
       @task.run 'combine'
       @task.run 'uglify'
-      @task.run 'clean'
       @task.run 'copy'
-      @task.run 'compress'
 
   @registerTask 'test', 'Build MicroFlo and run automated tests', (target = 'all') =>
     @task.run 'coffee'
     if target is 'all' or target is 'nodejs'
       @task.run 'cafemocha'
     if target is 'all' or target is 'browser'
-      @task.run 'unzip'
       @task.run 'connect'
       @task.run 'component'
       @task.run 'component_build'
