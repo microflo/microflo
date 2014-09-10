@@ -30,13 +30,6 @@ You will in the process also get a working plain Arduino environment.
   following the [official guide](http://arduino.cc/en/Guide/HomePage)
 2. Install [Google Chrome](https://www.google.com/chrome) or Chromium
 
-
-Start Flowhub 
-----------------
-
-The IDE used for MicroFlo is Flowhub, please complete the first step
-in the [setup instructions](http://flowhub.io/documentation/getting-started-microflo) before continuing.
-
 Download MicroFlo
 -----------------
 
@@ -66,24 +59,6 @@ Your Arduino should now have a blinking LED, blinking around 2 times per second.
 This is the default MicroFlo program that is embedded in the firmware.
 New programs can now be uploaded using MicroFlo.
 
-Install & run the MicroFlo app
----------------------------
-
-Open Chrome and go to Menu -> Tools -> [Extensions](chrome://extensions)
-
-* Enable developer mode
-* Click "Load unpacked extension", select the microflo-app directory from where you downloaded MicroFlo
-
-You should now see "MicroFlo" listed in your extensions, and in your Chrome [apps](chrome://apps).
-Click it to open the app.
-
-* Paste in your Flowhub user identifier in the top field.
-* Select the correct serial port and baudrate.
-* Click "Run"
-
-If you go back to Flowhub now, and refresh your runtimes you should see "MicroFlo" listed.
-
-
 Program with Flowhub
 ----------------
 
@@ -111,3 +86,9 @@ In the future, this functionality be offered directly through the UI
 It will also become easier to add components without changing the files of MicroFlo itself.
 
 Right now you need to use the commandline, see [README](../README.md)
+
+
+Adding support for new microcontrollers
+----------------------------------------
+
+See [./bringup.md](./bringup.md)
