@@ -41,18 +41,23 @@ var registerRuntimeCommand = function(user, env) {
     var ip = env.ip || 'auto';
     var port = parseInt(env.port) || 3569;
     var label = env.label || "MicroFlo"
+    var id = env.id || process.env['MICROFLO_RUNTIME_ID'];
 
-    console.log(env.ip);
+    if (!user) {
+        user = process.env['FLOWHUB_USER_ID'];
+    }
 
     var rt = microflo.runtime.createFlowhubRuntime(user, ip, port, label);
-    microflo.runtime.registerFlowhubRuntime(rt, function(err, ok) {
-        if (err) {
-            console.log("Could not register runtime with Flowhub", err);
-            process.exit(1);
-        } else {
-            console.log("Runtime registered with id:", rt.runtime.id);
-        }
-    });
+    if (!id) {
+        microflo.runtime.registerFlowhubRuntime(rt, function(err, ok) {
+            if (err) {
+                console.log("Could not register runtime with Flowhub", err);
+                process.exit(1);
+            } else {
+                console.log("Runtime registered with id:", rt.runtime.id);
+            }
+        });
+    }
 }
 
 var updateDefsCommand = function(env) {
@@ -118,11 +123,12 @@ var main = function() {
         .action(setupRuntimeCommand)
 
     commander
-        .command('register <USER>')
+        .command('register [USER]')
         .description('Register the runtime with Flowhub registry')
         .option('-p, --port <PORT>', 'WebSocket port')
         .option('-i, --ip <IP>', 'WebSocket IP')
         .option('-l, --label <PORT>', 'Label to show in UI for this runtime')
+        .option('-r, --id <RUNTIME-ID>', 'UUID for the runtime')
         .action(registerRuntimeCommand)
 
     commander
