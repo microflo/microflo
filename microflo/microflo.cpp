@@ -78,6 +78,9 @@ void HostCommunication::parseByte(char b) {
         if (currentByte == sizeof(MICROFLO_GRAPH_MAGIC)) {
 
             if (memcmp(buffer, MICROFLO_GRAPH_MAGIC, sizeof(MICROFLO_GRAPH_MAGIC)) == 0) {
+                MICROFLO_DEBUG(this, DebugLevelDetailed, DebugMagicMatched);
+                const uint8_t cmd[] = { GraphCmdCommunicationOpen };
+                transport->sendCommand(cmd, sizeof(cmd));
                 state = ParseCmd;
             } else {
                 MICROFLO_DEBUG(this, DebugLevelError, DebugMagicMismatch);

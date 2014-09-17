@@ -11,6 +11,7 @@
         "SubscribeToPort": {"id": 16},
         "ConnectSubgraphPort": {"id": 17},
         "Ping": {"id": 18},
+        "CommunicationOpen": {"id": 19},
 
         "NetworkStopped": {"id": 100},
         "NodeAdded": {"id": 101},
@@ -78,6 +79,7 @@
         "IoFailure": {"id": 28},
         "DeliverMessagesInvalidMessageId": {"id": 29},
         "NotSupported": {"id": 30},
+        "MagicMatched": {"id": 31},
 
         "Max": { "id": 255 }
     },
