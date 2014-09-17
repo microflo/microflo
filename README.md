@@ -94,6 +94,13 @@ For a list of models, use
 
     ino list-models
 
+Now you can use Flowhub Chrome app to talk directly to MicroFlo over serial/USB
+or use:
+
+    node microflo.js runtime
+
+Then connect to the runtime (by default at http://localhost:3569) using Flowhub. More details at the [getting started guide](http://flowhub.io/documentation/getting-started-microflo).
+
 To see existing or add new components, check the files
 
 * [./microflo/components.json](./microflo/components.json)
@@ -103,6 +110,10 @@ To see existing or add microcontroller targets, see
 
 * [./microflo/main.hpp](./microflo/main.hpp)
 * [./microflo/arduino.hpp](./microflo/arduino.hpp)
+
+Remember to rebuild MicroFlo after changes:
+
+    grunt build
 
 When you find issues: [file bugs](https://github.com/jonnor/microflo/issues)
 and/or submit [pull requests](https://github.com/jonnor/microflo/pulls)!
