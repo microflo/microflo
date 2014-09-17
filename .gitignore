@@ -8,3 +8,4 @@ build
 *.autosave
 test/result.*
 test/*.js
+lib/*.js

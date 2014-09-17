@@ -117,3 +117,8 @@ microflo/components/PseudoPwmWrite.hpp
 simulator/main.js
 simulator.html
 microflo/components/BoolToInt.hpp
+lib/devicecommunication.coffee
+test/compiler.coffee
+test/release.md
+test/generate.js
+test/communication.coffee
