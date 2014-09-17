@@ -142,7 +142,10 @@ upload-stellaris: build-stellaris
 clean:
 	git clean -dfx --exclude=node_modules
 
-update-defs:
+build-host:
+	grunt build
+
+update-defs: build-host
 	node microflo.js update-defs $(LIBRARYOPTION)
 
 release-arduino:
