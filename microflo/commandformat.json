@@ -10,6 +10,7 @@
         "ConfigureDebug": {"id": 15},
         "SubscribeToPort": {"id": 16},
         "ConnectSubgraphPort": {"id": 17},
+        "Ping": {"id": 18},
 
         "NetworkStopped": {"id": 100},
         "NodeAdded": {"id": 101},
@@ -20,6 +21,7 @@
         "DebugMessage": {"id": 106},
         "PortSubscriptionChanged": {"id": 107},
         "SubgraphPortConnected": {"id": 108},
+        "Pong": {"id": 109},
 
         "PacketDelivered": {"id": 110},
 

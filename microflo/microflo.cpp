@@ -166,6 +166,9 @@ void HostCommunication::parseCmd() {
 #else
         MICROFLO_DEBUG(this, DebugLevelError, DebugNotSupported);
 #endif
+    } else if (cmd == GraphCmdPing) {
+        const uint8_t cmd[] = { GraphCmdPong, cmd[1], cmd[2], cmd[3], cmd[4], cmd[5], cmd[6], cmd[7] };
+        transport->sendCommand(cmd, sizeof(cmd));
     } else if (cmd >= GraphCmdInvalid) {
         MICROFLO_ASSERT(memcmp(buffer, MICROFLO_GRAPH_MAGIC, sizeof(MICROFLO_GRAPH_MAGIC)) == 0,
                         this, DebugLevelError, DebugParserInvalidCommand);
