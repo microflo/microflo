@@ -34,7 +34,7 @@ Download MicroFlo
 -----------------
 
 Download the latest [MicroFlo release](https://github.com/jonnor/microflo/releases).
-It should be version 0.3.0-alpha2 or later.
+It should be version *0.4.0 or later*.
 
 Unpack the .zip file to a well-known directory.
 
@@ -57,10 +57,10 @@ Flash to device
 
 Your Arduino should now have a blinking LED, blinking around 2 times per second.
 This is the default MicroFlo program that is embedded in the firmware.
-New programs can now be uploaded using MicroFlo.
+New programs can now be created using MicroFlo.
 
 Program with Flowhub
-----------------
+------------------
 
 You should now have everything needed for programming your Arduino with Flowhub,
 [continue there](http://flowhub.io/documentation/getting-started-microflo).

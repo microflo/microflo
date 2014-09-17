@@ -1,3 +1,21 @@
+MicroFlo 0.4.0
+===========================
+Released: September 16, 2014
+
+Serial support has now been integrated in Flowhub Chrome app, starting with version 0.1.12.
+[Download](https://chrome.google.com/webstore/detail/flowhub/aacpjichompfhafnciggfpfdpfododlk)
+
+The simulator and automated tests are now using Emscripten to compile to JavaScript instead
+of the node.js C++ addon, and can run also in web browser.
+
+Several program size optimations have been made, which lets MicroFlo fit in devices with 16kB memory.
+One can now specify which component set to include using `make build LIBRARY=arduino-minimal`.
+A new `PureFunctionComponent2` component base-class simplifies implementation of components which
+are pure functions with 2 arguments.
+
+Also fixes compatibility with Flowhub version 0.2.0 due to stricter protocol handling
+(earlier MicroFlo versions will not work).
+
 MicroFlo 0.3.2
 ===========================
 Released: July 5, 2014
