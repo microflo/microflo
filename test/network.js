@@ -109,7 +109,7 @@ describeIfHasSimulator('Network', function(){
         var graph = fbp.parse("a(Forward) OUT -> IN b(Forward) OUT -> IN c(Forward)");
         var cmdstream = microflo.commandstream.cmdStreamFromGraph(componentLib, graph);
 
-        var expectedResponses = 8;
+        var expectedResponses = 9;
         var actualResponses = 0;
         // TODO: API should allow to get callback when everything is completed
         var handleFunc = function() {
