@@ -3,7 +3,7 @@
  * MicroFlo may be freely distributed under the MIT license
  */
 
-var assert = require("assert")
+var chai = require("chai")
 var microflo = require("../lib/microflo");
 
 if (microflo.simulator.RuntimeSimulator) {
@@ -53,13 +53,13 @@ describeIfHasSimulator('Network', function(){
         while (compare.expectingMore()) {
             net.runTick();
             if (new Date().getTime() > deadline) {
-                assert.fail(compare.actual.length, compare.expected.length,
+                chai.expect(compare.actual.length).to.equal(compare.expected.length,
                             "Did not get expected packages within deadline");
                 break;
             }
         }
-        assert.equal(compare.actual.length, 10);
-        assert.deepEqual(compare.actual, compare.expected);
+        chai.expect(compare.actual.length, 10);
+        chai.expect(compare.actual).to.deep.equal(compare.expected);
     })
   })
 
@@ -92,13 +92,13 @@ describeIfHasSimulator('Network', function(){
         while (compare.expectingMore()) {
             net.runTick();
             if (new Date().getTime() > deadline) {
-                assert.fail(compare.actual.length, compare.expected.length,
+                chai.expect(compare.actual.length).to.equal(compare.expected.length,
                             "Did not get expected packages within deadline");
                 break;
             }
         }
-        assert.equal(compare.actual.length, messages.length);
-        assert.deepEqual(compare.actual, compare.expected);
+        chai.expect(compare.actual.length).to.equal(messages.length);
+        chai.expect(compare.actual).to.equal(compare.expected);
     })
   })
   describe('Uploading a graph via commandstream', function(){
@@ -115,7 +115,7 @@ describeIfHasSimulator('Network', function(){
         var handleFunc = function() {
             actualResponses++;
             if (arguments[0] === "NETSTART") {
-                assert.equal(actualResponses, expectedResponses);
+                chai.expect(actualResponses).to.equal(expectedResponses);
                 finish();
             }
         }
