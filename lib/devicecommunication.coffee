@@ -3,7 +3,6 @@
 # MicroFlo may be freely distributed under the MIT license
 
 commandstream = require './commandstream'
-runtime = require './runtime'
 
 EventEmitter = require('events').EventEmitter
 
@@ -54,9 +53,10 @@ class CommandAccumulator extends EventEmitter
 class DeviceCommunication extends EventEmitter
 
     # XXX: not liking the graph access that well
-    constructor: (transport, graph) ->
+    constructor: (transport, graph, componentLib) ->
         @graph = graph
         @transport = transport
+        @componentLib = componentLib
         @accumulator = new CommandAccumulator (commandstream.cmdFormat.commandSize)
 
         @transport.on 'data', (buf) =>
@@ -124,7 +124,7 @@ class DeviceCommunication extends EventEmitter
         @transport.write buf, callback
 
     _onCommandReceived: (buf) ->
-        runtime.parseReceivedCmd buf, @graph, () =>
+        commandstream.parseReceivedCmd @componentLib, @graph, buf , () =>
             @_handleCommandReceived.apply this, arguments
 
     _handleCommandReceived: (type) ->
