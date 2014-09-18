@@ -3,8 +3,8 @@
 # MicroFlo may be freely distributed under the MIT license
 
 commandstream = require './commandstream'
-
-EventEmitter = require('events').EventEmitter
+util = require './util'
+EventEmitter = util.EventEmitter;
 
 # TODO: implement a echo command, for testing
 
