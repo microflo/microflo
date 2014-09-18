@@ -30,46 +30,36 @@ generateOutput = (componentLib, inputFile, outputFile, target) ->
     outputDir = path.dirname(outputBase)
     fs.mkdirSync outputDir    unless fs.existsSync(outputDir)
     loadFile inputFile, (err, def) ->
-        throw err    if err
+        throw err if err
         
         # TODO: allow to generate just one of these
         fs.writeFile outputBase + ".json", JSON.stringify(def), (err) ->
-            throw err    if err
+            throw err if err
             return
-
         data = commandstream.cmdStreamFromGraph(componentLib, def)
         fs.writeFile outputBase + ".fbcs", data, (err) ->
-            throw err    if err
+            throw err if err
             return
-
         fs.writeFile outputBase + ".h", generate.cmdStreamToCDefinition(data, target), (err) ->
-            throw err    if err
+            throw err if err
             return
-
         fs.writeFile outputFile, generate.cmdStreamToCDefinition(data, target) + "\n" + "#define MICROFLO_EMBED_GRAPH\n" + "#include \"microflo.h\"" + "\n#include \"main.hpp\"", (err) ->
-            throw err    if err
+            throw err if err
             return
-
-        return
-
-    return
 
 
 # TODO: Use noflo.graph.loadFile() instead?
 loadFile = (filename, callback) ->
-    fs.readFile filename,
-        encoding: "utf8"
-    , (err, data) ->
-        callback err    if err
-        def = undefined
-        if path.extname(filename) is ".fbp"
-            def = fbp.parse(data)
+    fs.readFile filename, { encoding: "utf8" }, (err, data) ->
+        console.log filename
+        console.log data
+        return callback err if err
+        def = null
+        if (path.extname filename) is ".fbp"
+            def = fbp.parse data
         else
-            def = JSON.parse(data)
-        callback `undefined`, def
-        return
-
-    return
+            def = JSON.parse data
+        return callback null, def
 
 
 # TODO: allow port types to be declared in component metadata,
@@ -81,15 +71,14 @@ portDefAsArray = (port) ->
         a.push
             id: name
             type: "all"
-
-    a
+    return a
 
 connectionsWithoutEdge = (connections, findConn) ->
     edgeEq (a, b) ->
         JSON.stringify a == JSON.stringify b
     newList = []
     connections.forEach (conn) ->
-        if conn.src and edgeEq conn.src findConn.src and edgeEq conn.tgt, findConn.tgt
+        if conn.src and edgeEq conn.src, findConn.src and edgeEq conn.tgt, findConn.tgt
             # Connection
         else if conn.data and edgeEq conn.tgt, findConn.tgt
             # IIP
@@ -102,19 +91,17 @@ wsConnectionFormatToFbp = (ws) ->
         src:
             port: ws.src.port
             process: ws.src.node
-
         tgt:
             port: ws.tgt.port
             process: ws.tgt.node
     else
-        
         # IIP
         out = {}
         out.tgt =
             port: ws.tgt.port
             process: ws.tgt.node
 
-        out.data = ws.src.data    if ws.src
+        out.data = ws.src.data if ws.src
         out
 
 printReceived = ->
@@ -172,12 +159,10 @@ handleRuntimeCommand = (command, payload, connection) ->
             type: "microflo"
             version: "0.4"
             capabilities: caps
-
         connection.send
             protocol: "runtime"
             command: "runtime"
             payload: r
-
     else
         console.log "Unknown NoFlo UI command on 'runtime' protocol:", command, payload
     return
@@ -191,14 +176,11 @@ handleComponentCommand = (command, payload, connection) ->
                 name: payload.name
                 language: "c++"
                 code: source
-
             connection.send
                 protocol: "component"
                 command: "source"
                 payload: r
-
             return
-
     else
         console.log "Unknown NoFlo UI command on 'component' protocol:", command, payload
     return
@@ -270,13 +252,10 @@ handleNetworkStartStop = (graph, connection, transport, debugLevel) ->
                 command: "output"
                 payload:
                     message: string
-
             connection.send msg
-        return
 
-    data = commandstream.cmdStreamFromGraph(componentLib, graph, debugLevel)
+    data = commandstream.cmdStreamFromGraph componentLib, graph, debugLevel
     uploadGraph transport, data, graph, wsSendOutput
-    return
 
 handleNetworkEdges = (graph, connection, transport, edges) ->
     # Loop over all edges, unsubscribe
@@ -295,12 +274,10 @@ handleNetworkEdges = (graph, connection, transport, edges) ->
         srcId = graph.nodeMap[edge.src.process].id
         srcComp = graph.processes[edge.src.process].component
         srcPort = componentLib.outputPort(srcComp, edge.src.port).id
-        buffer = new commandstream.Buffer(16)
+        buffer = new commandstream.Buffer 16
         commandstream.writeCmd buffer, 8, cmdFormat.commands.SubscribeToPort.id, srcId, srcPort, 1
         transport.write buffer
         return
-
-    return
 
 handleNetworkCommand = (command, payload, connection, graph, transport, debugLevel) ->
     if command is "start" or command is "stop"
@@ -340,23 +317,20 @@ createFlowhubRuntime = (user, ip, port, label, id, apihost) ->
         type: "microflo"
         # Secret string for simple auth
         secret: "19osdf3034s"
-
     if ip isnt "auto"
         rtinfo.address = "ws://" + ip + ":" + port
     else
         rtinfo.address = "auto"
     regoptions = {}
-    regoptions.host = apihost    if typeof apihost isnt "undefined"
+    regoptions.host = apihost if typeof apihost isnt "undefined"
     rt = new flowhub.Runtime(rtinfo, regoptions)
-    rt
+    return rt
 
 setupFlowhubRuntimePing = (rt) ->
     # TODO: handle more sanely
     rtPingInterval = setInterval(->
         rt.ping (err) ->
             console.log "Warning: failed to ping Flowhub registry"    if err
-            return
-        return
     , 5 * 60 * 1000)
     return rtPingInterval
 
@@ -365,7 +339,7 @@ registerFlowhubRuntime = (rt, callback) ->
     return
 
 setupRuntime = (serialPortToUse, baudRate, port, debugLevel, ip) ->
-    httpServer = http.createServer((request, response) ->
+    httpServer = http.createServer (request, response) ->
         path = url.parse(request.url).pathname
         if path is "/"
             response.writeHead 200,
@@ -374,8 +348,6 @@ setupRuntime = (serialPortToUse, baudRate, port, debugLevel, ip) ->
         else
             response.writeHead 404
         response.end()
-        return
-    )
     wsServer = new websocket.server(httpServer: httpServer)
     
     # FIXME: nasty and racy, should pass callback and only then continue
@@ -390,24 +362,16 @@ setupRuntime = (serialPortToUse, baudRate, port, debugLevel, ip) ->
                     contents = JSON.parse(message.utf8Data)
                 catch e
                     console.log "WS parser error: ", e
-                    return
                 
                 # Only expose a narrow API for communicating back to UI
                 sendFunc = (response) ->
                     connection.sendUTF JSON.stringify(response)
-                    return
-
                 conn = send: sendFunc
                 handleMessage contents, conn, graph, getSerial, debugLevel
-            return
-
-        return
 
     httpServer.listen port, ip, (err) ->
-        error err    if err
+        error err if err
         console.log "MicroFlo runtime listening at", ip + ":" + port
-        return
-    return
 
 setupRuntimeChrome = (serialPortToUse, baudRate, port, debugLevel, ip) ->
     throw new Error("Cannot load Chrome HTTP/WebSockets API")    unless http.Server and http.WebSocketServer
@@ -450,18 +414,12 @@ setupRuntimeChrome = (serialPortToUse, baudRate, port, debugLevel, ip) ->
 
         socket.addEventListener "close", ->
             console.log "Client disconnected"
-            return
-        return
-    return
 
 uploadGraphFromFile = (graphPath, serialPortName, baudRate, debugLevel) ->
     serial.openTransport serialPortName, baudRate, (err, transport) ->
         loadFile graphPath, (err, graph) ->
             data = commandstream.cmdStreamFromGraph(componentLib, graph, debugLevel)
             uploadGraph transport, data, graph
-            return
-        return
-    return
 
 module.exports =
     loadFile: loadFile
