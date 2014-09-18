@@ -257,6 +257,14 @@ handleNetworkStartStop = (graph, connection, transport, debugLevel) ->
             connection.send msg
 
     data = commandstream.cmdStreamFromGraph componentLib, graph, debugLevel
+    # FIXME: should use DeviceCommunication instead of uploadGraph
+    ###
+    if graph.uploadInProgress
+        console.log 'Ignoring multiple attempts of graph upload'
+    graph.uploadInProgress = true
+    device.sendCommands data, (err) ->
+        graph.uploadInProgress = false
+    ###
     uploadGraph transport, data, graph, wsSendOutput
 
 handleNetworkEdges = (graph, connection, transport, edges) ->
@@ -384,16 +392,17 @@ uploadGraphFromFile = (graphPath, serialPortName, baudRate, debugLevel) ->
 
 class Runtime extends EventEmitter
     constructor: (transport, options) ->
-        @transport = transport
         # FIXME: should support multiple graphs+networks
         @graph = {}
+        @transport = transport
         @debugLevel = options?.debug or 'Error'
-
-    handleMessage: (msg) ->
-        conn =
+        @device = new devicecommunication.DeviceCommunication @transport, @graph, componentLib
+        @conn =
             send: (response) =>
                 @emit 'message', response
-        handleMessage msg, conn, @graph, @transport, @debugLevel
+
+    handleMessage: (msg) ->
+        handleMessage msg, @conn, @graph, @transport, @debugLevel
 
 module.exports =
     loadFile: loadFile
