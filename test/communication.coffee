@@ -14,8 +14,8 @@ describeIfSimulator 'Device communication', ->
     comm.open () ->
         done()
   after (done) ->
-    runtime.stop()
     comm.close () ->
+        runtime.stop()
         done()
 
   describe 'Sending ping', ->

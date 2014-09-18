@@ -136,11 +136,7 @@ class MicroFloComponent extends noflo.Component
       data = microflo.commandstream.cmdStreamFromGraph componentLib, @graph, debugLevel
       microflo.runtime.uploadGraph @transport, data, @graph, @handleRecv, not @upload
 
-      # (Re)open data transmission
-      buffer = new Buffer 8
-      microflo.commandstream.writeString buffer, 0, microflo.commandstream.cmdFormat.magicString
-      @transport.write buffer
-
+      # FIXME: port to DeviceCommunication
       unless @upload
         @ready = true
         @emit 'ready'
@@ -157,7 +153,7 @@ class MicroFloComponent extends noflo.Component
       #console.log args[3], args[4]
     else if args[0] == "NETSTART"
       buffer = new Buffer(16)
-      microflo.commandstream.writeString(buffer, 0, microflo.commandstream.cmdFormat.magicString)
+      # FIXME: port to DeviceCommunication
       microflo.commandstream.writeCmd(buffer, 8, microflo.commandstream.cmdFormat.commands.SubscribeToPort.id, 1, 0, 1)
       console.log "subscribe", buffer
       @transport.write buffer

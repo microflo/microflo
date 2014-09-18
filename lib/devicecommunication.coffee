@@ -58,6 +58,7 @@ class DeviceCommunication extends EventEmitter
         @transport = transport
         @componentLib = componentLib
         @accumulator = new CommandAccumulator (commandstream.cmdFormat.commandSize)
+        @sending = false
 
         @transport.on 'data', (buf) =>
             @accumulator.onData buf
@@ -70,8 +71,9 @@ class DeviceCommunication extends EventEmitter
         commandstream.writeString(buffer, 0, commandstream.cmdFormat.magicString);
         @sendCommands buffer, cb
     close: (cb) ->
-        # TODO: implement
-        return cb null
+        buffer = commandstream.Buffer commandstream.cmdFormat.commandSize
+        commandstream.writeString(buffer, 0, commandstream.cmdFormat.commands.End.id);
+        @sendCommands buffer, cb
 
     # High-level API
     ping: (cb) ->
@@ -106,6 +108,8 @@ class DeviceCommunication extends EventEmitter
 
     # Send batched
     sendCommands: (buffer, callback) ->
+        @sending = true
+
         numberOfCommands = buffer.length/commandstream.cmdFormat.commandSize
         responsesReceived = 0
         @transport.write buffer, () ->
@@ -115,6 +119,7 @@ class DeviceCommunication extends EventEmitter
             responsesReceived++
             if responsesReceived == numberOfCommands
                 @removeListener 'response', listenResponse
+                @sending = false
                 return callback null
         listener = @on 'response', listenResponse
 
@@ -124,7 +129,8 @@ class DeviceCommunication extends EventEmitter
         @transport.write buf, callback
 
     _onCommandReceived: (buf) ->
-        commandstream.parseReceivedCmd @componentLib, @graph, buf , () =>
+        return if not @sending
+        commandstream.parseReceivedCmd @componentLib, @graph, buf, () =>
             @_handleCommandReceived.apply this, arguments
 
     _handleCommandReceived: (type) ->

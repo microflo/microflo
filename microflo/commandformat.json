@@ -12,6 +12,7 @@
         "ConnectSubgraphPort": {"id": 17},
         "Ping": {"id": 18},
         "CommunicationOpen": {"id": 19},
+        "StartNetwork": {"id": 20},
 
         "NetworkStopped": {"id": 100},
         "NodeAdded": {"id": 101},
@@ -23,8 +24,8 @@
         "PortSubscriptionChanged": {"id": 107},
         "SubgraphPortConnected": {"id": 108},
         "Pong": {"id": 109},
-
         "PacketDelivered": {"id": 110},
+        "TransmissionEnded": {"id": 111},
 
         "Invalid": { },
         "Max": { "id": 255 }
@@ -80,6 +81,7 @@
         "DeliverMessagesInvalidMessageId": {"id": 29},
         "NotSupported": {"id": 30},
         "MagicMatched": {"id": 31},
+        "EndOfTransmission": {"id": 32},
 
         "Max": { "id": 255 }
     },

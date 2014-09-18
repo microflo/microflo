@@ -121,10 +121,14 @@ void HostCommunication::parseCmd() {
 
     GraphCmd cmd = (GraphCmd)buffer[0];
     if (cmd == GraphCmdEnd) {
-        network->start();
+        MICROFLO_DEBUG(this, DebugLevelDetailed, DebugEndOfTransmission);
+        const uint8_t cmd[] = { GraphCmdTransmissionEnded };
+        transport->sendCommand(cmd, sizeof(cmd));
         state = LookForHeader;
     } else if (cmd == GraphCmdReset) {
         network->reset();
+    } else if (cmd == GraphCmdStartNetwork) {
+        network->start();
     } else if (cmd == GraphCmdCreateComponent) {
         MICROFLO_DEBUG(this, DebugLevelDetailed, DebugComponentCreateStart);
         Component *c = Component::create((ComponentId)buffer[1]);
@@ -376,6 +380,7 @@ MicroFlo::NodeId Network::addNode(Component *node, MicroFlo::NodeId parentId) {
     return nodeId;
 }
 
+// TODO: separate out stopping (pausing execution) of network and deleting nodes
 void Network::reset() {
     state = Stopped;
     if (notificationHandler) {
