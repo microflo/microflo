@@ -5,9 +5,10 @@ describeIfSimulator = if microflo.simulator.RuntimeSimulator then describe else 
 
 describeIfSimulator 'Device communication', ->
   runtime = new microflo.simulator.RuntimeSimulator
+  componentLib = new microflo.componentlib.ComponentLibrary
   transport = runtime.transport
-  graph = null
-  comm = new microflo.devicecommunication.DeviceCommunication transport, graph
+  graph = {}
+  comm = new microflo.devicecommunication.DeviceCommunication transport, graph, componentLib
 
   before (done) ->
     runtime.start()

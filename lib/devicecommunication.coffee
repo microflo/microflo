@@ -38,8 +38,8 @@ class CommandAccumulator extends EventEmitter
         if @offset > @buffer.length
             @emit 'error', new DeviceCommunicationError 'Receive buffer overflow'
 
-        maxIdx = Math.floor (@offset/@commandSize)*@commandSize
-        for startIdx in [0..maxIdx] by @commandSize
+        maxIdx = (Math.floor(@offset/@commandSize))*@commandSize
+        for startIdx in [0...maxIdx] by @commandSize
             b = @buffer.slice startIdx, startIdx+@commandSize
             @emit 'command', b
         slush = @offset % @commandSize
@@ -57,7 +57,7 @@ class DeviceCommunication extends EventEmitter
         @graph = graph
         @transport = transport
         @componentLib = componentLib
-        @accumulator = new CommandAccumulator (commandstream.cmdFormat.commandSize)
+        @accumulator = new CommandAccumulator commandstream.cmdFormat.commandSize
         @sending = false
 
         @transport.on 'data', (buf) =>
@@ -115,7 +115,7 @@ class DeviceCommunication extends EventEmitter
         @transport.write buffer, () ->
             # console.log 'wrote', arguments[0], arguments[1]
         listenResponse = () ->
-            console.log 'response', arguments
+            # console.log 'response', arguments
             responsesReceived++
             if responsesReceived == numberOfCommands
                 @removeListener 'response', listenResponse
@@ -123,11 +123,30 @@ class DeviceCommunication extends EventEmitter
                 return callback null
         listener = @on 'response', listenResponse
 
+        # Rate-limited writing
+        # XXX: for some reason when writing without this delay,
+        # the first bytes ends up corrupted on microcontroller side
+        # FIXME: replace with batching up to N commands, and then wait
+        # Limits should be based on: baudrate + expected receive buffer size
+        initialWait = @transport.getTransportType() == "HostJavaScript" ? 10 : 500
+        perCommandWait = @transport.getTransportType() == "HostJavaScript" ? 0 : 100
+        chunkSize = commandstream.cmdFormat.commandSize
+        sendCmd = (dataBuf, index) =>
+            chunk = dataBuf.slice index, index+chunkSize
+            if not chunk.length
+                # console.log 'finished sending commands, waiting for response'
+                return
+            @transport.write chunk, () ->
+                if index < dataBuf.length
+                    setTimeout () =>
+                        sendCmd dataBuf, index+=chunkSize
+                    , perCommandWait
+
+        setTimeout () =>
+            sendCmd buffer, 0
+        , initialWait
 
     # Low-level
-    _sendCommand: (buf, callback) ->
-        @transport.write buf, callback
-
     _onCommandReceived: (buf) ->
         return if not @sending
         commandstream.parseReceivedCmd @componentLib, @graph, buf, () =>
