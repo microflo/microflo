@@ -21,7 +21,6 @@ microflo/microflo.hpp
 microflo/avr.hpp
 microflo/mbed.hpp
 microflo/linux.hpp
-lib/runtime.js
 lib/commandstream.js
 lib/generate.js
 lib/componentlib.js
@@ -122,3 +121,4 @@ test/compiler.coffee
 test/release.md
 test/generate.js
 test/communication.coffee
+lib/runtime.coffee
