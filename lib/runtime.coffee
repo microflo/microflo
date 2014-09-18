@@ -408,6 +408,8 @@ module.exports =
     loadFile: loadFile
     generateOutput: generateOutput
     setupRuntime: setupRuntime
+    setupWebsocket: setupWebsocket
+    Runtime: Runtime
     uploadGraphFromFile: uploadGraphFromFile
     uploadGraph: uploadGraph
     createFlowhubRuntime: createFlowhubRuntime

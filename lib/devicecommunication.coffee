@@ -60,6 +60,7 @@ class DeviceCommunication extends EventEmitter
         @accumulator = new CommandAccumulator commandstream.cmdFormat.commandSize
         @sending = false
 
+        return if not @transport
         @transport.on 'data', (buf) =>
             @accumulator.onData buf
         @accumulator.on 'command', (buf) =>

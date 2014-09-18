@@ -10,8 +10,9 @@ var websocket = require("websocket");
 var componentLib = new microflo.componentlib.ComponentLibrary();
 
 describe('WebSocket API', function(){
-    before(function () {
-        microflo.runtime.setupRuntime(undefined, 9600, 3888);
+    before(function (done) {
+        var runtime = new microflo.runtime.Runtime(null);
+        microflo.runtime.setupWebsocket(runtime, "localhost", 3888, function() { done() });
     });
 
     after(function () {
