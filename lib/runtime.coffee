@@ -6,6 +6,7 @@ util = require("./util")
 if util.isBrowser()
     http = window.http
     uuid = window.uuid
+    EventEmitter = require('emitter');
 else
     http = require("http")
     websocket = require("websocket")
@@ -14,6 +15,7 @@ else
     fs = require("fs")
     path = require("path")
     uuid = require("node-uuid")
+    EventEmitter = require('events').EventEmitter;
 
 flowhub = require("flowhub-registry")
 commandstream = require("./commandstream")
@@ -290,9 +292,8 @@ handleNetworkCommand = (command, payload, connection, graph, transport, debugLev
         console.log "Unknown NoFlo UI command on protocol 'network':", command, payload
     return
 
-handleMessage = (contents, connection, graph, getTransport, debugLevel) ->
+handleMessage = (contents, connection, graph, transport, debugLevel) ->
     console.log contents.protocol, contents.command, contents.payload
-    transport = getTransport()
     if contents.protocol is "component"
         handleComponentCommand contents.command, contents.payload, connection
     else if contents.protocol is "graph"
@@ -338,88 +339,61 @@ registerFlowhubRuntime = (rt, callback) ->
     rt.register callback
     return
 
-setupRuntime = (serialPortToUse, baudRate, port, debugLevel, ip) ->
+setupWebsocket = (runtime, ip, port, callback) ->
     httpServer = http.createServer (request, response) ->
         path = url.parse(request.url).pathname
         if path is "/"
-            response.writeHead 200,
-                "Content-Type": "text/plain"
+            response.writeHead 200, "Content-Type": "text/plain"
             response.write "NoFlo UI WebSocket API at: " + "ws://" + request.headers.host
         else
             response.writeHead 404
         response.end()
     wsServer = new websocket.server(httpServer: httpServer)
-    
-    # FIXME: nasty and racy, should pass callback and only then continue
-    getSerial = serial.openTransport(serialPortToUse, baudRate)
-    graph = {}
     wsServer.on "request", (request) ->
         subProtocol = (if (request.requestedProtocols.indexOf("noflo") isnt -1) then "noflo" else null)
-        connection = request.accept(subProtocol, request.origin)
+        connection = request.accept subProtocol, request.origin
+        runtime.on 'message', (response) ->
+            connection.sendUTF JSON.stringify(response)
         connection.on "message", (message) ->
-            if message.type is "utf8"
-                try
-                    contents = JSON.parse(message.utf8Data)
-                catch e
-                    console.log "WS parser error: ", e
-                
-                # Only expose a narrow API for communicating back to UI
-                sendFunc = (response) ->
-                    connection.sendUTF JSON.stringify(response)
-                conn = send: sendFunc
-                handleMessage contents, conn, graph, getSerial, debugLevel
+            return if message.type is not "utf8"
+            try
+                contents = JSON.parse(message.utf8Data)
+            catch e
+                console.log "WS parser error: ", e
+            runtime.handleMessage contents
 
     httpServer.listen port, ip, (err) ->
-        error err if err
+        return callback err, null if err
         console.log "MicroFlo runtime listening at", ip + ":" + port
+        return callback null, httpServer
 
-setupRuntimeChrome = (serialPortToUse, baudRate, port, debugLevel, ip) ->
-    throw new Error("Cannot load Chrome HTTP/WebSockets API")    unless http.Server and http.WebSocketServer
-    
-    # Listen for HTTP connections.
-    server = new http.Server()
-    wsServer = new http.WebSocketServer(server)
-    server.listen port
-    console.log "WebSocket server running on: ", port
-    
-    # FIXME: nasty and racy, should pass callback and only then continue
-    getSerial = serial.openTransport(serialPortToUse, baudRate)
-    graph = {}
-    server.addEventListener "request", (req) ->
-        console.log "Got request: ", req
-        url = req.headers.url
-        url = "/index.html"    if url is "/"
-        
-        # Serve the pages of this chrome application.
-        req.serveUrl url
-        true
+setupRuntime = (serialPortToUse, baudRate, port, debugLevel, ip, callback) ->
 
-    wsServer.addEventListener "request", (req) ->
-        console.log "Client connected"
-        socket = req.accept()
-        socket.addEventListener "message", (e) ->
-            console.log "message:", e.data
-            contents = JSON.parse(e.data)
-            # Method to communicate back
-            sendFunc = (response) ->
-                socket.send JSON.stringify(response)
-                return
-            conn = send: sendFunc
-            try
-                handleMessage contents, conn, graph, getSerial, debugLevel
-            catch e
-                console.log e.stack
-                console.log e
-            return
+    serial.openTransport serialPortToUse, baudRate, (err, transport) ->
+        return callback err, null if err
+        runtime = new Runtime transport
+        setupWebsocket runtime, ip, port, (err, server) ->
+            # FIXME: ping Flowhub
 
-        socket.addEventListener "close", ->
-            console.log "Client disconnected"
 
 uploadGraphFromFile = (graphPath, serialPortName, baudRate, debugLevel) ->
     serial.openTransport serialPortName, baudRate, (err, transport) ->
         loadFile graphPath, (err, graph) ->
             data = commandstream.cmdStreamFromGraph(componentLib, graph, debugLevel)
             uploadGraph transport, data, graph
+
+class Runtime extends EventEmitter
+    constructor: (transport, options) ->
+        @transport = transport
+        # FIXME: should support multiple graphs+networks
+        @graph = {}
+        @debugLevel = options?.debug or 'Error'
+
+    handleMessage: (msg) ->
+        conn =
+            send: (response) =>
+                @emit 'message', response
+        handleMessage msg, conn, @graph, @transport, @debugLevel
 
 module.exports =
     loadFile: loadFile
@@ -429,6 +403,3 @@ module.exports =
     uploadGraph: uploadGraph
     createFlowhubRuntime: createFlowhubRuntime
     registerFlowhubRuntime: registerFlowhubRuntime
-    handleMessage: handleMessage
-
-module.exports.setupRuntime = setupRuntimeChrome if util.isBrowser()
