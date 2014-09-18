@@ -16,17 +16,14 @@
   },
   "main": "lib/microflo.js",
   "scripts": [
-    "lib/util.js",
-    "lib/generate.js",
-    "lib/componentlib.js",
-    "lib/commandstream.js",
     "lib/commandformat.js",
-    "lib/serial.js",
-    "lib/runtime.js",
-    "lib/simulator.js",
+    "lib/commandstream.js",
+    "lib/componentlib.js",
+    "lib/generate.js",
     "lib/microflo.js",
-    "microflo/components.json",
-    "microflo/commandformat.json"
+    "lib/serial.js",
+    "lib/simulator.js",
+    "lib/util.js"
   ],
   "json": [
     "component.json",
@@ -35,5 +32,11 @@
   ],
   "remotes": [
     "https://raw.githubusercontent.com"
+  ],
+  "styles": [],
+  "files": [
+    "lib/devicecommunication.coffee",
+    "lib/flash.coffee",
+    "lib/runtime.coffee"
   ]
 }
