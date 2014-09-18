@@ -414,3 +414,4 @@ module.exports =
     uploadGraph: uploadGraph
     createFlowhubRuntime: createFlowhubRuntime
     registerFlowhubRuntime: registerFlowhubRuntime
+    handleMessage: handleMessage
