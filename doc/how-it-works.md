@@ -56,14 +56,99 @@ Here is an annotated example. The first byte specifies which command it is.
 When the program starts, the MicroFlo engine will parse the command-stream,
 load the graph and then start the network.
 
+The network executes entirely on-device (standalone).
+
+Packet
+-------
+
+Message sent between nodes in a graph are encapsulated into `Packet`s.
+It is a simple implementation of an "any-type" or type-erasure.
+
+Packets can contain *primitive data* like a (byte, integer, float, etc),
+*brackets* (which are used to group primitive data),
+or be special non-data packets (setup, tick) used to delegate execution time.
+
+Support for [enumerated values](https://github.com/jonnor/microflo/issues/33)
+and [error values](https://github.com/jonnor/microflo/issues/6) is planned.
+
+Component API
+-------------
+
+The nodes in a MicroFlo graph are instances of `Component`.
+For components with only one output ports, the `SingleOutputComponent` convenience can be used.
+Other baseclasses include `PureFunctionalComponent2`
+
+A Component must implement one virtual function: `process()`
+
+        class Forward : public SingleOutputComponent {
+            public:
+            virtual void process(Packet in, MicroFlo::PortId port) {
+                if (in.isData()) {
+                    send(in, port);
+                }
+            }
+        };
+
+Apart from adhering to this interface, components can essentially do what they want.
+However, well behaved components should follow these guidelines:
+
+* Be *inert* when constructed: do not execute anything (besides member initialization) until `process()` is called
+* Do not access or store state outside of what is receives on input ports
+I/O should preferrably be done using the `IO` abstraction provided by MicroFlo.
+* Do not block the `process()` call for long amounts of time:
+Long-running tasks should be split up across multiple invocations or done asyncronously if possible.
+
+Component metadata
+--------------------
+
+The component metadata, like ports, of a Component is declared in a .json format.
+This allows programatic access to it without tools having to parse and/or execute C++ code.
+
+        "BreakBeforeMake": { "id": 16,
+            "description": "Break-before-make switch logic. Monitor ports must....",
+            "inPorts": {
+                "in": { "id": 0 },
+                "monitor1": { "id": 1 },
+                "monitor2": { "id": 2 }
+            },
+            "outPorts": {
+                "out1": { "id": 0 },
+                "out2": { "id": 1 }
+            }
+        },
+
+The `id` values are what is used during execution and in the command stream format.
+The human-readable text definition is never stored or transmitted to the device.
+
+I/O abstraction
+-----------------
+
+Components have access to an instance of an `IO` class, which abstracts away common hardware *I/O pheripherals*.
+This includes GPIO (analog, digital), serial, timers, etc
+
+This allows common component implementations to be used on most platforms,
+and can act as as a testing surface for automated tests.
+
+Components can of course opt to do their own I/O if desired.
+
 Network execution
 ------------------
 
-The started network *executes entirely on the device, standalone*.
+The current scheduling semantics of MicroFlo are very simple,
+and matches how many bare-metal programs structure the execution of independent "modules".
 
-    TODO: Document component APIs, execution model
-    TODO: Document message queues, passing etc
-    TODO: Document I/O hardware abstraction layer
+    for each iteration of the main loop
+        for each message in queue
+            deliver message to target through process()
+        for each node in running network
+            deliver a tick message through process()
+
+It is expected that scheduling will grow more complicated over time, and take into account:
+
+* Per-connection limitations on number of packets
+* Asyncronous input events/interrupts
+* Time-deterministic execution of an entire flow (for real-time use)
+* (possibly) Ensuring fair division of processing time between components
 
 
 Host<->device communication
