@@ -34,7 +34,7 @@ var generateFwCommand = function(env) {
     var outputFile = process.argv[4] || inputFile.replace(path.extname(inputFile), "");
     var target = process.argv[5] || 'arduino'
 
-    microflo.runtime.generateOutput(componentLib, inputFile, outputFile, target);
+    microflo.generate.generateOutput(componentLib, inputFile, outputFile, target);
 }
 
 var registerRuntimeCommand = function(user, env) {

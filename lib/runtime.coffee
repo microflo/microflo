@@ -26,30 +26,6 @@ cmdFormat = require("./commandformat")
 serial = require("./serial")
 devicecommunication = require("./devicecommunication")
 
-generateOutput = (componentLib, inputFile, outputFile, target) ->
-    outputBase = outputFile.replace(path.extname(outputFile), "")
-    outputFile = outputFile + ".pde"    unless path.extname(outputFile)
-    outputDir = path.dirname(outputBase)
-    fs.mkdirSync outputDir    unless fs.existsSync(outputDir)
-    loadFile inputFile, (err, def) ->
-        throw err if err
-        
-        # TODO: allow to generate just one of these
-        fs.writeFile outputBase + ".json", JSON.stringify(def), (err) ->
-            throw err if err
-            return
-        data = commandstream.cmdStreamFromGraph(componentLib, def)
-        fs.writeFile outputBase + ".fbcs", data, (err) ->
-            throw err if err
-            return
-        fs.writeFile outputBase + ".h", generate.cmdStreamToCDefinition(data, target), (err) ->
-            throw err if err
-            return
-        fs.writeFile outputFile, generate.cmdStreamToCDefinition(data, target) + "\n" + "#define MICROFLO_EMBED_GRAPH\n" + "#include \"microflo.h\"" + "\n#include \"main.hpp\"", (err) ->
-            throw err if err
-            return
-
-
 # TODO: Use noflo.graph.loadFile() instead?
 loadFile = (filename, callback) ->
     fs.readFile filename, { encoding: "utf8" }, (err, data) ->
@@ -406,7 +382,6 @@ class Runtime extends EventEmitter
 
 module.exports =
     loadFile: loadFile
-    generateOutput: generateOutput
     setupRuntime: setupRuntime
     setupWebsocket: setupWebsocket
     Runtime: Runtime
