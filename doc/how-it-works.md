@@ -13,6 +13,7 @@ using a normal compiler toolchain.
     gcc -o .....
 
 An initial graph can be specified (as .json or .fbp).
+Can be created using a visual tool like [Flowhub](http://flowhub.io) or DrawFBP.
 
     # examples/blink.fbp 
     timer(Timer) OUT -> IN toggle(ToggleBoolean)
@@ -22,14 +23,14 @@ An initial graph can be specified (as .json or .fbp).
 
 It gets converted by a command-line tool into an compact binary "command stream".
 The commands are create-node/add-edge/send-initial-packet etc.
+[Definition of all commands](../microflo/commandformat.json).
 
-   node microflo generate build/avr/firmware.cpp avr8
+    node microflo generate build/avr/firmware.cpp avr8
 
 The command stream is embedded into the firmware image itself, as static data in RAM or FLASH (progmem).
 [EEPROM support planned](https://github.com/jonnor/microflo/issues/7).
 
 Here is an annotated example. The first byte specifies which command it is.
-[Definition of all commands](../microflo/commandformat.json).
 
     // build/avr/firmware.cpp 
     #include <avr/pgmspace.h>
@@ -91,6 +92,8 @@ This translates message into the command stream understood by MicroFlo devices.
 
 This allows the [Flowhub](http://flowhub.io) visual progamming IDE to interactively
 reprogram the graphs on the device.
+
+    TODO: screenshot
 
 
 Hardware abstraction
