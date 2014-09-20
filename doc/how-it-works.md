@@ -62,11 +62,13 @@ Packet
 -------
 
 Message sent between nodes in a graph are encapsulated into `Packet`s.
-It is a simple implementation of an "any-type" or type-erasure.
+It is a simple implementation of an "any-type" (type-erasure).
 
-Packets can contain *primitive data* like a (byte, integer, float, etc),
-*brackets* (which are used to group primitive data),
-or be special non-data packets (setup, tick) used to delegate execution time.
+Packets can contain
+
+* *primitive data* like a (byte, integer, float, etc),
+* *brackets* (which are used to group primitive data),
+* special non-data packets (setup, tick) used to delegate execution time
 
 Support for [enumerated values](https://github.com/jonnor/microflo/issues/33)
 and [error values](https://github.com/jonnor/microflo/issues/6) is planned.
@@ -102,7 +104,7 @@ Component metadata
 --------------------
 
 The component metadata, like ports, of a Component is declared in a .json format.
-This allows programatic access to it without tools having to parse and/or execute C++ code.
+This allows programatic access without tools having to parse and/or execute C++ code.
 
         "BreakBeforeMake": { "id": 16,
             "description": "Break-before-make switch logic. Monitor ports must....",
@@ -143,7 +145,8 @@ and matches how many bare-metal programs structure the execution of independent 
         for each node in running network
             deliver a tick message through process()
 
-It is expected that scheduling will grow more complicated over time, and take into account:
+It is expected that scheduling will grow more complicated over time,
+and [take into account](https://github.com/jonnor/microflo/issues/39):
 
 * Per-connection limitations on number of packets
 * Asyncronous input events/interrupts
@@ -180,11 +183,6 @@ reprogram the graphs on the device.
 
     TODO: screenshot
 
-
-Hardware abstraction
----------------------
-
-MicroFlo is very portable and has [support for multiple platforms](./bringup.md).
 
 Simulator
 ----------
