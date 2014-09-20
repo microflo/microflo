@@ -60,9 +60,9 @@ Network execution
 
 The started network *executes entirely on the device, standalone*.
 
-TODO: Document component APIs, execution model
-TODO: Document message queues, passing etc
-TODO: Document I/O hardware abstraction layer
+    TODO: Document component APIs, execution model
+    TODO: Document message queues, passing etc
+    TODO: Document I/O hardware abstraction layer
 
 
 Host<->device communication
@@ -71,7 +71,7 @@ Host<->device communication
 After loading the command stream which was "baked in",
 MicroFlo will start listening for commands (same format) from a host.
 
-The host<->device transport is configurable and extendable.
+The host<->device transport is *configurable and extendable*.
 Currently supported are serial/UART-based: USB/Bluetooth/RS232/RS485 etc.
 Support for an [IP-based transport is planned](https://github.com/jonnor/microflo/issues/38).
 
@@ -85,18 +85,28 @@ It can:
 Interactive programming with Flowhub
 -------------------------------------
 
-MicroFlo also includes some host code (in JavaScript) which implements the FBP runtime protocol.
+MicroFlo also includes some host code which implements the FBP runtime protocol.
 It can run either on node.js or in browser.
 This translates message into the command stream understood by MicroFlo devices.
 
 This allows the [Flowhub](http://flowhub.io) visual progamming IDE to interactively
 reprogram the graphs on the device.
 
+
+Hardware abstraction
+---------------------
+
+MicroFlo is very portable and has [support for multiple platforms](./bringup.md).
+
 Simulator
 ----------
 
-Using the same I/O abstraction as for different hardware target.
+Use the same I/O abstraction as for different hardware target.
 I/O backend sends commands across the command-stream protocol instead of to real hardware.
+
 One can build automated tests against this simulator. Using high-level languages like CoffeeScript
+![Automated tests of MicroFlo program](https://pbs.twimg.com/media/Be7H7DiCIAA9nvX.png)
+
+Support for [on-device testing](https://github.com/jonnor/microflo/issues/13) is planned.
 An interactive [user interface is planned](https://github.com/jonnor/microflo/issues/9).
 
