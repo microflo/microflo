@@ -19,7 +19,16 @@ Optionally, you may want to add
 
 In the future, one may also include UI components for the interactive simulator.
 
-Supported and planned devices
+Supported
+----------------
+
+* [Arduino](./arduino-getstarted.md) + Atmel AVR8
+* [ARM Cortex M0-M4](./arm-getstarted.md)
+* [Embedded Linux](./linux-getstarted.md)
+* Simulator ([no UI yet](https://github.com/jonnor/microflo/issues/9))
+Running on node.js and browser, compiled to JavaScript using Emscripten.
+
+Planned devices
 ----------------
 See [platform wishlist](https://github.com/jonnor/microflo/issues/24).
 Feel free to share your wishes and plans there.
