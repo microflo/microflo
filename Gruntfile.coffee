@@ -62,11 +62,12 @@ module.exports = ->
         ext: '.js'
 
     # BDD tests on Node.js
-    cafemocha:
+    mochaTest:
       nodejs:
         src: ['test/*.js']
         options:
           reporter: 'spec'
+          require: 'coffee-script/register'
 
     # Web server for the browser tests
     connect:
@@ -102,7 +103,7 @@ module.exports = ->
 
   # Grunt plugins used for testing
   @loadNpmTasks 'grunt-contrib-connect'
-  @loadNpmTasks 'grunt-cafe-mocha'
+  @loadNpmTasks 'grunt-mocha-test'
   @loadNpmTasks 'grunt-mocha-phantomjs'
 
   @loadNpmTasks 'grunt-exec'
@@ -120,7 +121,7 @@ module.exports = ->
   @registerTask 'test', 'Build MicroFlo and run automated tests', (target = 'all') =>
     @task.run 'coffee'
     if target is 'all' or target is 'nodejs'
-      @task.run 'cafemocha'
+      @task.run 'mochaTest'
     if target is 'all' or target is 'browser'
       @task.run 'connect'
       @task.run 'component'
