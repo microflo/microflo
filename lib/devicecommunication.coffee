@@ -73,7 +73,7 @@ class DeviceCommunication extends EventEmitter
         @sendCommands buffer, cb
     close: (cb) ->
         buffer = commandstream.Buffer commandstream.cmdFormat.commandSize
-        commandstream.writeString(buffer, 0, commandstream.cmdFormat.commands.End.id);
+        commandstream.writeCmd buffer, 0, commandstream.cmdFormat.commands.End.id
         @sendCommands buffer, cb
 
     # High-level API
