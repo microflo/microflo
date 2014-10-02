@@ -102,8 +102,6 @@ public:
 
     // Pin config
     virtual void PinSetMode(MicroFlo::PinId pin, IO::PinMode mode) {
-        printf("%s: timeMs=%ld, pin=%d, mode=%s\n",
-                __PRETTY_FUNCTION__, TimerCurrentMs(), pin, (mode == IO::InputPin) ? "INPUT" : "OUTPUT");
         const uint8_t b[] = { GraphCmdIoValueChanged, IoTypePinMode, pin, mode };
         transport->sendCommand(b, sizeof(b));
     }
@@ -113,8 +111,6 @@ public:
 
     // Digital
     virtual void DigitalWrite(MicroFlo::PinId pin, bool val) {
-        printf("%s: timeMs=%ld, pin=%d, value=%s\n",
-                __PRETTY_FUNCTION__, TimerCurrentMs(), pin, val ? "ON" : "OFF");
         const uint8_t b[] = { GraphCmdIoValueChanged, IoTypeDigital, pin, val };
         transport->sendCommand(b, sizeof(b));
     }

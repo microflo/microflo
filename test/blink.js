@@ -58,7 +58,6 @@ describe('a Blink program', function(){
     it('and then toggle LOW when timer expires again', function(finish){
         this.timeout(5000);
         simulator.io.once('digital', function (digitalOutputs) {
-            console.log('should be false', digitalOutputs);
             assert.equal(digitalOutputs[13], false);
             finish();
         });
