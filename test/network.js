@@ -123,7 +123,16 @@ describeIfHasSimulator('Network', function(){
         }
 
         s.start();
-        microflo.runtime.uploadGraph(s.transport, cmdstream, graph, handleFunc);
+        s.comm.on('response', handleFunc);
+        s.comm.open(function() {
+            s.uploadGraph(graph, function() {
+                s.comm.close(function() {
+                    ;
+                })
+            });
+        });
+
+
     })
   })
 })
