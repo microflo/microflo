@@ -115,8 +115,11 @@ class DeviceCommunication extends EventEmitter
         responsesReceived = 0
         @transport.write buffer, () ->
             # console.log 'wrote', arguments[0], arguments[1]
-        listenResponse = () ->
+        listenResponse = (type) ->
             # console.log 'response', arguments
+            return if not @sending
+            return if type in ['IOCHANGE', 'DEBUG', 'UNKNOWN']
+
             responsesReceived++
             if responsesReceived == numberOfCommands
                 @removeListener 'response', listenResponse
@@ -149,7 +152,6 @@ class DeviceCommunication extends EventEmitter
 
     # Low-level
     _onCommandReceived: (buf) ->
-        return if not @sending
         commandstream.parseReceivedCmd @componentLib, @graph, buf, () =>
             @_handleCommandReceived.apply this, arguments
 
