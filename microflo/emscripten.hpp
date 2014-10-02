@@ -69,12 +69,16 @@ public:
             const bool val = buf[3];
             if (pin < DIGITAL_PINS) {
                 digitalInputs[pin] = val;
+                const uint8_t b[] = { GraphCmdSetIoValueCompleted, buf[1], buf[2], buf[3], buf[4] };
+                transport->sendCommand(b, sizeof(b));
             } else {
                 MICROFLO_DEBUG(debug, DebugLevelError, DebugIoInvalidValueSet);
             }
         } else if (type == IoTypeTimeMs) {
             // Perhaps also support incrementing?
             timeMs = readLong(buf+2);
+            const uint8_t b[] = { GraphCmdSetIoValueCompleted, buf[1], buf[2], buf[3], buf[4] };
+            transport->sendCommand(b, sizeof(b));
         } else {
             MICROFLO_DEBUG(debug, DebugLevelError, DebugUnknownIoType);
         }

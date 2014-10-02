@@ -27,7 +27,8 @@
         "Pong": {"id": 109},
         "PacketDelivered": {"id": 110},
         "TransmissionEnded": {"id": 111},
-        "IoValueChanged":  {"id": 112},
+        "SetIoValueCompleted":  {"id": 112},
+        "IoValueChanged":  {"id": 113},
 
         "Invalid": { },
         "Max": { "id": 255 }
