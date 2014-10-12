@@ -24,7 +24,10 @@
     "lib/serial.js",
     "lib/simulator.js",
     "lib/util.js",
-    "build/emscripten/microflo-runtime.js"
+    "build/emscripten/microflo-runtime.js",
+    "lib/devicecommunication.coffee",
+    "lib/flash.coffee",
+    "lib/runtime.coffee"
   ],
   "json": [
     "component.json",
@@ -36,8 +39,5 @@
   ],
   "styles": [],
   "files": [
-    "lib/devicecommunication.coffee",
-    "lib/flash.coffee",
-    "lib/runtime.coffee"
   ]
 }
