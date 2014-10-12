@@ -188,6 +188,7 @@ handleGraphCommand = (command, payload, connection, runtime) ->
     if command is "clear"
         graph.processes = {}
         graph.connections = []
+        graph.nodeMap = {} # nodeName->numericNodeId
     else if command is "addnode"
         graph.processes[payload.id] = payload
     else if command is "removenode"
