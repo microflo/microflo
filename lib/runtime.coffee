@@ -278,7 +278,7 @@ handleNetworkCommand = (command, payload, connection, graph, transport, debugLev
     return
 
 handleMessage = (contents, connection, graph, transport, debugLevel) ->
-    console.log contents.protocol, contents.command, contents.payload
+
     if contents.protocol is "component"
         handleComponentCommand contents.command, contents.payload, connection
     else if contents.protocol is "graph"
