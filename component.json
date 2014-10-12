@@ -3,7 +3,7 @@
   "description": "MicroFlo host functionality for browser",
   "author": "Jon Nordby <jononor@gmail.com>",
   "repo": "jonnor/microflo",
-  "version": "0.3.9",
+  "version": "0.3.10",
   "keywords": [
     "FBP"
   ],
