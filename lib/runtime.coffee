@@ -274,28 +274,32 @@ handleNetworkStartStop = (runtime, connection, transport, debugLevel) ->
         runtime.uploadInProgress = false
 
 handleNetworkEdges = (runtime, connection, edges) ->
-    # Loop over all edges, unsubscribe
     graph = runtime.graph
-    transport = runtime.transport
+    maxCommands = graph.connections.length+edges.length
+    buffer = new commandstream.Buffer 8*maxCommands
+    offset = 0
+
+    # Loop over all edges, unsubscribe
     graph.connections.forEach (edge) ->
         if edge.src
             srcId = graph.nodeMap[edge.src.process].id
             srcComp = graph.processes[edge.src.process].component
             srcPort = componentLib.outputPort(srcComp, edge.src.port).id
-            buffer = new commandstream.Buffer(16)
-            commandstream.writeCmd buffer, 8, cmdFormat.commands.SubscribeToPort.id, srcId, srcPort, 0
-            transport.write buffer
+            offset += commandstream.writeCmd buffer, offset,
+                        cmdFormat.commands.SubscribeToPort.id, srcId, srcPort, 0
         return
-
     # Subscribe to enabled edges
     edges.forEach (edge) ->
         srcId = graph.nodeMap[edge.src.process].id
         srcComp = graph.processes[edge.src.process].component
         srcPort = componentLib.outputPort(srcComp, edge.src.port).id
-        buffer = new commandstream.Buffer 16
-        commandstream.writeCmd buffer, 8, cmdFormat.commands.SubscribeToPort.id, srcId, srcPort, 1
-        transport.write buffer
+        offset += commandstream.writeCmd buffer, offset,
+                    cmdFormat.commands.SubscribeToPort.id, srcId, srcPort, 1
         return
+
+    # Send
+    runtime.device.sendCommands buffer, (err) ->
+        throw err if err
 
 handleNetworkCommand = (command, payload, connection, runtime, transport, debugLevel) ->
     if command is "start" or command is "stop"
