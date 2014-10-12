@@ -108,12 +108,38 @@ listComponents = (connection) ->
         connection.send resp
     return
 
+sendExportedPorts = (connection, runtime) ->
+    # go over runtime.graph and expose exported ports
+    ports =
+        inPorts: []
+        outPorts: []
+    for pub, port of runtime.graph.inports
+        ports.inPorts.push
+            id: pub
+            type: 'any' # FIXME
+            addressable: false # FIXME
+            required: false # FIXME
+    for pub, port of runtime.graph.outports
+        ports.outPorts.push
+            id: pub
+            type: 'any' # FIXME
+            addressable: false # FIXME
+            required: false # FIXME
+
+    console.log 'sending exported', ports
+    connection.send
+        protocol: 'runtime'
+        command: 'ports'
+        payload: ports
+
 handleRuntimeCommand = (command, payload, connection, runtime) ->
+    console.log 'handleRuntimeCommand!'
     if command is "getruntime"
         caps = [
             "protocol:graph"
             "protocol:network"
             "protocol:component"
+            "protocol:runtime"
         ]
         r =
             type: "microflo"
@@ -123,6 +149,7 @@ handleRuntimeCommand = (command, payload, connection, runtime) ->
             protocol: "runtime"
             command: "runtime"
             payload: r
+        sendExportedPorts connection, runtime
     else
         console.log "Unknown NoFlo UI command on 'runtime' protocol:", command, payload
     return
@@ -162,6 +189,20 @@ handleGraphCommand = (command, payload, connection, runtime) ->
         graph.connections.push wsConnectionFormatToFbp(payload)
     else if command is "removeinitial"
         graph.connections = connectionsWithoutEdge(graph.connections, wsConnectionFormatToFbp(payload))
+    else if command is "addinport"
+        graph.inports = {} if not graph.inports?
+        graph.inports[payload.public] =
+            process: payload.node
+            port: payload.port
+        sendExportedPorts connection, runtime
+    else if command is "addoutport"
+        graph.outports = {} if not graph.outports?
+        graph.outports[payload.public] =
+            process: payload.node
+            port: payload.port
+        sendExportedPorts connection, runtime
+    # TODO: implement removein/outport
+
     else
         console.log "Unknown NoFlo UI command on protocol 'graph':", command, payload
     return
