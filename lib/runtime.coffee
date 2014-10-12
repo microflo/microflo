@@ -218,7 +218,6 @@ handleNetworkStartStop = (runtime, connection, transport, debugLevel) ->
     runtime.uploadInProgress = true
 
     runtime.device.sendCommands data, (err) ->
-        console.log 'upload done'
         runtime.uploadInProgress = false
 
 handleNetworkEdges = (runtime, connection, edges) ->
