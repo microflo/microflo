@@ -52,7 +52,6 @@
     "component-coffee": "~0.1.4",
     "component-json": "~0.1.4",
     "grunt": "~0.4.1",
-    "grunt-cafe-mocha": "~0.1.2",
     "grunt-cli": "~0.1.7",
     "grunt-combine": "~0.8.3",
     "grunt-component-io": "~0.1.0",
@@ -64,7 +63,7 @@
     "grunt-contrib-copy": "^0.5.0",
     "grunt-contrib-uglify": "~0.2.0",
     "grunt-exec": "~0.4.0",
-    "grunt-mocha-phantomjs": "~0.2.2",
+    "grunt-mocha-phantomjs": "^0.6.0",
     "grunt-zip": "^0.13.0",
     "mocha": "^1.20.0",
     "needle": "^0.7.2"
