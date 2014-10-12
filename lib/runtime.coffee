@@ -130,6 +130,18 @@ sendExportedPorts = (connection, runtime) ->
         command: 'ports'
         payload: ports
 
+sendPacket = (runtime, port, event, payload) ->
+    console.log "WARN: sendPacket, unknown event #{event}" if event is not 'data'
+
+    internal = runtime.graph.inports[port]
+    componentName = runtime.graph.processes[internal.process].component
+    nodeId = runtime.graph.nodeMap[internal.process].id
+    portId = componentLib.inputPort(componentName, internal.port).id
+
+    buffer = commandstream.dataLiteralToCommand '' + payload, nodeId, portId
+    runtime.device.sendCommands buffer, () ->
+        # done
+
 handleRuntimeCommand = (command, payload, connection, runtime) ->
     if command is "getruntime"
         caps = [
@@ -147,6 +159,8 @@ handleRuntimeCommand = (command, payload, connection, runtime) ->
             command: "runtime"
             payload: r
         sendExportedPorts connection, runtime
+    else if command is 'packet'
+        sendPacket runtime, payload.port, payload.event, payload.payload
     else
         console.log "Unknown NoFlo UI command on 'runtime' protocol:", command, payload
     return

@@ -154,6 +154,8 @@ void HostCommunication::parseCmd() {
 
         if (p.isValid()) {
             network->sendMessage(buffer[1], buffer[2], p);
+            const uint8_t cmd[] = { GraphCmdSendPacketDone };
+            transport->sendCommand(cmd, sizeof(cmd));
         } else {
             MICROFLO_DEBUG(this, DebugLevelError, DebugParserUnknownPacketType);
         }

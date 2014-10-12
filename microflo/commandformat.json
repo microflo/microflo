@@ -29,6 +29,7 @@
         "TransmissionEnded": {"id": 111},
         "SetIoValueCompleted":  {"id": 112},
         "IoValueChanged":  {"id": 113},
+        "SendPacketDone":  {"id": 114},
 
         "Invalid": { },
         "Max": { "id": 255 }
