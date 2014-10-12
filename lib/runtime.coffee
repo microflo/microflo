@@ -125,15 +125,12 @@ sendExportedPorts = (connection, runtime) ->
             type: 'any' # FIXME
             addressable: false # FIXME
             required: false # FIXME
-
-    console.log 'sending exported', ports
     connection.send
         protocol: 'runtime'
         command: 'ports'
         payload: ports
 
 handleRuntimeCommand = (command, payload, connection, runtime) ->
-    console.log 'handleRuntimeCommand!'
     if command is "getruntime"
         caps = [
             "protocol:graph"
