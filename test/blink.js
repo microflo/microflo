@@ -3,13 +3,14 @@
  * MicroFlo may be freely distributed under the MIT license
  */
 
-var assert = require("assert")
-var microflo = require("../lib/microflo");
-
-if (!microflo.simulator.RuntimeSimulator) {
-    console.log("Skipping tests needing simulator");
-    return;
+if (typeof process !== 'undefined' && process.execPath && process.execPath.indexOf('node') !== -1) {
+    var chai = require('chai');
+    var microflo = require("../lib/microflo");
+} else {
+    var microflo = require("microflo");
 }
+
+describeIfSimulator = (typeof microflo.simulator.RuntimeSimulator !== 'undefined') ? describe : describe.skip;
 
 // TODO: get rid of boilerplate. Use noflo-test + should,
 // instantiate simulator, load graph automatically?
@@ -40,17 +41,17 @@ describe('a Blink program', function(){
         simulator.uploadFBP(prog, function (err) {
             // var nodes = simulator.network.getNodes();
             console.log('finish?', err);
-            // assert.equal(nodes.length, 3);
+            // chai.expect(nodes.length).to.equal(3);
             finish();
         });
     })
     it.skip('and set initial output LOW', function(){
-        assert.equal(simulator.io.state.digitalOutputs[13], false);
+        chai.expect(simulator.io.state.digitalOutputs[13]).to.equal(false);
     })
     it('should go HIGH when timer expires', function(finish){
         this.timeout(5000);
         simulator.io.once('digital', function (digitalOutputs) {
-            assert.equal(digitalOutputs[13], true);
+            chai.expect(digitalOutputs[13]).to.equal(true);
             finish();
         });
         simulator.io.forwardTime(300, function() { });
@@ -58,7 +59,7 @@ describe('a Blink program', function(){
     it('and then toggle LOW when timer expires again', function(finish){
         this.timeout(5000);
         simulator.io.once('digital', function (digitalOutputs) {
-            assert.equal(digitalOutputs[13], false);
+            chai.expect(digitalOutputs[13]).to.equal(false);
             finish();
         });
         simulator.io.forwardTime(300, function() { });
