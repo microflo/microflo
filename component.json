@@ -19,8 +19,11 @@
     "lib/commandformat.js",
     "lib/commandstream.js",
     "lib/componentlib.js",
+    "lib/devicecommunication.js",
+    "lib/flash.js",
     "lib/generate.js",
     "lib/microflo.js",
+    "lib/runtime.js",
     "lib/serial.js",
     "lib/simulator.js",
     "lib/util.js"
