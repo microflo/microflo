@@ -1,6 +1,6 @@
 {
   "name": "microflo",
-  "version": "0.3.5",
+  "version": "0.3.6",
   "description": "Flow-based programming runtime for microcontrollers",
   "keywords": [
     "fbp",
@@ -26,6 +26,9 @@
   },
   "files": [
     "lib",
+    "microflo/components.json",
+    "microflo/commandformat.json",
+    "build/emscripten/microflo-runtime.js",
     "microflo.js"
   ],
   "scripts": {
