@@ -5,7 +5,7 @@ module.exports = ->
 
     # Browser version building
     component:
-      default: [ 'lib/**/*' ]
+      default: [ 'lib/**/*', 'build/emscripten/*.js' ]
       options:
         out: './build/browser/'
     component_build:
