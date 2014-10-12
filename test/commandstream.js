@@ -10,6 +10,7 @@ if (typeof process !== 'undefined' && process.execPath && process.execPath.index
 } else {
   var commandstream = require('microflo/lib/commandstream.js');
   var componentlib = require('microflo/lib/componentlib.js');
+  var microflo = require("microflo/lib/microflo.js");
 }
 
 var fbp = require("fbp");
