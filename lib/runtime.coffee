@@ -213,31 +213,54 @@ handleGraphCommand = (command, payload, connection, runtime) ->
             process: payload.node
             port: payload.port
         sendExportedPorts connection, runtime
+        # For subscribing to output packets
+        runtime.exportedEdges = [] if not runtime.exportedEdges?
+        runtime.exportedEdges.push
+            src:
+                process: payload.node
+                port: payload.port
     # TODO: implement removein/outport
-
     else
         console.log "Unknown NoFlo UI command on protocol 'graph':", command, payload
     return
 
-deviceResponseToFbpProtocol = (send, args)->
+deviceResponseToFbpProtocol = (runtime, send, args)->
     if args[0] is "SEND"
         data = `undefined`
         if args[3] is "Void"
             data = "!"
         else
             data = args[4]
-        msg =
+        src =
+            node: args[1]
+            port: args[2]
+        tgt =
+            node: args[5]
+            port: args[6]
+        send
             protocol: "network"
             command: "data"
             payload:
-                src:
-                    node: args[1]
-                    port: args[2]
-                tgt:
-                    node: args[5]
-                    port: args[6]
+                src: src
+                tgt: tgt
                 data: data
-        send msg
+
+        # Check if exported outport
+        if runtime.graph.outports
+            found = null
+            for pub, internal of runtime.graph.outports
+                match = internal.process == src.node and internal.port == src.port
+                found = pub if match
+            m =
+                protocol: "runtime"
+                command: "packet"
+                payload:
+                    port: found
+                    event: 'data'
+                    payload: data
+                    index: null
+            send m if found
+
     else if args[0] is "NETSTOP"
         m =
             protocol: "network"
@@ -271,9 +294,14 @@ handleNetworkStartStop = (runtime, connection, transport, debugLevel) ->
     runtime.uploadInProgress = true
 
     runtime.device.sendCommands data, (err) ->
-        runtime.uploadInProgress = false
+        # Subscribe to change notifications
+        # TODO: use a dedicated mechanism for this based on subgraphs
+        runtime.exportedEdges = [] if not runtime.exportedEdges?
+        edges = runtime.exportedEdges.concat runtime.edgesForInspection or []
+        handleNetworkEdges runtime, connection, edges, (err) ->
+            runtime.uploadInProgress = false
 
-handleNetworkEdges = (runtime, connection, edges) ->
+handleNetworkEdges = (runtime, connection, edges, callback) ->
     graph = runtime.graph
     maxCommands = graph.connections.length+edges.length
     buffer = new commandstream.Buffer 8*maxCommands
@@ -298,16 +326,18 @@ handleNetworkEdges = (runtime, connection, edges) ->
         return
 
     # Send
-    runtime.device.sendCommands buffer, (err) ->
-        throw err if err
+    runtime.device.sendCommands buffer, callback
 
 handleNetworkCommand = (command, payload, connection, runtime, transport, debugLevel) ->
     if command is "start" or command is "stop"
         # TODO: handle stop command separately, actually pause the graph
         handleNetworkStartStop runtime, connection, debugLevel
     else if command is "edges"
-        # FIXME: should not need to use transport directly here
-        handleNetworkEdges runtime, connection, payload.edges
+        # TOD: merge with those of exported outports
+        runtime.edgesForInspection = payload.edges
+        runtime.exportedEdges = [] if not runtime.exportedEdges?
+        edges = runtime.edgesForInspection.concat runtime.exportedEdges
+        handleNetworkEdges runtime, connection, edges
     else
         console.log "Unknown NoFlo UI command on protocol 'network':", command, payload
     return
@@ -421,7 +451,7 @@ class Runtime extends EventEmitter
             while i < arguments.length
                 args.push arguments[i]
                 i++
-            deviceResponseToFbpProtocol @conn.send, args
+            deviceResponseToFbpProtocol runtime, @conn.send, args
 
     handleMessage: (msg) ->
         handleMessage @, msg
