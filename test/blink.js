@@ -25,12 +25,12 @@ describe('a Blink program', function(){
             '13' -> PIN led()";
     before(function (done) {
         simulator.start(0); // no time increments
-        simulator.comm.open(function() {
+        simulator.device.open(function() {
             done();
         });
     })
     after(function (done) {
-        simulator.comm.close(function() {
+        simulator.device.close(function() {
             simulator.stop();
             done();
         });

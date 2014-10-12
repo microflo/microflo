@@ -123,10 +123,10 @@ describeIfHasSimulator('Network', function(){
         }
 
         s.start();
-        s.comm.on('response', handleFunc);
-        s.comm.open(function() {
+        s.device.on('response', handleFunc);
+        s.device.open(function() {
             s.uploadGraph(graph, function() {
-                s.comm.close(function() {
+                s.device.close(function() {
                     ;
                 })
             });

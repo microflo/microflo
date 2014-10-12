@@ -92,25 +92,6 @@ printReceived = ->
     console.log args.join(", ")
     return
 
-uploadGraph = (transport, data, graph, receiveHandler, onlyRegisterHandler, callback) ->
-    throw new Error("Use the DeviceCommunication API instead!") if onlyRegisterHandler
-    handler = (if receiveHandler then receiveHandler else printReceived)
-
-    if graph.uploadInProgress
-        # avoid multiple uploads happening at same time
-        # FIXME: should give user feedback on upload process
-        console.log "WARN: Graph upload in progress, ignored second attempt"
-
-    comm = new devicecommunication.DeviceCommunication(transport, graph, componentLib)
-    comm.on "response", ->
-        handler.apply this, arguments
-
-    comm.open ->
-        comm.sendCommands data, (err) ->
-            comm.close (err) ->
-                graph.uploadInProgress = false
-                callback null if callback
-
 listComponents = (connection) ->
     for name of componentLib.getComponents()
         comp = componentLib.getComponent(name)
@@ -127,7 +108,7 @@ listComponents = (connection) ->
         connection.send resp
     return
 
-handleRuntimeCommand = (command, payload, connection) ->
+handleRuntimeCommand = (command, payload, connection, runtime) ->
     if command is "getruntime"
         caps = [
             "protocol:graph"
@@ -146,7 +127,7 @@ handleRuntimeCommand = (command, payload, connection) ->
         console.log "Unknown NoFlo UI command on 'runtime' protocol:", command, payload
     return
 
-handleComponentCommand = (command, payload, connection) ->
+handleComponentCommand = (command, payload, connection, runtime) ->
     if command is "list"
         listComponents connection
     else if command is "getsource"
@@ -164,7 +145,8 @@ handleComponentCommand = (command, payload, connection) ->
         console.log "Unknown NoFlo UI command on 'component' protocol:", command, payload
     return
 
-handleGraphCommand = (command, payload, connection, graph) ->
+handleGraphCommand = (command, payload, connection, runtime) ->
+    graph = runtime.graph
     if command is "clear"
         graph.processes = {}
         graph.connections = []
@@ -184,68 +166,65 @@ handleGraphCommand = (command, payload, connection, graph) ->
         console.log "Unknown NoFlo UI command on protocol 'graph':", command, payload
     return
 
-handleNetworkStartStop = (graph, connection, transport, debugLevel) ->
+deviceResponseToFbpProtocol = (send, args)->
+    if args[0] is "SEND"
+        data = `undefined`
+        if args[3] is "Void"
+            data = "!"
+        else
+            data = args[4]
+        msg =
+            protocol: "network"
+            command: "data"
+            payload:
+                src:
+                    node: args[1]
+                    port: args[2]
+                tgt:
+                    node: args[5]
+                    port: args[6]
+                data: data
+        send msg
+    else if args[0] is "NETSTOP"
+        m =
+            protocol: "network"
+            command: "stopped"
+        send m
+    else if args[0] is "NETSTART"
+        m =
+            protocol: "network"
+            command: "started"
+        send m
+    else
+        string = args.join(", ")
+        string = string.replace(/\n$/, "")
+        msg =
+            protocol: "network"
+            command: "output"
+            payload:
+                message: string
+        send msg
+
+
+handleNetworkStartStop = (runtime, connection, transport, debugLevel) ->
     # FIXME: also do error handling, and send that across
     # https://github.com/noflo/noflo-runtime-websocket/blob/master/runtime/network.js
     # TODO: handle start/stop messages, send this to the UI
-    wsSendOutput = ->
-        args = []
-        i = 0
-
-        while i < arguments.length
-            args.push arguments[i]
-            i++
-        if args[0] is "SEND"
-            data = `undefined`
-            if args[3] is "Void"
-                data = "!"
-            else
-                data = args[4]
-            msg =
-                protocol: "network"
-                command: "data"
-                payload:
-                    src:
-                        node: args[1]
-                        port: args[2]
-                    tgt:
-                        node: args[5]
-                        port: args[6]
-                    data: data
-            connection.send msg
-        else if args[0] is "NETSTOP"
-            m =
-                protocol: "network"
-                command: "stopped"
-            connection.send m
-        else if args[0] is "NETSTART"
-            m =
-                protocol: "network"
-                command: "started"
-            connection.send m
-        else
-            string = args.join(", ")
-            string = string.replace(/\n$/, "")
-            msg =
-                protocol: "network"
-                command: "output"
-                payload:
-                    message: string
-            connection.send msg
+    graph = runtime.graph
 
     data = commandstream.cmdStreamFromGraph componentLib, graph, debugLevel
-    # FIXME: should use DeviceCommunication instead of uploadGraph
-    ###
-    if graph.uploadInProgress
+    if runtime.uploadInProgress
         console.log 'Ignoring multiple attempts of graph upload'
-    graph.uploadInProgress = true
-    device.sendCommands data, (err) ->
-        graph.uploadInProgress = false
-    ###
-    uploadGraph transport, data, graph, wsSendOutput
+    runtime.uploadInProgress = true
 
-handleNetworkEdges = (graph, connection, transport, edges) ->
+    runtime.device.sendCommands data, (err) ->
+        console.log 'upload done'
+        runtime.uploadInProgress = false
+
+handleNetworkEdges = (runtime, connection, edges) ->
     # Loop over all edges, unsubscribe
+    graph = runtime.graph
+    transport = runtime.transport
     graph.connections.forEach (edge) ->
         if edge.src
             srcId = graph.nodeMap[edge.src.process].id
@@ -266,27 +245,28 @@ handleNetworkEdges = (graph, connection, transport, edges) ->
         transport.write buffer
         return
 
-handleNetworkCommand = (command, payload, connection, graph, transport, debugLevel) ->
+handleNetworkCommand = (command, payload, connection, runtime, transport, debugLevel) ->
     if command is "start" or command is "stop"
         # TODO: handle stop command separately, actually pause the graph
-        handleNetworkStartStop graph, connection, transport, debugLevel
+        handleNetworkStartStop runtime, connection, debugLevel
     else if command is "edges"
         # FIXME: should not need to use transport directly here
-        handleNetworkEdges graph, connection, transport, payload.edges
+        handleNetworkEdges runtime, connection, payload.edges
     else
         console.log "Unknown NoFlo UI command on protocol 'network':", command, payload
     return
 
-handleMessage = (contents, connection, graph, transport, debugLevel) ->
+handleMessage = (runtime, contents) ->
+    connection = runtime.conn
 
     if contents.protocol is "component"
-        handleComponentCommand contents.command, contents.payload, connection
+        handleComponentCommand contents.command, contents.payload, connection, runtime
     else if contents.protocol is "graph"
-        handleGraphCommand contents.command, contents.payload, connection, graph
+        handleGraphCommand contents.command, contents.payload, connection, runtime
     else if contents.protocol is "runtime"
-        handleRuntimeCommand contents.command, contents.payload, connection
+        handleRuntimeCommand contents.command, contents.payload, connection, runtime
     else if contents.protocol is "network"
-        handleNetworkCommand contents.command, contents.payload, connection, graph, transport, debugLevel
+        handleNetworkCommand contents.command, contents.payload, connection, runtime
     else
         console.log "Unknown NoFlo UI protocol:", contents
     return
@@ -365,6 +345,7 @@ uploadGraphFromFile = (graphPath, serialPortName, baudRate, debugLevel) ->
     serial.openTransport serialPortName, baudRate, (err, transport) ->
         loadFile graphPath, (err, graph) ->
             data = commandstream.cmdStreamFromGraph(componentLib, graph, debugLevel)
+            # FIXME: reimplement using devicecomm directly
             uploadGraph transport, data, graph
 
 class Runtime extends EventEmitter
@@ -378,8 +359,16 @@ class Runtime extends EventEmitter
             send: (response) =>
                 @emit 'message', response
 
+        @device.on 'response', () ->
+            args = []
+            i = 0
+            while i < arguments.length
+                args.push arguments[i]
+                i++
+            deviceResponseToFbpProtocol @conn.send, args
+
     handleMessage: (msg) ->
-        handleMessage msg, @conn, @graph, @transport, @debugLevel
+        handleMessage @, msg
 
 module.exports =
     loadFile: loadFile
@@ -387,7 +376,7 @@ module.exports =
     setupWebsocket: setupWebsocket
     Runtime: Runtime
     uploadGraphFromFile: uploadGraphFromFile
-    uploadGraph: uploadGraph
     createFlowhubRuntime: createFlowhubRuntime
     registerFlowhubRuntime: registerFlowhubRuntime
     handleMessage: handleMessage
+    deviceResponseToFbpProtocol: deviceResponseToFbpProtocol # XXX: should be encapsulated
