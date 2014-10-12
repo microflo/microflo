@@ -24,6 +24,9 @@
   "bin": {
     "microflo": "./microflo.js"
   },
+  "files": [
+    "lib"
+  ],
   "scripts": {
     "start": "node microflo.js runtime",
     "test": "grunt test"
