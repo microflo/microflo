@@ -23,7 +23,6 @@
     "lib/microflo.js",
     "lib/serial.js",
     "lib/simulator.js",
-    "lib/transport.js",
     "lib/util.js",
     "build/emscripten/microflo-runtime.js"
   ],
