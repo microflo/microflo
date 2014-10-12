@@ -1,6 +1,6 @@
 {
   "name": "microflo",
-  "version": "0.3.3",
+  "version": "0.3.5",
   "description": "Flow-based programming runtime for microcontrollers",
   "keywords": [
     "fbp",
@@ -25,7 +25,8 @@
     "microflo": "./microflo.js"
   },
   "files": [
-    "lib"
+    "lib",
+    "microflo.js"
   ],
   "scripts": {
     "start": "node microflo.js runtime",
