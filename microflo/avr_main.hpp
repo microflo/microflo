@@ -27,6 +27,9 @@ void operator delete(void * p)
 
 extern "C"
 {
+    void __cxa_pure_virtual() {
+        while (1);
+    }
     void *__dso_handle = NULL;
     void __cxa_atexit() {
         ;
