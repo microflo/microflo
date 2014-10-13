@@ -153,7 +153,7 @@ void HostCommunication::parseCmd() {
         }
 
         if (p.isValid()) {
-            network->sendMessage(buffer[1], buffer[2], p);
+            network->sendMessageId(buffer[1], buffer[2], p);
             const uint8_t cmd[] = { GraphCmdSendPacketDone };
             transport->sendCommand(cmd, sizeof(cmd));
         } else {
@@ -311,7 +311,7 @@ void Network::sendMessage(Component *target, MicroFlo::PortId targetPort, const 
     }
 }
 
-void Network::sendMessage(MicroFlo::NodeId targetId, MicroFlo::PortId targetPort, const Packet &pkg) {
+void Network::sendMessageId(MicroFlo::NodeId targetId, MicroFlo::PortId targetPort, const Packet &pkg) {
     MICROFLO_RETURN_IF_FAIL(MICROFLO_VALID_NODEID(targetId),
                             notificationHandler, DebugLevelError, DebugSendMessageInvalidNode);
 

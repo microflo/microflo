@@ -205,7 +205,7 @@ public:
 
     void sendMessage(Component *target, MicroFlo::PortId targetPort, const Packet &pkg,
                      Component *sender=0, MicroFlo::PortId senderPort=-1);
-    void sendMessage(MicroFlo::NodeId targetId, MicroFlo::PortId targetPort, const Packet &pkg);
+    void sendMessageId(MicroFlo::NodeId targetId, MicroFlo::PortId targetPort, const Packet &pkg);
 
     void subscribeToPort(MicroFlo::NodeId nodeId, MicroFlo::PortId portId, bool enable);
 
