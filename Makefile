@@ -141,37 +141,38 @@ build-microflo-sharedlib:
 build-microflo-objlib: 
 	rm -rf $(BUILD_DIR)/lib
 	mkdir -p $(BUILD_DIR)/lib
-	node microflo.js generate $(LINUX_GRAPH) $(BUILD_DIR)/lib linux # only for internal defs...
-	g++ -c microflo/microflo.cpp -o $(BUILD_DIR)/lib/microflolib.o -std=c++0x -I$(BUILD_DIR)/lib -DLINUX -Wall -Werror
+	node microflo.js generate $(LINUX_GRAPH) $(BUILD_DIR)/linux/include linux # only for internal defs...
+	g++ -c microflo/microflo.cpp -o $(BUILD_DIR)/lib/microflolib.o -std=c++0x -I$(BUILD_DIR)/linux/include -DLINUX -Wall -Werror
 
 # Build firmware linked to microflo runtime as dynamic loadable library, $(BUILD_DIR)/lib/libmicroflo.so
 build-linux-sharedlib: build-microflo-sharedlib
 	rm -rf $(BUILD_DIR)/linux
 	mkdir -p $(BUILD_DIR)/linux
 	node microflo.js generate $(LINUX_GRAPH) $(BUILD_DIR)/linux linux
-	g++ -o $(BUILD_DIR)/linux/firmware $(BUILD_DIR)/linux/main.cpp -std=c++0x -Wl,-rpath=$(BUILD_DIR)/lib -DLINUX -I./$(BUILD_DIR)/lib -I./microflo -Wall -Werror -lrt -L./$(BUILD_DIR)/lib -lmicroflo
+	g++ -o $(BUILD_DIR)/linux/firmware $(BUILD_DIR)/linux/main.cpp -std=c++0x -Wl,-rpath=$(BUILD_DIR)/lib -DLINUX -I./$(BUILD_DIR)/linux/include -I./microflo -Wall -Werror -lrt -L./$(BUILD_DIR)/lib -lmicroflo
 
 # Build firmware statically linked to microflo runtime as object file, $(BUILD_DIR)/lib/microflolib.o
-build-linux: build-microflo-objlib build-microflo-complib
-	rm -rf $(BUILD_DIR)/linux
-	mkdir -p $(BUILD_DIR)/linux
+build-linux: build-microflo-objlib build-microflo-complib libuv
+	mkdir -p $(BUILD_DIR)/linux || exit 0
 	node microflo.js generate $(LINUX_GRAPH) $(BUILD_DIR)/linux linux
-	g++ -o $(BUILD_DIR)/linux/firmware $(BUILD_DIR)/linux/main.cpp -std=c++0x $(BUILD_DIR)/lib/microflolib.o $(BUILD_DIR)/lib/componentlib.o -DLINUX -I$(BUILD_DIR)/lib -I./microflo -Wall -Werror -lrt
-
-# TODO: move to separate repo
-build-linux-embedding:
-	rm -rf $(BUILD_DIR)/linux
-	mkdir -p $(BUILD_DIR)/linux
-	node microflo.js generate examples/embedding.cpp $(BUILD_DIR)/linux/ linux
-	cd $(BUILD_DIR)/linux && g++ -o firmware ../../examples/embedding.cpp -std=c++0x $(COMMON_CFLAGS) -DLINUX -Werror -lrt
+	cd $(BUILD_DIR)/linux && g++ -o firmware main.cpp -std=c++0x ../lib/microflolib.o ../lib/componentlib.o -DLINUX -I./include -I../../microflo -Wall -Werror -lrt -pthread ./lib/libuv.a
 
 build-emscripten:
 	rm -rf $(BUILD_DIR)/emscripten
 	mkdir -p $(BUILD_DIR)/emscripten
 	node microflo.js generate $(GRAPH) $(BUILD_DIR)/emscripten emscripten
 	cd $(BUILD_DIR)/emscripten && EMCC_FAST_COMPILER=0 emcc -o microflo-runtime.html main.cpp $(COMMON_CFLAGS) -s NO_DYNAMIC_EXECUTION=1 -s EXPORTED_FUNCTIONS=$(EMSCRIPTEN_EXPORTS)
+	rm -rf build/mbed
+	mkdir -p build/mbed
+	node microflo.js generate $(MBED_GRAPH) build/mbed/main.cpp mbed
+	cp Makefile.mbed build/mbed/Makefile
+	cd build/mbed && make ROOT_DIR=./../../
 
 build: build-arduino build-avr
+
+libuv:
+	cd thirdparty/libuv && ./autogen.sh
+	cd thirdparty/libuv && ./configure --prefix=`pwd`/../../build/linux/ && make install
 
 upload: build-arduino
 	cd $(BUILD_DIR)/arduino && ino upload $(INOUPLOADOPTIONS) $(INOOPTIONS)

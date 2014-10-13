@@ -13,3 +13,6 @@
 [submodule "microflo/core"]
 	path = microflo/core
 	url = ../microflo-core.git
+[submodule "thirdparty/libuv"]
+	path = thirdparty/libuv
+	url = git@github.com:joyent/libuv.git
