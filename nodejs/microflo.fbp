@@ -1,8 +1,0 @@
-
-'/dev/ttyUSB1' -> DEVICENAME comp(MicroFloComponent)
-'examples/blink.fbp' -> GRAPH comp
-comp OUT -> IN out(core/Output)
-'300' -> INTERVAL timer(core/RunInterval) OUT -> IN splitTimer(core/Split)
-splitTimer OUT -> IN out(core/Output)
-splitTimer OUT -> IN comp
-'' -> START timer
