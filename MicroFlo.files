@@ -36,8 +36,6 @@ test/componentlib.js
 doc/braindump.md
 doc/arduino-getstarted.md
 doc/stories.md
-nodejs/MicroFloComponent.coffee
-microflo.cc
 microflo.js
 package.json
 README.md
@@ -56,12 +54,8 @@ app/style.css
 microflo/emscripten.hpp
 microflo/arduino.hpp
 microflo/avr.hpp
-microflo/commandformat-gen.h
 microflo/commandformat.h
 microflo/commandformat.json
-microflo/components-gen-bottom.hpp
-microflo/components-gen-top.hpp
-microflo/components-gen.h
 microflo/components.hpp
 microflo/components.h
 microflo/components.json
@@ -124,3 +118,9 @@ test/communication.coffee
 lib/runtime.coffee
 lib/runtime.coffee
 lib/devicecommunication.coffee
+microflo/arduino_main.hpp
+microflo/linux_main.hpp
+microflo/mbed_main.hpp
+microflo/emscripten_main.hpp
+microflo/avr_main.hpp
+microflo/stellaris_main.hpp

@@ -6068,7 +6068,7 @@ function __ZN17HostCommunication8parseCmdEv($this){
  var $160=(($6+13)|0);
  var $161=(($160+2)|0);
  var $162=HEAP8[(($161)>>0)];
- __ZN7Network11sendMessageEhaRK6Packet($156,$159,$162,$p);
+ __ZN7Network13sendMessageIdEhaRK6Packet($156,$159,$162,$p);
  var $163=(($6+8)|0);
  var $164=HEAP32[(($163)>>2)];
  var $165=$164;
@@ -7586,7 +7586,7 @@ function __ZNK6Packet7isValidEv($this){
 }
 
 
-function __ZN7Network11sendMessageEhaRK6Packet($this,$targetId,$targetPort,$pkg){
+function __ZN7Network13sendMessageIdEhaRK6Packet($this,$targetId,$targetPort,$pkg){
  var label=0;
  var sp=STACKTOP; (assert((STACKTOP|0) < (STACK_MAX|0))|0);
  label = 1; 

@@ -82,6 +82,23 @@ do { \
 #endif
 
 
+#ifdef MICROFLO_EMBED_GRAPH
+
+#define MICROFLO_LOAD_STATIC_GRAPH(ctrl_, gr_) \
+do { \
+    for (unsigned int i=0; i<sizeof(gr_); i++) { \
+        unsigned char c = gr_[i]; \
+        ctrl_->parseByte(c); \
+    } \
+} while(0)
+
+#else
+
+#define MICROFLO_LOAD_STATIC_GRAPH(controller, graph) \
+
+#endif
+
+
 namespace MicroFlo {
     typedef uint8_t NodeId;
     typedef int8_t PortId;
