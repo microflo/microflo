@@ -171,6 +171,14 @@ It can:
 * Change current graph and start/stop the network
 * Send and receive packets on exported in/outports of graph
 
+Command stream -> human names
+---------------------------------------
+
+When building the command stream, a node and component map is kept in memory.
+This can be used to look up the human readable string names from the numeric ids.
+The maps are [currently not persisted](https://github.com/jonnor/microflo/issues/63).
+
+
 Interactive programming with Flowhub
 -------------------------------------
 
