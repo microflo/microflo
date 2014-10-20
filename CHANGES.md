@@ -1,6 +1,6 @@
 MicroFlo 0.4.0
 ===========================
-Released: September 16, 2014
+Released: N/A, 2014
 
 Serial support has now been integrated in Flowhub Chrome app, starting with version 0.1.12.
 [Download](https://chrome.google.com/webstore/detail/flowhub/aacpjichompfhafnciggfpfdpfododlk)

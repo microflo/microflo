@@ -11,9 +11,6 @@ else
     http = require("http")
     websocket = require("websocket")
     url = require("url")
-    fbp = require("fbp")
-    fs = require("fs")
-    path = require("path")
     uuid = require("node-uuid")
     EventEmitter = require('events').EventEmitter;
 
@@ -25,20 +22,7 @@ componentLib = new c.ComponentLibrary(c.defaultComponents, "./microflo")
 cmdFormat = require("./commandformat")
 serial = require("./serial")
 devicecommunication = require("./devicecommunication")
-
-# TODO: Use noflo.graph.loadFile() instead?
-loadFile = (filename, callback) ->
-    fs.readFile filename, { encoding: "utf8" }, (err, data) ->
-        console.log filename
-        console.log data
-        return callback err if err
-        def = null
-        if (path.extname filename) is ".fbp"
-            def = fbp.parse data
-        else
-            def = JSON.parse data
-        return callback null, def
-
+definition = require './definition'
 
 # TODO: allow port types to be declared in component metadata,
 # and send the appropriate types instead of just "all"
@@ -435,7 +419,7 @@ setupRuntime = (serialPortToUse, baudRate, port, debugLevel, ip, callback) ->
 
 uploadGraphFromFile = (graphPath, serialPortName, baudRate, debugLevel) ->
     serial.openTransport serialPortName, baudRate, (err, transport) ->
-        loadFile graphPath, (err, graph) ->
+        definition.loadFile graphPath, (err, graph) ->
             data = commandstream.cmdStreamFromGraph(componentLib, graph, debugLevel)
             # FIXME: reimplement using devicecomm directly
             uploadGraph transport, data, graph
@@ -463,7 +447,6 @@ class Runtime extends EventEmitter
         handleMessage @, msg
 
 module.exports =
-    loadFile: loadFile
     setupRuntime: setupRuntime
     setupWebsocket: setupWebsocket
     Runtime: Runtime
