@@ -50,6 +50,8 @@ endif
 
 EMSCRIPTEN_EXPORTS='["_emscripten_runtime_new", "_emscripten_runtime_free", "_emscripten_runtime_run", "_emscripten_runtime_send", "_emscripten_runtime_setup"]'
 
+COMMON_CFLAGS:=-I../../microflo -I. -Wall
+
 # Platform specifics
 ifeq ($(OS),Windows_NT)
 	# TODO, test and fix
@@ -68,10 +70,11 @@ endif
 # Rules
 all: build
 
-build-arduino: update-defs
+build-arduino:
+	rm -rf build/arduino
 	mkdir -p build/arduino/src
 	mkdir -p build/arduino/lib
-	ln -sf `pwd`/microflo build/arduino/lib/
+	cp -r `pwd`/microflo build/arduino/lib/
 	unzip -q -n ./thirdparty/OneWire.zip -d build/arduino/lib/
 	unzip -q -n ./thirdparty/DallasTemperature.zip -d build/arduino/lib/
 	cd thirdparty/Adafruit_NeoPixel && git checkout-index -f -a --prefix=../../build/arduino/lib/Adafruit_NeoPixel/
@@ -79,45 +82,45 @@ build-arduino: update-defs
 	cd build/arduino/lib && test -e patched || patch -p0 < ../../../thirdparty/DallasTemperature.patch
 	cd build/arduino/lib && test -e patched || patch -p0 < ../../../thirdparty/OneWire.patch
 	touch build/arduino/lib/patched
-	node microflo.js generate $(GRAPH) build/arduino/src/firmware.cpp arduino
-	cd build/arduino && ino build $(INOOPTIONS) --verbose --cppflags="$(CPPFLAGS) $(DEFINES)"
+	node microflo.js generate $(GRAPH) build/arduino/src/ arduino
+	cd build/arduino && ino build $(INOOPTIONS) --verbose --cppflags="$(CPPFLAGS) $(DEFINES) -I./src"
 	$(AVRSIZE) -A build/arduino/.build/$(MODEL)/firmware.elf
 
-build-avr: update-defs
+build-avr:
 	mkdir -p build/avr
-	node microflo.js generate $(GRAPH) build/avr/firmware.cpp avr
-	cd build/avr && $(AVRGCC) -o firmware.elf firmware.cpp -I../../microflo -DF_CPU=$(AVR_FCPU) -DAVR=1 -Wall -Werror -Wno-error=overflow -mmcu=$(AVRMODEL) -fno-exceptions -fno-rtti $(CPPFLAGS)
+	node microflo.js generate $(GRAPH) build/avr/ avr
+	cd build/avr && $(AVRGCC) -o firmware.elf main.cpp -DF_CPU=$(AVR_FCPU) -DAVR=1 $(COMMON_CFLAGS) -Werror -Wno-error=overflow -mmcu=$(AVRMODEL) -fno-exceptions -fno-rtti $(CPPFLAGS)
 	cd build/avr && $(AVROBJCOPY) -j .text -j .data -O ihex firmware.elf firmware.hex
 	$(AVRSIZE) -A build/avr/firmware.elf
 
-build-mbed: update-defs
+build-mbed:
 	cd thirdparty/mbed && python2 workspace_tools/build.py -t GCC_ARM -m LPC1768
 	rm -rf build/mbed
 	mkdir -p build/mbed
-	node microflo.js generate $(MBED_GRAPH) build/mbed/main.cpp mbed
+	node microflo.js generate $(MBED_GRAPH) build/mbed/ mbed
 	cp Makefile.mbed build/mbed/Makefile
 	cd build/mbed && make ROOT_DIR=./../../
 
-build-stellaris: update-defs
+build-stellaris:
 	rm -rf build/stellaris
 	mkdir -p build/stellaris
-	node microflo.js generate $(STELLARIS_GRAPH) build/stellaris/main.cpp stellaris
+	node microflo.js generate $(STELLARIS_GRAPH) build/stellaris/ stellaris
 	cp Makefile.stellaris build/stellaris/Makefile
 	cp startup_gcc.c build/stellaris/
 	cp stellaris.ld build/stellaris/
 	cd build/stellaris && make ROOT=../../thirdparty/stellaris
 
-build-linux: update-defs
+build-linux:
 	rm -rf build/linux
 	mkdir -p build/linux
-	node microflo.js generate $(LINUX_GRAPH) build/linux/main.cpp linux
-	cd build/linux && g++ -o firmware main.cpp -std=c++0x -I../../microflo -DLINUX -Wall -Werror -lrt
+	node microflo.js generate $(LINUX_GRAPH) build/linux/ linux
+	cd build/linux && g++ -o firmware main.cpp -std=c++0x $(COMMON_CFLAGS) -DLINUX -Werror -lrt
 
-build-emscripten: update-defs
+build-emscripten:
 	rm -rf build/emscripten
 	mkdir -p build/emscripten
-	node microflo.js generate $(GRAPH) build/emscripten/main.cpp emscripten
-	cd build/emscripten && EMCC_FAST_COMPILER=0 emcc -o microflo-runtime.html main.cpp -I../../microflo -Wall -s NO_DYNAMIC_EXECUTION=1 -s EXPORTED_FUNCTIONS=$(EMSCRIPTEN_EXPORTS)
+	node microflo.js generate $(GRAPH) build/emscripten emscripten
+	cd build/emscripten && EMCC_FAST_COMPILER=0 emcc -o microflo-runtime.html main.cpp $(COMMON_CFLAGS) -s NO_DYNAMIC_EXECUTION=1 -s EXPORTED_FUNCTIONS=$(EMSCRIPTEN_EXPORTS)
 
 build: build-arduino build-avr
 
@@ -142,17 +145,12 @@ upload-stellaris: build-stellaris
 clean:
 	git clean -dfx --exclude=node_modules
 
-build-host:
-	grunt build
-
-update-defs: build-host
-	node microflo.js update-defs $(LIBRARYOPTION)
-
 release-arduino:
 	rm -rf build/microflo-arduino
 	mkdir -p build/microflo-arduino/microflo/examples/Standalone
 	cp -r microflo build/microflo-arduino/
-	cp build/arduino/src/firmware.cpp build/microflo-arduino/microflo/examples/Standalone/Standalone.pde
+	cp -r build/arduino/src/*gen*.{h,hpp} build/microflo-arduino/microflo/
+	cp build/arduino/src/main.cpp build/microflo-arduino/microflo/examples/Standalone/Standalone.pde
 	cd build/microflo-arduino && zip -q -r ../microflo-arduino.zip microflo
 
 release-mbed: build-mbed
@@ -167,7 +165,7 @@ release-stellaris: build-stellaris
 release-emscripten: build-emscripten
     # TODO: package?
 
-release: update-defs build release-mbed release-linux release-microflo release-arduino release-stellaris release-emscripten
+release: build release-mbed release-linux release-microflo release-arduino release-stellaris release-emscripten
 	rm -rf build/microflo-$(VERSION)
 	mkdir -p build/microflo-$(VERSION)
 	cp -r build/microflo-arduino.zip build/microflo-$(VERSION)/

@@ -11,7 +11,7 @@ include ${ROOT}/makedefs
 VPATH=
 VPATH+=${ROOT}/utils
 # Where to find header files that do not live in the source directory.
-IPATH=${ROOT} ../../microflo
+IPATH=${ROOT} ../../microflo ./
 
 #
 # The default rule, which causes the USB device bulk example to be built.

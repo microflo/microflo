@@ -4,6 +4,7 @@
  * MicroFlo may be freely distributed under the MIT license
  */
 
+require('coffee-script/register');
 var fs = require("fs");
 var path = require("path");
 var cmdFormat = require("./microflo/commandformat.json");
@@ -33,9 +34,11 @@ var uploadGraphCommand = function(graphPath, env) {
 
 var generateFwCommand = function(env) {
     var inputFile = process.argv[3];
-    var outputFile = process.argv[4] || inputFile.replace(path.extname(inputFile), "");
-    var target = process.argv[5] || 'arduino'
+    var outputDir = process.argv[4];
+    var target = process.argv[5] || 'arduino';
+    var outputFile = outputDir + '/main.cpp';
 
+    microflo.generate.updateDefinitions(componentLib, outputDir);
     microflo.generate.generateOutput(componentLib, inputFile, outputFile, target);
 }
 
@@ -62,23 +65,7 @@ var registerRuntimeCommand = function(user, env) {
     }
 }
 
-var updateDefsCommand = function(env) {
-    // FIXME: move this code somewhere else, make more general
-    // For now, default to all components (like before)
-    if (typeof env.library !== 'undefined') {
-        var included = JSON.parse(fs.readFileSync(env.library)).components;
-        var filtered = {};
-        included.forEach(function(name){
-            filtered[name] = componentLib.definition.components[name];
-        });
-        componentLib.definition.components = filtered;
-    }
-
-    microflo.generate.updateDefinitions(componentLib, "./microflo");
-}
-
 var flashCommand = function(file, env) {
-    require('coffee-script/register');
     var upload = require('./lib/flash.coffee');
     var tty = env.serial;
     var baud = parseInt(env.baudrate) || 115200;
@@ -94,12 +81,6 @@ var main = function() {
 
     commander
         .version(module.exports.version)
-
-    commander
-        .command('update-defs')
-        .description('(internal use) Update the generated C++ headers from .json definitions.')
-        .option('-l, --library <FILE>', 'which component library to use')
-        .action(updateDefsCommand);
 
     commander
         .command('generate')
