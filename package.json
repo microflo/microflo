@@ -53,7 +53,8 @@
     "noflo": "~0.5.0",
     "pkginfo": "~0.3.0",
     "serialport": "^1.4.5",
-    "websocket": "~1.0.8"
+    "websocket": "~1.0.8",
+    "yaml": "^0.2.3"
   },
   "devDependencies": {
     "chai": "~1.8.0",

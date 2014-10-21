@@ -32,12 +32,31 @@ var uploadGraphCommand = function(graphPath, env) {
     microflo.runtime.uploadGraphFromFile(graphPath, serialPortName, baud, debugLevel);
 }
 
+var extractComponents = function(componentLib, inputFile) {
+    var declarec = require('declarec');
+    var yaml = require('yaml');
+    var data = fs.readFileSync(inputFile, {encoding: 'utf-8'});
+    // TODO: check if C file
+    var raw = declarec.extractDefinition(data, 'microflo_component', 'c');
+    raw.forEach(function(def) {
+        if (def.format === 'yaml') {
+            if (def.content.substring(0,3) !== '---') {
+                // HACK: js-yaml fails when document has leading indent and does not start with ---
+                def.content = '---\n' + def.content + '\n';
+            }
+            var d = yaml.eval(def.content);
+            componentLib.addComponent(d.name, d);
+        }
+    });
+};
+
 var generateFwCommand = function(env) {
     var inputFile = process.argv[3];
     var outputDir = process.argv[4];
     var target = process.argv[5] || 'arduino';
     var outputFile = outputDir + '/main.cpp';
 
+    extractComponents(componentLib, inputFile);
     microflo.generate.updateDefinitions(componentLib, outputDir);
     microflo.generate.generateOutput(componentLib, inputFile, outputFile, target);
 }

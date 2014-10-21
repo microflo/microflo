@@ -6,7 +6,7 @@
 
 /* microflo_component yaml plus_one_gen.h
     name: PlusOne
-    description: "Count upwards from 0, with step 1"
+    description: Count upwards from 0, with step 1
 microflo_component */
 #include "plus_one_gen.h"
 struct PlusOne : public SingleOutputComponent {
@@ -23,7 +23,7 @@ struct PlusOne : public SingleOutputComponent {
     name: PrintInteger
     description: "Print integer to stdout"
     inports:
-        in
+        - in:
             type: integer
     outports: []
 microflo_component */
@@ -36,9 +36,14 @@ struct PrintInteger : public SingleOutputComponent {
     }
 };
 
-/* microflo_graph fbp mygraph_gen.h
+/*
     plus(PlusOne) OUT -> IN forward(Forward) OUT -> IN out(PrintInteger)
     '13' -> plusOne
+ */
+
+/* microflo_graph fbp mygraph_gen.h
+    f(Forward) OUT -> IN forward(Forward) OUT -> IN out(Forward)
+    '13' -> IN f
 microflo_graph */
 #include "mygraph_gen.h"
 
