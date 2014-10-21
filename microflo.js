@@ -45,7 +45,7 @@ var extractComponents = function(componentLib, inputFile) {
                 def.content = '---\n' + def.content + '\n';
             }
             var d = yaml.eval(def.content);
-            componentLib.addComponent(d.name, d);
+            componentLib.addComponent(d.name, d, inputFile);
         }
     });
 };

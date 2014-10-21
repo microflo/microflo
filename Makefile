@@ -114,7 +114,7 @@ build-linux:
 	rm -rf build/linux
 	mkdir -p build/linux
 	node microflo.js generate $(LINUX_GRAPH) build/linux/ linux
-	cd build/linux && g++ -o firmware main.cpp -std=c++0x $(COMMON_CFLAGS) -DLINUX -Werror -lrt
+	cd build/linux && g++ -o firmware ../../examples/embedding.cpp -std=c++0x $(COMMON_CFLAGS) -DLINUX -Werror -lrt
 
 build-emscripten:
 	rm -rf build/emscripten

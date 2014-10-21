@@ -392,6 +392,15 @@ public:
     }
 };
 
+// Convenience class for component which only have one output.
+// Does the output connection allocation for you.
+class SingleOutputComponent : public Component {
+public:
+    SingleOutputComponent() : Component(connections, 1) {}
+private:
+    Connection connections[1];
+};
+
 #define MICROFLO_SUBGRAPH_MAXPORTS 10
 
 #ifdef MICROFLO_ENABLE_SUBGRAPHS

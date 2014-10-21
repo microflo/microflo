@@ -13,15 +13,6 @@
 class Invalid : public DummyComponent {};
 class _Max : public DummyComponent {};
 
-// Convenience class for component which only have one output.
-// Does the output connection allocation for you.
-class SingleOutputComponent : public Component {
-public:
-    SingleOutputComponent() : Component(connections, 1) {}
-private:
-    Connection connections[1];
-};
-
 // Convenience class for components whos output is purely
 // a function of the current input values
 template <typename FUNC, typename T0, typename T1>
