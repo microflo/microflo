@@ -265,11 +265,17 @@ deviceResponseToFbpProtocol = (runtime, send, args)->
         m =
             protocol: "network"
             command: "stopped"
+            payload:
+                running: false
+                started: false
         send m
     else if args[0] is "NETSTART"
         m =
             protocol: "network"
             command: "started"
+            payload:
+                running: true
+                started: true
         send m
     else
         string = args.join(", ")
