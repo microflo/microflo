@@ -697,6 +697,45 @@ with real implementations. The acceptance tests should continue to run with no/m
 This way one ensures that both the simulation and implementation is correct, and thus that one can use either for validation.
 
 
+Dataflow instruction-set and processsors
+==========================================
+[Alan Kay argues](http://vimeo.com/82301919) that not only should our programming models and languages
+be created/shaped to reflect what is best for the task at hand,
+processors and their instruction sets should too.
+
+What kind of processor would fit MicroFlo?
+
+* Isolated memory per component
+* Hardware queues for inter-component communication
+* Realizable as FPGA soft-core(s)
+* Fast thread switching
+* Address space smaller than register unit? (16bit/32bit)
+* Allow component to be implemented in hardware, transparently
+
+Challenges:
+
+* Implementing the thing in VHDL/Verilog
+* Creating a C/C++ (or similar) toolchain. Some Forth might be a good start
+* Avoiding too much waste in fitting memory regions to a program
+
+References
+
+* [The Supersmall soft processor](http://www.eecg.toronto.edu/~jayar/pubs/robinson/robinsonspl10.pdf)
+* [Navre, AVR8 compatible, used in Milkymist](http://opencores.org/project,navre)
+* [J1, 200-line Forth machine](http://excamera.com/sphinx/fpga-j1.html)
+* [gr0040, small 16-bit core, custom LLVM/llc backend](http://www.fpgacpu.org/papers/soc-gr0040-paper.pdf)
+
+Questions/ideas:
+
+* Can one save/avoid per-thread program counters
+by having one entrypoint for component and executing to completion always?
+* Can one use a stack-based language inside components,
+where the dataflow engine places variables on stack before component execution,
+and a 'send' word passes data to an outport
+* Altenatively a stack-based language, that uses 'read' word to do blocking read on a port,
+syncronized in hardware for more classical-FBP type interaction
+
+
 Robotics, smart-physical device development
 =============================================
 
