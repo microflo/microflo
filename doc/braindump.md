@@ -735,6 +735,44 @@ and a 'send' word passes data to an outport
 * Altenatively a stack-based language, that uses 'read' word to do blocking read on a port,
 syncronized in hardware for more classical-FBP type interaction
 
+Direct manipulation when programming physical devices
+====================================================
+
+Motivations: 
+
+* Establish connections between outside ("user interface" / "environment")
+and inside ("the program")
+* Build appropriate mental models for how device works
+* Manipulate virtually the user interface and environment,
+seeing virtually or physically the results
+* Programming in terms of (desired) actions on UI/environment
+instead of symbols in the program
+
+Considerations:
+
+* Device can be stationary, or operating over a space
+* Visualizations can be UI/IO-centric or model-centric
+* Preview/simulation should always be in sync with device
+
+Implementation:
+
+* Device should in addition to information about its internals,
+send interactive models representing its externals
+* In Flowhub this could be a URL to a NoFlo-browser preview runtime
+* Requires preview runtime to be loadable from URL
+* Changes in device should be reflected in simulation,
+changes should be possible to make in simulation refected on device
+* Communicate using edge data subscriptions/injections,
+or through dedicated channel/subprotocol??
+On MicroFlo we have the I/O abstraction to hook into
+* Might require additional components designed for preview
+* Perhaps the same ones can be used for end-to-end tests?
+
+Possible testcases: 
+
+* Fridge
+* Mirobot
+* Lasercutter/mill
 
 Robotics, smart-physical device development
 =============================================
