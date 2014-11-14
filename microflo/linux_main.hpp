@@ -3,9 +3,12 @@
  * MicroFlo may be freely distributed under the MIT license
  */
 
-#include "microflo.hpp"
+#include "microflo.h"
 #include "linux.hpp"
 #include <unistd.h>
+
+// and all available component classes, to be instantiated from microflo graph runtime
+#include "components.hpp"
 
 int main(void) {
     LinuxIO io;
