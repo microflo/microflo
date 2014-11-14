@@ -779,6 +779,57 @@ Robotics, smart-physical device development
 
 Moved to [bitraf/mirusumo](https://github.com/bitraf/mirusumo) project
 
+Introspective programs
+=======================
+
+Goal-based programming
+-----------------------
+
+One way of implementing introspective programs: goal-trees.
+Can explain not only what they are, but also how they work.
+Using goal-trees one can answer how something is done
+by looking downwards in tree, and why something was done by looking up.
+
+[OpenCourseWare MIT 2010 Artifical 3. Reasoning: Goal Trees and Rule-Based Expert Systems](https://www.youtube.com/watch?v=leXa7EKUPFk)
+
+Should enable interactive user interfaces which
+allows to build up rule-based systemes, and probably
+be used to build programming-by-example/demonstration interfaces.
+
+Because the goal-tree is expressed as a graph of and+or-nodes,
+they can also be done directly in Flowhub. Or, one could use
+Flowhub to visualize goal-tree developed in another way.
+Could for instance be a subcomponent.
+
+Heuristics for developing knowledge (to build goal-tree):
+
+* Look at how a specific case should be handled
+* Ask questions about cases which are handled diffently, but are seemingly the same
+* Run the system until failure -> find what knowledge was missing
+
+http://c2.com/cgi/wiki?GoalBasedProgramming
+
+
+"Arch Learning"
+----------------
+[OpenCourseWare MIT 2010 Artifical 15. Learning: Near Misses, Felicity Conditions](https://www.youtube.com/watch?v=sh3EPjhhd40&list=PLUl4u3cNGP63gFHB6xb-kVBiQHYe_4hSi&index=15)
+
+Represents a model of things/knowledge, as a graph of relationships to properties/objects.
+There is an initial model being evolved over multiple iterations.
+
+Can be taught by presenting with new items and an evalutation.
+If item matches the model "is an example of" -> we generalize the relevant relationship.
+If it almost, but not quite matches the model "near miss" -> we specialize or create new relationship.
+
+Or can be taught by presenting two sets of items and a statement about how they are disjoint.
+Iteratively we can then mutate the relationships to generalize and specialize, such that
+we find for which modified model items are grouped correctly.
+
+Notable because it learns something from every iteration. "one shot"
+
+Could be implemented with a graph database, and then have interactive or batch-based
+interface for teaching the model.
+
 
 Related tools,project,links
 ============================
