@@ -131,7 +131,7 @@ void HostCommunication::parseCmd() {
         network->start();
     } else if (cmd == GraphCmdCreateComponent) {
         MICROFLO_DEBUG(this, DebugLevelDetailed, DebugComponentCreateStart);
-        Component *c = Component::create((ComponentId)buffer[1]);
+        Component *c = Component::create((MicroFlo::ComponentId)buffer[1]);
         MICROFLO_DEBUG(this, DebugLevelDetailed, DebugComponentCreateEnd);
         network->addNode(c, buffer[2]);
     } else if (cmd == GraphCmdConnectNodes) {
@@ -290,7 +290,7 @@ void Network::sendMessage(Component *target, MicroFlo::PortId targetPort, const 
         }
     }
 
-    const bool targetIsSubGraph = target->componentId == IdSubGraph;
+    const bool targetIsSubGraph = target->componentId == MicroFlo::IdSubGraph;
     if (targetIsSubGraph) {
         SubGraph *targetSubGraph = (SubGraph *)target;
         // Redirect input message from, send to desired port on child
@@ -447,7 +447,7 @@ void Network::connectSubgraph(bool isOutput,
 
     Component *comp = nodes[subgraphNode];
     Component *child = nodes[childNode];
-    MICROFLO_ASSERT(comp->component() == IdSubGraph && child->parentNodeId >= Network::firstNodeId,
+    MICROFLO_ASSERT(comp->component() == MicroFlo::IdSubGraph && child->parentNodeId >= Network::firstNodeId,
                     notificationHandler, DebugLevelError, DebugSubGraphConnectNotASubgraph);
 
     SubGraph *subgraph = (SubGraph *)comp;

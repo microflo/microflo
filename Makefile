@@ -107,11 +107,32 @@ build-stellaris: update-defs
 	cp stellaris.ld build/stellaris/
 	cd build/stellaris && make ROOT=../../thirdparty/stellaris
 
-build-linux: update-defs
+# Build microFlo runtime as a dynamic loadable library, build/lib/libmicroflo.so
+build-microflo-sharedlib: 
+	rm -rf build/lib
+	mkdir -p build/lib
+	g++ -fPIC -c microflo/microflo.cpp -o microflo/microflo.o -std=c++0x -DLINUX -Wall -Werror
+	g++ -shared -Wl,-soname,libmicroflo.so -o build/lib/libmicroflo.so microflo/microflo.o
+
+# Build microFlo runtime as an object library (to be static linked with app), build/lib/microflolib.o
+build-microflo-objlib: 
+	rm -rf build/lib
+	mkdir -p build/lib
+	g++ -c microflo/microflo.cpp -o build/lib/microflolib.o -std=c++0x -DLINUX -Wall -Werror
+
+# Build firmware linked to microflo runtime as dynamic loadable library, build/lib/libmicroflo.so
+build-linux-sharedlib: update-defs build-microflo-sharedlib
 	rm -rf build/linux
 	mkdir -p build/linux
 	node microflo.js generate $(LINUX_GRAPH) build/linux/main.cpp linux
-	cd build/linux && g++ -o firmware main.cpp -std=c++0x -I../../microflo -DLINUX -Wall -Werror -lrt
+	g++ -o build/linux/firmware build/linux/main.cpp -std=c++0x -Wl,-rpath=$(shell pwd)/build/lib -DLINUX -I. -I./microflo -Wall -Werror -lrt -L./build/lib -lmicroflo
+
+# Build firmware statically linked to microflo runtime as object file, build/lib/microflolib.o
+build-linux: update-defs build-microflo-objlib
+	rm -rf build/linux
+	mkdir -p build/linux
+	node microflo.js generate $(LINUX_GRAPH) build/linux/main.cpp linux
+	g++ -o build/linux/firmware build/linux/main.cpp -std=c++0x build/lib/microflolib.o -DLINUX -I. -I./microflo -Wall -Werror -lrt
 
 build-emscripten: update-defs
 	rm -rf build/emscripten
