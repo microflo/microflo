@@ -359,8 +359,6 @@ class Component {
     friend class DummyComponent;
     friend class SubGraph;
 public:
-    static Component *create(MicroFlo::ComponentId id);
-
     Component(Connection *outPorts, int ports) : connections(outPorts), nPorts(ports) {}
     virtual ~Component() {}
     virtual void process(Packet in, MicroFlo::PortId port) = 0;

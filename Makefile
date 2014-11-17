@@ -108,7 +108,7 @@ build-stellaris: update-defs
 	cd build/stellaris && make ROOT=../../thirdparty/stellaris
 
 # Build microFlo components as an object library, build/lib/componentlib.o
-# (the microflo/components.hpp pulls in all available components, as defined from components.json)
+# (the microflo/componentlib.cpp pulls in all available components, as defined from components.json)
 build-microflo-complib: update-defs
 	mkdir -p build/lib
 	g++ -c microflo/componentlib.cpp -o build/lib/componentlib.o -std=c++0x -DLINUX -Wall -Werror
