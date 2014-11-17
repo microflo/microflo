@@ -109,8 +109,9 @@ build-stellaris: update-defs
 
 # Build microFlo components as an object library, build/lib/componentlib.o
 # (the microflo/componentlib.cpp pulls in all available components, as defined from components.json)
-build-microflo-complib: update-defs
+build-microflo-complib:
 	mkdir -p build/lib
+	node microflo.js componentlib $(shell pwd)/microflo/components.json $(shell pwd)/microflo createComponent
 	g++ -c microflo/componentlib.cpp -o build/lib/componentlib.o -std=c++0x -DLINUX -Wall -Werror
 
 # Build microFlo runtime as a dynamic loadable library, build/lib/libmicroflo.so
