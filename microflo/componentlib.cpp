@@ -12,17 +12,15 @@
  * 
  *****************************************************************************/
 
-// microflo runtime base class declarations and generated component id's (derived from components.json)
+// microflo runtime base class declarations and component base class declarations
 #include "components.h"
 
-// Component Id constants
-#include "components-gen.h"
+// generated Component Id constants
+#include "componentlib-ids.h"
 
-// get generated component input & outport port definitions (derived from components.json)
-#include "components-gen-top.hpp"
+// generated component input & outport port definitions (derived from components.json)
+#include "componentlib-ports.h"
 
-// all component implementations (through #INCLUDE collection)
-#include "components-gen-lib.hpp"
+// concatenated source code of all component class implementations and createComponent() factory function 
+#include "componentlib-source.hpp"
 
-// createComponent() factory function
-#include "components-gen-bottom.hpp"
