@@ -131,7 +131,7 @@ void HostCommunication::parseCmd() {
         network->start();
     } else if (cmd == GraphCmdCreateComponent) {
         MICROFLO_DEBUG(this, DebugLevelDetailed, DebugComponentCreateStart);
-        Component *c = Component::create((MicroFlo::ComponentId)buffer[1]);
+        Component *c = createComponent((MicroFlo::ComponentId)buffer[1]);
         MICROFLO_DEBUG(this, DebugLevelDetailed, DebugComponentCreateEnd);
         network->addNode(c, buffer[2]);
     } else if (cmd == GraphCmdConnectNodes) {
@@ -186,6 +186,10 @@ void HostCommunication::parseCmd() {
     } else {
         MICROFLO_DEBUG(this, DebugLevelError, DebugParserUnknownCommand);
     }
+}
+
+void Component::setComponentId(MicroFlo::ComponentId id) {
+    componentId = id;
 }
 
 void Component::send(Packet out, MicroFlo::PortId port) {
