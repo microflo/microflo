@@ -367,6 +367,7 @@ public:
 
     MicroFlo::NodeId id() const { return nodeId; }
     MicroFlo::ComponentId component() const { return componentId; }
+    void setComponentId(MicroFlo::ComponentId id);
 
 protected:
     void send(Packet out, MicroFlo::PortId port=0);
@@ -392,6 +393,9 @@ public:
         MICROFLO_DEBUG(network->notificationHandler, DebugLevelError, DebugInvalidComponentUsed);
     }
 };
+
+// components-gen-bottom.cpp
+Component *createComponent(MicroFlo::ComponentId id);
 
 #define MICROFLO_SUBGRAPH_MAXPORTS 10
 

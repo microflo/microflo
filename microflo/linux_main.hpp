@@ -7,8 +7,8 @@
 #include "linux.hpp"
 #include <unistd.h>
 
-// and all available component classes, to be instantiated from microflo graph runtime
-#include "components.hpp"
+// microflo runtime base class declarations and generated component id's (derived from components.json)
+#include "components.h"
 
 int main(void) {
     LinuxIO io;
