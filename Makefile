@@ -187,6 +187,7 @@ release-arduino:
 	rm -rf build/microflo-arduino
 	mkdir -p build/microflo-arduino/microflo/examples/Standalone
 	cp -r microflo build/microflo-arduino/
+	ls -ls build/arduino/src
 	cp -r build/arduino/src/*.{h,hpp} build/microflo-arduino/microflo/
 	cp build/arduino/src/main.cpp build/microflo-arduino/microflo/examples/Standalone/Standalone.pde
 	cd build/microflo-arduino && zip -q -r ../microflo-arduino.zip microflo
