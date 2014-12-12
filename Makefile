@@ -35,7 +35,7 @@ DEFINES+=-DMICROFLO_DISABLE_SUBGRAPHS
 endif
 
 ifdef LIBRARY
-LIBRARYOPTION=--library=microflo/components/$(LIBRARY).json
+LIBRARYOPTION=--library=microflo/core/components/$(LIBRARY).json
 endif
 
 INOOPTIONS=--board-model=$(MODEL)
