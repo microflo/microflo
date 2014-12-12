@@ -29,7 +29,8 @@
     "microflo/components.json",
     "microflo/commandformat.json",
     "build/emscripten/microflo-runtime.js",
-    "microflo.js"
+    "microflo.js",
+    "microflo"
   ],
   "scripts": {
     "start": "node microflo.js runtime",
