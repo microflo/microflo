@@ -106,10 +106,10 @@ namespace MicroFlo {
     typedef long PinId;
 #else
     typedef int8_t PinId;
-    
-    // This must match the ID in "microflo/components.json"
-    const ComponentId IdSubGraph = 100;    
 #endif
+
+    // This must match the ID in "microflo/components.json"
+    const ComponentId IdSubGraph = 100;
 }
 
 namespace Components {
