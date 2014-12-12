@@ -5,6 +5,7 @@
  */
 
 var fs = require("fs");
+var path = require("path");
 var cmdFormat = require("./microflo/commandformat.json");
 var microflo = require("./lib/microflo");
 var commander = require("commander");
