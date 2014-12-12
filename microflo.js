@@ -84,6 +84,18 @@ var registerRuntimeCommand = function(user, env) {
     }
 }
 
+var generateComponentLib = function(componentlibJsonFile, componentlibOutputPath, factoryMethodName, env) {
+    var componentLibraryDefinition, componentLibrary;
+
+    // load specified component library Json definition
+    componentLibraryDefinition = require(componentlibJsonFile);
+    componentLibrary = new microflo.componentlib.ComponentLibrary(componentLibraryDefinition, componentlibOutputPath);
+    componentLibrary.load();
+
+    // write component library definitions to external source or inside microflo project
+    microflo.generate.updateComponentLibDefinitions(componentLibrary, componentlibOutputPath, factoryMethodName);
+}
+
 var flashCommand = function(file, env) {
     var upload = require('./lib/flash.coffee');
     var tty = env.serial;
@@ -100,6 +112,11 @@ var main = function() {
 
     commander
         .version(module.exports.version)
+
+    commander
+        .command('componentlib <JsonFile> <OutputPath> <FactoryMethodName>')
+        .description('Generate compilable sources of specified component library from .json definition')
+        .action(generateComponentLib);
 
     commander
         .command('generate')

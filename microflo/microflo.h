@@ -7,8 +7,6 @@
 #define MICROFLO_H
 
 #include <stdint.h>
-
-#include "components.h"
 #include "commandformat.h"
 
 const int MICROFLO_MAX_PORTS = 255;
@@ -109,6 +107,9 @@ namespace MicroFlo {
 #else
     typedef int8_t PinId;
 #endif
+
+    // This must match the ID in "microflo/components.json"
+    const ComponentId IdSubGraph = 100;
 }
 
 namespace Components {
@@ -358,14 +359,13 @@ class Component {
     friend class DummyComponent;
     friend class SubGraph;
 public:
-    static Component *create(ComponentId id);
-
     Component(Connection *outPorts, int ports) : connections(outPorts), nPorts(ports) {}
     virtual ~Component() {}
     virtual void process(Packet in, MicroFlo::PortId port) = 0;
 
     MicroFlo::NodeId id() const { return nodeId; }
     MicroFlo::ComponentId component() const { return componentId; }
+    void setComponentId(MicroFlo::ComponentId id);
 
 protected:
     void send(Packet out, MicroFlo::PortId port=0);
@@ -400,6 +400,10 @@ public:
 private:
     Connection connections[1];
 };
+
+// components-gen-bottom.cpp
+Component *createComponent(MicroFlo::ComponentId id);
+
 
 #define MICROFLO_SUBGRAPH_MAXPORTS 10
 

@@ -3,7 +3,7 @@ GRAPH=examples/blink.fbp
 MODEL=uno
 AVRMODEL=at90usb1287
 MBED_GRAPH=examples/blink-mbed.fbp
-LINUX_GRAPH=examples/embedding.cpp
+LINUX_GRAPH=examples/blink-rpi.fbp
 STELLARIS_GRAPH=examples/blink-stellaris.fbp
 UPLOAD_DIR=/mnt
 
@@ -110,10 +110,48 @@ build-stellaris:
 	cp stellaris.ld build/stellaris/
 	cd build/stellaris && make ROOT=../../thirdparty/stellaris
 
-build-linux:
+# Build microFlo components as an object library, build/lib/componentlib.o
+# (the microflo/componentlib.cpp pulls in all available components, as defined from components.json)
+build-microflo-complib:
+	mkdir -p build/lib
+	node microflo.js generate $(LINUX_GRAPH) build/lib linux # only for internal defs...
+	node microflo.js componentlib $(shell pwd)/microflo/components.json $(shell pwd)/microflo createComponent
+	g++ -c microflo/componentlib.cpp -o build/lib/componentlib.o -Ibuild/lib -std=c++0x -DLINUX -Wall -Werror
+
+# Build microFlo runtime as a dynamic loadable library, build/lib/libmicroflo.so
+build-microflo-sharedlib: 
+	rm -rf build/lib
+	mkdir -p build/lib
+	node microflo.js generate $(LINUX_GRAPH) build/lib linux # only for internal defs...
+	g++ -fPIC -c microflo/microflo.cpp -o microflo/microflo.o -std=c++0x -DLINUX -Wall -Werror
+	g++ -shared -Wl,-soname,libmicroflo.so -o build/lib/libmicroflo.so -Ibuild/lib microflo/microflo.o
+
+# Build microFlo runtime as an object library (to be static linked with app), build/lib/microflolib.o
+build-microflo-objlib: 
+	rm -rf build/lib
+	mkdir -p build/lib
+	node microflo.js generate $(LINUX_GRAPH) build/lib linux # only for internal defs...
+	g++ -c microflo/microflo.cpp -o build/lib/microflolib.o -std=c++0x -Ibuild/lib -DLINUX -Wall -Werror
+
+# Build firmware linked to microflo runtime as dynamic loadable library, build/lib/libmicroflo.so
+build-linux-sharedlib: build-microflo-sharedlib
 	rm -rf build/linux
 	mkdir -p build/linux
-	node microflo.js generate $(LINUX_GRAPH) build/linux/ linux
+	node microflo.js generate $(LINUX_GRAPH) build/linux linux
+	g++ -o build/linux/firmware build/linux/main.cpp -std=c++0x -Wl,-rpath=$(shell pwd)/build/lib -DLINUX -I./build/lib -I./microflo -Wall -Werror -lrt -L./build/lib -lmicroflo
+
+# Build firmware statically linked to microflo runtime as object file, build/lib/microflolib.o
+build-linux: build-microflo-objlib build-microflo-complib
+	rm -rf build/linux
+	mkdir -p build/linux
+	node microflo.js generate $(LINUX_GRAPH) build/linux linux
+	g++ -o build/linux/firmware build/linux/main.cpp -std=c++0x build/lib/microflolib.o build/lib/componentlib.o -DLINUX -Ibuild/lib -I./microflo -Wall -Werror -lrt
+
+# TODO: move to separate repo
+build-linux-embedding:
+	rm -rf build/linux
+	mkdir -p build/linux
+	node microflo.js generate examples/embedding.cpp build/linux/ linux
 	cd build/linux && g++ -o firmware ../../examples/embedding.cpp -std=c++0x $(COMMON_CFLAGS) -DLINUX -Werror -lrt
 
 build-emscripten:

@@ -3,7 +3,7 @@
 #include "linux.hpp"
 #include <unistd.h>
 
-#include "components-gen-top.hpp"
+#include "componentlib-ports.h"
 
 // FIXME: implement extraction, must generate ids and normalize structure to match components.json
 
