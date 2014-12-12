@@ -71,7 +71,7 @@ endif
 all: build
 
 build-arduino:
-	rm -rf build/arduino
+	rm -rf build/arduino || echo 'WARN: failure to clean Arduino build'
 	mkdir -p build/arduino/src
 	mkdir -p build/arduino/lib
 	cp -r `pwd`/microflo build/arduino/lib/
