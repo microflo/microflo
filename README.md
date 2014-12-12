@@ -154,6 +154,6 @@ Design
 
 Contributors
 -------------
-[Jon Nordby](http://www.jonnor.com)
+[Jon Nordby](http://www.jonnor.com/)
 
 
