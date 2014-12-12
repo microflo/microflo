@@ -27,6 +27,7 @@
     "build/emscripten/microflo-runtime.js",
     "lib/devicecommunication.coffee",
     "lib/flash.coffee",
+    "lib/definition.coffee",
     "lib/runtime.coffee"
   ],
   "json": [
