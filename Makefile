@@ -50,7 +50,7 @@ endif
 
 EMSCRIPTEN_EXPORTS='["_emscripten_runtime_new", "_emscripten_runtime_free", "_emscripten_runtime_run", "_emscripten_runtime_send", "_emscripten_runtime_setup"]'
 
-COMMON_CFLAGS:=-I../../microflo -I. -Wall
+COMMON_CFLAGS:=-I. -I../../microflo -Wall
 
 # Platform specifics
 ifeq ($(OS),Windows_NT)
