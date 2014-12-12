@@ -6,6 +6,7 @@ components/
 *-gen*.*
 *~
 *.autosave
+microflo/componentlib-*
 test/result.*
 test/*.js
 lib/*.js
