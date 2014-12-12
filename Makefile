@@ -3,7 +3,7 @@ GRAPH=examples/blink.fbp
 MODEL=uno
 AVRMODEL=at90usb1287
 MBED_GRAPH=examples/blink-mbed.fbp
-LINUX_GRAPH=examples/blink-rpi.fbp
+LINUX_GRAPH=examples/embedding.cpp
 STELLARIS_GRAPH=examples/blink-stellaris.fbp
 UPLOAD_DIR=/mnt
 
