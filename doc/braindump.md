@@ -852,7 +852,7 @@ Visual programming for Arduino/microcontrollers/embedded etc.
 * http://babuinoproject.blogspot.de/2009/09/software.html
 * http://dimeb.informatik.uni-bremen.de/eduwear/about/
 * http://blog.ardublock.com/
-* https://developers.google.com/blockly/
+* https://github.com/gasolin/BlocklyDuino
 * http://www.mindplus.cc/
 * http://www.modkit.com/
 * http://blog.minibloq.org/
