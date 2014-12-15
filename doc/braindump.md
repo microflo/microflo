@@ -849,6 +849,8 @@ Physical computing with JavaScript
 
 Visual programming for Arduino/microcontrollers/embedded etc.
 
+* http://babuinoproject.blogspot.de/2009/09/software.html
+* http://dimeb.informatik.uni-bremen.de/eduwear/about/
 * http://blog.ardublock.com/
 * https://developers.google.com/blockly/
 * http://www.mindplus.cc/
