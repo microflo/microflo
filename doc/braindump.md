@@ -849,10 +849,12 @@ Physical computing with JavaScript
 
 Visual programming for Arduino/microcontrollers/embedded etc.
 
+* http://blog.ardublock.com/
+* https://developers.google.com/blockly/
 * http://www.mindplus.cc/
-* http://www.modk.it/
+* http://www.modkit.com/
 * http://blog.minibloq.org/
-* http://seaside.citilab.eu/scratch/arduino
+* http://s4a.cat/
 * http://sourceforge.net/projects/qpc/
 * http://playground.arduino.cc/Code/QP
 * http://ardomotic.com/ (web-UI GUI builder)
