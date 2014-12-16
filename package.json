@@ -42,7 +42,7 @@
   "dependencies": {
     "coffee-script": "^1.7.1",
     "commander": "~2.1.0",
-    "declarec": "^0.0.2",
+    "declarec": "^0.0.3",
     "fbp": "~1.1.0",
     "flowhub-registry": "~0.0.1",
     "grunt-noflo-browser": "^0.1.3",
