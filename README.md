@@ -1,6 +1,6 @@
 MicroFlo: flow-based programming for microcontrollers
 ========================================================
-[![Build Status](https://travis-ci.org/jonnor/microflo.png?branch=master)](https://travis-ci.org/jonnor/microflo)
+[![Build Status](https://travis-ci.org/microflo/microflo.png?branch=master)](https://travis-ci.org/microflo/microflo)
 
 Implementation of [Flow-based programming](http://en.wikipedia.org/wiki/Flow-based_programming).
 Inspired by and designed for integration with [NoFlo](http://noflojs.org/).
@@ -34,7 +34,7 @@ or IRC channel [#fbp@freenode.org](irc://fbp.freenode.org).
 Milestones
 -----------
 
-* [0.4.0](https://github.com/jonnor/microflo/issues?milestone=4), "Runtime persistable, Introspectable":
+* [0.4.0](https://github.com/microflo/microflo/issues?milestone=4), "Runtime persistable, Introspectable":
 Uploaded graphs can be persisted to EEPROM, be monitored at runtime, and be composed of sub-graphs
 * 0.5.0, "Simulated":
 One can program and test MicroFlo programs in a simulator, before putting it on device
@@ -73,7 +73,7 @@ Note: Mostly tested on Arduino Uno R3 and Arduino Nano R3. Other Arduino devices
 
 Get the code
 
-    git clone https://github.com/jonnor/microflo.git
+    git clone https://github.com/microflo/microflo.git
     cd microflo
 
 Install prerequsites; Arduino and Ino
@@ -115,8 +115,8 @@ Remember to rebuild MicroFlo after changes:
 
     grunt build
 
-When you find issues: [file bugs](https://github.com/jonnor/microflo/issues)
-and/or submit [pull requests](https://github.com/jonnor/microflo/pulls)!
+When you find issues: [file bugs](https://github.com/microflo/microflo/issues)
+and/or submit [pull requests](https://github.com/microflo/microflo/pulls)!
 
 License
 -------

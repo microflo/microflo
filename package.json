@@ -1,6 +1,6 @@
 {
   "name": "microflo",
-  "version": "0.3.13",
+  "version": "0.3.14",
   "description": "Flow-based programming runtime for microcontrollers",
   "keywords": [
     "fbp",
@@ -15,9 +15,9 @@
   "author": "Jon Nordby <jononor@gmail.com> (http://www.jonnor.com)",
   "repository": {
     "type": "git",
-    "url": "http://github.com/jonnor/microflo.git"
+    "url": "http://github.com/microflo/microflo.git"
   },
-  "bugs": "http://github.com/jonnor/microflo/issues",
+  "bugs": "http://github.com/microflo/microflo/issues",
   "homepage": "http://microflo.org",
   "license": "MIT",
   "main": "./lib/microflo",
