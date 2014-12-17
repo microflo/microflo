@@ -6,6 +6,7 @@ MBED_GRAPH=examples/blink-mbed.fbp
 LINUX_GRAPH=examples/blink-rpi.fbp
 STELLARIS_GRAPH=examples/blink-stellaris.fbp
 UPLOAD_DIR=/mnt
+BUILD_DIR=`pwd`/build
 
 # SERIALPORT=/dev/somecustom
 # ARDUINO=/home/user/Arduino-1.0.5
@@ -71,126 +72,126 @@ endif
 all: build
 
 build-arduino:
-	rm -rf build/arduino || echo 'WARN: failure to clean Arduino build'
-	mkdir -p build/arduino/src
-	mkdir -p build/arduino/lib
-	cp -r `pwd`/microflo build/arduino/lib/
-	unzip -q -n ./thirdparty/OneWire.zip -d build/arduino/lib/
-	unzip -q -n ./thirdparty/DallasTemperature.zip -d build/arduino/lib/
-	cd thirdparty/Adafruit_NeoPixel && git checkout-index -f -a --prefix=../../build/arduino/lib/Adafruit_NeoPixel/
-	cd thirdparty/Adafruit_WS2801 && git checkout-index -f -a --prefix=../../build/arduino/lib/Adafruit_WS2801/
-	cd build/arduino/lib && test -e patched || patch -p0 < ../../../thirdparty/DallasTemperature.patch
-	cd build/arduino/lib && test -e patched || patch -p0 < ../../../thirdparty/OneWire.patch
-	touch build/arduino/lib/patched
-	node microflo.js generate $(GRAPH) build/arduino/src/ arduino
-	cd build/arduino && ino build $(INOOPTIONS) --verbose --cppflags="$(CPPFLAGS) $(DEFINES) -I./src"
-	$(AVRSIZE) -A build/arduino/.build/$(MODEL)/firmware.elf
+	rm -rf $(BUILD_DIR)/arduino || echo 'WARN: failure to clean Arduino build'
+	mkdir -p $(BUILD_DIR)/arduino/src
+	mkdir -p $(BUILD_DIR)/arduino/lib
+	cp -r `pwd`/microflo $(BUILD_DIR)/arduino/lib/
+	unzip -q -n ./thirdparty/OneWire.zip -d $(BUILD_DIR)/arduino/lib/
+	unzip -q -n ./thirdparty/DallasTemperature.zip -d $(BUILD_DIR)/arduino/lib/
+	cd thirdparty/Adafruit_NeoPixel && git checkout-index -f -a --prefix=../../$(BUILD_DIR)/arduino/lib/Adafruit_NeoPixel/
+	cd thirdparty/Adafruit_WS2801 && git checkout-index -f -a --prefix=../../$(BUILD_DIR)/arduino/lib/Adafruit_WS2801/
+	cd $(BUILD_DIR)/arduino/lib && test -e patched || patch -p0 < ../../../thirdparty/DallasTemperature.patch
+	cd $(BUILD_DIR)/arduino/lib && test -e patched || patch -p0 < ../../../thirdparty/OneWire.patch
+	touch $(BUILD_DIR)/arduino/lib/patched
+	node microflo.js generate $(GRAPH) $(BUILD_DIR)/arduino/src/ arduino
+	cd $(BUILD_DIR)/arduino && ino build $(INOOPTIONS) --verbose --cppflags="$(CPPFLAGS) $(DEFINES) -I./src"
+	$(AVRSIZE) -A $(BUILD_DIR)/arduino/.build/$(MODEL)/firmware.elf
 
 build-avr:
-	mkdir -p build/avr
-	node microflo.js generate $(GRAPH) build/avr/ avr
-	cd build/avr && $(AVRGCC) -o firmware.elf main.cpp -DF_CPU=$(AVR_FCPU) -DAVR=1 $(COMMON_CFLAGS) -Werror -Wno-error=overflow -mmcu=$(AVRMODEL) -fno-exceptions -fno-rtti $(CPPFLAGS)
-	cd build/avr && $(AVROBJCOPY) -j .text -j .data -O ihex firmware.elf firmware.hex
-	$(AVRSIZE) -A build/avr/firmware.elf
+	mkdir -p $(BUILD_DIR)/avr
+	node microflo.js generate $(GRAPH) $(BUILD_DIR)/avr/ avr
+	cd $(BUILD_DIR)/avr && $(AVRGCC) -o firmware.elf main.cpp -DF_CPU=$(AVR_FCPU) -DAVR=1 $(COMMON_CFLAGS) -Werror -Wno-error=overflow -mmcu=$(AVRMODEL) -fno-exceptions -fno-rtti $(CPPFLAGS)
+	cd $(BUILD_DIR)/avr && $(AVROBJCOPY) -j .text -j .data -O ihex firmware.elf firmware.hex
+	$(AVRSIZE) -A $(BUILD_DIR)/avr/firmware.elf
 
 build-mbed:
 	cd thirdparty/mbed && python2 workspace_tools/build.py -t GCC_ARM -m LPC1768
-	rm -rf build/mbed
-	mkdir -p build/mbed
-	node microflo.js generate $(MBED_GRAPH) build/mbed/ mbed
-	cp Makefile.mbed build/mbed/Makefile
-	cd build/mbed && make ROOT_DIR=./../../
+	rm -rf $(BUILD_DIR)/mbed
+	mkdir -p $(BUILD_DIR)/mbed
+	node microflo.js generate $(MBED_GRAPH) $(BUILD_DIR)/mbed/ mbed
+	cp Makefile.mbed $(BUILD_DIR)/mbed/Makefile
+	cd $(BUILD_DIR)/mbed && make ROOT_DIR=./../../
 
 build-stellaris:
-	rm -rf build/stellaris
-	mkdir -p build/stellaris
-	node microflo.js generate $(STELLARIS_GRAPH) build/stellaris/ stellaris
-	cp Makefile.stellaris build/stellaris/Makefile
-	cp startup_gcc.c build/stellaris/
-	cp stellaris.ld build/stellaris/
-	cd build/stellaris && make ROOT=../../thirdparty/stellaris
+	rm -rf $(BUILD_DIR)/stellaris
+	mkdir -p $(BUILD_DIR)/stellaris
+	node microflo.js generate $(STELLARIS_GRAPH) $(BUILD_DIR)/stellaris/ stellaris
+	cp Makefile.stellaris $(BUILD_DIR)/stellaris/Makefile
+	cp startup_gcc.c $(BUILD_DIR)/stellaris/
+	cp stellaris.ld $(BUILD_DIR)/stellaris/
+	cd $(BUILD_DIR)/stellaris && make ROOT=../../thirdparty/stellaris
 
 # Build microFlo components as an object library, build/lib/componentlib.o
 # (the microflo/componentlib.cpp pulls in all available components, as defined from components.json)
 build-microflo-complib:
-	mkdir -p build/lib
-	node microflo.js generate $(LINUX_GRAPH) build/lib linux # only for internal defs...
+	mkdir -p $(BUILD_DIR)/lib
+	node microflo.js generate $(LINUX_GRAPH) $(BUILD_DIR)/lib linux # only for internal defs...
 	node microflo.js componentlib $(shell pwd)/microflo/components.json $(shell pwd)/microflo createComponent
-	g++ -c microflo/componentlib.cpp -o build/lib/componentlib.o -Ibuild/lib -std=c++0x -DLINUX -Wall -Werror
+	g++ -c microflo/componentlib.cpp -o $(BUILD_DIR)/lib/componentlib.o -I$(BUILD_DIR)/lib -std=c++0x -DLINUX -Wall -Werror
 
 # Build microFlo runtime as a dynamic loadable library, build/lib/libmicroflo.so
 build-microflo-sharedlib: 
-	rm -rf build/lib
-	mkdir -p build/lib
-	node microflo.js generate $(LINUX_GRAPH) build/lib linux # only for internal defs...
+	rm -rf $(BUILD_DIR)/lib
+	mkdir -p $(BUILD_DIR)/lib
+	node microflo.js generate $(LINUX_GRAPH) $(BUILD_DIR)/lib linux # only for internal defs...
 	g++ -fPIC -c microflo/microflo.cpp -o microflo/microflo.o -std=c++0x -DLINUX -Wall -Werror
-	g++ -shared -Wl,-soname,libmicroflo.so -o build/lib/libmicroflo.so -Ibuild/lib microflo/microflo.o
+	g++ -shared -Wl,-soname,libmicroflo.so -o $(BUILD_DIR)/lib/libmicroflo.so -I$(BUILD_DIR)/lib microflo/microflo.o
 
-# Build microFlo runtime as an object library (to be static linked with app), build/lib/microflolib.o
+# Build microFlo runtime as an object library (to be static linked with app), $(BUILD_DIR)/lib/microflolib.o
 build-microflo-objlib: 
-	rm -rf build/lib
-	mkdir -p build/lib
-	node microflo.js generate $(LINUX_GRAPH) build/lib linux # only for internal defs...
-	g++ -c microflo/microflo.cpp -o build/lib/microflolib.o -std=c++0x -Ibuild/lib -DLINUX -Wall -Werror
+	rm -rf $(BUILD_DIR)/lib
+	mkdir -p $(BUILD_DIR)/lib
+	node microflo.js generate $(LINUX_GRAPH) $(BUILD_DIR)/lib linux # only for internal defs...
+	g++ -c microflo/microflo.cpp -o $(BUILD_DIR)/lib/microflolib.o -std=c++0x -I$(BUILD_DIR)/lib -DLINUX -Wall -Werror
 
-# Build firmware linked to microflo runtime as dynamic loadable library, build/lib/libmicroflo.so
+# Build firmware linked to microflo runtime as dynamic loadable library, $(BUILD_DIR)/lib/libmicroflo.so
 build-linux-sharedlib: build-microflo-sharedlib
-	rm -rf build/linux
-	mkdir -p build/linux
-	node microflo.js generate $(LINUX_GRAPH) build/linux linux
-	g++ -o build/linux/firmware build/linux/main.cpp -std=c++0x -Wl,-rpath=$(shell pwd)/build/lib -DLINUX -I./build/lib -I./microflo -Wall -Werror -lrt -L./build/lib -lmicroflo
+	rm -rf $(BUILD_DIR)/linux
+	mkdir -p $(BUILD_DIR)/linux
+	node microflo.js generate $(LINUX_GRAPH) $(BUILD_DIR)/linux linux
+	g++ -o $(BUILD_DIR)/linux/firmware $(BUILD_DIR)/linux/main.cpp -std=c++0x -Wl,-rpath=$(BUILD_DIR)/lib -DLINUX -I./$(BUILD_DIR)/lib -I./microflo -Wall -Werror -lrt -L./$(BUILD_DIR)/lib -lmicroflo
 
-# Build firmware statically linked to microflo runtime as object file, build/lib/microflolib.o
+# Build firmware statically linked to microflo runtime as object file, $(BUILD_DIR)/lib/microflolib.o
 build-linux: build-microflo-objlib build-microflo-complib
-	rm -rf build/linux
-	mkdir -p build/linux
-	node microflo.js generate $(LINUX_GRAPH) build/linux linux
-	g++ -o build/linux/firmware build/linux/main.cpp -std=c++0x build/lib/microflolib.o build/lib/componentlib.o -DLINUX -Ibuild/lib -I./microflo -Wall -Werror -lrt
+	rm -rf $(BUILD_DIR)/linux
+	mkdir -p $(BUILD_DIR)/linux
+	node microflo.js generate $(LINUX_GRAPH) $(BUILD_DIR)/linux linux
+	g++ -o $(BUILD_DIR)/linux/firmware $(BUILD_DIR)/linux/main.cpp -std=c++0x $(BUILD_DIR)/lib/microflolib.o $(BUILD_DIR)/lib/componentlib.o -DLINUX -I$(BUILD_DIR)/lib -I./microflo -Wall -Werror -lrt
 
 # TODO: move to separate repo
 build-linux-embedding:
-	rm -rf build/linux
-	mkdir -p build/linux
-	node microflo.js generate examples/embedding.cpp build/linux/ linux
-	cd build/linux && g++ -o firmware ../../examples/embedding.cpp -std=c++0x $(COMMON_CFLAGS) -DLINUX -Werror -lrt
+	rm -rf $(BUILD_DIR)/linux
+	mkdir -p $(BUILD_DIR)/linux
+	node microflo.js generate examples/embedding.cpp $(BUILD_DIR)/linux/ linux
+	cd $(BUILD_DIR)/linux && g++ -o firmware ../../examples/embedding.cpp -std=c++0x $(COMMON_CFLAGS) -DLINUX -Werror -lrt
 
 build-emscripten:
-	rm -rf build/emscripten
-	mkdir -p build/emscripten
-	node microflo.js generate $(GRAPH) build/emscripten emscripten
-	cd build/emscripten && EMCC_FAST_COMPILER=0 emcc -o microflo-runtime.html main.cpp $(COMMON_CFLAGS) -s NO_DYNAMIC_EXECUTION=1 -s EXPORTED_FUNCTIONS=$(EMSCRIPTEN_EXPORTS)
+	rm -rf $(BUILD_DIR)/emscripten
+	mkdir -p $(BUILD_DIR)/emscripten
+	node microflo.js generate $(GRAPH) $(BUILD_DIR)/emscripten emscripten
+	cd $(BUILD_DIR)/emscripten && EMCC_FAST_COMPILER=0 emcc -o microflo-runtime.html main.cpp $(COMMON_CFLAGS) -s NO_DYNAMIC_EXECUTION=1 -s EXPORTED_FUNCTIONS=$(EMSCRIPTEN_EXPORTS)
 
 build: build-arduino build-avr
 
 upload: build-arduino
-	cd build/arduino && ino upload $(INOUPLOADOPTIONS) $(INOOPTIONS)
+	cd $(BUILD_DIR)/arduino && ino upload $(INOUPLOADOPTIONS) $(INOOPTIONS)
 
 upload-dfu: build-avr
-	cd build/avr && sudo $(DFUPROGRAMMER) $(AVRMODEL) erase
+	cd $(BUILD_DIR)/avr && sudo $(DFUPROGRAMMER) $(AVRMODEL) erase
 	sleep 1
-	cd build/avr && sudo $(DFUPROGRAMMER) $(AVRMODEL) flash firmware.hex || sudo $(DFUPROGRAMMER) $(AVRMODEL) flash firmware.hex || sudo $(DFUPROGRAMMER) $(AVRMODEL) flash firmware.hex || sudo $(DFUPROGRAMMER) $(AVRMODEL) flash firmware.hex || sudo $(DFUPROGRAMMER) $(AVRMODEL) flash firmware.hex
+	cd $(BUILD_DIR)/avr && sudo $(DFUPROGRAMMER) $(AVRMODEL) flash firmware.hex || sudo $(DFUPROGRAMMER) $(AVRMODEL) flash firmware.hex || sudo $(DFUPROGRAMMER) $(AVRMODEL) flash firmware.hex || sudo $(DFUPROGRAMMER) $(AVRMODEL) flash firmware.hex || sudo $(DFUPROGRAMMER) $(AVRMODEL) flash firmware.hex
 	sudo $(DFUPROGRAMMER) $(AVRMODEL) start
 
 upload-mbed: build-mbed
-	cd build/mbed && sudo cp firmware.bin $(UPLOAD_DIR)
+	cd $(BUILD_DIR)/mbed && sudo cp firmware.bin $(UPLOAD_DIR)
 
 debug-stellaris:
-	arm-none-eabi-gdb build/stellaris/gcc/main.axf --command=./stellaris.load.gdb
+	arm-none-eabi-gdb $(BUILD_DIR)/stellaris/gcc/main.axf --command=./stellaris.load.gdb
 
 upload-stellaris: build-stellaris
-	sudo lm4flash build/stellaris/gcc/main.bin
+	sudo lm4flash $(BUILD_DIR)/stellaris/gcc/main.bin
 
 clean:
 	git clean -dfx --exclude=node_modules
 
 release-arduino:
-	rm -rf build/microflo-arduino
-	mkdir -p build/microflo-arduino/microflo/examples/Standalone
-	cp -r microflo build/microflo-arduino/
-	ls -ls build/arduino/src
-	cp -r build/arduino/src/* build/microflo-arduino/microflo/
-	cp build/arduino/src/main.cpp build/microflo-arduino/microflo/examples/Standalone/Standalone.pde
-	cd build/microflo-arduino && zip -q -r ../microflo-arduino.zip microflo
+	rm -rf $(BUILD_DIR)/microflo-arduino
+	mkdir -p $(BUILD_DIR)/microflo-arduino/microflo/examples/Standalone
+	cp -r microflo $(BUILD_DIR)/microflo-arduino/
+	ls -ls $(BUILD_DIR)/arduino/src
+	cp -r $(BUILD_DIR)/arduino/src/* $(BUILD_DIR)/microflo-arduino/microflo/
+	cp $(BUILD_DIR)/arduino/src/main.cpp $(BUILD_DIR)/microflo-arduino/microflo/examples/Standalone/Standalone.pde
+	cd $(BUILD_DIR)/microflo-arduino && zip -q -r ../microflo-arduino.zip microflo
 
 release-mbed: build-mbed
     # TODO: package into something usable with MBed tools
@@ -205,17 +206,17 @@ release-emscripten: build-emscripten
     # TODO: package?
 
 release: build release-mbed release-linux release-microflo release-arduino release-stellaris release-emscripten
-	rm -rf build/microflo-$(VERSION)
-	mkdir -p build/microflo-$(VERSION)
-	cp -r build/microflo-arduino.zip build/microflo-$(VERSION)/
-	cp README.release.txt build/microflo-$(VERSION)/README.txt
+	rm -rf $(BUILD_DIR)/microflo-$(VERSION)
+	mkdir -p $(BUILD_DIR)/microflo-$(VERSION)
+	cp -r $(BUILD_DIR)/microflo-arduino.zip $(BUILD_DIR)/microflo-$(VERSION)/
+	cp README.release.txt $(BUILD_DIR)/microflo-$(VERSION)/README.txt
     # FIXME: copy in a README/HTML pointing to Flowhub app, and instructions to flash device
 	cd build && zip -q --symlinks -r microflo-$(VERSION).zip microflo-$(VERSION)
 
 check-release: release
-	rm -rf build/check-release
-	mkdir -p build/check-release
-	cd build/check-release && unzip -q ../microflo-$(VERSION)
+	rm -rf $(BUILD_DIR)/check-release
+	mkdir -p $(BUILD_DIR)/check-release
+	cd $(BUILD_DIR)/check-release && unzip -q ../microflo-$(VERSION)
     # TODO: check npm and component.io packages
     # TODO: check arduino package by importing with ino, building
 
