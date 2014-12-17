@@ -30,7 +30,8 @@
     "microflo/commandformat.json",
     "build/emscripten/microflo-runtime.js",
     "microflo.js",
-    "microflo"
+    "microflo",
+    "Makefile"
   ],
   "scripts": {
     "start": "node microflo.js runtime",
