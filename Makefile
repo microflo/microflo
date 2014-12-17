@@ -7,6 +7,7 @@ LINUX_GRAPH=examples/blink-rpi.fbp
 STELLARIS_GRAPH=examples/blink-stellaris.fbp
 UPLOAD_DIR=/mnt
 BUILD_DIR=`pwd`/build
+MICROFLO_SOURCE_DIR=`pwd`/microflo
 
 # SERIALPORT=/dev/somecustom
 # ARDUINO=/home/user/Arduino-1.0.5
@@ -71,11 +72,20 @@ endif
 # Rules
 all: build
 
+build-arduino-min:
+	rm -rf $(BUILD_DIR)/arduino || echo 'WARN: failure to clean Arduino build'
+	mkdir -p $(BUILD_DIR)/arduino/src
+	mkdir -p $(BUILD_DIR)/arduino/lib
+	cp -r $(MICROFLO_SOURCE_DIR) $(BUILD_DIR)/arduino/lib/
+	microflo generate $(GRAPH) $(BUILD_DIR)/arduino/src/ arduino
+	cd $(BUILD_DIR)/arduino && ino build $(INOOPTIONS) --verbose --cppflags="$(CPPFLAGS) $(DEFINES) -I./src"
+	$(AVRSIZE) -A $(BUILD_DIR)/arduino/.build/$(MODEL)/firmware.elf
+
 build-arduino:
 	rm -rf $(BUILD_DIR)/arduino || echo 'WARN: failure to clean Arduino build'
 	mkdir -p $(BUILD_DIR)/arduino/src
 	mkdir -p $(BUILD_DIR)/arduino/lib
-	cp -r `pwd`/microflo $(BUILD_DIR)/arduino/lib/
+	cp -r $(MICROFLO_SOURCE_DIR) $(BUILD_DIR)/arduino/lib/
 	unzip -q -n ./thirdparty/OneWire.zip -d $(BUILD_DIR)/arduino/lib/
 	unzip -q -n ./thirdparty/DallasTemperature.zip -d $(BUILD_DIR)/arduino/lib/
 	cd thirdparty/Adafruit_NeoPixel && git checkout-index -f -a --prefix=../../$(BUILD_DIR)/arduino/lib/Adafruit_NeoPixel/
