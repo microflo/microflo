@@ -435,13 +435,13 @@ class Runtime extends EventEmitter
             send: (response) =>
                 @emit 'message', response
 
-        @device.on 'response', () ->
+        @device.on 'response', () =>
             args = []
             i = 0
             while i < arguments.length
                 args.push arguments[i]
                 i++
-            deviceResponseToFbpProtocol runtime, @conn.send, args
+            deviceResponseToFbpProtocol @, @conn.send, args
 
     handleMessage: (msg) ->
         handleMessage @, msg
