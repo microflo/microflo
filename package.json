@@ -1,6 +1,6 @@
 {
   "name": "microflo",
-  "version": "0.3.16",
+  "version": "0.3.17",
   "description": "Flow-based programming runtime for microcontrollers",
   "keywords": [
     "fbp",
