@@ -8,6 +8,7 @@ STELLARIS_GRAPH=examples/blink-stellaris.fbp
 UPLOAD_DIR=/mnt
 BUILD_DIR=`pwd`/build
 MICROFLO_SOURCE_DIR=`pwd`/microflo
+MICROFLO=microflo.js
 
 # SERIALPORT=/dev/somecustom
 # ARDUINO=/home/user/Arduino-1.0.5
@@ -77,7 +78,7 @@ build-arduino-min:
 	mkdir -p $(BUILD_DIR)/arduino/src
 	mkdir -p $(BUILD_DIR)/arduino/lib
 	cp -r $(MICROFLO_SOURCE_DIR) $(BUILD_DIR)/arduino/lib/
-	microflo generate $(GRAPH) $(BUILD_DIR)/arduino/src/ arduino
+	$(MICROFLO) generate $(GRAPH) $(BUILD_DIR)/arduino/src/ arduino
 	cd $(BUILD_DIR)/arduino && ino build $(INOOPTIONS) --verbose --cppflags="$(CPPFLAGS) $(DEFINES) -I./src"
 	$(AVRSIZE) -A $(BUILD_DIR)/arduino/.build/$(MODEL)/firmware.elf
 
@@ -115,10 +116,10 @@ build-mbed:
 build-stellaris:
 	rm -rf $(BUILD_DIR)/stellaris
 	mkdir -p $(BUILD_DIR)/stellaris
-	node microflo.js generate $(STELLARIS_GRAPH) $(BUILD_DIR)/stellaris/ stellaris
-	cp Makefile.stellaris $(BUILD_DIR)/stellaris/Makefile
-	cp startup_gcc.c $(BUILD_DIR)/stellaris/
-	cp stellaris.ld $(BUILD_DIR)/stellaris/
+	$(MICROFLO) generate $(STELLARIS_GRAPH) $(BUILD_DIR)/stellaris/ stellaris
+	cp $(MICROFLO_SOURCE_DIR)/../Makefile.stellaris $(BUILD_DIR)/stellaris/Makefile
+	cp $(MICROFLO_SOURCE_DIR)/../startup_gcc.c $(BUILD_DIR)/stellaris/
+	cp $(MICROFLO_SOURCE_DIR)/../stellaris.ld $(BUILD_DIR)/stellaris/
 	cd $(BUILD_DIR)/stellaris && make ROOT=../../thirdparty/stellaris
 
 # Build microFlo components as an object library, build/lib/componentlib.o
