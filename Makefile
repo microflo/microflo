@@ -7,12 +7,11 @@ LINUX_GRAPH=examples/blink-rpi.fbp
 STELLARIS_GRAPH=examples/blink-stellaris.fbp
 UPLOAD_DIR=/mnt
 BUILD_DIR=`pwd`/build
-MICROFLO_SOURCE_DIR=`pwd`/microflo
-MICROFLO=microflo.js
+MICROFLO_SOURCE_DIR=$(shell echo `pwd`/microflo)
+MICROFLO=./microflo.js
 
 # SERIALPORT=/dev/somecustom
 # ARDUINO=/home/user/Arduino-1.0.5
-# LIBRARY= arduino-standard|arduino-minimal
 
 AVRSIZE=avr-size
 AVRGCC=avr-g++
@@ -120,7 +119,7 @@ build-stellaris:
 	cp $(MICROFLO_SOURCE_DIR)/../Makefile.stellaris $(BUILD_DIR)/stellaris/Makefile
 	cp $(MICROFLO_SOURCE_DIR)/../startup_gcc.c $(BUILD_DIR)/stellaris/
 	cp $(MICROFLO_SOURCE_DIR)/../stellaris.ld $(BUILD_DIR)/stellaris/
-	cd $(BUILD_DIR)/stellaris && make ROOT=../../thirdparty/stellaris
+	cd $(BUILD_DIR)/stellaris && make ROOT=../../thirdparty/stellaris MICROFLO_SOURCE_DIR=$(MICROFLO_SOURCE_DIR)
 
 # Build microFlo components as an object library, build/lib/componentlib.o
 # (the microflo/componentlib.cpp pulls in all available components, as defined from components.json)
