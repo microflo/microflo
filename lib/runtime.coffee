@@ -315,8 +315,12 @@ handleNetworkEdges = (runtime, connection, edges, callback) ->
                     cmdFormat.commands.SubscribeToPort.id, srcId, srcPort, 1
         return
 
-    # Send
-    runtime.device.sendCommands buffer, callback
+    # Send commands
+    sendBuf = buffer.slice 0, offset # chop off invalid data
+    if sendBuf.length
+        runtime.device.sendCommands sendBuf, callback
+    else
+        return callback null
 
 handleNetworkCommand = (command, payload, connection, runtime, transport, debugLevel) ->
     if command is "start" or command is "stop"
