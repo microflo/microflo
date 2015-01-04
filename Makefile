@@ -93,7 +93,7 @@ build-arduino:
 	cd $(BUILD_DIR)/arduino/lib && test -e patched || patch -p0 < ../../../thirdparty/DallasTemperature.patch
 	cd $(BUILD_DIR)/arduino/lib && test -e patched || patch -p0 < ../../../thirdparty/OneWire.patch
 	touch $(BUILD_DIR)/arduino/lib/patched
-	node microflo.js generate $(GRAPH) $(BUILD_DIR)/arduino/src/ arduino
+	$(MICROFLO) generate $(GRAPH) $(BUILD_DIR)/arduino/src/ arduino
 	cd $(BUILD_DIR)/arduino && ino build $(INOOPTIONS) --verbose --cppflags="$(CPPFLAGS) $(DEFINES) -I./src"
 	$(AVRSIZE) -A $(BUILD_DIR)/arduino/.build/$(MODEL)/firmware.elf
 
