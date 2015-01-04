@@ -32,7 +32,10 @@
     "microflo.js",
     "microflo",
     "microflo/core/components",
-    "Makefile"
+    "Makefile",
+    "Makefile.stellaris",
+    "startup_gcc.c",
+    "stellaris.ld"
   ],
   "scripts": {
     "start": "node microflo.js runtime",
