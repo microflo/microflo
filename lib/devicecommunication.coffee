@@ -113,10 +113,7 @@ class DeviceCommunication extends EventEmitter
 
         numberOfCommands = buffer.length/commandstream.cmdFormat.commandSize
         responsesReceived = 0
-        @transport.write buffer, () ->
-            # console.log 'wrote', arguments[0], arguments[1]
         listenResponse = (type) ->
-            # console.log 'response', arguments
             return if not @sending
             return if type in ['IOCHANGE', 'DEBUG', 'UNKNOWN']
 
