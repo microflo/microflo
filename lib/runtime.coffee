@@ -115,7 +115,8 @@ sendExportedPorts = (connection, runtime) ->
         payload: ports
 
 sendPacket = (runtime, port, event, payload) ->
-    console.log "WARN: sendPacket, unknown event #{event}" if event is not 'data'
+    return console.log "WARN: sendPacket, unknown event #{event}" if event is not 'data'
+    return console.log 'WARN: ignoring sendPacket during graph upload' if runtime.uploadInProgress
 
     internal = runtime.graph.inports[port]
     componentName = runtime.graph.processes[internal.process].component
