@@ -234,7 +234,8 @@
                 "show": { "id": 3 }
             }, "outPorts": {
                 "ready": { "id": 0 },
-                "pixelset": { "id": 1 }
+                "pixelset": { "id": 1 },
+                "shown": { "id": 2 }
             }
         },
 
