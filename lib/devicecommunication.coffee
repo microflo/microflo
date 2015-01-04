@@ -6,6 +6,12 @@ commandstream = require './commandstream'
 util = require './util'
 EventEmitter = util.EventEmitter;
 
+contains = (str, substr) ->  return str? and str.indexOf substr != -1
+
+debug_comms = false
+if not util.isBrowser()
+    debug_comms = contains process.env.MICROFLO_DEBUG, 'communication'
+
 # TODO: implement a echo command, for testing
 
 class DeviceCommunicationError extends Error
@@ -95,7 +101,7 @@ class SendQueue extends EventEmitter
                 # FIXME: error if this times out
                 return
             @write chunk, () =>
-                # console.log 'wrote', chunkSize, chunk
+                console.log 'MICROFLO SEND:', chunkSize, chunk if debug_comms
                 if index < dataBuf.length
                     setTimeout () =>
                         sendCmd dataBuf, index+=chunkSize
@@ -137,7 +143,6 @@ class DeviceCommunication extends EventEmitter
         @transport.on 'data', (buf) =>
             @accumulator.onData buf
         @accumulator.on 'command', (buf) =>
-            console.log 'command', buf
             @_onCommandReceived buf
 
         @sender.write = (chunk, cb) =>
@@ -191,6 +196,7 @@ class DeviceCommunication extends EventEmitter
     # Low-level
     _onCommandReceived: (buf) ->
         commandstream.parseReceivedCmd @componentLib, @graph, buf, () =>
+            console.log 'MICROFLO RECV:', buf.length, buf, Array.prototype.slice.call(arguments) if debug_comms
             @_handleCommandReceived.apply this, arguments
 
     _handleCommandReceived: (type) ->
