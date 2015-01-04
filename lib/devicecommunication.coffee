@@ -6,7 +6,7 @@ commandstream = require './commandstream'
 util = require './util'
 EventEmitter = util.EventEmitter;
 
-contains = (str, substr) ->  return str? and str.indexOf substr != -1
+contains = (str, substr) ->  return str? and str.indexOf(substr) != -1
 
 debug_comms = false
 if not util.isBrowser()
