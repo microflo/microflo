@@ -46,6 +46,79 @@ class CommandAccumulator extends EventEmitter
         @buffer.copy @buffer, 0, @offset-slush, @offset
         @offset = slush
 
+
+# Rate-limited writing
+# XXX: for some reason when writing without this delay,
+# the first bytes ends up corrupted on microcontroller side
+# FIXME: replace with batching up to N commands, and then wait
+# TODO: Limits should be based on: baudrate + expected receive buffer size
+class SendQueue extends EventEmitter
+    constructor: (commandSize, options) ->
+        @commandSize = commandSize
+        @queue = []
+        @current = null
+        @sending = false
+
+        @options = options || {}
+        @options.wait = 10 if not @options.wait
+
+
+    write: (chunk, callback) ->
+        throw new Error 'SendQueue.write must be implemented by consumer'
+
+    push: (buffer, callback) ->
+        # console.log 'queuing buf', buffer, @sending
+        @queue.push
+            data: buffer
+            callback: callback
+            responses: 0
+        return if @sending
+
+        @sending = true
+        @next()
+
+    next: () ->
+        # console.log 'checking queue for next item', @queue.length
+        if not @queue.length
+            @sending = false
+            return
+
+        # console.log 'popping buff off queue'
+        @current = @queue.shift()
+        chunkSize = commandstream.cmdFormat.commandSize
+
+        sendCmd = (dataBuf, index) =>
+            chunk = dataBuf.slice index, index+chunkSize
+            # console.log 'sendbuf, sending a chunk', chunk
+            if not chunk.length
+                # Done sending, now waiting for response
+                # FIXME: error if this times out
+                return
+            @write chunk, () =>
+                # console.log 'wrote', chunkSize, chunk
+                if index < dataBuf.length
+                    setTimeout () =>
+                        sendCmd dataBuf, index+=chunkSize
+                    , @options.wait
+
+        setTimeout () =>
+            sendCmd @current.data, 0
+        , @options.wait
+
+    onResponse: (type) ->
+        return if not @sending
+        return if type in ['IOCHANGE', 'DEBUG', 'UNKNOWN']
+
+        numberOfCommands = @current.data.length/commandstream.cmdFormat.commandSize
+        @current.responses++
+        # console.log 'checking if enough responses have been made', @current.responses, numberOfCommands
+        if @current.responses == numberOfCommands
+            # console.log 'running sendCommand callback'
+            @current.callback null
+            @current = null
+            @next()
+
+
 # FIXME: probably need a open/connect and close/disconnect?
 
 # Mirrors the HostCommunication class found on the device side
@@ -58,13 +131,17 @@ class DeviceCommunication extends EventEmitter
         @transport = transport
         @componentLib = componentLib
         @accumulator = new CommandAccumulator commandstream.cmdFormat.commandSize
-        @sending = false
+        @sender = new SendQueue commandstream.cmdFormat.commandSize
 
         return if not @transport
         @transport.on 'data', (buf) =>
             @accumulator.onData buf
         @accumulator.on 'command', (buf) =>
+            console.log 'command', buf
             @_onCommandReceived buf
+
+        @sender.write = (chunk, cb) =>
+            @transport.write chunk, cb
 
     open: (cb) ->
         # FIXME: move these details into commandstream
@@ -109,43 +186,7 @@ class DeviceCommunication extends EventEmitter
 
     # Send batched
     sendCommands: (buffer, callback) ->
-        @sending = true
-
-        numberOfCommands = buffer.length/commandstream.cmdFormat.commandSize
-        responsesReceived = 0
-        listenResponse = (type) ->
-            return if not @sending
-            return if type in ['IOCHANGE', 'DEBUG', 'UNKNOWN']
-
-            responsesReceived++
-            if responsesReceived == numberOfCommands
-                @removeListener 'response', listenResponse
-                @sending = false
-                return callback null
-        listener = @on 'response', listenResponse
-
-        # Rate-limited writing
-        # XXX: for some reason when writing without this delay,
-        # the first bytes ends up corrupted on microcontroller side
-        # FIXME: replace with batching up to N commands, and then wait
-        # Limits should be based on: baudrate + expected receive buffer size
-        initialWait = @transport.getTransportType() == "HostJavaScript" ? 10 : 500
-        perCommandWait = @transport.getTransportType() == "HostJavaScript" ? 0 : 100
-        chunkSize = commandstream.cmdFormat.commandSize
-        sendCmd = (dataBuf, index) =>
-            chunk = dataBuf.slice index, index+chunkSize
-            if not chunk.length
-                # console.log 'finished sending commands, waiting for response'
-                return
-            @transport.write chunk, () ->
-                if index < dataBuf.length
-                    setTimeout () =>
-                        sendCmd dataBuf, index+=chunkSize
-                    , perCommandWait
-
-        setTimeout () =>
-            sendCmd buffer, 0
-        , initialWait
+        @sender.push buffer, callback
 
     # Low-level
     _onCommandReceived: (buf) ->
@@ -153,6 +194,8 @@ class DeviceCommunication extends EventEmitter
             @_handleCommandReceived.apply this, arguments
 
     _handleCommandReceived: (type) ->
+        @sender.onResponse type
+
         # Just emit without change atm
         @emit.apply this, arguments
         args = new Array arguments.length
