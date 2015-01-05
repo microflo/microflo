@@ -8987,7 +8987,7 @@ function __ZN17HostCommunication10packetSentEi7MessageP9Componenta($this,$index,
  var $7=($6|0)!=0;
  if($7){label=3;break;}else{label=2;break;}
  case 2: 
- label=14;break;
+ label=17;break;
  case 3: 
  var $10=(($cmd)|0);
  HEAP8[(($10)>>0)]=103;
@@ -9018,7 +9018,7 @@ function __ZN17HostCommunication10packetSentEi7MessageP9Componenta($this,$index,
  HEAP8[(($28)>>0)]=0;
  var $29=(($m+8)|0);
  var $30=__ZNK6Packet6isDataEv($29);
- if($30){label=4;break;}else{label=13;break;}
+ if($30){label=4;break;}else{label=16;break;}
  case 4: 
  var $32=(($m+8)|0);
  var $33=__ZNK6Packet6isBoolEv($32);
@@ -9029,7 +9029,7 @@ function __ZN17HostCommunication10packetSentEi7MessageP9Componenta($this,$index,
  var $37=($36&1);
  var $38=(($cmd+6)|0);
  HEAP8[(($38)>>0)]=$37;
- label=12;break;
+ label=15;break;
  case 6: 
  var $40=(($m+8)|0);
  var $41=__ZNK6Packet8isNumberEv($40);
@@ -9048,30 +9048,38 @@ function __ZN17HostCommunication10packetSentEi7MessageP9Componenta($this,$index,
  var $51=(($50)&255);
  var $52=(($cmd+7)|0);
  HEAP8[(($52)>>0)]=$51;
- label=11;break;
+ label=14;break;
  case 8: 
- label=9;break;
+ var $54=(($m+8)|0);
+ var $55=__ZNK6Packet6isVoidEv($54);
+ if($55){label=9;break;}else{label=10;break;}
  case 9: 
- var $55=$5;
- __ZL14microflo_debugP12DebugHandler10DebugLevel7DebugId($55,1,19);
- label=10;break;
+ label=13;break;
  case 10: 
  label=11;break;
  case 11: 
+ var $59=$5;
+ __ZL14microflo_debugP12DebugHandler10DebugLevel7DebugId($59,1,19);
  label=12;break;
  case 12: 
  label=13;break;
  case 13: 
- var $60=(($5+8)|0);
- var $61=HEAP32[(($60)>>2)];
- var $62=$61;
- var $63=HEAP32[(($62)>>2)];
- var $64=(($63+8)|0);
- var $65=HEAP32[(($64)>>2)];
- var $66=(($cmd)|0);
- FUNCTION_TABLE[$65]($61,$66,8);
  label=14;break;
  case 14: 
+ label=15;break;
+ case 15: 
+ label=16;break;
+ case 16: 
+ var $65=(($5+8)|0);
+ var $66=HEAP32[(($65)>>2)];
+ var $67=$66;
+ var $68=HEAP32[(($67)>>2)];
+ var $69=(($68+8)|0);
+ var $70=HEAP32[(($69)>>2)];
+ var $71=(($cmd)|0);
+ FUNCTION_TABLE[$70]($66,$71,8);
+ label=17;break;
+ case 17: 
  STACKTOP=sp;return;
   default: assert(0, "bad label: " + label);
  }
@@ -9150,6 +9158,20 @@ function __ZNK6Packet8isNumberEv($this){
   default: assert(0, "bad label: " + label);
  }
 
+}
+
+
+function __ZNK6Packet6isVoidEv($this){
+ var label=0;
+ var sp=STACKTOP; (assert((STACKTOP|0) < (STACK_MAX|0))|0);
+
+ var $1;
+ $1=$this;
+ var $2=$1;
+ var $3=(($2+4)|0);
+ var $4=HEAP32[(($3)>>2)];
+ var $5=($4|0)==3;
+ STACKTOP=sp;return $5;
 }
 
 
@@ -13282,7 +13304,7 @@ function __ZN10LedChainWSC2Ev($this){
  var $4=$2;
  var $5=(($2+32)|0);
  var $6=(($5)|0);
- __ZN9ComponentC2EP10Connectioni($4,$6,2);
+ __ZN9ComponentC2EP10Connectioni($4,$6,3);
  var $7=$2;
  HEAP32[(($7)>>2)]=1656;
  var $8=(($2+23)|0);
@@ -13355,7 +13377,7 @@ function __ZN10LedChainWSD0Ev($this){
 
 function __ZN10LedChainWS7processE6Packeta($this,$in,$port){
  var label=0;
- var sp=STACKTOP;STACKTOP=(STACKTOP+32)|0; (assert((STACKTOP|0) < (STACK_MAX|0))|0);
+ var sp=STACKTOP;STACKTOP=(STACKTOP+40)|0; (assert((STACKTOP|0) < (STACK_MAX|0))|0);
  var tempParam = $in; $in=STACKTOP;STACKTOP = (STACKTOP + 8)|0;(assert((STACKTOP|0) < (STACK_MAX|0))|0);HEAP32[(($in)>>2)]=HEAP32[((tempParam)>>2)];HEAP32[((($in)+(4))>>2)]=HEAP32[(((tempParam)+(4))>>2)];
  label = 1; 
  while(1)switch(label){
@@ -13366,49 +13388,50 @@ function __ZN10LedChainWS7processE6Packeta($this,$in,$port){
  var $4=(sp)+(8);
  var $5=(sp)+(16);
  var $6=(sp)+(24);
+ var $7=(sp)+(32);
  $1=$this;
  $2=$port;
- var $7=$1;
- var $8=$2;
- var $9=(($8<<24)>>24);
- var $10=($9|0)==0;
- if($10){label=2;break;}else{label=14;break;}
+ var $8=$1;
+ var $9=$2;
+ var $10=(($9<<24)>>24);
+ var $11=($10|0)==0;
+ if($11){label=2;break;}else{label=14;break;}
  case 2: 
- var $12=(($7+28)|0);
- var $13=HEAP32[(($12)>>2)];
- var $14=($13|0)==-1;
- if($14){label=3;break;}else{label=5;break;}
+ var $13=(($8+28)|0);
+ var $14=HEAP32[(($13)>>2)];
+ var $15=($14|0)==-1;
+ if($15){label=3;break;}else{label=5;break;}
  case 3: 
- var $16=__ZNK6Packet8isNumberEv($in);
- if($16){label=4;break;}else{label=5;break;}
+ var $17=__ZNK6Packet8isNumberEv($in);
+ if($17){label=4;break;}else{label=5;break;}
  case 4: 
- var $18=__ZNK6Packet9asIntegerEv($in);
- var $19=(($7+28)|0);
- HEAP32[(($19)>>2)]=$18;
+ var $19=__ZNK6Packet9asIntegerEv($in);
+ var $20=(($8+28)|0);
+ HEAP32[(($20)>>2)]=$19;
  label=13;break;
  case 5: 
- var $21=(($7+28)|0);
- var $22=HEAP32[(($21)>>2)];
- var $23=($22|0)!=-1;
- if($23){label=6;break;}else{label=8;break;}
+ var $22=(($8+28)|0);
+ var $23=HEAP32[(($22)>>2)];
+ var $24=($23|0)!=-1;
+ if($24){label=6;break;}else{label=8;break;}
  case 6: 
- var $25=__ZNK6Packet9isIntegerEv($in);
- if($25){label=7;break;}else{label=8;break;}
+ var $26=__ZNK6Packet9isIntegerEv($in);
+ if($26){label=7;break;}else{label=8;break;}
  case 7: 
- var $27=__ZNK6Packet9asIntegerEv($in);
- __ZN10LedChainWS18updateCurrentPixelEj($7,$27);
- var $28=(($7+28)|0);
- HEAP32[(($28)>>2)]=-1;
+ var $28=__ZNK6Packet9asIntegerEv($in);
+ __ZN10LedChainWS18updateCurrentPixelEj($8,$28);
+ var $29=(($8+28)|0);
+ HEAP32[(($29)>>2)]=-1;
  label=12;break;
  case 8: 
- var $30=__ZNK6Packet12isEndBracketEv($in);
- if($30){label=10;break;}else{label=9;break;}
+ var $31=__ZNK6Packet12isEndBracketEv($in);
+ if($31){label=10;break;}else{label=9;break;}
  case 9: 
- var $32=__ZNK6Packet14isStartBracketEv($in);
- if($32){label=10;break;}else{label=11;break;}
+ var $33=__ZNK6Packet14isStartBracketEv($in);
+ if($33){label=10;break;}else{label=11;break;}
  case 10: 
- var $34=(($7+28)|0);
- HEAP32[(($34)>>2)]=-1;
+ var $35=(($8+28)|0);
+ HEAP32[(($35)>>2)]=-1;
  label=11;break;
  case 11: 
  label=12;break;
@@ -13417,96 +13440,99 @@ function __ZN10LedChainWS7processE6Packeta($this,$in,$port){
  case 13: 
  label=31;break;
  case 14: 
- var $39=$2;
- var $40=(($39<<24)>>24);
- var $41=($40|0)==1;
- if($41){label=15;break;}else{label=16;break;}
+ var $40=$2;
+ var $41=(($40<<24)>>24);
+ var $42=($41|0)==1;
+ if($42){label=15;break;}else{label=16;break;}
  case 15: 
- var $43=__ZNK6Packet9asIntegerEv($in);
- var $44=(($43)&255);
- var $45=(($7+23)|0);
- HEAP8[(($45)>>0)]=$44;
- var $46=(($7+27)|0);
- HEAP8[(($46)>>0)]=0;
- var $47=$7;
- var $48=(($7+27)|0);
- var $49=HEAP8[(($48)>>0)];
- var $50=(($49)&1);
- __ZN6PacketC1Eb($3,$50);
- __ZN9Component4sendE6Packeta($47,$3,0);
- __ZN10LedChainWS13tryInitializeEv($7);
+ var $44=__ZNK6Packet9asIntegerEv($in);
+ var $45=(($44)&255);
+ var $46=(($8+23)|0);
+ HEAP8[(($46)>>0)]=$45;
+ var $47=(($8+27)|0);
+ HEAP8[(($47)>>0)]=0;
+ var $48=$8;
+ var $49=(($8+27)|0);
+ var $50=HEAP8[(($49)>>0)];
+ var $51=(($50)&1);
+ __ZN6PacketC1Eb($3,$51);
+ __ZN9Component4sendE6Packeta($48,$3,0);
+ __ZN10LedChainWS13tryInitializeEv($8);
  label=30;break;
  case 16: 
- var $52=$2;
- var $53=(($52<<24)>>24);
- var $54=($53|0)==2;
- if($54){label=17;break;}else{label=18;break;}
+ var $53=$2;
+ var $54=(($53<<24)>>24);
+ var $55=($54|0)==2;
+ if($55){label=17;break;}else{label=18;break;}
  case 17: 
- var $56=__ZNK6Packet9asIntegerEv($in);
- var $57=(($56)&255);
- var $58=(($7+24)|0);
- HEAP8[(($58)>>0)]=$57;
- var $59=(($7+27)|0);
- HEAP8[(($59)>>0)]=0;
- var $60=$7;
- var $61=(($7+27)|0);
- var $62=HEAP8[(($61)>>0)];
- var $63=(($62)&1);
- __ZN6PacketC1Eb($4,$63);
- __ZN9Component4sendE6Packeta($60,$4,0);
- __ZN10LedChainWS13tryInitializeEv($7);
+ var $57=__ZNK6Packet9asIntegerEv($in);
+ var $58=(($57)&255);
+ var $59=(($8+24)|0);
+ HEAP8[(($59)>>0)]=$58;
+ var $60=(($8+27)|0);
+ HEAP8[(($60)>>0)]=0;
+ var $61=$8;
+ var $62=(($8+27)|0);
+ var $63=HEAP8[(($62)>>0)];
+ var $64=(($63)&1);
+ __ZN6PacketC1Eb($4,$64);
+ __ZN9Component4sendE6Packeta($61,$4,0);
+ __ZN10LedChainWS13tryInitializeEv($8);
  label=29;break;
  case 18: 
- var $65=$2;
- var $66=(($65<<24)>>24);
- var $67=($66|0)==5;
- if($67){label=19;break;}else{label=20;break;}
+ var $66=$2;
+ var $67=(($66<<24)>>24);
+ var $68=($67|0)==5;
+ if($68){label=19;break;}else{label=20;break;}
  case 19: 
- var $69=__ZNK6Packet6asBoolEv($in);
- var $70=(($7+25)|0);
- var $71=($69&1);
- HEAP8[(($70)>>0)]=$71;
- var $72=(($7+27)|0);
- HEAP8[(($72)>>0)]=0;
- var $73=$7;
- var $74=(($7+27)|0);
- var $75=HEAP8[(($74)>>0)];
- var $76=(($75)&1);
- __ZN6PacketC1Eb($5,$76);
- __ZN9Component4sendE6Packeta($73,$5,0);
- __ZN10LedChainWS13tryInitializeEv($7);
+ var $70=__ZNK6Packet6asBoolEv($in);
+ var $71=(($8+25)|0);
+ var $72=($70&1);
+ HEAP8[(($71)>>0)]=$72;
+ var $73=(($8+27)|0);
+ HEAP8[(($73)>>0)]=0;
+ var $74=$8;
+ var $75=(($8+27)|0);
+ var $76=HEAP8[(($75)>>0)];
+ var $77=(($76)&1);
+ __ZN6PacketC1Eb($5,$77);
+ __ZN9Component4sendE6Packeta($74,$5,0);
+ __ZN10LedChainWS13tryInitializeEv($8);
  label=28;break;
  case 20: 
- var $78=$2;
- var $79=(($78<<24)>>24);
- var $80=($79|0)==3;
- if($80){label=21;break;}else{label=22;break;}
+ var $79=$2;
+ var $80=(($79<<24)>>24);
+ var $81=($80|0)==3;
+ if($81){label=21;break;}else{label=22;break;}
  case 21: 
- var $82=__ZNK6Packet9asIntegerEv($in);
- var $83=(($82)&255);
- var $84=(($7+26)|0);
- HEAP8[(($84)>>0)]=$83;
- var $85=(($7+27)|0);
- HEAP8[(($85)>>0)]=0;
- var $86=$7;
- var $87=(($7+27)|0);
- var $88=HEAP8[(($87)>>0)];
- var $89=(($88)&1);
- __ZN6PacketC1Eb($6,$89);
- __ZN9Component4sendE6Packeta($86,$6,0);
- __ZN10LedChainWS13tryInitializeEv($7);
+ var $83=__ZNK6Packet9asIntegerEv($in);
+ var $84=(($83)&255);
+ var $85=(($8+26)|0);
+ HEAP8[(($85)>>0)]=$84;
+ var $86=(($8+27)|0);
+ HEAP8[(($86)>>0)]=0;
+ var $87=$8;
+ var $88=(($8+27)|0);
+ var $89=HEAP8[(($88)>>0)];
+ var $90=(($89)&1);
+ __ZN6PacketC1Eb($6,$90);
+ __ZN9Component4sendE6Packeta($87,$6,0);
+ __ZN10LedChainWS13tryInitializeEv($8);
  label=27;break;
  case 22: 
- var $91=$2;
- var $92=(($91<<24)>>24);
- var $93=($92|0)==4;
- if($93){label=23;break;}else{label=26;break;}
+ var $92=$2;
+ var $93=(($92<<24)>>24);
+ var $94=($93|0)==4;
+ if($94){label=23;break;}else{label=26;break;}
  case 23: 
- var $95=(($7+27)|0);
- var $96=HEAP8[(($95)>>0)];
- var $97=(($96)&1);
- if($97){label=24;break;}else{label=25;break;}
+ var $96=(($8+27)|0);
+ var $97=HEAP8[(($96)>>0)];
+ var $98=(($97)&1);
+ if($98){label=24;break;}else{label=25;break;}
  case 24: 
+ var $100=$8;
+ __ZN6PacketC1Ev($7);
+ __ZN9Component4sendE6Packeta($100,$7,2);
  label=25;break;
  case 25: 
  label=26;break;
@@ -13586,11 +13612,11 @@ function __ZN10LedChainWS18updateCurrentPixelEj($this,$rgb){
  var $26=(($7+28)|0);
  var $27=HEAP32[(($26)>>2)];
  __ZN6PacketC1El($4,$27);
- __ZN9Component4sendE6Packeta($25,$4,0);
+ __ZN9Component4sendE6Packeta($25,$4,1);
  var $28=$7;
  var $29=$2;
  __ZN6PacketC1El($5,$29);
- __ZN9Component4sendE6Packeta($28,$5,0);
+ __ZN9Component4sendE6Packeta($28,$5,1);
  var $30=$7;
  __ZN6PacketC1E3Msg($6,10);
  __ZN9Component4sendE6Packeta($30,$6,1);
@@ -14052,7 +14078,7 @@ function __ZN16LedChainNeoPixelC2Ev($this){
  var $4=$2;
  var $5=(($2+32)|0);
  var $6=(($5)|0);
- __ZN9ComponentC2EP10Connectioni($4,$6,2);
+ __ZN9ComponentC2EP10Connectioni($4,$6,3);
  var $7=$2;
  HEAP32[(($7)>>2)]=1136;
  var $8=(($2+23)|0);
@@ -14121,7 +14147,7 @@ function __ZN16LedChainNeoPixelD0Ev($this){
 
 function __ZN16LedChainNeoPixel7processE6Packeta($this,$in,$port){
  var label=0;
- var sp=STACKTOP;STACKTOP=(STACKTOP+16)|0; (assert((STACKTOP|0) < (STACK_MAX|0))|0);
+ var sp=STACKTOP;STACKTOP=(STACKTOP+24)|0; (assert((STACKTOP|0) < (STACK_MAX|0))|0);
  var tempParam = $in; $in=STACKTOP;STACKTOP = (STACKTOP + 8)|0;(assert((STACKTOP|0) < (STACK_MAX|0))|0);HEAP32[(($in)>>2)]=HEAP32[((tempParam)>>2)];HEAP32[((($in)+(4))>>2)]=HEAP32[(((tempParam)+(4))>>2)];
  label = 1; 
  while(1)switch(label){
@@ -14130,49 +14156,50 @@ function __ZN16LedChainNeoPixel7processE6Packeta($this,$in,$port){
  var $2;
  var $3=sp;
  var $4=(sp)+(8);
+ var $5=(sp)+(16);
  $1=$this;
  $2=$port;
- var $5=$1;
- var $6=$2;
- var $7=(($6<<24)>>24);
- var $8=($7|0)==0;
- if($8){label=2;break;}else{label=14;break;}
+ var $6=$1;
+ var $7=$2;
+ var $8=(($7<<24)>>24);
+ var $9=($8|0)==0;
+ if($9){label=2;break;}else{label=14;break;}
  case 2: 
- var $10=(($5+28)|0);
- var $11=HEAP32[(($10)>>2)];
- var $12=($11|0)==-1;
- if($12){label=3;break;}else{label=5;break;}
+ var $11=(($6+28)|0);
+ var $12=HEAP32[(($11)>>2)];
+ var $13=($12|0)==-1;
+ if($13){label=3;break;}else{label=5;break;}
  case 3: 
- var $14=__ZNK6Packet8isNumberEv($in);
- if($14){label=4;break;}else{label=5;break;}
+ var $15=__ZNK6Packet8isNumberEv($in);
+ if($15){label=4;break;}else{label=5;break;}
  case 4: 
- var $16=__ZNK6Packet9asIntegerEv($in);
- var $17=(($5+28)|0);
- HEAP32[(($17)>>2)]=$16;
+ var $17=__ZNK6Packet9asIntegerEv($in);
+ var $18=(($6+28)|0);
+ HEAP32[(($18)>>2)]=$17;
  label=13;break;
  case 5: 
- var $19=(($5+28)|0);
- var $20=HEAP32[(($19)>>2)];
- var $21=($20|0)!=-1;
- if($21){label=6;break;}else{label=8;break;}
+ var $20=(($6+28)|0);
+ var $21=HEAP32[(($20)>>2)];
+ var $22=($21|0)!=-1;
+ if($22){label=6;break;}else{label=8;break;}
  case 6: 
- var $23=__ZNK6Packet9isIntegerEv($in);
- if($23){label=7;break;}else{label=8;break;}
+ var $24=__ZNK6Packet9isIntegerEv($in);
+ if($24){label=7;break;}else{label=8;break;}
  case 7: 
- var $25=__ZNK6Packet9asIntegerEv($in);
- __ZN16LedChainNeoPixel18updateCurrentPixelEj($5,$25);
- var $26=(($5+28)|0);
- HEAP32[(($26)>>2)]=-1;
+ var $26=__ZNK6Packet9asIntegerEv($in);
+ __ZN16LedChainNeoPixel18updateCurrentPixelEj($6,$26);
+ var $27=(($6+28)|0);
+ HEAP32[(($27)>>2)]=-1;
  label=12;break;
  case 8: 
- var $28=__ZNK6Packet12isEndBracketEv($in);
- if($28){label=10;break;}else{label=9;break;}
+ var $29=__ZNK6Packet12isEndBracketEv($in);
+ if($29){label=10;break;}else{label=9;break;}
  case 9: 
- var $30=__ZNK6Packet14isStartBracketEv($in);
- if($30){label=10;break;}else{label=11;break;}
+ var $31=__ZNK6Packet14isStartBracketEv($in);
+ if($31){label=10;break;}else{label=11;break;}
  case 10: 
- var $32=(($5+28)|0);
- HEAP32[(($32)>>2)]=-1;
+ var $33=(($6+28)|0);
+ HEAP32[(($33)>>2)]=-1;
  label=11;break;
  case 11: 
  label=12;break;
@@ -14181,56 +14208,59 @@ function __ZN16LedChainNeoPixel7processE6Packeta($this,$in,$port){
  case 13: 
  label=25;break;
  case 14: 
- var $37=$2;
- var $38=(($37<<24)>>24);
- var $39=($38|0)==1;
- if($39){label=15;break;}else{label=16;break;}
+ var $38=$2;
+ var $39=(($38<<24)>>24);
+ var $40=($39|0)==1;
+ if($40){label=15;break;}else{label=16;break;}
  case 15: 
- var $41=__ZNK6Packet9asIntegerEv($in);
- var $42=(($41)&255);
- var $43=(($5+23)|0);
- HEAP8[(($43)>>0)]=$42;
- var $44=(($5+25)|0);
- HEAP8[(($44)>>0)]=0;
- var $45=$5;
- var $46=(($5+25)|0);
- var $47=HEAP8[(($46)>>0)];
- var $48=(($47)&1);
- __ZN6PacketC1Eb($3,$48);
- __ZN9Component4sendE6Packeta($45,$3,0);
- __ZN16LedChainNeoPixel13tryInitializeEv($5);
+ var $42=__ZNK6Packet9asIntegerEv($in);
+ var $43=(($42)&255);
+ var $44=(($6+23)|0);
+ HEAP8[(($44)>>0)]=$43;
+ var $45=(($6+25)|0);
+ HEAP8[(($45)>>0)]=0;
+ var $46=$6;
+ var $47=(($6+25)|0);
+ var $48=HEAP8[(($47)>>0)];
+ var $49=(($48)&1);
+ __ZN6PacketC1Eb($3,$49);
+ __ZN9Component4sendE6Packeta($46,$3,0);
+ __ZN16LedChainNeoPixel13tryInitializeEv($6);
  label=24;break;
  case 16: 
- var $50=$2;
- var $51=(($50<<24)>>24);
- var $52=($51|0)==2;
- if($52){label=17;break;}else{label=18;break;}
+ var $51=$2;
+ var $52=(($51<<24)>>24);
+ var $53=($52|0)==2;
+ if($53){label=17;break;}else{label=18;break;}
  case 17: 
- var $54=__ZNK6Packet9asIntegerEv($in);
- var $55=(($54)&255);
- var $56=(($5+24)|0);
- HEAP8[(($56)>>0)]=$55;
- var $57=(($5+25)|0);
- HEAP8[(($57)>>0)]=0;
- var $58=$5;
- var $59=(($5+25)|0);
- var $60=HEAP8[(($59)>>0)];
- var $61=(($60)&1);
- __ZN6PacketC1Eb($4,$61);
- __ZN9Component4sendE6Packeta($58,$4,0);
- __ZN16LedChainNeoPixel13tryInitializeEv($5);
+ var $55=__ZNK6Packet9asIntegerEv($in);
+ var $56=(($55)&255);
+ var $57=(($6+24)|0);
+ HEAP8[(($57)>>0)]=$56;
+ var $58=(($6+25)|0);
+ HEAP8[(($58)>>0)]=0;
+ var $59=$6;
+ var $60=(($6+25)|0);
+ var $61=HEAP8[(($60)>>0)];
+ var $62=(($61)&1);
+ __ZN6PacketC1Eb($4,$62);
+ __ZN9Component4sendE6Packeta($59,$4,0);
+ __ZN16LedChainNeoPixel13tryInitializeEv($6);
  label=23;break;
  case 18: 
- var $63=$2;
- var $64=(($63<<24)>>24);
- var $65=($64|0)==3;
- if($65){label=19;break;}else{label=22;break;}
+ var $64=$2;
+ var $65=(($64<<24)>>24);
+ var $66=($65|0)==3;
+ if($66){label=19;break;}else{label=22;break;}
  case 19: 
- var $67=(($5+25)|0);
- var $68=HEAP8[(($67)>>0)];
- var $69=(($68)&1);
- if($69){label=20;break;}else{label=21;break;}
+ var $68=(($6+25)|0);
+ var $69=HEAP8[(($68)>>0)];
+ var $70=(($69)&1);
+ if($70){label=20;break;}else{label=21;break;}
  case 20: 
+ var $72=$6;
+ __ZN6PacketC1Ev($5);
+ __ZN9Component4sendE6Packeta($72,$5,2);
  label=21;break;
  case 21: 
  label=22;break;
@@ -14292,11 +14322,11 @@ function __ZN16LedChainNeoPixel18updateCurrentPixelEj($this,$rgb){
  var $26=(($7+28)|0);
  var $27=HEAP32[(($26)>>2)];
  __ZN6PacketC1El($4,$27);
- __ZN9Component4sendE6Packeta($25,$4,0);
+ __ZN9Component4sendE6Packeta($25,$4,1);
  var $28=$7;
  var $29=$2;
  __ZN6PacketC1El($5,$29);
- __ZN9Component4sendE6Packeta($28,$5,0);
+ __ZN9Component4sendE6Packeta($28,$5,1);
  var $30=$7;
  __ZN6PacketC1E3Msg($6,10);
  __ZN9Component4sendE6Packeta($30,$6,1);
@@ -17890,20 +17920,6 @@ function __ZN5Count7processE6Packeta($this,$in,$port){
   default: assert(0, "bad label: " + label);
  }
 
-}
-
-
-function __ZNK6Packet6isVoidEv($this){
- var label=0;
- var sp=STACKTOP; (assert((STACKTOP|0) < (STACK_MAX|0))|0);
-
- var $1;
- $1=$this;
- var $2=$1;
- var $3=(($2+4)|0);
- var $4=HEAP32[(($3)>>2)];
- var $5=($4|0)==3;
- STACKTOP=sp;return $5;
 }
 
 
