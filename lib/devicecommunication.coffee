@@ -195,9 +195,14 @@ class DeviceCommunication extends EventEmitter
 
     # Low-level
     _onCommandReceived: (buf) ->
-        commandstream.parseReceivedCmd @componentLib, @graph, buf, () =>
-            console.log 'MICROFLO RECV:', buf.length, buf, Array.prototype.slice.call(arguments) if debug_comms
-            @_handleCommandReceived.apply this, arguments
+        try
+            commandstream.parseReceivedCmd @componentLib, @graph, buf, () =>
+                console.log 'MICROFLO RECV:', buf.length, buf, Array.prototype.slice.call(arguments) if debug_comms
+                @_handleCommandReceived.apply this, arguments
+        catch err
+            out = 'ERROR'
+            console.log 'MICROFLO RECV ERROR:', buf.length, buf, out if debug_comms
+            @_handleCommandReceived out
 
     _handleCommandReceived: (type) ->
         @sender.onResponse type
