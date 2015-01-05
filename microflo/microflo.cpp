@@ -507,6 +507,8 @@ void HostCommunication::packetSent(int index, Message m, Component *src, MicroFl
             const int i = m.pkg.asInteger();
             cmd[6] = i>>0;
             cmd[7] = i>>8;
+        } else if (m.pkg.isVoid()) {
+            // Nothing needs doing
         } else {
             // FIXME: support all types
             MICROFLO_DEBUG(this, DebugLevelError, DebugNotImplemented);
