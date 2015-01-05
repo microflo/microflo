@@ -126,3 +126,5 @@ microflo/avr_main.hpp
 microflo/stellaris_main.hpp
 lib/definition.coffee
 examples/embedding.cpp
+lib/util.coffee
+lib/util.coffee
