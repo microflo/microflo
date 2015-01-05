@@ -438,6 +438,7 @@ class Runtime extends EventEmitter
         @device = new devicecommunication.DeviceCommunication @transport, @graph, componentLib
         @conn =
             send: (response) =>
+                console.log 'FBP MICROFLO SEND:', response if util.debug_protocol
                 @emit 'message', response
 
         @device.on 'response', () =>
@@ -449,6 +450,7 @@ class Runtime extends EventEmitter
             deviceResponseToFbpProtocol @, @conn.send, args
 
     handleMessage: (msg) ->
+        console.log 'FBP MICROFLO RECV:', msg if util.debug_protocol
         handleMessage @, msg
 
 module.exports =
