@@ -66,7 +66,7 @@ class SendQueue extends EventEmitter
         @sending = false
 
         @options = options || {}
-        @options.wait = 10 if not @options.wait
+        @options.wait = 0 if not @options.wait
 
 
     write: (chunk, callback) ->
