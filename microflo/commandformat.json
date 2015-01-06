@@ -89,6 +89,13 @@
         "IoInvalidValueSet": {"id": 33},
         "UnknownIoType": {"id": 34},
 
+        "User1": {"id": 100},
+        "User2": {"id": 101},
+        "User3": {"id": 102},
+        "User4": {"id": 103},
+        "User5": {"id": 104},
+        "User6": {"id": 105},
+
         "Max": { "id": 255 }
     },
     "debugLevels": {
