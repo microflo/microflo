@@ -108,7 +108,7 @@ class SendQueue extends EventEmitter
                     , @options.wait
 
         setTimeout () =>
-            sendCmd @current.data, 0
+            sendCmd @current.data, 0 if @current?
         , @options.wait
 
     onResponse: (type) ->
