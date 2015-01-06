@@ -23,7 +23,7 @@
     "lib/microflo.js",
     "lib/serial.js",
     "lib/simulator.js",
-    "lib/util.js",
+    "lib/util.coffee",
     "build/emscripten/microflo-runtime.js",
     "lib/devicecommunication.coffee",
     "lib/flash.coffee",

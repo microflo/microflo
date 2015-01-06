@@ -47,7 +47,7 @@ app/background.js
 index.html
 app/main.js
 lib/microflo.js
-lib/util.js
+lib/util.coffee
 Gruntfile.coffee
 app/style.css
 .travis.yml
