@@ -82,14 +82,14 @@ build-arduino-min:
 	$(AVRSIZE) -A $(BUILD_DIR)/arduino/.build/$(MODEL)/firmware.elf
 
 build-arduino:
-	rm -rf $(BUILD_DIR)/arduino || echo 'WARN: failure to clean Arduino build'
+#	rm -rf $(BUILD_DIR)/arduino || echo 'WARN: failure to clean Arduino build'
 	mkdir -p $(BUILD_DIR)/arduino/src
 	mkdir -p $(BUILD_DIR)/arduino/lib
 	cp -r $(MICROFLO_SOURCE_DIR) $(BUILD_DIR)/arduino/lib/
 	unzip -q -n ./thirdparty/OneWire.zip -d $(BUILD_DIR)/arduino/lib/
 	unzip -q -n ./thirdparty/DallasTemperature.zip -d $(BUILD_DIR)/arduino/lib/
-	cd thirdparty/Adafruit_NeoPixel && git checkout-index -f -a --prefix=../../$(BUILD_DIR)/arduino/lib/Adafruit_NeoPixel/
-	cd thirdparty/Adafruit_WS2801 && git checkout-index -f -a --prefix=../../$(BUILD_DIR)/arduino/lib/Adafruit_WS2801/
+	cd thirdparty/Adafruit_NeoPixel && git checkout-index -f -a --prefix=$(BUILD_DIR)/arduino/lib/Adafruit_NeoPixel/
+	cd thirdparty/Adafruit_WS2801 && git checkout-index -f -a --prefix=$(BUILD_DIR)/arduino/lib/Adafruit_WS2801/
 	cd $(BUILD_DIR)/arduino/lib && test -e patched || patch -p0 < ../../../thirdparty/DallasTemperature.patch
 	cd $(BUILD_DIR)/arduino/lib && test -e patched || patch -p0 < ../../../thirdparty/OneWire.patch
 	touch $(BUILD_DIR)/arduino/lib/patched
