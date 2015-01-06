@@ -144,7 +144,7 @@ void HostCommunication::parseCmd() {
                 || packetType == MsgVoid) {
             p = Packet(packetType);
         } else if (packetType == MsgInteger) {
-            const long val = buffer[4] + 256*buffer[5] + 256*256*buffer[6] + 256*256*256*buffer[7];
+            const long val = buffer[4] + ((long)(buffer[5])<<8) + ((long)(buffer[6])<<16) + ((long)(buffer[7])<<24);
             p = Packet(val);
         } else if (packetType == MsgByte) {
             p = Packet(buffer[4]);
