@@ -11,6 +11,7 @@ contains = (str, substr) ->  return str? and str.indexOf(substr) != -1
 debug_comms = false
 if not util.isBrowser()
     debug_comms = contains process.env.MICROFLO_DEBUG, 'communication'
+    debug_send = true
 
 # TODO: implement a echo command, for testing
 
@@ -33,7 +34,7 @@ class DeviceTransport extends EventEmitter
 class CommandAccumulator extends EventEmitter
     constructor: (commandSize) ->
         @commandSize = commandSize
-        @buffer = new commandstream.Buffer(commandstream.cmdFormat.commandSize*100);
+        @buffer = new commandstream.Buffer(commandstream.cmdFormat.commandSize*100)
         @offset = 0
 
     onData: (da) ->
@@ -65,15 +66,39 @@ class SendQueue extends EventEmitter
         @current = null
         @sending = false
 
+        @bytesPerSec = 0
+        @speedo = setInterval =>
+          do @checkBytes
+        , 1000
+        @previousRun = Date.now()
+        @roundTrips = 0
+        @latestRoundTrip = null
+        @roundTripTotal = 0
+
         @options = options || {}
         @options.wait = 0 if not @options.wait
 
+    checkBytes: ->
+        unless @bytesPerSec
+          @previousRun = Date.now()
+          return
+        elapsed = (Date.now() - @previousRun) / 1000
+        return unless elapsed
+        perSec = Math.ceil @bytesPerSec / elapsed
+        console.log "MICROFLO #{@options.type}: buffered #{@bytesPerSec} at #{perSec}/sec. Time elapsed: #{Math.ceil(elapsed)}s. #{@queue.length} commands in buffer" if debug_send
+        @bytesPerSec = 0
+        @previousRun = Date.now()
+        return unless @roundTrips
+        console.log "MICROFLO #{@options.type}: made #{@roundTrips} round-trips at average #{Math.ceil(@roundTripTotal / @roundTrips)}ms each. Latest took #{Math.ceil(@latestRoundTrip)}ms" if debug_send
 
     write: (chunk, callback) ->
         throw new Error 'SendQueue.write must be implemented by consumer'
 
     push: (buffer, callback) ->
-        # console.log 'queuing buf', buffer, @sending
+        console.log 'queuing buf', buffer, @queue.length, @sending if debug_comms
+
+        @bytesPerSec += buffer.length
+
         @queue.push
             data: buffer
             callback: callback
@@ -100,16 +125,13 @@ class SendQueue extends EventEmitter
                 # Done sending, now waiting for response
                 # FIXME: error if this times out
                 return
+            @current.sent = Date.now()
             @write chunk, () =>
                 console.log 'MICROFLO SEND:', chunkSize, chunk if debug_comms
                 if index < dataBuf.length
-                    setTimeout () =>
-                        sendCmd dataBuf, index+=chunkSize
-                    , @options.wait
+                    sendCmd dataBuf, index+=chunkSize
 
-        setTimeout () =>
-            sendCmd @current.data, 0 if @current?
-        , @options.wait
+        sendCmd @current.data, 0 if @current?
 
     onResponse: (type) ->
         return if not @sending
@@ -121,6 +143,10 @@ class SendQueue extends EventEmitter
         if @current.responses == numberOfCommands
             # console.log 'running sendCommand callback'
             @current.callback null
+            elapsed = Date.now() - @current.sent
+            @roundTrips++
+            @roundTripTotal += elapsed
+            @latestRoundTrip = elapsed
             @current = null
             @next()
 
@@ -137,7 +163,8 @@ class DeviceCommunication extends EventEmitter
         @transport = transport
         @componentLib = componentLib
         @accumulator = new CommandAccumulator commandstream.cmdFormat.commandSize
-        @sender = new SendQueue commandstream.cmdFormat.commandSize
+        @sender = new SendQueue commandstream.cmdFormat.commandSize,
+          type: @transport.getTransportType()
 
         return if not @transport
         @transport.on 'data', (buf) =>
