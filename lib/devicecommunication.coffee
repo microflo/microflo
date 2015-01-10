@@ -11,7 +11,7 @@ contains = (str, substr) ->  return str? and str.indexOf(substr) != -1
 debug_comms = false
 if not util.isBrowser()
     debug_comms = contains process.env.MICROFLO_DEBUG, 'communication'
-    debug_send = true
+    debug_send = contains process.env.MICROFLO_DEBUG, 'sending'
 
 # TODO: implement a echo command, for testing
 
