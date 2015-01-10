@@ -91,7 +91,14 @@ void HostCommunication::parseByte(char b) {
     } else if (state == ParseCmd) {
         MICROFLO_DEBUG(this, DebugLevelVeryDetailed, DebugParseCommand);
         if (currentByte == MICROFLO_CMD_SIZE) {
-            parseCmd();
+            if (memcmp(buffer, MICROFLO_GRAPH_MAGIC, sizeof(MICROFLO_GRAPH_MAGIC)) == 0) {
+                MICROFLO_DEBUG(this, DebugLevelDetailed, DebugMagicMatched);
+                const uint8_t cmd[] = { GraphCmdCommunicationOpen };
+                transport->sendCommand(cmd, sizeof(cmd));
+                // already in ParseCmd state
+            } else {
+                parseCmd();
+            }
             currentByte = 0;
         }
     } else if (state == LookForHeader) {
