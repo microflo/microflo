@@ -75,6 +75,7 @@ Get the code
 
     git clone https://github.com/microflo/microflo.git
     cd microflo
+    git submodule update --init # only for old git versions
 
 Install prerequsites; Arduino and Ino
 
