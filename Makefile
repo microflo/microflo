@@ -203,6 +203,13 @@ release-arduino:
 	cp $(BUILD_DIR)/arduino/src/main.cpp $(BUILD_DIR)/microflo-arduino/microflo/examples/Standalone/Standalone.pde
 	cd $(BUILD_DIR)/microflo-arduino && zip -q -r ../microflo-arduino.zip microflo
 
+check-arduino-release:
+	rm -rf $(BUILD_DIR)/microflo-arduino-check
+	mkdir -p $(BUILD_DIR)/microflo-arduino-check/{src,lib}
+	cd $(BUILD_DIR)/microflo-arduino-check/lib && unzip ../../microflo-arduino.zip
+	cd $(BUILD_DIR)/microflo-arduino-check && cp lib/microflo/examples/Standalone/Standalone.pde src/Standalone.cpp
+	cd $(BUILD_DIR)/microflo-arduino-check && ino build
+
 release-mbed: build-mbed
     # TODO: package into something usable with MBed tools
 
