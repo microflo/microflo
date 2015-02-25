@@ -26,6 +26,8 @@ static uint8_t InterruptModeToArduino(IO::Interrupt::Mode mode) {
         case IO::Interrupt::OnRisingEdge: return RISING;
         case IO::Interrupt::OnFallingEdge: return FALLING;
     }
+    // ERROR
+    return CHANGE;
 }
 
 class ArduinoIO : public IO {
