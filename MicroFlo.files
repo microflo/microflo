@@ -11,7 +11,7 @@ examples/max7219.fbp
 microflo/arduino.hpp
 microflo/commandformat.h
 microflo/commandformat.json
-microflo/componentlib.cpp
+microflo/componentlib.hpp
 microflo/components.h
 microflo/components.json
 microflo/main.hpp

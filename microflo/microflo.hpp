@@ -7,4 +7,4 @@
 #ifndef ARDUINO
 #include "microflo.cpp"
 #endif
-#include "componentlib.cpp"
+#include "componentlib.hpp"

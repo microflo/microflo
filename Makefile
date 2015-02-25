@@ -122,12 +122,12 @@ build-stellaris:
 	cd $(BUILD_DIR)/stellaris && make ROOT=../../thirdparty/stellaris MICROFLO_SOURCE_DIR=$(MICROFLO_SOURCE_DIR)
 
 # Build microFlo components as an object library, build/lib/componentlib.o
-# (the microflo/componentlib.cpp pulls in all available components, as defined from components.json)
+# (the microflo/componentlib.hpp pulls in all available components, as defined from components.json)
 build-microflo-complib:
 	mkdir -p $(BUILD_DIR)/lib
 	node microflo.js generate $(LINUX_GRAPH) $(BUILD_DIR)/lib linux # only for internal defs...
 	node microflo.js componentlib $(shell pwd)/microflo/components.json $(shell pwd)/microflo createComponent
-	g++ -c microflo/componentlib.cpp -o $(BUILD_DIR)/lib/componentlib.o -I$(BUILD_DIR)/lib -std=c++0x -DLINUX -Wall -Werror
+	g++ -c microflo/componentlib.hpp -o $(BUILD_DIR)/lib/componentlib.o -I$(BUILD_DIR)/lib -std=c++0x -DLINUX -Wall -Werror
 
 # Build microFlo runtime as a dynamic loadable library, build/lib/libmicroflo.so
 build-microflo-sharedlib: 
@@ -199,7 +199,7 @@ release-arduino:
 	mkdir -p $(BUILD_DIR)/microflo-arduino/microflo/examples/Standalone
 	cp -r microflo $(BUILD_DIR)/microflo-arduino/
 	ls -ls $(BUILD_DIR)/arduino/src
-	cp -r $(BUILD_DIR)/arduino/src/* $(BUILD_DIR)/microflo-arduino/microflo/
+	cp -r $(BUILD_DIR)/arduino/src/*.h $(BUILD_DIR)/microflo-arduino/microflo
 	cp $(BUILD_DIR)/arduino/src/main.cpp $(BUILD_DIR)/microflo-arduino/microflo/examples/Standalone/Standalone.pde
 	cd $(BUILD_DIR)/microflo-arduino && zip -q -r ../microflo-arduino.zip microflo
 
