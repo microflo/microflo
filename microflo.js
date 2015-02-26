@@ -12,6 +12,7 @@ var microflo = require("./lib/microflo");
 var commander = require("commander");
 var pkginfo = require('pkginfo')(module);
 
+// FIXME: get rid of, required data should be passed explicitly for every command that needs componentlib
 var componentLib = null;
 
 var setupRuntimeCommand = function(env) {
@@ -57,7 +58,7 @@ var generateFwCommand = function(env) {
     var outputFile = outputDir + '/main.cpp';
 
     extractComponents(componentLib, inputFile);
-    microflo.generate.updateDefinitions(componentLib, outputDir);
+    microflo.generate.updateComponentLibDefinitions(componentLib, outputDir, "createComponent");
     microflo.generate.generateOutput(componentLib, inputFile, outputFile, target);
 }
 
@@ -105,6 +106,10 @@ var flashCommand = function(file, env) {
     });
 }
 
+var updateDefsCommand = function(directory) {
+    microflo.generate.updateDefinitions(directory);
+}
+
 var main = function() {
 
     componentLib = new microflo.componentlib.ComponentLibrary(null, "./microflo");
@@ -117,6 +122,11 @@ var main = function() {
         .command('componentlib <JsonFile> <OutputPath> <FactoryMethodName>')
         .description('Generate compilable sources of specified component library from .json definition')
         .action(generateComponentLib);
+
+    commander
+        .command('update-defs')
+        .description('Update internal generated definitions')
+        .action(updateDefsCommand);
 
     commander
         .command('generate')

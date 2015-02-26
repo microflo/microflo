@@ -6,7 +6,6 @@
  */
 
 #include "microflo.h"
-#include "io-gen.h"
 
 #include <stdio.h>
 #include <unistd.h>

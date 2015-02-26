@@ -72,6 +72,9 @@ endif
 # Rules
 all: build
 
+update-defs:
+	$(MICROFLO) update-defs $(MICROFLO_SOURCE_DIR)
+
 build-arduino-min:
 	rm -rf $(BUILD_DIR)/arduino || echo 'WARN: failure to clean Arduino build'
 	mkdir -p $(BUILD_DIR)/arduino/src
@@ -126,7 +129,6 @@ build-stellaris:
 build-microflo-complib:
 	mkdir -p $(BUILD_DIR)/lib
 	node microflo.js generate $(LINUX_GRAPH) $(BUILD_DIR)/lib linux # only for internal defs...
-	node microflo.js componentlib $(shell pwd)/microflo/components.json $(shell pwd)/microflo createComponent
 	cp -r microflo/componentlib.hpp $(BUILD_DIR)/lib/componentlib.cpp
 	g++ -c $(BUILD_DIR)/lib/componentlib.cpp -o $(BUILD_DIR)/lib/componentlib.o -I$(BUILD_DIR)/lib -I./microflo -std=c++0x -DLINUX -Wall -Werror
 
@@ -172,7 +174,7 @@ build-emscripten:
 	node microflo.js generate $(GRAPH) $(BUILD_DIR)/emscripten emscripten
 	cd $(BUILD_DIR)/emscripten && EMCC_FAST_COMPILER=0 emcc -o microflo-runtime.html main.cpp $(COMMON_CFLAGS) -s NO_DYNAMIC_EXECUTION=1 -s EXPORTED_FUNCTIONS=$(EMSCRIPTEN_EXPORTS)
 
-build: build-arduino build-avr
+build: update-defs build-arduino build-avr
 
 upload: build-arduino
 	cd $(BUILD_DIR)/arduino && ino upload $(INOUPLOADOPTIONS) $(INOOPTIONS)
