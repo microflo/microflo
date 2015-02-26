@@ -163,10 +163,11 @@ class DeviceCommunication extends EventEmitter
         @transport = transport
         @componentLib = componentLib
         @accumulator = new CommandAccumulator commandstream.cmdFormat.commandSize
+
+        return if not @transport
         @sender = new SendQueue commandstream.cmdFormat.commandSize,
           type: @transport.getTransportType()
 
-        return if not @transport
         @transport.on 'data', (buf) =>
             @accumulator.onData buf
         @accumulator.on 'command', (buf) =>
