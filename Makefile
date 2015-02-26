@@ -127,7 +127,8 @@ build-microflo-complib:
 	mkdir -p $(BUILD_DIR)/lib
 	node microflo.js generate $(LINUX_GRAPH) $(BUILD_DIR)/lib linux # only for internal defs...
 	node microflo.js componentlib $(shell pwd)/microflo/components.json $(shell pwd)/microflo createComponent
-	g++ -c microflo/componentlib.hpp -o $(BUILD_DIR)/lib/componentlib.o -I$(BUILD_DIR)/lib -std=c++0x -DLINUX -Wall -Werror
+	cp -r microflo/componentlib.hpp $(BUILD_DIR)/lib/componentlib.cpp
+	g++ -c $(BUILD_DIR)/lib/componentlib.cpp -o $(BUILD_DIR)/lib/componentlib.o -I$(BUILD_DIR)/lib -I./microflo -std=c++0x -DLINUX -Wall -Werror
 
 # Build microFlo runtime as a dynamic loadable library, build/lib/libmicroflo.so
 build-microflo-sharedlib: 
