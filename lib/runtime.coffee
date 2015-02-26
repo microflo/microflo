@@ -18,11 +18,13 @@ flowhub = require("flowhub-registry")
 commandstream = require("./commandstream")
 generate = require("./generate")
 c = require("./componentlib")
-componentLib = new c.ComponentLibrary(c.defaultComponents, "./microflo")
 cmdFormat = require("./commandformat")
 serial = require("./serial")
 devicecommunication = require("./devicecommunication")
 definition = require './definition'
+
+# FIXME: should be looked up based on into reported by microcontroller
+componentLib = new c.ComponentLibrary
 
 # TODO: allow port types to be declared in component metadata,
 # and send the appropriate types instead of just "all"

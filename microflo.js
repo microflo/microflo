@@ -12,9 +12,6 @@ var microflo = require("./lib/microflo");
 var commander = require("commander");
 var pkginfo = require('pkginfo')(module);
 
-// FIXME: get rid of, required data should be passed explicitly for every command that needs componentlib
-var componentLib = null;
-
 var setupRuntimeCommand = function(env) {
     var serialPortToUse = env.serial || "auto";
     var port = env.port || 3569;
@@ -33,33 +30,23 @@ var uploadGraphCommand = function(graphPath, env) {
     microflo.runtime.uploadGraphFromFile(graphPath, serialPortName, baud, debugLevel);
 }
 
-var extractComponents = function(componentLib, inputFile) {
-    var declarec = require('declarec');
-    var yaml = require('yaml');
-    var data = fs.readFileSync(inputFile, {encoding: 'utf-8'});
-    // TODO: check if C file
-    var raw = declarec.extractDefinition(data, 'microflo_component', 'c');
-    raw.forEach(function(def) {
-        if (def.format === 'yaml') {
-            if (def.content.substring(0,3) !== '---') {
-                // HACK: js-yaml fails when document has leading indent and does not start with ---
-                def.content = '---\n' + def.content + '\n';
-            }
-            var d = yaml.eval(def.content);
-            componentLib.addComponent(d.name, d, inputFile);
-        }
-    });
-};
+
 
 var generateFwCommand = function(env) {
     var inputFile = process.argv[3];
     var outputDir = process.argv[4];
     var target = process.argv[5] || 'arduino';
     var outputFile = outputDir + '/main.cpp';
+    var set = env.library || path.join(__dirname, 'microflo/core/components/arduino-standard.json');
 
-    extractComponents(componentLib, inputFile);
-    microflo.generate.updateComponentLibDefinitions(componentLib, outputDir, "createComponent");
-    microflo.generate.generateOutput(componentLib, inputFile, outputFile, target);
+    var componentLib = new microflo.componentlib.ComponentLibrary();
+    componentLib.loadSetFile(set, function(err) {
+        if (err) throw err
+
+        componentLib.loadFile(inputFile);
+        microflo.generate.updateComponentLibDefinitions(componentLib, outputDir, "createComponent");
+        microflo.generate.generateOutput(componentLib, inputFile, outputFile, target);
+    });
 }
 
 var registerRuntimeCommand = function(user, env) {
@@ -112,9 +99,6 @@ var updateDefsCommand = function(directory) {
 
 var main = function() {
 
-    componentLib = new microflo.componentlib.ComponentLibrary(null, "./microflo");
-    componentLib.load();
-
     commander
         .version(module.exports.version)
 
@@ -131,6 +115,7 @@ var main = function() {
     commander
         .command('generate')
         .description('Generate MicroFlo firmware code, with embedded graph.')
+        .option('-l, --library <FILE.json>', 'Component library file')
         .action(generateFwCommand);
 
     commander

@@ -11,20 +11,20 @@ template = (name, def, all) ->
         outports: {}
     out.type = def.type if def.type?
     def.inPorts = all.defaultInPorts if not def.inPorts?
-    def.outPorts = all.defaultInPorts if not def.outPorts?
+    def.outPorts = all.defaultOutPorts if not def.outPorts?
 
     for portName, portDef of def.inPorts
-        p =
-            description: portDef.description or ""
-            type: "all"
-        p.ctype = portDef.ctype if portDef.cType?
+        p = portDef
+        delete p.id
+        p.type = "all"
+        p.description = p.description or ""
         out.inports[portName] = p
 
     for portName, portDef of def.outPorts
-        p =
-            description: portDef.description or ""
-            type: "all"
-        p.ctype = portDef.ctype if portDef.cType?
+        p = portDef
+        delete p.id
+        p.type = "all"
+        p.description = p.description or ""
         out.outports[portName] = p
 
     ser = yaml.safeDump out
@@ -36,7 +36,7 @@ template = (name, def, all) ->
     return s
 
 componentDir = 'microflo/core/components'
-inp = require './microflo/components.json'
+inp = require '../microflo/components.json'
 for name, def of inp.components
     continue if def['.skip']?
 

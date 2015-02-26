@@ -26,7 +26,6 @@
   },
   "files": [
     "lib",
-    "microflo/components.json",
     "microflo/commandformat.json",
     "build/emscripten/microflo-runtime.js",
     "microflo.js",

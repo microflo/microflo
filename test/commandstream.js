@@ -15,9 +15,6 @@ if (typeof process !== 'undefined' && process.execPath && process.execPath.index
 
 var fbp = require("fbp");
 
-var componentLib = new componentlib.ComponentLibrary();
-componentLib.load();
-
 var assertStreamsEqual = function(actual, expected) {
     chai.expect(actual.length).to.equal(expected.length);
     chai.expect(actual.length%8).to.equal(0);
@@ -30,6 +27,10 @@ var assertStreamsEqual = function(actual, expected) {
 
 describe('Commandstream generation', function(){
   describe('from a simple input FBP', function(){
+      // TODO: add components manually
+      var componentLib = new componentlib.ComponentLibrary();
+
+
       var input = "in(SerialIn) OUT -> IN f(Forward) OUT -> IN out(SerialOut)";
       var expect = commandstream.Buffer([
                            10,0,0,0,0,0,0,0,
