@@ -12,13 +12,13 @@ if (microflo.simulator.RuntimeSimulator) {
     describeIfHasSimulator = describe.skip
 }
 
-var componentLib = new microflo.componentlib.ComponentLibrary();
 var fbp = require("fbp");
 
 describeIfHasSimulator('Network', function(){
   describe.skip('sending packets into graph of Forward components', function(){
     it('should give the same packets out on other side', function(){
 
+        var componentLib = new microflo.componentlib.ComponentLibrary();
         var compare = microflo.simulator.createCompare()
 
         // Host runtime impl.
@@ -71,10 +71,10 @@ describeIfHasSimulator('Network', function(){
 
         var s = new microflo.simulator.RuntimeSimulator();
         var net = s.network
-        var inputNode = net.addNode(componentLib.getComponent("Forward").id);
-        var subgraphNode = net.addNode(componentLib.getComponent("SubGraph").id);
-        var innerNode = net.addNode(componentLib.getComponent("Forward").id, subgraphNode);
-        var outputNode = net.addNode(componentLib.getComponent("Forward").id);
+        var inputNode = net.addNode(s.library.getComponent("Forward").id);
+        var subgraphNode = net.addNode(s.library.getComponent("SubGraph").id);
+        var innerNode = net.addNode(s.library.getComponent("Forward").id, subgraphNode);
+        var outputNode = net.addNode(s.library.getComponent("Forward").id);
         var compareNode = net.addNode(compare);
 
         net.connect(inputNode, 0, subgraphNode, 0);
@@ -105,9 +105,10 @@ describeIfHasSimulator('Network', function(){
     it('gives one response per command', function(finish){
 
         var s = new microflo.simulator.RuntimeSimulator();
+        s.library.addComponent("Forward", {}, "Forward.hpp");
 
         var graph = fbp.parse("a(Forward) OUT -> IN b(Forward) OUT -> IN c(Forward)");
-        var cmdstream = microflo.commandstream.cmdStreamFromGraph(componentLib, graph);
+        var cmdstream = microflo.commandstream.cmdStreamFromGraph(s.library, graph);
 
         var expectedResponses = 9;
         var actualResponses = 0;

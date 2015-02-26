@@ -12,6 +12,8 @@ if (typeof process !== 'undefined' && process.execPath && process.execPath.index
 
 describeIfSimulator = (typeof microflo.simulator.RuntimeSimulator !== 'undefined') ? describe : describe.skip;
 
+var library = __dirname + '/../microflo/core/components/arduino-standard.json';
+
 // TODO: get rid of boilerplate. Use noflo-test + should,
 // instantiate simulator, load graph automatically?
 // TODO: also test that there are no side-effects of program,
@@ -24,9 +26,12 @@ describe('a Blink program', function(){
             '300' -> INTERVAL timer() \
             '13' -> PIN led()";
     before(function (done) {
-        simulator.start(0); // no time increments
-        simulator.device.open(function() {
-            done();
+        simulator.library.loadSetFile(library, function(err) {
+            if (err) throw err
+            simulator.start(0); // no time increments
+            simulator.device.open(function() {
+                done();
+            });
         });
     })
     after(function (done) {

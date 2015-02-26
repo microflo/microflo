@@ -7,12 +7,18 @@ var assert = require("assert")
 var microflo = require("../lib/microflo");
 var websocket = require("websocket");
 
-var componentLib = new microflo.componentlib.ComponentLibrary();
+var library = __dirname + '/../microflo/core/components/arduino-standard.json';
 
 describe('WebSocket API', function(){
+    var runtime = null;
     before(function (done) {
-        var runtime = new microflo.runtime.Runtime(null);
-        microflo.runtime.setupWebsocket(runtime, "localhost", 3888, function() { done() });
+        runtime = new microflo.runtime.Runtime(null);
+        runtime.library.loadSetFile(library, function(err) {
+            if (err) throw err;
+            microflo.runtime.setupWebsocket(runtime, "localhost", 3888, function() {
+                done()
+            });
+        });
     });
 
     after(function () {
@@ -27,7 +33,7 @@ describe('WebSocket API', function(){
                 assert.fail("connect success", "connect failed", error.toString());
             });
 
-            var expectedComponents = componentLib.listComponents();
+            var expectedComponents = runtime.library.listComponents();
             var receivedComponent = [];
 
             client.on('connect', function(connection) {

@@ -12,14 +12,19 @@ var microflo = require("./lib/microflo");
 var commander = require("commander");
 var pkginfo = require('pkginfo')(module);
 
+var defaultLibrary = path.join(__dirname, 'microflo/core/components/arduino-standard.json');
+
 var setupRuntimeCommand = function(env) {
     var serialPortToUse = env.serial || "auto";
     var port = env.port || 3569;
     var debugLevel = env.debug || "Error";
     var ip = env.ip || "127.0.0.1"
     var baud = parseInt(env.baudrate) || 9600
+    var library = env.library || defaultLibrary;
 
-    microflo.runtime.setupRuntime(serialPortToUse, baud, port, debugLevel, ip);
+    microflo.runtime.setupRuntime(serialPortToUse, baud, port, debugLevel, ip, library, function(err, runtime) {
+        if (err) throw err
+    });
 }
 
 var uploadGraphCommand = function(graphPath, env) {
@@ -37,7 +42,7 @@ var generateFwCommand = function(env) {
     var outputDir = process.argv[4];
     var target = process.argv[5] || 'arduino';
     var outputFile = outputDir + '/main.cpp';
-    var set = env.library || path.join(__dirname, 'microflo/core/components/arduino-standard.json');
+    var set = env.library || defaultLibrary;
 
     var componentLib = new microflo.componentlib.ComponentLibrary();
     componentLib.loadSetFile(set, function(err) {

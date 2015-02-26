@@ -22,9 +22,6 @@ describe('ComponentLibrary', function(){
         it('should give above 20 normal', function(){
             chai.expect(normal.length > 20, "normal.length "+normal.length);
         })
-        it('and 3 skipped', function(){
-            chai.expect(skipped.length).to.equal(3);
-        })
         it("Max,Invalid should be skipped", function() {
             chai.expect(normal.indexOf("_Max") === -1);
             chai.expect(normal.indexOf("Invalid") === -1);

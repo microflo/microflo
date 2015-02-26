@@ -23,9 +23,6 @@ serial = require("./serial")
 devicecommunication = require("./devicecommunication")
 definition = require './definition'
 
-# FIXME: should be looked up based on into reported by microcontroller
-componentLib = new c.ComponentLibrary
-
 # TODO: allow port types to be declared in component metadata,
 # and send the appropriate types instead of just "all"
 # https://github.com/noflo/noflo/issues/51
@@ -78,7 +75,8 @@ printReceived = ->
     console.log args.join(", ")
     return
 
-listComponents = (connection) ->
+listComponents = (runtime, connection) ->
+    componentLib = runtime.library
     for name of componentLib.getComponents()
         comp = componentLib.getComponent(name)
         # TODO: also allow to send icon definitions
@@ -123,7 +121,7 @@ sendPacket = (runtime, port, event, payload) ->
     internal = runtime.graph.inports[port]
     componentName = runtime.graph.processes[internal.process].component
     nodeId = runtime.graph.nodeMap[internal.process].id
-    portId = componentLib.inputPort(componentName, internal.port).id
+    portId = runtime.library.inputPort(componentName, internal.port).id
 
     buffer = commandstream.dataLiteralToCommand '' + payload, nodeId, portId
     runtime.device.sendCommands buffer, () ->
@@ -154,9 +152,9 @@ handleRuntimeCommand = (command, payload, connection, runtime) ->
 
 handleComponentCommand = (command, payload, connection, runtime) ->
     if command is "list"
-        listComponents connection
+        listComponents runtime, connection
     else if command is "getsource"
-        componentLib.getComponentSource payload.name, (err, source) ->
+        runtime.library.getComponentSource payload.name, (err, source) ->
             r =
                 name: payload.name
                 language: "c++"
@@ -281,7 +279,7 @@ handleNetworkStartStop = (runtime, connection, transport, debugLevel) ->
     # TODO: handle start/stop messages, send this to the UI
     graph = runtime.graph
 
-    data = commandstream.cmdStreamFromGraph componentLib, graph, debugLevel
+    data = commandstream.cmdStreamFromGraph runtime.library, graph, debugLevel
     if runtime.uploadInProgress
         console.log 'Ignoring multiple attempts of graph upload'
     runtime.uploadInProgress = true
@@ -305,7 +303,7 @@ handleNetworkEdges = (runtime, connection, edges, callback) ->
         if edge.src
             srcId = graph.nodeMap[edge.src.process].id
             srcComp = graph.processes[edge.src.process].component
-            srcPort = componentLib.outputPort(srcComp, edge.src.port).id
+            srcPort = runtime.library.outputPort(srcComp, edge.src.port).id
             offset += commandstream.writeCmd buffer, offset,
                         cmdFormat.commands.SubscribeToPort.id, srcId, srcPort, 0
         return
@@ -313,7 +311,7 @@ handleNetworkEdges = (runtime, connection, edges, callback) ->
     edges.forEach (edge) ->
         srcId = graph.nodeMap[edge.src.process].id
         srcComp = graph.processes[edge.src.process].component
-        srcPort = componentLib.outputPort(srcComp, edge.src.port).id
+        srcPort = runtime.library.outputPort(srcComp, edge.src.port).id
         offset += commandstream.writeCmd buffer, offset,
                     cmdFormat.commands.SubscribeToPort.id, srcId, srcPort, 1
         return
@@ -422,12 +420,13 @@ setupRuntime = (serialPortToUse, baudRate, port, debugLevel, ip, callback) ->
         runtime = new Runtime transport
         setupWebsocket runtime, ip, port, (err, server) ->
             # FIXME: ping Flowhub
+            return callback null, runtime
 
 
 uploadGraphFromFile = (graphPath, serialPortName, baudRate, debugLevel) ->
     serial.openTransport serialPortName, baudRate, (err, transport) ->
         definition.loadFile graphPath, (err, graph) ->
-            data = commandstream.cmdStreamFromGraph(componentLib, graph, debugLevel)
+            data = commandstream.cmdStreamFromGraph(runtime.library, graph, debugLevel)
             # FIXME: reimplement using devicecomm directly
             uploadGraph transport, data, graph
 
@@ -437,7 +436,8 @@ class Runtime extends EventEmitter
         @graph = {}
         @transport = transport
         @debugLevel = options?.debug or 'Error'
-        @device = new devicecommunication.DeviceCommunication @transport, @graph, componentLib
+        @library = new c.ComponentLibrary
+        @device = new devicecommunication.DeviceCommunication @transport, @graph, @library
         @conn =
             send: (response) =>
                 console.log 'FBP MICROFLO SEND:', response if util.debug_protocol
