@@ -155,7 +155,7 @@ build-linux-sharedlib: build-microflo-sharedlib
 	g++ -o $(BUILD_DIR)/linux/firmware $(BUILD_DIR)/linux/main.cpp -std=c++0x -Wl,-rpath=$(BUILD_DIR)/lib -DLINUX -I./$(BUILD_DIR)/lib -I./microflo -Wall -Werror -lrt -L./$(BUILD_DIR)/lib -lmicroflo
 
 # Build firmware statically linked to microflo runtime as object file, $(BUILD_DIR)/lib/microflolib.o
-build-linux: build-microflo-objlib build-microflo-complib
+build-linux: build-microflo-objlib build-microflo-complib build-linux-embedding
 	rm -rf $(BUILD_DIR)/linux
 	mkdir -p $(BUILD_DIR)/linux
 	node microflo.js generate $(LINUX_GRAPH) $(BUILD_DIR)/linux linux
@@ -165,7 +165,7 @@ build-linux: build-microflo-objlib build-microflo-complib
 build-linux-embedding:
 	rm -rf $(BUILD_DIR)/linux
 	mkdir -p $(BUILD_DIR)/linux
-	node microflo.js generate examples/embedding.cpp $(BUILD_DIR)/linux/ linux
+	node microflo.js generate examples/embedding.cpp $(BUILD_DIR)/linux/ linux --library microflo/core/components/linux-standard.json
 	cd $(BUILD_DIR)/linux && g++ -o firmware ../../examples/embedding.cpp -std=c++0x $(COMMON_CFLAGS) -DLINUX -Werror -lrt
 
 build-emscripten:

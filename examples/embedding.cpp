@@ -3,6 +3,7 @@
 #include "linux.hpp"
 #include <unistd.h>
 
+#include "componentlib-ids.h"
 #include "componentlib-ports.h"
 
 // FIXME: implement extraction, must generate ids and normalize structure to match components.json
@@ -47,6 +48,7 @@ microflo_graph */
 // #include "mygraph_gen.h"
 
 #include "microflo.hpp"
+#include "componentlib-source.hpp"
 #include "main.h" // graph def
 
 int main(void) {
