@@ -427,6 +427,38 @@ private:
 class SubGraph : public DummyComponent {};
 #endif
 
+// Convenience class for components whos output is purely
+// a function of the current input values
+template <typename FUNC, typename T0, typename T1>
+class PureFunctionComponent2 : public Component {
+public:
+    PureFunctionComponent2()
+    : Component(connections, 1)
+    {
+    }
+
+    virtual void process(Packet in, MicroFlo::PortId port) {
+        if (in.isData()) {
+            if (port == 0) {
+                input0 = in;
+            } else if (port == 1) {
+                input1 = in;
+            }
+            const Packet ret = function(input0, input1);
+            if (ret.isValid()) {
+                send(ret);
+            }
+        }
+    }
+private:
+    Connection connections[1];
+    FUNC function;
+    T0 input0;
+    T1 input1;
+};
+
+
+
 // PERFORMANCE: allow to disable host communication at build time to reduce progmem?
 
 // Graph format

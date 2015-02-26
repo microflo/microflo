@@ -7,9 +7,6 @@
 #include "linux.hpp"
 #include <unistd.h>
 
-// microflo runtime base class declarations and generated component id's (derived from components.json)
-#include "components.h"
-
 int main(void) {
     LinuxIO io;
     // TODO: add IP-based host transport
