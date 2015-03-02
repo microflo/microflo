@@ -12,6 +12,7 @@ MICROFLO=./microflo.js
 
 # SERIALPORT=/dev/somecustom
 # ARDUINO=/home/user/Arduino-1.0.5
+# ENERGIA=/opt/energia/
 
 AVRSIZE=avr-size
 AVRGCC=avr-g++
@@ -48,6 +49,10 @@ endif
 
 ifdef ARDUINO
 INOOPTIONS+=--arduino-dist=$(ARDUINO)
+endif
+
+ifndef ENERGIA
+ENERGIA=/opt/energia/
 endif
 
 EMSCRIPTEN_EXPORTS='["_emscripten_runtime_new", "_emscripten_runtime_free", "_emscripten_runtime_run", "_emscripten_runtime_send", "_emscripten_runtime_setup"]'
@@ -117,12 +122,18 @@ build-mbed:
 
 build-stellaris:
 	rm -rf $(BUILD_DIR)/stellaris
-	mkdir -p $(BUILD_DIR)/stellaris
+	mkdir -p $(BUILD_DIR)/stellaris/gcc
+	# driverlib
+	cp -r $(ENERGIA)/hardware/lm4f/cores/lm4f/driverlib $(BUILD_DIR)/stellaris/
+	cp Makefile.stellaris.driverlib $(BUILD_DIR)/stellaris/driverlib/
+	cp makedefs.stellaris $(BUILD_DIR)/stellaris/driverlib/makedefs
+	cd $(BUILD_DIR)/stellaris/driverlib && make -f Makefile.stellaris.driverlib IPATH=$(ENERGIA)/hardware/lm4f/cores/lm4f
+	# app
+	cp ./startup_gcc.c $(BUILD_DIR)/stellaris/
+	cp $(ENERGIA)/hardware/lm4f/cores/lm4f/lm4fcpp_blizzard.ld $(BUILD_DIR)/stellaris/gcc/standalone.ld
 	$(MICROFLO) generate $(STELLARIS_GRAPH) $(BUILD_DIR)/stellaris/ --target stellaris --library microflo/core/components/arm-standard.json
-	cp $(MICROFLO_SOURCE_DIR)/../Makefile.stellaris $(BUILD_DIR)/stellaris/Makefile
-	cp $(MICROFLO_SOURCE_DIR)/../startup_gcc.c $(BUILD_DIR)/stellaris/
-	cp $(MICROFLO_SOURCE_DIR)/../stellaris.ld $(BUILD_DIR)/stellaris/
-	cd $(BUILD_DIR)/stellaris && make ROOT=../../thirdparty/stellaris MICROFLO_SOURCE_DIR=$(MICROFLO_SOURCE_DIR)
+	cp Makefile.stellaris.app $(BUILD_DIR)/stellaris/Makefile
+	cd $(BUILD_DIR)/stellaris && make ROOT=./ IPATH="$(ENERGIA)/hardware/lm4f/cores/lm4f $(ENERGIA)/hardware/lm4f/variants/stellarpad ../../microflo/"
 
 # Build microFlo components as an object library, build/lib/componentlib.o
 build-microflo-complib:

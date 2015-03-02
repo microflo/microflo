@@ -22,8 +22,7 @@
 #include "driverlib/rom_map.h"
 #include "driverlib/udma.h"
 #include "driverlib/ssi.h"
-#include "utils/uartstdio.h"
-#include "utils/ustdlib.h"
+#include "driverlib/pin_map.h"
 
 static const unsigned long ports[6] = {
     GPIO_PORTA_BASE,
@@ -47,13 +46,69 @@ static const unsigned long portPeripherals[6] = {
 #define portBase(pinNumber) ports[pinNumber/8]
 #define pinMask(pinNumber) 0x01 << (pinNumber%8)
 
+static const unsigned long g_ulUARTBase[3] =
+{
+    UART0_BASE, UART1_BASE, UART2_BASE
+};
+static const unsigned long g_ulUARTPeriph[3] =
+{
+    SYSCTL_PERIPH_UART0, SYSCTL_PERIPH_UART1, SYSCTL_PERIPH_UART2
+};
+
 volatile unsigned long g_ulSysTickCount = 0;
 static const char * const gMagic = "MAGIC!012";
+static unsigned long g_ulBase = 0;
 
 extern "C" {
+    __attribute__((weak)) void GPIOAIntHandler(void) {}
+    __attribute__((weak)) void GPIOBIntHandler(void) {}
+    __attribute__((weak)) void GPIOCIntHandler(void) {}
+    __attribute__((weak)) void GPIODIntHandler(void) {}
+    __attribute__((weak)) void GPIOEIntHandler(void) {}
+    __attribute__((weak)) void GPIOFIntHandler(void) {}
+    __attribute__((weak)) void GPIOGIntHandler(void) {}
+    __attribute__((weak)) void GPIOHIntHandler(void) {}
+    __attribute__((weak)) void GPIOIIntHandler(void) {}
+    __attribute__((weak)) void GPIOJIntHandler(void) {}
+    __attribute__((weak)) void GPIOKIntHandler(void) {}
+    __attribute__((weak)) void GPIOLIntHandler(void) {}
+    __attribute__((weak)) void GPIONIntHandler(void) {}
+    __attribute__((weak)) void GPIOMIntHandler(void) {}
+    __attribute__((weak)) void GPIOPIntHandler(void) {}
+    __attribute__((weak)) void GPIOQIntHandler(void) {}
     void SysTickIntHandler(void) {
         g_ulSysTickCount++;
     }
+}
+
+
+
+void
+UARTStdioConfig(unsigned long ulPortNum, unsigned long ulBaud,
+                unsigned long ulSrcClock)
+{
+    ASSERT((ulPortNum == 0) || (ulPortNum == 1) ||
+           (ulPortNum == 2));
+
+    // FIXME: used UART_BUFFERED mode?
+
+    // Check to make sure the UART peripheral is present.
+    if(!MAP_SysCtlPeripheralPresent(g_ulUARTPeriph[ulPortNum])) {
+        return;
+    }
+
+    // Select the base address of the UART.
+    g_ulBase = g_ulUARTBase[ulPortNum];
+
+    // Enable the UART peripheral for use.
+    MAP_SysCtlPeripheralEnable(g_ulUARTPeriph[ulPortNum]);
+
+    // Configure the UART for 115200, n, 8, 1
+    MAP_UARTConfigSetExpClk(g_ulBase, ulSrcClock, ulBaud,
+                            (UART_CONFIG_PAR_NONE | UART_CONFIG_STOP_ONE |
+                             UART_CONFIG_WLEN_8));
+
+    UARTEnable(g_ulBase);
 }
 
 class StellarisIO : public IO {
@@ -80,8 +135,8 @@ public:
             MAP_GPIOPinConfigure(GPIO_PA0_U0RX);
             MAP_GPIOPinConfigure(GPIO_PA1_U0TX);
             MAP_GPIOPinTypeUART(GPIO_PORTA_BASE, GPIO_PIN_0 | GPIO_PIN_1);
-            UARTStdioInit(0);
-            UARTEnable(UART0_BASE);
+
+            UARTStdioConfig(serialDevice, 115200, MAP_SysCtlClockGet());
         }
     }
     virtual long SerialDataAvailable(uint8_t serialDevice) {

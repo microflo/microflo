@@ -21,7 +21,7 @@ void operator delete(void * p)
 
 extern "C"
 {
-    void *__dso_handle = NULL;
+    // void *__dso_handle = NULL;
     void __cxa_pure_virtual() {
         while (1);
     }
