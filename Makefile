@@ -80,7 +80,7 @@ build-arduino-min:
 	mkdir -p $(BUILD_DIR)/arduino/src
 	mkdir -p $(BUILD_DIR)/arduino/lib
 	cp -r $(MICROFLO_SOURCE_DIR) $(BUILD_DIR)/arduino/lib/
-	$(MICROFLO) generate $(GRAPH) $(BUILD_DIR)/arduino/src/ arduino
+	$(MICROFLO) generate $(GRAPH) $(BUILD_DIR)/arduino/src/ --target arduino
 	cd $(BUILD_DIR)/arduino && ino build $(INOOPTIONS) --verbose --cppflags="$(CPPFLAGS) $(DEFINES) -I./src"
 	$(AVRSIZE) -A $(BUILD_DIR)/arduino/.build/$(MODEL)/firmware.elf
 
@@ -102,7 +102,7 @@ build-arduino:
 
 build-avr:
 	mkdir -p $(BUILD_DIR)/avr
-	node microflo.js generate $(GRAPH) $(BUILD_DIR)/avr/ avr
+	node microflo.js generate $(GRAPH) $(BUILD_DIR)/avr/ --target avr
 	cd $(BUILD_DIR)/avr && $(AVRGCC) -o firmware.elf main.cpp -DF_CPU=$(AVR_FCPU) -DAVR=1 $(COMMON_CFLAGS) -Werror -Wno-error=overflow -mmcu=$(AVRMODEL) -fno-exceptions -fno-rtti $(CPPFLAGS)
 	cd $(BUILD_DIR)/avr && $(AVROBJCOPY) -j .text -j .data -O ihex firmware.elf firmware.hex
 	$(AVRSIZE) -A $(BUILD_DIR)/avr/firmware.elf
@@ -111,32 +111,30 @@ build-mbed:
 	cd thirdparty/mbed && python2 workspace_tools/build.py -t GCC_ARM -m LPC1768
 	rm -rf $(BUILD_DIR)/mbed
 	mkdir -p $(BUILD_DIR)/mbed
-	node microflo.js generate $(MBED_GRAPH) $(BUILD_DIR)/mbed/ mbed
+	node microflo.js generate $(MBED_GRAPH) $(BUILD_DIR)/mbed/ --target mbed --library microflo/core/components/arm-standard.json
 	cp Makefile.mbed $(BUILD_DIR)/mbed/Makefile
 	cd $(BUILD_DIR)/mbed && make ROOT_DIR=./../../
 
 build-stellaris:
 	rm -rf $(BUILD_DIR)/stellaris
 	mkdir -p $(BUILD_DIR)/stellaris
-	$(MICROFLO) generate $(STELLARIS_GRAPH) $(BUILD_DIR)/stellaris/ stellaris
+	$(MICROFLO) generate $(STELLARIS_GRAPH) $(BUILD_DIR)/stellaris/ --target stellaris --library microflo/core/components/arm-standard.json
 	cp $(MICROFLO_SOURCE_DIR)/../Makefile.stellaris $(BUILD_DIR)/stellaris/Makefile
 	cp $(MICROFLO_SOURCE_DIR)/../startup_gcc.c $(BUILD_DIR)/stellaris/
 	cp $(MICROFLO_SOURCE_DIR)/../stellaris.ld $(BUILD_DIR)/stellaris/
 	cd $(BUILD_DIR)/stellaris && make ROOT=../../thirdparty/stellaris MICROFLO_SOURCE_DIR=$(MICROFLO_SOURCE_DIR)
 
 # Build microFlo components as an object library, build/lib/componentlib.o
-# (the microflo/componentlib.hpp pulls in all available components, as defined from components.json)
 build-microflo-complib:
 	mkdir -p $(BUILD_DIR)/lib
-	node microflo.js generate $(LINUX_GRAPH) $(BUILD_DIR)/lib linux # only for internal defs...
-	cp -r microflo/componentlib.hpp $(BUILD_DIR)/lib/componentlib.cpp
+	node microflo.js generate $(LINUX_GRAPH) $(BUILD_DIR)/lib --target linux --library microflo/core/components/linux-standard.json
+	cp -r $(BUILD_DIR)/lib/componentlib.hpp $(BUILD_DIR)/lib/componentlib.cpp
 	g++ -c $(BUILD_DIR)/lib/componentlib.cpp -o $(BUILD_DIR)/lib/componentlib.o -I$(BUILD_DIR)/lib -I./microflo -std=c++0x -DLINUX -Wall -Werror
 
 # Build microFlo runtime as a dynamic loadable library, build/lib/libmicroflo.so
 build-microflo-sharedlib: 
 	rm -rf $(BUILD_DIR)/lib
 	mkdir -p $(BUILD_DIR)/lib
-	node microflo.js generate $(LINUX_GRAPH) $(BUILD_DIR)/lib linux # only for internal defs...
 	g++ -fPIC -c microflo/microflo.cpp -o microflo/microflo.o -std=c++0x -DLINUX -Wall -Werror
 	g++ -shared -Wl,-soname,libmicroflo.so -o $(BUILD_DIR)/lib/libmicroflo.so -I$(BUILD_DIR)/lib microflo/microflo.o
 
@@ -144,34 +142,35 @@ build-microflo-sharedlib:
 build-microflo-objlib: 
 	rm -rf $(BUILD_DIR)/lib
 	mkdir -p $(BUILD_DIR)/lib
-	node microflo.js generate $(LINUX_GRAPH) $(BUILD_DIR)/lib linux # only for internal defs...
+	# FIXME: only for internal defs...
+	# node microflo.js generate $(LINUX_GRAPH) $(BUILD_DIR)/lib --target linux --library microflo/core/components/linux-standard.json
 	g++ -c microflo/microflo.cpp -o $(BUILD_DIR)/lib/microflolib.o -std=c++0x -I$(BUILD_DIR)/lib -DLINUX -Wall -Werror
 
 # Build firmware linked to microflo runtime as dynamic loadable library, $(BUILD_DIR)/lib/libmicroflo.so
 build-linux-sharedlib: build-microflo-sharedlib
 	rm -rf $(BUILD_DIR)/linux
 	mkdir -p $(BUILD_DIR)/linux
-	node microflo.js generate $(LINUX_GRAPH) $(BUILD_DIR)/linux linux
+	node microflo.js generate $(LINUX_GRAPH) $(BUILD_DIR)/linux --target linux
 	g++ -o $(BUILD_DIR)/linux/firmware $(BUILD_DIR)/linux/main.cpp -std=c++0x -Wl,-rpath=$(BUILD_DIR)/lib -DLINUX -I./$(BUILD_DIR)/lib -I./microflo -Wall -Werror -lrt -L./$(BUILD_DIR)/lib -lmicroflo
 
 # Build firmware statically linked to microflo runtime as object file, $(BUILD_DIR)/lib/microflolib.o
 build-linux: build-microflo-objlib build-microflo-complib build-linux-embedding
 	rm -rf $(BUILD_DIR)/linux
 	mkdir -p $(BUILD_DIR)/linux
-	node microflo.js generate $(LINUX_GRAPH) $(BUILD_DIR)/linux linux
-	g++ -o $(BUILD_DIR)/linux/firmware $(BUILD_DIR)/linux/main.cpp -std=c++0x $(BUILD_DIR)/lib/microflolib.o $(BUILD_DIR)/lib/componentlib.o -DLINUX -I$(BUILD_DIR)/lib -I./microflo -Wall -Werror -lrt
+	node microflo.js generate $(LINUX_GRAPH) $(BUILD_DIR)/linux --target linux --library microflo/core/components/linux-standard.json
+	g++ -o $(BUILD_DIR)/linux/firmware $(BUILD_DIR)/linux/main.cpp -std=c++0x $(BUILD_DIR)/lib/microflolib.o -DLINUX -I$(BUILD_DIR)/lib -I./microflo -Wall -Werror -lrt
 
 # TODO: move to separate repo
 build-linux-embedding:
 	rm -rf $(BUILD_DIR)/linux
 	mkdir -p $(BUILD_DIR)/linux
-	node microflo.js generate examples/embedding.cpp $(BUILD_DIR)/linux/ linux --library microflo/core/components/linux-standard.json
+	node microflo.js generate examples/embedding.cpp $(BUILD_DIR)/linux/ --target linux --library microflo/core/components/linux-standard.json
 	cd $(BUILD_DIR)/linux && g++ -o firmware ../../examples/embedding.cpp -std=c++0x $(COMMON_CFLAGS) -DLINUX -Werror -lrt
 
 build-emscripten:
 	rm -rf $(BUILD_DIR)/emscripten
 	mkdir -p $(BUILD_DIR)/emscripten
-	node microflo.js generate $(GRAPH) $(BUILD_DIR)/emscripten emscripten
+	node microflo.js generate $(GRAPH) $(BUILD_DIR)/emscripten --target emscripten
 	cd $(BUILD_DIR)/emscripten && emcc -o microflo-runtime.html main.cpp $(COMMON_CFLAGS) -s NO_DYNAMIC_EXECUTION=1 -s EXPORTED_FUNCTIONS=$(EMSCRIPTEN_EXPORTS) -s RESERVED_FUNCTION_POINTERS=10
 
 build: update-defs build-arduino build-avr

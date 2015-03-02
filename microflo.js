@@ -21,6 +21,7 @@ var setupRuntimeCommand = function(env) {
     var ip = env.ip || "127.0.0.1"
     var baud = parseInt(env.baudrate) || 9600
     var library = env.library || defaultLibrary;
+    library = path.resolve(process.cwd(), library);
 
     microflo.runtime.setupRuntime(serialPortToUse, baud, port, debugLevel, ip, library, function(err, runtime) {
         if (err) throw err
@@ -37,15 +38,14 @@ var uploadGraphCommand = function(graphPath, env) {
 
 
 
-var generateFwCommand = function(env) {
-    var inputFile = process.argv[3];
-    var outputDir = process.argv[4];
-    var target = process.argv[5] || 'arduino';
+var generateFwCommand = function(inputFile, outputDir, env) {
+    console.log('parsing', inputFile, outputDir, env.library);
+    var target = env.target || 'arduino';
     var outputFile = outputDir + '/main.cpp';
-    var set = env.library || defaultLibrary;
-
+    var library = env.library || defaultLibrary;
+    library = path.resolve(process.cwd(), library);
     var componentLib = new microflo.componentlib.ComponentLibrary();
-    componentLib.loadSetFile(set, function(err) {
+    componentLib.loadSetFile(library, function(err) {
         if (err) throw err
 
         componentLib.loadFile(inputFile);
@@ -118,9 +118,10 @@ var main = function() {
         .action(updateDefsCommand);
 
     commander
-        .command('generate')
+        .command('generate <INPUT> <OUTPUT>')
         .description('Generate MicroFlo firmware code, with embedded graph.')
         .option('-l, --library <FILE.json>', 'Component library file')
+        .option('-t, --target <platform>', 'Target platform: arduino|linux|avr8')
         .action(generateFwCommand);
 
     commander
