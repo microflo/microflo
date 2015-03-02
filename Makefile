@@ -172,7 +172,7 @@ build-emscripten:
 	rm -rf $(BUILD_DIR)/emscripten
 	mkdir -p $(BUILD_DIR)/emscripten
 	node microflo.js generate $(GRAPH) $(BUILD_DIR)/emscripten emscripten
-	cd $(BUILD_DIR)/emscripten && EMCC_FAST_COMPILER=0 emcc -o microflo-runtime.html main.cpp $(COMMON_CFLAGS) -s NO_DYNAMIC_EXECUTION=1 -s EXPORTED_FUNCTIONS=$(EMSCRIPTEN_EXPORTS)
+	cd $(BUILD_DIR)/emscripten && emcc -o microflo-runtime.html main.cpp $(COMMON_CFLAGS) -s NO_DYNAMIC_EXECUTION=1 -s EXPORTED_FUNCTIONS=$(EMSCRIPTEN_EXPORTS) -s RESERVED_FUNCTION_POINTERS=10
 
 build: update-defs build-arduino build-avr
 
