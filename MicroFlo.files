@@ -46,7 +46,7 @@ manifest.json
 app/background.js
 index.html
 app/main.js
-lib/microflo.js
+lib/microflo.coffee
 lib/util.coffee
 Gruntfile.coffee
 app/style.css
@@ -128,3 +128,4 @@ lib/definition.coffee
 examples/embedding.cpp
 lib/util.coffee
 lib/util.coffee
+microflo.coffee
