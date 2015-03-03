@@ -6,9 +6,9 @@
 generate = null
 if typeof process != 'undefined' and process.execPath and process.execPath.indexOf('node') != -1
   chai = require('chai')
-  generate = require('../lib/generate.js')
+  generate = require('../lib/generate')
 else
-  generate = require('microflo/lib/generate.js')
+  generate = require('microflo/lib/generate')
 
 describe 'C++ header file generation', ->
   describe 'enumeration without values', ->

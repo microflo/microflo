@@ -7,12 +7,12 @@ componentlib = null
 commandstream = null
 if typeof process != 'undefined' and process.execPath and process.execPath.indexOf('node') != -1
   chai = require('chai')
-  commandstream = require('../lib/commandstream.js')
-  componentlib = require('../lib/componentlib.js')
+  commandstream = require('../lib/commandstream')
+  componentlib = require('../lib/componentlib')
 else
-  commandstream = require('microflo/lib/commandstream.js')
-  componentlib = require('microflo/lib/componentlib.js')
-  microflo = require('microflo/lib/microflo.js')
+  commandstream = require('microflo/lib/commandstream')
+  componentlib = require('microflo/lib/componentlib')
+  microflo = require('microflo/lib/microflo')
 fbp = require('fbp')
 
 assertStreamsEqual = (actual, expected) ->
