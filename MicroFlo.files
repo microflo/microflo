@@ -27,12 +27,11 @@ lib/componentlib.coffee
 lib/simulator.coffee
 lib/serial.coffee
 test/commandstream.coffee
-test/network.js
+test/network.coffee
 test/websocketapi.coffee
 test/componentlib.coffee
 test/blink.coffee
 test/TODO.md
-test/componentlib.js
 doc/braindump.md
 doc/arduino-getstarted.md
 doc/stories.md
