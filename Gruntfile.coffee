@@ -101,7 +101,6 @@ module.exports = ->
     @task.run 'coffee'
     if target is 'all' or target is 'browser'
       @task.run 'noflo_browser'
-      @task.run 'uglify'
       @task.run 'copy'
 
   @registerTask 'test', 'Build MicroFlo and run automated tests', (target = 'all') =>
