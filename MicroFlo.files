@@ -28,7 +28,7 @@ lib/simulator.coffee
 lib/serial.coffee
 test/commandstream.coffee
 test/network.js
-test/websocketapi.js
+test/websocketapi.coffee
 test/componentlib.js
 test/blink.coffee
 test/TODO.md
