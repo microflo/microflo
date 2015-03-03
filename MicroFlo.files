@@ -25,7 +25,7 @@ lib/commandstream.js
 lib/generate.coffee
 lib/componentlib.coffee
 lib/simulator.coffee
-lib/serial.js
+lib/serial.coffee
 test/commandstream.js
 test/network.js
 test/websocketapi.js
