@@ -12,7 +12,7 @@ contains = (str, substr) ->  return str? and str.indexOf(substr) != -1
 
 exports.debug_protocol = false
 if not isBrowser()
-    exports.debug_protocol = contains process.env.MICROFLO_DEBUG, 'protocol'
+  exports.debug_protocol = contains process.env.MICROFLO_DEBUG, 'protocol'
 
 # From https://github.com/isaacs/inherits, license: ISC
 if typeof Object.create is "function"

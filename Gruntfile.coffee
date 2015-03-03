@@ -39,6 +39,17 @@ module.exports = ->
         dest: 'test'
         ext: '.js'
 
+    coffeelint:
+      code:
+        files:
+          src: ['lib/*.coffee', 'test/*.coffee']
+        options:
+          max_line_length:
+            value: 80
+            level: 'warn'
+          no_trailing_semicolons:
+            level: 'warn'
+
     # BDD tests on Node.js
     mochaTest:
       nodejs:
@@ -78,6 +89,7 @@ module.exports = ->
   @loadNpmTasks 'grunt-noflo-browser'
 
   # Grunt plugins used for testing
+  @loadNpmTasks 'grunt-coffeelint'
   @loadNpmTasks 'grunt-contrib-connect'
   @loadNpmTasks 'grunt-mocha-test'
   @loadNpmTasks 'grunt-mocha-phantomjs'
@@ -93,6 +105,7 @@ module.exports = ->
       @task.run 'copy'
 
   @registerTask 'test', 'Build MicroFlo and run automated tests', (target = 'all') =>
+    @task.run 'coffeelint'
     @task.run 'build'
     if target is 'all' or target is 'nodejs'
       @task.run 'mochaTest'
