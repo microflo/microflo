@@ -211,6 +211,7 @@ release-arduino:
 	rm -rf $(BUILD_DIR)/microflo-arduino
 	mkdir -p $(BUILD_DIR)/microflo-arduino/microflo/examples/Standalone
 	cp -r microflo $(BUILD_DIR)/microflo-arduino/
+	cp -r build/arduino/src/componentlib* $(BUILD_DIR)/microflo-arduino/microflo/
 	ls -ls $(BUILD_DIR)/arduino/src
 	cp -r $(BUILD_DIR)/arduino/src/*.h $(BUILD_DIR)/microflo-arduino/microflo
 	cp $(BUILD_DIR)/arduino/src/main.cpp $(BUILD_DIR)/microflo-arduino/microflo/examples/Standalone/Standalone.pde
