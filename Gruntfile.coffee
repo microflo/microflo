@@ -105,7 +105,7 @@ module.exports = ->
       @task.run 'copy'
 
   @registerTask 'test', 'Build MicroFlo and run automated tests', (target = 'all') =>
-    @task.run 'coffeelint'
+    # @task.run 'coffeelint'
     @task.run 'build'
     if target is 'all' or target is 'nodejs'
       @task.run 'mochaTest'
