@@ -14,21 +14,21 @@
     "noflo/fbp": "*",
     "jonnor/buffer": "*"
   },
-  "main": "lib/microflo.js",
+  "main": "lib/microflo.coffee",
   "scripts": [
-    "lib/commandformat.js",
-    "lib/commandstream.js",
-    "lib/componentlib.js",
-    "lib/generate.js",
-    "lib/microflo.js",
-    "lib/serial.js",
-    "lib/simulator.js",
+    "lib/commandformat.coffee",
+    "lib/commandstream.coffee",
+    "lib/componentlib.coffee",
+    "lib/generate.coffee",
+    "lib/microflo.coffee",
+    "lib/serial.coffee",
+    "lib/simulator.coffee",
     "lib/util.coffee",
-    "build/emscripten/microflo-runtime.js",
     "lib/devicecommunication.coffee",
     "lib/flash.coffee",
     "lib/definition.coffee",
-    "lib/runtime.coffee"
+    "lib/runtime.coffee",
+    "build/emscripten/microflo-runtime.js"
   ],
   "json": [
     "component.json",

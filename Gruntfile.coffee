@@ -28,7 +28,7 @@ module.exports = ->
         expand: true
         cwd: 'lib'
         src: ['**.coffee']
-        dest: 'lib'
+        dest: 'build/lib'
         ext: '.js'
       spec:
         options:
@@ -53,7 +53,7 @@ module.exports = ->
     # BDD tests on Node.js
     mochaTest:
       nodejs:
-        src: ['test/*.js']
+        src: ['test/*.coffee']
         options:
           reporter: 'spec'
           require: 'coffee-script/register'
