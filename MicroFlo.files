@@ -113,7 +113,7 @@ microflo/components/BoolToInt.hpp
 lib/devicecommunication.coffee
 test/compiler.coffee
 test/release.md
-test/generate.js
+test/generate.coffee
 test/communication.coffee
 lib/runtime.coffee
 lib/runtime.coffee
