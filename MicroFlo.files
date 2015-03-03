@@ -22,7 +22,7 @@ microflo/avr.hpp
 microflo/mbed.hpp
 microflo/linux.hpp
 lib/commandstream.js
-lib/generate.js
+lib/generate.coffee
 lib/componentlib.coffee
 lib/simulator.coffee
 lib/serial.js
