@@ -30,7 +30,7 @@ test/commandstream.js
 test/network.js
 test/websocketapi.js
 test/componentlib.js
-test/blink.js
+test/blink.coffee
 test/TODO.md
 test/componentlib.js
 doc/braindump.md
