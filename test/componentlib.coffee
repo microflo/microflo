@@ -11,38 +11,48 @@ if isBrowser()
 else
   componentlib = require 'microflo/lib/componentlib'
 componentLib = new componentlib.ComponentLibrary
+library = __dirname + '/../microflo/core/components/arduino-standard.json'
 
 describe 'ComponentLibrary', ->
+  normal = []
+  all = []
+  skipped = []
+
+  before (done) ->
+    componentLib.loadSetFile library, (err) ->
+      chai.expect(err).to.be.a 'null'
+      normal = componentLib.listComponents(false, true)
+      all = componentLib.listComponents(true, true)
+      skipped = all.filter (n) -> normal.indexOf(n) == -1
+      done()
+  after (done) ->
+    done()
+
   describe 'listing all components', ->
 
-    normal = componentLib.listComponents(false, true)
-    all = componentLib.listComponents(true, true)
-    skipped = all.filter (n) -> normal.indexOf(n) == -1
-
-    it 'should give above 20 normal', ->
-      chai.expect normal.length > 20, 'normal.length ' + normal.length
+    it 'should give above 20 components', ->
+      chai.expect(normal.length).to.be.above 20
     it 'Max,Invalid should be skipped', ->
-      chai.expect normal.indexOf('_Max') == -1
-      chai.expect normal.indexOf('Invalid') == -1
-      chai.expect skipped.indexOf('_Max') != -1
-      chai.expect skipped.indexOf('Invalid') != -1
+      chai.expect(normal).to.not.contain '_Max'
+      chai.expect(normal).to.not.contain 'Invalid'
     it 'Split,Forward should be available', ->
-      chai.expect skipped.indexOf('Split') == -1
-      chai.expect skipped.indexOf('Forward') == -1
-      chai.expect normal.indexOf('Split') != -1
-      chai.expect normal.indexOf('Forward') != -1
+      chai.expect(normal).to.contain 'Split'
+      chai.expect(normal).to.contain 'Forward'
+      chai.expect(skipped).to.not.contain 'Split'
+      chai.expect(skipped).to.not.contain 'Forward'
     it 'no components have same id', ->
       defs = componentLib.getComponents true
       i = 0
       while i < all.length
-                j = 0
+        j = 0
         while j < all.length
           I = all[i]
           J = all[j]
           if I == J
-                        j++
+            j++
             continue
-          chai.expect defs[I].id != defs[J].id, I + ' has same ID as ' + J + ' : ' + defs[I].id
+          msg = I + ' has same ID as ' + J + ' : ' + defs[I].id
+          chai.expect(defs[I].id).to.not.equal defs[J].id, msg
           j++
         i++
 
