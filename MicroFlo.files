@@ -29,7 +29,7 @@ lib/serial.coffee
 test/commandstream.coffee
 test/network.js
 test/websocketapi.coffee
-test/componentlib.js
+test/componentlib.coffee
 test/blink.coffee
 test/TODO.md
 test/componentlib.js
