@@ -21,7 +21,7 @@ microflo/microflo.hpp
 microflo/avr.hpp
 microflo/mbed.hpp
 microflo/linux.hpp
-lib/commandstream.js
+lib/commandstream.coffee
 lib/generate.coffee
 lib/componentlib.coffee
 lib/simulator.coffee
@@ -129,3 +129,4 @@ examples/embedding.cpp
 lib/util.coffee
 lib/util.coffee
 microflo.coffee
+lib/commandformat.coffee
