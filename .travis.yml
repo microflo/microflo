@@ -1,37 +1,45 @@
 language: node_js
 node_js:
-  - "0.10"
-
+- '0.10'
 before_install:
-    - sudo add-apt-repository -y ppa:terry.guo/gcc-arm-embedded
-    - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
-    - sudo add-apt-repository -y "deb http://llvm.org/apt/precise/ llvm-toolchain-precise-3.4 main"
-    - wget -O - http://llvm.org/apt/llvm-snapshot.gpg.key | sudo apt-key add -
-    - sudo apt-get update -qq
-    - sudo apt-get install -qq arduino-core arduino-mk
-    - sudo apt-get install -qq -y gcc-arm-none-eabi
-    - sudo apt-get install -qq -y clang-3.4
-    - sudo pip install ino
-    - git submodule update --init --recursive
-    - git clone https://github.com/kripken/emscripten.git
-    - cd emscripten && git checkout 1.26.0; cd -
-    - wget -O energia.tgz http://energia.nu/downloads/downloadv3.php?file=energia-0101E0014-linux64.tgz
-    - tar -xf energia.tgz
+- sudo add-apt-repository -y ppa:terry.guo/gcc-arm-embedded
+- sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+- sudo add-apt-repository -y "deb http://llvm.org/apt/precise/ llvm-toolchain-precise-3.4
+  main"
+- wget -O - http://llvm.org/apt/llvm-snapshot.gpg.key | sudo apt-key add -
+- sudo apt-get update -qq
+- sudo apt-get install -qq arduino-core arduino-mk
+- sudo apt-get install -qq -y gcc-arm-none-eabi
+- sudo apt-get install -qq -y clang-3.4
+- sudo pip install ino
+- git submodule update --init --recursive
+- git clone https://github.com/kripken/emscripten.git
+- cd emscripten && git checkout 1.26.0; cd -
+- wget -O energia.tgz http://energia.nu/downloads/downloadv3.php?file=energia-0101E0014-linux64.tgz
+- tar -xf energia.tgz
 script:
-    - export LLVM=/usr/lib/llvm-3.4/bin/
-    - export PATH=`pwd`/emscripten/:/usr/lib/llvm-3.4/bin/:$PATH
-    - export EMCC_FAST_COMPILER=0
-    - export EMCC_DEBUG=1
-    - emcc # first run, sets up config
-    - make
-    - make check
-    - make check-release ENERGIA=`pwd`/energia-0101E0014
-
+- export LLVM=/usr/lib/llvm-3.4/bin/
+- export PATH=`pwd`/emscripten/:/usr/lib/llvm-3.4/bin/:$PATH
+- export EMCC_FAST_COMPILER=0
+- export EMCC_DEBUG=1
+- emcc
+- make
+- make check
+- make check-release ENERGIA=`pwd`/energia-0101E0014
 notifications:
   irc:
     channels:
-      - "chat.freenode.net#fbp"
+    - chat.freenode.net#fbp
     template:
-      - "%{repository}@%{branch} (%{commit}) : %{message} : %{build_url}"
+    - "%{repository}@%{branch} (%{commit}) : %{message} : %{build_url}"
     on_success: change
     on_failure: change
+deploy:
+  provider: releases
+  api_key:
+    secure: OfaJ4+UHHy4LrL62k+hCzJzUwL1eo2PFuxvM75miEGEG+Y8kJlspMPLVmLsKFU9YI46ypaW2q53dLuK2zhCbaZy+8EpeJlAlWZrENcNPrxvnUX+yDY362VkHBDiPt9mGOZfre4NpiZbn1EFhAPqZeFbvg1E1M80T8ACpLZAS4x0=
+  file: build/emscripten/microflo-runtime.js
+  on:
+    repo: microflo/microflo
+    all_branches: true
+    tags: true
