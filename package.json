@@ -27,8 +27,8 @@
   "files": [
     "lib",
     "microflo/commandformat.json",
-    "build/emscripten/microflo-runtime.js",
     "microflo.js",
+    "microflo.coffee",
     "microflo",
     "microflo/core/components",
     "Makefile",

@@ -5,19 +5,21 @@
 
 chai = require('chai')
 microflo = require('../lib/microflo')
-if microflo.simulator.RuntimeSimulator
-  describeIfHasSimulator = describe
-else
-  describeIfHasSimulator = describe.skip
 fbp = require('fbp')
 
-describeIfHasSimulator 'Network', ->
+try
+  build = require '../build/emscripten/microflo-runtime.js'
+catch e
+  console.log 'WARN: could not load Emscripten build', e.toString()
+describeIfSimulator = if build? then describe else describe.skip
+
+describeIfSimulator 'Network', ->
   describe.skip 'sending packets into graph of Forward components', ->
     it 'should give the same packets out on other side', ->
       componentLib = new (microflo.componentlib.ComponentLibrary)
       compare = microflo.simulator.createCompare()
       # Host runtime impl.
-      s = new (microflo.simulator.RuntimeSimulator)
+      s = new microflo.simulator.RuntimeSimulator build
       net = s.network
       nodes = 7
       messages = []
@@ -63,7 +65,7 @@ describeIfHasSimulator 'Network', ->
         3
       ]
       compare = microflo.simulator.createCompare(messages)
-      s = new (microflo.simulator.RuntimeSimulator)
+      s = new microflo.simulator.RuntimeSimulator build
       net = s.network
       inputNode = net.addNode(s.library.getComponent('Forward').id)
       subgraphNode = net.addNode(s.library.getComponent('SubGraph').id)
@@ -95,7 +97,7 @@ describeIfHasSimulator 'Network', ->
     return
   describe 'Uploading a graph via commandstream', ->
     it 'gives one response per command', (finish) ->
-      s = new (microflo.simulator.RuntimeSimulator)
+      s = new microflo.simulator.RuntimeSimulator build
       s.library.addComponent 'Forward', {}, 'Forward.hpp'
       graph = fbp.parse('a(Forward) OUT -> IN b(Forward) OUT -> IN c(Forward)')
       cmdstream = microflo.commandstream.cmdStreamFromGraph(s.library, graph)

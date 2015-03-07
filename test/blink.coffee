@@ -10,7 +10,12 @@ if typeof process != 'undefined' and process.execPath and process.execPath.index
 else
   microflo = require('microflo')
 
-describeIfSimulator = if typeof microflo.simulator.RuntimeSimulator != 'undefined' then describe else describe.skip
+try
+  build = require '../build/emscripten/microflo-runtime.js'
+catch e
+  console.log 'WARN: could not load Emscripten build', e.toString()
+describeIfSimulator = if build? then describe else describe.skip
+
 library = __dirname + '/../microflo/core/components/arduino-standard.json'
 
 # TODO: get rid of boilerplate. Use noflo-test + should,
@@ -19,7 +24,7 @@ library = __dirname + '/../microflo/core/components/arduino-standard.json'
 # and that output does not fire before it's time
 
 describe 'a Blink program', ->
-  simulator = new (microflo.simulator.RuntimeSimulator)
+  simulator = new microflo.simulator.RuntimeSimulator build
   prog = '            timer(Timer) OUT -> IN toggle(ToggleBoolean)            toggle OUT -> IN led(DigitalWrite)            \'300\' -> INTERVAL timer()             \'13\' -> PIN led()'
   before (done) ->
     simulator.library.loadSetFile library, (err) ->

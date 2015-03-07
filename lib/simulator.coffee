@@ -11,27 +11,14 @@ devicecommunication = require('./devicecommunication')
 runtime = require('./runtime')
 ComponentLibrary = require('./componentlib').ComponentLibrary
 
-# FIXME: require emscripten build to be passed in from outside
-if util.isBrowser()
-    build = require('../build/emscripten/microflo-runtime.js')
-    if window.Module?
-        console.log 'WARN: Unable to load Emscripen runtime using component.io: '
-        build = window.Module
-else
-    try
-        build = require('../build/emscripten/microflo-runtime.js')
-    catch err
-        console.log 'WARN: Unable to load Emscripen runtime'
-
 class Transport extends EventEmitter
-    constructor: (runtime) ->
-        @runtime = runtime
+    constructor: (@runtime, @emscripten) ->
         @outbound_queue = []
 
-        @pullFuncPtr = build.Runtime.addFunction (vars...) => @onPull vars...
-        @receiveFuncPtr = build.Runtime.addFunction (vars...) => @onReceive vars...
+        @pullFuncPtr = @emscripten.Runtime.addFunction (vars...) => @onPull vars...
+        @receiveFuncPtr = @emscripten.Runtime.addFunction (vars...) => @onReceive vars...
 
-        build['_emscripten_runtime_setup'] @runtime, @receiveFuncPtr, @pullFuncPtr
+        @emscripten['_emscripten_runtime_setup'] @runtime, @receiveFuncPtr, @pullFuncPtr
 
     getTransportType: () ->
         'HostJavaScript'
@@ -51,7 +38,7 @@ class Transport extends EventEmitter
             j = 0
             while j < buffer.length
                 byte = buffer.readUInt8(j)
-                build['_emscripten_runtime_send'] @runtime, byte
+                @emscripten['_emscripten_runtime_send'] @runtime, byte
                 j++
             i++
         @outbound_queue = []
@@ -65,9 +52,9 @@ class Transport extends EventEmitter
         return
 
 class RuntimeSimulator extends EventEmitter
-    constructor: () ->
-        @runtime = build['_emscripten_runtime_new']()
-        @transport = new Transport @runtime
+    constructor: (@emscripten) ->
+        @runtime = @emscripten['_emscripten_runtime_new']()
+        @transport = new Transport @runtime, @emscripten
         @graph = {}
         @library = new ComponentLibrary
         @device = new devicecommunication.DeviceCommunication @transport, @graph, @library
@@ -112,7 +99,7 @@ class RuntimeSimulator extends EventEmitter
     # Blocking iteration
     runTick: (tickIntervalMs) ->
         tickIntervalMs |= 0
-        build['_emscripten_runtime_run'] @runtime, tickIntervalMs
+        @emscripten['_emscripten_runtime_run'] @runtime, tickIntervalMs
 
     # Free-running mode
     # timeFactor 1.0 = normal time, 0.0 = standstill
@@ -127,7 +114,4 @@ class RuntimeSimulator extends EventEmitter
     stop: ->
         clearInterval @tickInterval
 
-exports.Transport = Transport
-if build
-    exports.RuntimeSimulator = RuntimeSimulator
-
+exports.RuntimeSimulator = RuntimeSimulator

@@ -1,10 +1,15 @@
 microflo = require '../lib/microflo'
 chai = require 'chai'
 
-describeIfSimulator = if microflo.simulator.RuntimeSimulator then describe else describe.skip
+try
+  build = require '../build/emscripten/microflo-runtime.js'
+catch e
+  console.log 'WARN: could not load Emscripten build', e.toString()
+
+describeIfSimulator = if build? then describe else describe.skip
 
 describeIfSimulator 'Device communication', ->
-  runtime = new microflo.simulator.RuntimeSimulator
+  runtime = new microflo.simulator.RuntimeSimulator build
   componentLib = new microflo.componentlib.ComponentLibrary
   transport = runtime.transport
   graph = {}
