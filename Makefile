@@ -41,10 +41,12 @@ ifdef LIBRARY
 LIBRARYOPTION=--library=$(LIBRARY)
 endif
 
+ESP_OPTS = ESPRESSIF_DIR=/home/jon/temp/Espressif ESPTOOL=/usr/bin/esptool.py V=1 ESPTOOL_CK=/home/jon/temp/Espressif/esptool-ck/esptool
 INOOPTIONS=--board-model=$(MODEL)
 
 ifdef SERIALPORT
 INOUPLOADOPTIONS=--serial-port=$(SERIALPORT)
+ESP_OPTS+=ESPPORT=$(SERIALPORT)
 endif
 
 ifdef ARDUINO
@@ -54,6 +56,7 @@ endif
 ifndef ENERGIA
 ENERGIA=/opt/energia/
 endif
+
 
 EMSCRIPTEN_EXPORTS='["_emscripten_runtime_new", "_emscripten_runtime_free", "_emscripten_runtime_run", "_emscripten_runtime_send", "_emscripten_runtime_setup"]'
 
@@ -184,6 +187,16 @@ build-emscripten:
 	$(MICROFLO) generate $(GRAPH) $(BUILD_DIR)/emscripten --target emscripten ${LIBRARYOPTION}
 	cd $(BUILD_DIR)/emscripten && emcc -o microflo-runtime.html --pre-js $(MICROFLO_SOURCE_DIR)/emscripten-pre.js main.cpp $(COMMON_CFLAGS) -DMICROFLO_MESSAGE_LIMIT=200 -s NO_DYNAMIC_EXECUTION=1 -s EXPORTED_FUNCTIONS=$(EMSCRIPTEN_EXPORTS) -s RESERVED_FUNCTION_POINTERS=10
 
+build-esp:
+	rm -rf $(BUILD_DIR)/esp
+	mkdir -p $(BUILD_DIR)/esp
+	cp -r thirdparty/esp8266/esphttpd/* $(BUILD_DIR)/esp/
+	$(MICROFLO) generate $(GRAPH) $(BUILD_DIR)/esp/ --target esp8266 --library microflo/core/components/arm-standard.json
+	cd $(BUILD_DIR)/esp thirdparty/esphttpd && make $(ESP_OPTS)
+
+flash-esp: build-esp
+	cd $(BUILD_DIR)/esp thirdparty/esphttpd && make flash $(ESP_OPTS)
+
 build: update-defs build-arduino build-avr
 
 upload: build-arduino
@@ -224,6 +237,8 @@ check-arduino-release:
 	cd $(BUILD_DIR)/microflo-arduino-check && cp lib/microflo/examples/Standalone/Standalone.pde src/Standalone.cpp
 	cd $(BUILD_DIR)/microflo-arduino-check && ino build
 
+release-esp: build-esp
+
 release-mbed: build-mbed
     # TODO: package into something usable with MBed tools
 
@@ -236,7 +251,7 @@ release-stellaris: build-stellaris
 release-emscripten: build-emscripten
     # TODO: package?
 
-release: build release-mbed release-linux release-microflo release-arduino release-stellaris release-emscripten
+release: build release-mbed release-linux release-microflo release-arduino release-stellaris release-emscripten release-esp
 	rm -rf $(BUILD_DIR)/microflo-$(VERSION)
 	mkdir -p $(BUILD_DIR)/microflo-$(VERSION)
 	cp -r $(BUILD_DIR)/microflo-arduino.zip $(BUILD_DIR)/microflo-$(VERSION)/
