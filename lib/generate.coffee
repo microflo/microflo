@@ -168,7 +168,16 @@ generateOutput = (componentLib, inputFile, outputFile, target) ->
     fs.writeFile outputBase + "_maps.h", declarec.generateStringMap("graph_nodeMap", def.nodeMap, extractId), (err) ->
       throw err  if err
 
-    fs.writeFile outputFile, cmdStreamToCDefinition(data, target) + "\n#define MICROFLO_EMBED_GRAPH" + "\n#include \"microflo.h\"" + "\n#include \"main.hpp\"" + "\n#include \"componentlib.hpp\"", (err) ->
+    includes = """
+
+    #define MICROFLO_EMBED_GRAPH 1
+    #include \"microflo.h\"
+    #include \"main.hpp\"
+    #include \"componentlib.hpp\"
+
+    """
+
+    fs.writeFile outputFile, cmdStreamToCDefinition(data, target) + includes, (err) ->
       throw err  if err
 
 module.exports =
