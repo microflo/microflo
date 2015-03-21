@@ -16,7 +16,7 @@ catch e
   console.log 'WARN: could not load Emscripten build', e.toString()
 describeIfSimulator = if build? then describe else describe.skip
 
-library = __dirname + '/../microflo/core/components/arduino-standard.json'
+library = 'microflo-core/components/arduino-standard.json'
 
 # TODO: get rid of boilerplate. Use noflo-test + should,
 # instantiate simulator, load graph automatically?

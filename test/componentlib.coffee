@@ -11,7 +11,8 @@ if isBrowser()
 else
   componentlib = require 'microflo/lib/componentlib'
 componentLib = new componentlib.ComponentLibrary
-library = __dirname + '/../microflo/core/components/arduino-standard.json'
+
+library = 'microflo-core/components/arduino-standard.json'
 
 describe 'ComponentLibrary', ->
   normal = []

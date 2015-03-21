@@ -49,11 +49,11 @@ class ComponentLibrary
         return callback null
 
     loadSetFile: (filePath, callback) ->
-        content = require(filePath)
+        content = require filePath
+        modulePath = require.resolve filePath
 
-        # for package/fbp.json
-        content = content.microflo if typeof content.microflo isnt "undefined"
-        content.base = path.dirname filePath if typeof content.base is "undefined"
+        content = content.microflo if typeof content.microflo isnt "undefined" # for package/fbp.json
+        content.base = path.dirname modulePath # resolve path relative to file
         @loadSet content, callback
 
     listComponents: (includingSkipped, includingVirtual) ->

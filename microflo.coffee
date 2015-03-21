@@ -10,7 +10,7 @@ microflo = require("./lib/microflo")
 commander = require("commander")
 pkginfo = require("pkginfo")(module)
 
-defaultLibrary = path.join(__dirname, "microflo/core/components/arduino-standard.json")
+defaultLibrary = 'microflo-core/components/arduino-standard.json'
 
 setupRuntimeCommand = (env) ->
     serialPortToUse = env.serial or "auto"
@@ -19,7 +19,6 @@ setupRuntimeCommand = (env) ->
     ip = env.ip or "127.0.0.1"
     baud = parseInt(env.baudrate) or 9600
     library = env.library or defaultLibrary
-    library = path.resolve(process.cwd(), library)
     microflo.runtime.setupRuntime serialPortToUse, baud, port, debugLevel, ip, library, (err, runtime) ->
         throw err  if err
 
@@ -35,7 +34,6 @@ generateFwCommand = (inputFile, outputDir, env) ->
     target = env.target or "arduino"
     outputFile = outputDir + "/main.cpp"
     library = env.library or defaultLibrary
-    library = path.resolve(process.cwd(), library)
     componentLib = new microflo.componentlib.ComponentLibrary()
     componentLib.loadSetFile library, (err) ->
         throw err  if err
