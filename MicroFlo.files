@@ -129,3 +129,4 @@ lib/util.coffee
 lib/util.coffee
 microflo.coffee
 lib/commandformat.coffee
+microflo/esp_main.hpp
