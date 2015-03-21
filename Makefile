@@ -38,7 +38,7 @@ DEFINES+=-DMICROFLO_DISABLE_SUBGRAPHS
 endif
 
 ifdef LIBRARY
-LIBRARYOPTION=--library=microflo/core/components/$(LIBRARY).json
+LIBRARYOPTION=--library=microflo-core/components/$(LIBRARY).json
 endif
 
 INOOPTIONS=--board-model=$(MODEL)
@@ -116,7 +116,7 @@ build-mbed:
 	cd thirdparty/mbed && python2 workspace_tools/build.py -t GCC_ARM -m LPC1768
 	rm -rf $(BUILD_DIR)/mbed
 	mkdir -p $(BUILD_DIR)/mbed
-	node microflo.js generate $(MBED_GRAPH) $(BUILD_DIR)/mbed/ --target mbed --library microflo/core/components/arm-standard.json
+	node microflo.js generate $(MBED_GRAPH) $(BUILD_DIR)/mbed/ --target mbed --library microflo-core/components/arm-standard.json
 	cp Makefile.mbed $(BUILD_DIR)/mbed/Makefile
 	cd $(BUILD_DIR)/mbed && make ROOT_DIR=./../../
 
@@ -131,14 +131,14 @@ build-stellaris:
 	# app
 	cp ./startup_gcc.c $(BUILD_DIR)/stellaris/
 	cp $(ENERGIA)/hardware/lm4f/cores/lm4f/lm4fcpp_blizzard.ld $(BUILD_DIR)/stellaris/gcc/standalone.ld
-	$(MICROFLO) generate $(STELLARIS_GRAPH) $(BUILD_DIR)/stellaris/ --target stellaris --library microflo/core/components/arm-standard.json
+	$(MICROFLO) generate $(STELLARIS_GRAPH) $(BUILD_DIR)/stellaris/ --target stellaris --library microflo-core/components/arm-standard.json
 	cp Makefile.stellaris.app $(BUILD_DIR)/stellaris/Makefile
 	cd $(BUILD_DIR)/stellaris && make ROOT=./ IPATH="$(ENERGIA)/hardware/lm4f/cores/lm4f $(ENERGIA)/hardware/lm4f/variants/stellarpad ../../microflo/"
 
 # Build microFlo components as an object library, build/lib/componentlib.o
 build-microflo-complib:
 	mkdir -p $(BUILD_DIR)/lib
-	node microflo.js generate $(LINUX_GRAPH) $(BUILD_DIR)/lib --target linux --library microflo/core/components/linux-standard.json
+	node microflo.js generate $(LINUX_GRAPH) $(BUILD_DIR)/lib --target linux --library microflo-core/components/linux-standard.json
 	cp -r $(BUILD_DIR)/lib/componentlib.hpp $(BUILD_DIR)/lib/componentlib.cpp
 	g++ -c $(BUILD_DIR)/lib/componentlib.cpp -o $(BUILD_DIR)/lib/componentlib.o -I$(BUILD_DIR)/lib -I./microflo -std=c++0x -DLINUX -Wall -Werror
 
@@ -154,7 +154,7 @@ build-microflo-objlib:
 	rm -rf $(BUILD_DIR)/lib
 	mkdir -p $(BUILD_DIR)/lib
 	# FIXME: only for internal defs...
-	# node microflo.js generate $(LINUX_GRAPH) $(BUILD_DIR)/lib --target linux --library microflo/core/components/linux-standard.json
+	# node microflo.js generate $(LINUX_GRAPH) $(BUILD_DIR)/lib --target linux --library microflo-core/components/linux-standard.json
 	g++ -c microflo/microflo.cpp -o $(BUILD_DIR)/lib/microflolib.o -std=c++0x -I$(BUILD_DIR)/lib -DLINUX -Wall -Werror
 
 # Build firmware linked to microflo runtime as dynamic loadable library, $(BUILD_DIR)/lib/libmicroflo.so
@@ -168,14 +168,14 @@ build-linux-sharedlib: build-microflo-sharedlib
 build-linux: build-microflo-objlib build-microflo-complib build-linux-embedding
 	rm -rf $(BUILD_DIR)/linux
 	mkdir -p $(BUILD_DIR)/linux
-	node microflo.js generate $(LINUX_GRAPH) $(BUILD_DIR)/linux --target linux --library microflo/core/components/linux-standard.json
+	node microflo.js generate $(LINUX_GRAPH) $(BUILD_DIR)/linux --target linux --library microflo-core/components/linux-standard.json
 	g++ -o $(BUILD_DIR)/linux/firmware $(BUILD_DIR)/linux/main.cpp -std=c++0x $(BUILD_DIR)/lib/microflolib.o -DLINUX -I$(BUILD_DIR)/lib -I./microflo -Wall -Werror -lrt
 
 # TODO: move to separate repo
 build-linux-embedding:
 	rm -rf $(BUILD_DIR)/linux
 	mkdir -p $(BUILD_DIR)/linux
-	node microflo.js generate examples/embedding.cpp $(BUILD_DIR)/linux/ --target linux --library microflo/core/components/linux-standard.json
+	node microflo.js generate examples/embedding.cpp $(BUILD_DIR)/linux/ --target linux --library microflo-core/components/linux-standard.json
 	cd $(BUILD_DIR)/linux && g++ -o firmware ../../examples/embedding.cpp -std=c++0x $(COMMON_CFLAGS) -DLINUX -Werror -lrt
 
 build-emscripten:
