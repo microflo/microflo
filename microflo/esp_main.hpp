@@ -1,14 +1,28 @@
 extern "C" {
 
 #include "espmissingincludes.h"
-#include "ets_sys.h"
-#include "osapi.h"
-#include "gpio.h"
+#include <ets_sys.h>
+#include <osapi.h>
+#include <gpio.h>
 #include <c_types.h>
-#include "os_type.h"
+#include <os_type.h>
 #include <user_interface.h>
 #include "user_config.h"
 
+}
+
+#include "esp.hpp"
+
+/* Run C++ constructors */
+extern void (*__init_array_start)(void);
+extern void (*__init_array_end)(void);
+
+static void
+do_global_ctors(void)
+{
+    void (**p)(void);
+    for (p = &__init_array_start; p != &__init_array_end; ++p)
+            (*p)();
 }
 
 // Silence QtCreator
@@ -22,6 +36,12 @@ extern "C" {
 os_event_t    user_procTaskQueue[user_procTaskQueueLen];
 static os_timer_t some_timer;
 
+Esp8266IO io;
+const int serialPort = 0;
+const int serialBaudrate = 9600;
+Network network(&io);
+HostCommunication controller;
+SerialHostTransport transport(serialPort, serialBaudrate);
 
 static void user_procTask(os_event_t *events);
 
@@ -45,19 +65,27 @@ static void ICACHE_FLASH_ATTR
 user_procTask(os_event_t *events)
 {
     os_delay_us(10);
+
+    transport.runTick();
+    network.runTick();
 }
 
 extern "C" {
 
 void ICACHE_FLASH_ATTR user_init(void) {
-    /*
-    stdoutInit();
-    ioInit();
-    os_printf("Ready!\n");
-    */
+
+    do_global_ctors();
 
     // Initialize the GPIO subsystem.
     gpio_init();
+
+    transport.setup(&io, &controller);
+    controller.setup(&network, &transport);
+/*
+#ifdef MICROFLO_EMBED_GRAPH
+    loadFromProgMem(&controller);
+#endif
+*/
 
     //Set GPIO1 to output mode
     PIN_FUNC_SELECT(PERIPHS_IO_MUX_U0TXD_U, FUNC_GPIO1);

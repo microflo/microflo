@@ -41,7 +41,7 @@ ifdef LIBRARY
 LIBRARYOPTION=--library=$(LIBRARY)
 endif
 
-ESP_OPTS = ESPRESSIF_DIR=/home/jon/temp/Espressif ESPTOOL=/usr/bin/esptool.py V=1 ESPTOOL_CK=/home/jon/temp/Espressif/esptool-ck/esptool SDK_EXTRA_INCLUDES=$(MICROFLO_SOURCE_DIR)
+ESP_OPTS = ESPRESSIF_DIR=/home/jon/temp/Espressif ESPTOOL=/usr/bin/esptool.py V=1 ESPTOOL_CK=/home/jon/temp/Espressif/esptool-ck/esptool SDK_EXTRA_INCLUDES=$(MICROFLO_SOURCE_DIR) LD_SCRIPT="-T ./eagle.app.v6.ld"
 INOOPTIONS=--board-model=$(MODEL)
 
 ifdef SERIALPORT
@@ -194,10 +194,10 @@ build-esp:
 	cp -r thirdparty/esp8266/ESP8266-EVB-blinkLED/* $(BUILD_DIR)/esp/
 	rm $(BUILD_DIR)/esp/user/*.c || echo 'no C files'
 	$(MICROFLO) generate $(GRAPH) $(BUILD_DIR)/esp/user/ --target esp8266 --library microflo-core/components/arm-standard.json
-	cd $(BUILD_DIR)/esp thirdparty/esphttpd && make $(ESP_OPTS)
+	cd $(BUILD_DIR)/esp && make $(ESP_OPTS)
 
 flash-esp: build-esp
-	cd $(BUILD_DIR)/esp thirdparty/esphttpd && make flash $(ESP_OPTS)
+	cd $(BUILD_DIR)/esp && make flash $(ESP_OPTS)
 
 build: update-defs build-arduino build-avr
 
