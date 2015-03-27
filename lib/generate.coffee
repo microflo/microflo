@@ -115,6 +115,12 @@ generateComponentIncludes = (componentLib) ->
     out += "#include \"" + comp.filename + "\"\n"  if comp.filename and not endsWith(comp.filename, ".cpp")
   out
 
+generateComponentMap = (componentLib) ->
+  # TODO: store more efficiently, so can be embedded in uC?
+  # TODO: store hash/versioning, so can be found by embedding just ID in uC?
+  out = JSON.stringify componentLib.definition
+  return out
+
 macroSafeName = (str) ->
   str.split(".").join("_").split("-").join "_"
 
@@ -141,6 +147,7 @@ updateComponentLibDefinitions = (componentLib, baseDir, factoryMethodName) ->
   fs.writeFileSync baseDir + "/componentlib-source.hpp", sourceOutput
   all = "\n#include \"microflo.h\"\n" + ids + ports + sourceOutput
   fs.writeFileSync baseDir + "/componentlib.hpp", all
+  fs.writeFileSync baseDir + "/componentlib-map.json", generateComponentMap componentLib
 
 updateDefinitions = (baseDir) ->
   fs.writeFileSync baseDir + "/commandformat-gen.h", "// !! WARNING: This file is generated from commandformat.json !!" + "\n" + generateEnum("GraphCmd", "GraphCmd", cmdFormat.commands) + "\n" + generateEnum("Msg", "Msg", cmdFormat.packetTypes) + "\n" + generateEnum("DebugLevel", "DebugLevel", cmdFormat.debugLevels) + "\n" + generateEnum("DebugId", "Debug", cmdFormat.debugPoints) + "\n" + generateEnum("IoType", "IoType", cmdFormat.ioTypes)
