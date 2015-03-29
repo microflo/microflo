@@ -3,6 +3,113 @@
 * 15-16 May at Access Space in Sheffield, UK
 * Status: Invited
 
+Presentation:
+---------------
+
+Themes:
+
+
+Show series of pictures of objects.
+From mundane to complex
+
+* Wristwatch
+* Airplane
+* Fridge
+* Car
+* Nuclear power plant
+* Lamp
+
+Ask
+
+* 
+* Hint: picture of computer
+* Answer: they all run software (intrinsic development)
+* Furthermore, new developments/innovations often driven by SW
+* Point: You cannot see or change (non-intrinsic development)
+
+About:
+
+* Engineer
+* Don't self-identify as an artist
+
+Presentation:
+
+* Exploration
+* Questioning existing ways of doing
+* Implied critisism
+
+
+Programming today
+
+* Text-based
+* Imperative. Hardvard architecture
+* Instruction-based
+* Code (compile/interpret) -> program (run)
+* Tools for creating/changing/ not present in program
+* Each step is lossy, hard/impossible to regain information going back
+* Mental model not captured, stays only in head of programmer
+* All state lost when making change, start over again
+* If you did not catch bug in the act
+* Non-interactive
+* Indirect manipulation (ref Brett V. "bindly manipulating symbols")
+
+Alternative
+
+* Visual and text-based
+* interactive
+* data-based
+* mental-model first, 
+* reactive
+* code<->program duality: Code is program, program is code
+
+Paradigms
+
+* dataflow, flow-based
+* contracts
+* finite automata
+* decision trees
+* graph databases
+* programming-by-example
+
+Investigations
+
+* introspectable software
+* introspectable systems (incl hardware). system models, interactive
+* feedback loops
+* man-machine symbiosis
+* human-assisted computer processes
+* computer-assisted human processes
+* augmentation interfaces, no-limits
+
+Projects
+
+* Flowhub. fbp-protocol, heterogenous systems, 
+* MicroFlo. dataflow, live prog, browser simulator
+* live-url via NFC/QR code
+* finito. finite automata, modelling statefulness, known-bounds testing
+* agree. contracts, static dynamic analysis
+* msgflo. multi-device/worker systems
+* GCC laserpro drivers
+* Shopbot control reversing.
+* 3d-printed cutting tools. Designing for reproducability, local manufacturing
+* Flexible 3dprint, Cura Voronoi
+
+Ideas
+
+* home integrated digital fabrication devices
+* universality in fabrication, scaling horizontally
+* high-tech, local/micro, sustainability
+
+Introspection as a basis for smart systems
+
+* ability for human to query, observe, progressively improved tools, reasoning
+* feedback loops. Human-only, human-based
+
+
+
+
+
+
 Workshop: Sonification & the Physical
 -----------------------------------
 
