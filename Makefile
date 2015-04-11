@@ -57,7 +57,7 @@ endif
 
 EMSCRIPTEN_EXPORTS='["_emscripten_runtime_new", "_emscripten_runtime_free", "_emscripten_runtime_run", "_emscripten_runtime_send", "_emscripten_runtime_setup"]'
 
-COMMON_CFLAGS:=-I. -I../../microflo -Wall
+COMMON_CFLAGS:=-I. -I${MICROFLO_SOURCE_DIR} -Wall
 
 # Platform specifics
 ifeq ($(OS),Windows_NT)
@@ -181,7 +181,7 @@ build-linux-embedding:
 build-emscripten:
 	rm -rf $(BUILD_DIR)/emscripten
 	mkdir -p $(BUILD_DIR)/emscripten
-	node microflo.js generate $(GRAPH) $(BUILD_DIR)/emscripten --target emscripten
+	$(MICROFLO) generate $(GRAPH) $(BUILD_DIR)/emscripten --target emscripten
 	cd $(BUILD_DIR)/emscripten && emcc -o microflo-runtime.html --pre-js $(MICROFLO_SOURCE_DIR)/emscripten-pre.js main.cpp $(COMMON_CFLAGS) -s NO_DYNAMIC_EXECUTION=1 -s EXPORTED_FUNCTIONS=$(EMSCRIPTEN_EXPORTS) -s RESERVED_FUNCTION_POINTERS=10
 
 build: update-defs build-arduino build-avr

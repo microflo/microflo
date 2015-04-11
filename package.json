@@ -1,6 +1,6 @@
 {
   "name": "microflo",
-  "version": "0.3.23",
+  "version": "0.3.24",
   "description": "Flow-based programming runtime for microcontrollers",
   "keywords": [
     "fbp",
@@ -29,7 +29,7 @@
     "microflo/commandformat.json",
     "microflo.js",
     "microflo.coffee",
-    "microflo",
+    "microflo/",
     "Makefile",
     "Makefile.stellaris",
     "startup_gcc.c",
