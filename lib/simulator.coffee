@@ -88,13 +88,18 @@ class RuntimeSimulator extends EventEmitter
                 @removeListener 'message', checkUploadDone
                 return callback()
 
+        console.log 'send'
         @on 'message', checkUploadDone
         @handleMessage
             protocol: 'network'
             command: 'start'
 
     uploadFBP: (prog, callback) ->
-        @uploadGraph fbp.parse(prog), callback
+        try
+            graph = fbp.parse(prog)
+        catch e
+            return callback e
+        @uploadGraph graph, callback
 
     # Blocking iteration
     runTick: (tickIntervalMs) ->
