@@ -38,7 +38,7 @@ DEFINES+=-DMICROFLO_DISABLE_SUBGRAPHS
 endif
 
 ifdef LIBRARY
-LIBRARYOPTION=--library=microflo-core/components/$(LIBRARY).json
+LIBRARYOPTION=--library=$(LIBRARY)
 endif
 
 INOOPTIONS=--board-model=$(MODEL)
@@ -181,7 +181,7 @@ build-linux-embedding:
 build-emscripten:
 	rm -rf $(BUILD_DIR)/emscripten
 	mkdir -p $(BUILD_DIR)/emscripten
-	$(MICROFLO) generate $(GRAPH) $(BUILD_DIR)/emscripten --target emscripten
+	$(MICROFLO) generate $(GRAPH) $(BUILD_DIR)/emscripten --target emscripten ${LIBRARYOPTION}
 	cd $(BUILD_DIR)/emscripten && emcc -o microflo-runtime.html --pre-js $(MICROFLO_SOURCE_DIR)/emscripten-pre.js main.cpp $(COMMON_CFLAGS) -s NO_DYNAMIC_EXECUTION=1 -s EXPORTED_FUNCTIONS=$(EMSCRIPTEN_EXPORTS) -s RESERVED_FUNCTION_POINTERS=10
 
 build: update-defs build-arduino build-avr
