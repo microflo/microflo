@@ -88,11 +88,11 @@ class RuntimeSimulator extends EventEmitter
                 @removeListener 'message', checkUploadDone
                 return callback()
 
-        console.log 'send'
         @on 'message', checkUploadDone
-        @handleMessage
-            protocol: 'network'
-            command: 'start'
+        try
+            @handleMessage { protocol: 'network', command: 'start' }
+        catch e
+            return callback e
 
     uploadFBP: (prog, callback) ->
         try
