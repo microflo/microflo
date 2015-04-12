@@ -114,7 +114,7 @@ sendExportedPorts = (connection, runtime) ->
         command: 'ports'
         payload: ports
 
-sendPacket = (runtime, port, event, payload) ->
+sendPacketCmd = (runtime, port, event, payload) ->
     return console.log "WARN: sendPacket, unknown event #{event}" if event is not 'data'
     return console.log 'WARN: ignoring sendPacket during graph upload' if runtime.uploadInProgress
 
@@ -124,8 +124,19 @@ sendPacket = (runtime, port, event, payload) ->
     portId = runtime.library.inputPort(componentName, internal.port).id
 
     buffer = commandstream.dataLiteralToCommand '' + payload, nodeId, portId
+
+sendPacket = (runtime, port, event, payload) ->
+    buffer = sendPacketCmd runtime, port, event, payload
     runtime.device.sendCommands buffer, () ->
         # done
+
+sendPackets = (runtime, mapping, callback) ->
+    buffers = []
+    for port, val of mapping
+        buffers.push sendPacketCmd runtime, port, 'data', val
+    buffer = commandstream.Buffer.concat buffers
+    runtime.device.sendCommands buffer, callback
+
 
 handleRuntimeCommand = (command, payload, connection, runtime) ->
     if command is "getruntime"
@@ -292,7 +303,7 @@ handleNetworkStartStop = (runtime, connection, transport, debugLevel) ->
         handleNetworkEdges runtime, connection, edges, (err) ->
             runtime.uploadInProgress = false
 
-handleNetworkEdges = (runtime, connection, edges, callback) ->
+subscribeEdges = (runtime, edges, callback) ->
     graph = runtime.graph
     maxCommands = graph.connections.length+edges.length
     buffer = new commandstream.Buffer 8*maxCommands
@@ -322,6 +333,9 @@ handleNetworkEdges = (runtime, connection, edges, callback) ->
         runtime.device.sendCommands sendBuf, callback
     else
         return callback null
+
+handleNetworkEdges = (runtime, connection, edges, callback) ->
+    subscribeEdges runtime, edges, callback
 
 handleNetworkCommand = (command, payload, connection, runtime, transport, debugLevel) ->
     if command is "start" or command is "stop"
@@ -456,6 +470,8 @@ class Runtime extends EventEmitter
         handleMessage @, msg
 
 module.exports =
+    subscribeEdges: subscribeEdges
+    sendPackets: sendPackets
     setupRuntime: setupRuntime
     setupWebsocket: setupWebsocket
     Runtime: Runtime
