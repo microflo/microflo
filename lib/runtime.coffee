@@ -436,6 +436,17 @@ setupRuntime = (serialPortToUse, baudRate, port, debugLevel, ip, callback) ->
             # FIXME: ping Flowhub
             return callback null, runtime
 
+setupSimulator = (file, baudRate, port, debugLevel, ip, callback) ->
+    simulator = require './simulator'
+    build = require file
+    sim = new simulator.RuntimeSimulator build
+    sim.start 1.0
+
+    runtime = new Runtime sim.transport
+    setupWebsocket runtime, ip, port, (err, server) ->
+        # FIXME: ping Flowhub
+        return callback null, runtime
+
 
 uploadGraphFromFile = (graphPath, serialPortName, baudRate, debugLevel) ->
     serial.openTransport serialPortName, baudRate, (err, transport) ->
@@ -474,6 +485,7 @@ module.exports =
     sendPackets: sendPackets
     setupRuntime: setupRuntime
     setupWebsocket: setupWebsocket
+    setupSimulator: setupSimulator
     Runtime: Runtime
     uploadGraphFromFile: uploadGraphFromFile
     createFlowhubRuntime: createFlowhubRuntime
