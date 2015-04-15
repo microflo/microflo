@@ -82,13 +82,43 @@ updateDefsCommand = (directory) ->
 
 main = ->
     commander.version module.exports.version
-    commander.command("componentlib <JsonFile> <OutputPath> <FactoryMethodName>").description("Generate compilable sources of specified component library from .json definition").action generateComponentLib
-    commander.command("update-defs").description("Update internal generated definitions").action updateDefsCommand
-    commander.command("generate <INPUT> <OUTPUT>").description("Generate MicroFlo firmware code, with embedded graph.").option("-l, --library <FILE.json>", "Component library file").option("-t, --target <platform>", "Target platform: arduino|linux|avr8").action generateFwCommand
-    commander.command("upload").option("-s, --serial <PORT>", "which serial port to use").option("-b, --baudrate <RATE>", "baudrate for serialport").option("-d, --debug <LEVEL>", "set debug level").description("Upload a new graph to a device running MicroFlo firmware").action uploadGraphCommand
-    commander.command("runtime").description("Run as a server, for use with the NoFlo UI.").option("-s, --serial <PORT>", "which serial port to use").option("-b, --baudrate <RATE>", "baudrate for serialport").option("-d, --debug <LEVEL>", "set debug level").option("-p, --port <PORT>", "which port to use for WebSocket").option("-i, --ip <IP>", "which IP to use for WebSocket").action setupRuntimeCommand
-    commander.command("register [USER]").description("Register the runtime with Flowhub registry").option("-p, --port <PORT>", "WebSocket port").option("-i, --ip <IP>", "WebSocket IP").option("-l, --label <PORT>", "Label to show in UI for this runtime").option("-r, --id <RUNTIME-ID>", "UUID for the runtime").action registerRuntimeCommand
-    commander.command("flash <FILE.hex>").description("Flash runtime onto device").option("-s, --serial <PORT>", "which serial port to use").option("-b, --baudrate <RATE>", "baudrate for serialport").action flashCommand
+    commander.command("componentlib <JsonFile> <OutputPath> <FactoryMethodName>")
+        .description("Generate compilable sources of specified component library from .json definition")
+        .action generateComponentLib
+    commander.command("update-defs")
+        .description("Update internal generated definitions")
+        .action updateDefsCommand
+    commander.command("generate <INPUT> <OUTPUT>")
+        .description("Generate MicroFlo firmware code, with embedded graph.")
+        .option("-l, --library <FILE.json>", "Component library file")
+        .option("-t, --target <platform>", "Target platform: arduino|linux|avr8")
+        .action generateFwCommand
+    commander.command("upload")
+        .option("-s, --serial <PORT>", "which serial port to use")
+        .option("-b, --baudrate <RATE>", "baudrate for serialport")
+        .option("-d, --debug <LEVEL>", "set debug level")
+        .description("Upload a new graph to a device running MicroFlo firmware")
+        .action uploadGraphCommand
+    commander.command("runtime")
+        .description("Run as a server, for use with the NoFlo UI.")
+        .option("-s, --serial <PORT>", "which serial port to use")
+        .option("-b, --baudrate <RATE>", "baudrate for serialport")
+        .option("-d, --debug <LEVEL>", "set debug level")
+        .option("-p, --port <PORT>", "which port to use for WebSocket")
+        .option("-i, --ip <IP>", "which IP to use for WebSocket")
+        .action setupRuntimeCommand
+    commander.command("register [USER]")
+        .description("Register the runtime with Flowhub registry")
+        .option("-p, --port <PORT>", "WebSocket port")
+        .option("-i, --ip <IP>", "WebSocket IP")
+        .option("-l, --label <PORT>", "Label to show in UI for this runtime")
+        .option("-r, --id <RUNTIME-ID>", "UUID for the runtime")
+        .action registerRuntimeCommand
+    commander.command("flash <FILE.hex>")
+        .description("Flash runtime onto device")
+        .option("-s, --serial <PORT>", "which serial port to use")
+        .option("-b, --baudrate <RATE>", "baudrate for serialport")
+        .action flashCommand
     commander.parse process.argv
     commander.help()  if process.argv.length <= 2
 
