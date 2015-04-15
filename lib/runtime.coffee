@@ -35,7 +35,7 @@ portDefAsArray = (port) ->
     return a
 
 connectionsWithoutEdge = (connections, findConn) ->
-    edgeEq (a, b) ->
+    edgeEq = (a, b) ->
         JSON.stringify a == JSON.stringify b
     newList = []
     connections.forEach (conn) ->
@@ -179,24 +179,37 @@ handleComponentCommand = (command, payload, connection, runtime) ->
         console.log "Unknown NoFlo UI command on 'component' protocol:", command, payload
     return
 
+sendAck = (connection, msg) ->
+    connection.send msg
+
 handleGraphCommand = (command, payload, connection, runtime) ->
     graph = runtime.graph
     if command is "clear"
         graph.processes = {}
         graph.connections = []
+        graph.name = payload.name or ''
         graph.nodeMap = {} # nodeName->numericNodeId
+        sendAck connection, { protocol: 'graph', command: command, payload: payload }
     else if command is "addnode"
         graph.processes[payload.id] = payload
+        sendAck connection, { protocol: 'graph', command: command, payload: payload }
     else if command is "removenode"
         delete graph.processes[payload.id]
+        sendAck connection, { protocol: 'graph', command: command, payload: payload }
     else if command is "addedge"
         graph.connections.push wsConnectionFormatToFbp(payload)
+        sendAck connection, { protocol: 'graph', command: command, payload: payload }
     else if command is "removeedge"
         graph.connections = connectionsWithoutEdge(graph.connections, wsConnectionFormatToFbp(payload))
+        sendAck connection, { protocol: 'graph', command: command, payload: payload }
     else if command is "addinitial"
         graph.connections.push wsConnectionFormatToFbp(payload)
+        sendAck connection, { protocol: 'graph', command: command, payload: payload }
     else if command is "removeinitial"
         graph.connections = connectionsWithoutEdge(graph.connections, wsConnectionFormatToFbp(payload))
+        sendAck connection, { protocol: 'graph', command: command, payload: payload }
+
+    # PROTOCOL: Inconsistent that these don't ack on same format?
     else if command is "addinport"
         graph.inports = {} if not graph.inports?
         graph.inports[payload.public] =
@@ -281,7 +294,8 @@ deviceResponseToFbpProtocol = (runtime, send, args)->
             command: "output"
             payload:
                 message: string
-        send msg
+        # send msg
+        # Should only be used for "output" from program in the runtime itself
 
 
 handleNetworkStartStop = (runtime, connection, transport, debugLevel) ->
