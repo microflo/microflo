@@ -58,6 +58,11 @@ module.exports = ->
           reporter: 'spec'
           require: 'coffee-script/register'
 
+    # FBP protocol tests
+    shell:
+      fbp_test:
+        command: 'fbp-test --colors'
+
     # Web server for the browser tests
     connect:
       server:
@@ -93,6 +98,7 @@ module.exports = ->
   @loadNpmTasks 'grunt-contrib-connect'
   @loadNpmTasks 'grunt-mocha-test'
   @loadNpmTasks 'grunt-mocha-phantomjs'
+  @loadNpmTasks 'grunt-shell-spawn'
 
   @loadNpmTasks 'grunt-exec'
 
@@ -108,6 +114,7 @@ module.exports = ->
     @task.run 'build'
     if target is 'all' or target is 'nodejs'
       @task.run 'mochaTest'
+      @task.run 'shell:fbp_test'
     if target is 'all' or target is 'browser'
       @task.run 'connect'
       @task.run 'mocha_phantomjs'

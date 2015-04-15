@@ -1,0 +1,8 @@
+{
+  "name": "microflo",
+  "command": "node microflo.js runtime --file build/emscripten/microflo-runtime.js",
+  "host": "localhost",
+  "port": 3569,
+  "collection": "core",
+  "version": "0.4"
+}
