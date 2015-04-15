@@ -196,6 +196,9 @@ handleGraphCommand = (command, payload, connection, runtime) ->
     else if command is "removenode"
         delete graph.processes[payload.id]
         sendAck connection, { protocol: 'graph', command: command, payload: payload }
+    else if command is "changenode"
+        # FIXME: ignored
+        sendAck connection, { protocol: 'graph', command: command, payload: payload }
     else if command is "addedge"
         graph.connections.push wsConnectionFormatToFbp(payload)
         sendAck connection, { protocol: 'graph', command: command, payload: payload }
