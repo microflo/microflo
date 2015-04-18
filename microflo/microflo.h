@@ -9,7 +9,7 @@
 #include <stdint.h>
 #include "commandformat.h"
 
-const int MICROFLO_MAX_PORTS = 255;
+const int MICROFLO_MAX_PORTS = 127;
 
 // Warning: may need to also adjust NodeId type
 #ifdef MICROFLO_NODE_LIMIT
