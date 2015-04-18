@@ -293,6 +293,10 @@ parseReceivedCmd = (componentLib, graph, cmdData, handler) ->
       data = null
     else if type == 'Integer' or type == 'Float'
       data = cmdData.readInt16LE(6)
+    else if type == 'Byte'
+      data = cmdData.readUInt8(6)
+    else if type == 'BracketStart' or type == 'BracketEnd'
+      data = type
     else
       console.log 'Unknown data type in PacketSent: ', type
     handler 'SEND', srcNode, srcPort, type, data, targetNode, targetPort
