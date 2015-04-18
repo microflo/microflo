@@ -364,19 +364,20 @@ public:
     MicroFlo::ComponentId component() const { return componentId; }
     void setComponentId(MicroFlo::ComponentId id); // not really public API..
 
-    // Sending/receiving
-    void send(Packet out, MicroFlo::PortId port=0);
-    void connect(MicroFlo::PortId outPort, Component *target, MicroFlo::PortId targetPort);
 protected:
     IO *io;
+    Network *network;
+protected:
+    void send(Packet out, MicroFlo::PortId port=0); // send packet out
 private:
+    void connect(MicroFlo::PortId outPort, // Use Network.connect()
+                 Component *target, MicroFlo::PortId targetPort);
     void setParent(int parentId) { parentNodeId = parentId; }
     void setNetwork(Network *net, int n, IO *io);
 private:
     Connection *connections; // one per output port
     MicroFlo::PortId nPorts;
 
-    Network *network;
     MicroFlo::NodeId nodeId; // identifier in the network
     MicroFlo::ComponentId componentId; // what type of component this is
     MicroFlo::NodeId parentNodeId; // if <0, a top-level component, else subcomponent
