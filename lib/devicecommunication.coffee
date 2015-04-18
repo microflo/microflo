@@ -230,7 +230,7 @@ class DeviceCommunication extends EventEmitter
         catch err
             out = 'ERROR'
             console.log 'MICROFLO RECV ERROR:', buf.length, buf, out if debug_comms
-            @_handleCommandReceived out
+            @_handleCommandReceived out, err.message
 
     _handleCommandReceived: (type) ->
         @sender.onResponse type
