@@ -362,14 +362,15 @@ public:
 
     MicroFlo::NodeId id() const { return nodeId; }
     MicroFlo::ComponentId component() const { return componentId; }
-    void setComponentId(MicroFlo::ComponentId id);
+    void setComponentId(MicroFlo::ComponentId id); // not really public API..
 
-protected:
+    // Sending/receiving
     void send(Packet out, MicroFlo::PortId port=0);
+    void connect(MicroFlo::PortId outPort, Component *target, MicroFlo::PortId targetPort);
+protected:
     IO *io;
 private:
     void setParent(int parentId) { parentNodeId = parentId; }
-    void connect(MicroFlo::PortId outPort, Component *target, MicroFlo::PortId targetPort);
     void setNetwork(Network *net, int n, IO *io);
 private:
     Connection *connections; // one per output port
@@ -405,6 +406,13 @@ Component *createComponent(MicroFlo::ComponentId id);
 #define MICROFLO_SUBGRAPH_MAXPORTS 10
 
 #ifdef MICROFLO_ENABLE_SUBGRAPHS
+
+/* microflo_component yaml
+name: SubGraph
+description: Not for normal use. Used internally for handling subgraphs
+inports: {}
+outports: {}
+microflo_component */
 class SubGraph : public Component {
     friend class ::Network;
 public:
