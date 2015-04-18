@@ -260,9 +260,11 @@ parseReceivedCmd = (componentLib, graph, cmdData, handler) ->
     handler 'ADD', nodeName, '(', component, ')'
   else if cmd == cmdFormat.commands.NodesConnected.id
     srcNode = nodeNameById(graph.nodeMap, cmdData.readUInt8(1))
+    return if not srcNode # can happen for internal connection
     srcComponent = nodeLookup(graph, srcNode).component
     srcPort = componentLib.outputPortById(srcComponent, cmdData.readUInt8(2)).name
     targetNode = nodeNameById(graph.nodeMap, cmdData.readUInt8(3))
+    return if not targetNode # can happen for internal connection
     targetComponent = nodeLookup(graph, targetNode).component
     targetPort = componentLib.inputPortById(targetComponent, cmdData.readUInt8(4)).name
     handler 'CONNECT', srcNode, srcPort, '->', targetPort, targetNode
