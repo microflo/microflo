@@ -35,6 +35,24 @@ writeString = (buf, offset, string) ->
     i++
   string.length
 
+writeNewCmd = () ->
+  b = new Buffer cmdFormat.commandSize
+  b.fill 0, 0, cmdFormat.commandSize
+  args = Array.prototype.slice.call arguments
+  args.unshift b, 0
+  writeCmd.apply this, args
+  return b
+
+dataToCommand = (data, tgt, tgtPort) ->
+    # XXX: wrong way around, literal should call this, not
+    if Array.isArray data
+        literal = JSON.stringify data
+#    else if typeof data == 'string'
+#        literal = "\"#{data}\""
+    else
+        literal = data+''
+    return dataLiteralToCommand literal, tgt, tgtPort
+
 dataLiteralToCommand = (literal, tgt, tgtPort) ->
   b = null
   literal = literal.replace('^"|"$', '')
@@ -62,46 +80,33 @@ dataLiteralToCommand = (literal, tgt, tgtPort) ->
     val = if value then 1 else 0
     b.writeInt8 val, 4
     return b
+
+  # TODO: handle floats
+
   try
     value = JSON.parse(literal)
   catch err
     throw 'Unknown IIP data type for literal \'' + literal + '\' :' + err
-  # Array of bytes/integers
-  isByteArray = typeof value[0] == 'string'
-  if true
-    b = new Buffer(cmdFormat.commandSize * (value.length + 2))
-    offset = 0
-    b.fill 0, offset, offset + cmdFormat.commandSize
-    b.writeUInt8 cmdFormat.commands.SendPacket.id, offset + 0
-    b.writeUInt8 tgt, offset + 1
-    b.writeUInt8 tgtPort, offset + 2
-    b.writeInt8 cmdFormat.packetTypes.BracketStart.id, offset + 3
-    offset += cmdFormat.commandSize
-    i = 0
-    while i < value.length
-      b.fill 0, offset, offset + cmdFormat.commandSize
-      b.writeUInt8 cmdFormat.commands.SendPacket.id, offset + 0
-      b.writeUInt8 tgt, offset + 1
-      b.writeUInt8 tgtPort, offset + 2
-      v = parseInt(value[i])
-      if isByteArray
-        b.writeInt8 cmdFormat.packetTypes.Byte.id, offset + 3
-        b.writeUInt8 v, offset + 4
-      else
-        b.writeInt8 cmdFormat.packetTypes.Integer.id, offset + 3
-        b.writeInt32LE v, offset + 4
-      offset += cmdFormat.commandSize
-      i++
-    b.fill 0, offset, offset + cmdFormat.commandSize
-    b.writeUInt8 cmdFormat.commands.SendPacket.id, offset + 0
-    b.writeUInt8 tgt, offset + 1
-    b.writeUInt8 tgtPort, offset + 2
-    b.writeInt8 cmdFormat.packetTypes.BracketEnd.id, offset + 3
-    offset += cmdFormat.commandSize
-    return b
+
+  if Array.isArray value
+    buffers = []
+    # start bracket
+    b = writeNewCmd cmdFormat.commands.SendPacket.id,
+            tgt, tgtPort, cmdFormat.packetTypes.BracketStart.id,
+    buffers.push b
+    # values
+    for val in value
+        b = dataToCommand val, tgt, tgtPort
+        buffers.push b
+    # end bracket
+    b = writeNewCmd cmdFormat.commands.SendPacket.id,
+            tgt, tgtPort, cmdFormat.packetTypes.BracketEnd.id,
+    buffers.push b
+
+    return Buffer.concat buffers
+
   throw 'Unknown IIP data type for literal \'' + literal + '\''
-  # TODO: handle floats, strings
-  return
+
 
 findPort = (componentLib, graph, nodeName, portName) ->
   isOutput = false
@@ -327,6 +332,7 @@ parseReceivedCmd = (componentLib, graph, cmdData, handler) ->
 module.exports =
   cmdStreamFromGraph: cmdStreamFromGraph
   dataLiteralToCommand: dataLiteralToCommand
+  dataToCommand: dataToCommand
   writeCmd: writeCmd
   writeString: writeString
   cmdFormat: cmdFormat

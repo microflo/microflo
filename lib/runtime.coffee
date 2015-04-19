@@ -123,7 +123,7 @@ sendPacketCmd = (runtime, port, event, payload) ->
     nodeId = runtime.graph.nodeMap[internal.process].id
     portId = runtime.library.inputPort(componentName, internal.port).id
 
-    buffer = commandstream.dataLiteralToCommand '' + payload, nodeId, portId
+    buffer = commandstream.dataToCommand payload, nodeId, portId
 
 sendPacket = (runtime, port, event, payload) ->
     buffer = sendPacketCmd runtime, port, event, payload
