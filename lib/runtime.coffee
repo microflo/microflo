@@ -466,10 +466,17 @@ setupRuntime = (serialPortToUse, baudRate, port, debugLevel, ip, callback) ->
 setupSimulator = (file, baudRate, port, debugLevel, ip, callback) ->
     simulator = require './simulator'
     build = require file
+    libraryPath = file.replace 'microflo-runtime.js', 'componentlib-map.json'  # HACK: should come from runtime itself!
     sim = new simulator.RuntimeSimulator build
+    try
+        sim.library.definition = require libraryPath
+    catch e
+        console.log 'WARN: could not load simulator lib', e
+    # console.log sim.library.definition
     sim.start 1.0
 
     runtime = new Runtime sim.transport
+    runtime.library = sim.library
     setupWebsocket runtime, ip, port, (err, server) ->
         # FIXME: ping Flowhub
         return callback null, runtime
