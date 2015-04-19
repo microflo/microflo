@@ -66,10 +66,6 @@ class RuntimeSimulator extends EventEmitter
             console.log 'FBP MICROFLO SEND:', response if util.debug_protocol
             @emit 'message', response
 
-    handleMessage: (msg) ->
-        console.log 'FBP MICROFLO RECV:', msg if util.debug_protocol
-        runtime.handleMessage this, msg
-
         @device.on 'response', =>
             args = []
             i = 0
@@ -78,6 +74,10 @@ class RuntimeSimulator extends EventEmitter
                 i++
             runtime.deviceResponseToFbpProtocol @, @conn.send, args
             # Assumes comm is open
+
+    handleMessage: (msg) ->
+        console.log 'FBP MICROFLO RECV:', msg if util.debug_protocol
+        runtime.handleMessage this, msg
 
     uploadGraph: (graph, callback) ->
         @graph = graph
