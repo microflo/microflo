@@ -540,8 +540,6 @@ class Runtime extends EventEmitter
         @uploadGraph graph, callback
 
 module.exports =
-    subscribeEdges: subscribeEdges
-    sendPackets: sendPackets
     setupRuntime: setupRuntime
     setupWebsocket: setupWebsocket
     setupSimulator: setupSimulator
@@ -549,5 +547,3 @@ module.exports =
     uploadGraphFromFile: uploadGraphFromFile
     createFlowhubRuntime: createFlowhubRuntime
     registerFlowhubRuntime: registerFlowhubRuntime
-    handleMessage: handleMessage
-    deviceResponseToFbpProtocol: deviceResponseToFbpProtocol # XXX: should be encapsulated
