@@ -51,55 +51,11 @@ class Transport extends EventEmitter
             i++
         return
 
-class RuntimeSimulator extends EventEmitter
-    constructor: (@emscripten) ->
+class RuntimeSimulator extends runtime.Runtime
+    constructor: (@emscripten, options) ->
         @runtime = @emscripten['_emscripten_runtime_new']()
-        @transport = new Transport @runtime, @emscripten
-        @graph = {}
-        @library = new ComponentLibrary
-        @device = new devicecommunication.DeviceCommunication @transport, @graph, @library
-        @io = new devicecommunication.RemoteIo @device
-        @debugLevel = 'Error'
-        @conn = {}
-
-        @conn.send = (response) =>
-            console.log 'FBP MICROFLO SEND:', response if util.debug_protocol
-            @emit 'message', response
-
-        @device.on 'response', =>
-            args = []
-            i = 0
-            while i < arguments.length
-                args.push arguments[i]
-                i++
-            runtime.deviceResponseToFbpProtocol @, @conn.send, args
-            # Assumes comm is open
-
-    handleMessage: (msg) ->
-        console.log 'FBP MICROFLO RECV:', msg if util.debug_protocol
-        runtime.handleMessage this, msg
-
-    uploadGraph: (graph, callback) ->
-        @graph = graph
-        @device.graph = graph # XXX: not so nice
-
-        checkUploadDone = (m) =>
-            if m.protocol == 'network' and m.command == 'started'
-                @removeListener 'message', checkUploadDone
-                return callback()
-
-        @on 'message', checkUploadDone
-        try
-            @handleMessage { protocol: 'network', command: 'start' }
-        catch e
-            return callback e
-
-    uploadFBP: (prog, callback) ->
-        try
-            graph = fbp.parse(prog)
-        catch e
-            return callback e
-        @uploadGraph graph, callback
+        transport = new Transport @runtime, @emscripten
+        super transport, options
 
     # Blocking iteration
     runTick: (tickIntervalMs) ->

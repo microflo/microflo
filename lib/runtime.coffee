@@ -499,6 +499,7 @@ class Runtime extends EventEmitter
         @debugLevel = options?.debug or 'Error'
         @library = new c.ComponentLibrary
         @device = new devicecommunication.DeviceCommunication @transport, @graph, @library
+        @io = new devicecommunication.RemoteIo @device
         @conn =
             send: (response) =>
                 console.log 'FBP MICROFLO SEND:', response if util.debug_protocol
@@ -515,6 +516,28 @@ class Runtime extends EventEmitter
     handleMessage: (msg) ->
         console.log 'FBP MICROFLO RECV:', msg if util.debug_protocol
         handleMessage @, msg
+
+    uploadGraph: (graph, callback) ->
+        @graph = graph
+        @device.graph = graph # XXX: not so nice
+
+        checkUploadDone = (m) =>
+            if m.protocol == 'network' and m.command == 'started'
+                @removeListener 'message', checkUploadDone
+                return callback()
+
+        @on 'message', checkUploadDone
+        try
+            @handleMessage { protocol: 'network', command: 'start' }
+        catch e
+            return callback e
+
+    uploadFBP: (prog, callback) ->
+        try
+            graph = require('fbp').parse(prog)
+        catch e
+            return callback e
+        @uploadGraph graph, callback
 
 module.exports =
     subscribeEdges: subscribeEdges
