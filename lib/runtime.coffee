@@ -189,6 +189,9 @@ handleGraphCommand = (command, payload, connection, runtime) ->
         graph.connections = []
         graph.name = payload.name or ''
         graph.nodeMap = {} # nodeName->numericNodeId
+        # FIXME: should be on the graph!
+        runtime.exportedEdges = []
+        runtime.edgesForInspection = []
         sendAck connection, { protocol: 'graph', command: command, payload: payload }
     else if command is "addnode"
         graph.processes[payload.id] = payload
@@ -233,7 +236,6 @@ handleGraphCommand = (command, payload, connection, runtime) ->
             port: payload.port
         sendExportedPorts connection, runtime
         # For subscribing to output packets
-        runtime.exportedEdges = [] if not runtime.exportedEdges?
         runtime.exportedEdges.push
             src:
                 process: payload.node
@@ -324,8 +326,7 @@ handleNetworkStartStop = (runtime, connection, transport, debugLevel) ->
     runtime.device.sendCommands data, (err) ->
         # Subscribe to change notifications
         # TODO: use a dedicated mechanism for this based on subgraphs
-        runtime.exportedEdges = [] if not runtime.exportedEdges?
-        edges = runtime.exportedEdges.concat runtime.edgesForInspection or []
+        edges = runtime.exportedEdges.concat runtime.edgesForInspection
         handleNetworkEdges runtime, connection, edges, (err) ->
             runtime.uploadInProgress = false
 
@@ -370,7 +371,6 @@ handleNetworkCommand = (command, payload, connection, runtime, transport, debugL
     else if command is "edges"
         # TOD: merge with those of exported outports
         runtime.edgesForInspection = payload.edges
-        runtime.exportedEdges = [] if not runtime.exportedEdges?
         edges = runtime.edgesForInspection.concat runtime.exportedEdges
         handleNetworkEdges runtime, connection, edges
         sendAck connection, { protocol: 'network', command: command, payload: payload }
