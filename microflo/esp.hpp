@@ -1,4 +1,13 @@
 
+
+/* FIXME: unglobal */
+static os_timer_t tick_timer;
+static unsigned long g_time_ms = 0;
+static const int TICK_INTERVAL_MS = 100;
+void tick_timerfunc(void *arg) {
+    g_time_ms += TICK_INTERVAL_MS;
+}
+
 class Esp8266IO : public IO {
 public:
 
@@ -8,7 +17,9 @@ private:
 public:
     Esp8266IO()
     {
-
+        os_timer_disarm(&tick_timer);
+        os_timer_setfn(&tick_timer, (os_timer_func_t *)tick_timerfunc, NULL);
+        os_timer_arm(&tick_timer, TICK_INTERVAL_MS, 1);
     }
 
     // Serial
@@ -66,7 +77,7 @@ public:
 
     // Timer
     virtual long TimerCurrentMs() {
-        return 0;
+        return g_time_ms;
     }
 
     virtual void AttachExternalInterrupt(uint8_t interrupt, IO::Interrupt::Mode mode,
