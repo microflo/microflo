@@ -78,12 +78,14 @@ void some_timerfunc(void *arg)
     if (GPIO_REG_READ(GPIO_OUT_ADDRESS) & BIT1)
     {
         //Set GPIO1 to LOW
-        gpio_output_set(0, BIT1, BIT1, 0);
+        // gpio_output_set(0, BIT1, BIT1, 0);
+        io.DigitalWrite(13, false);
     }
     else
     {
         //Set GPIO1 to HIGH
-        gpio_output_set(BIT1, 0, BIT1, 0);
+        // gpio_output_set(BIT1, 0, BIT1, 0);
+        io.DigitalWrite(13, true);
     }
 }
 

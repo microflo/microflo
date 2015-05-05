@@ -59,7 +59,12 @@ public:
 
     // Digital
     virtual void DigitalWrite(MicroFlo::PinId pin, bool val) {
-
+        // FIXME: ignores pin value
+        if (val) {
+            gpio_output_set(BIT1, 0, BIT1, 0);
+        } else {
+            gpio_output_set(0, BIT1, BIT1, 0);
+        }
     }
     virtual bool DigitalRead(MicroFlo::PinId pin) {
         return false;
