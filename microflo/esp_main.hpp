@@ -62,6 +62,14 @@ Network network(&io);
 HostCommunication controller;
 SerialHostTransport transport(serialPort, serialBaudrate);
 
+static void
+loadFromProgMem(HostCommunication *controller) {
+    for (unsigned int i=0; i<sizeof(graph); i++) {
+        unsigned char c = graph[i];
+        controller->parseByte(c);
+    }
+}
+
 static void user_procTask(os_event_t *events);
 
 void some_timerfunc(void *arg)
@@ -79,7 +87,7 @@ void some_timerfunc(void *arg)
     }
 }
 
-//Do nothing function
+// Run MicroFlo main-loop
 static void ICACHE_FLASH_ATTR
 user_procTask(os_event_t *events)
 {
@@ -100,11 +108,9 @@ void ICACHE_FLASH_ATTR user_init(void) {
 
     transport.setup(&io, &controller);
     controller.setup(&network, &transport);
-/*
-#ifdef MICROFLO_EMBED_GRAPH
+// #ifdef MICROFLO_EMBED_GRAPH
     loadFromProgMem(&controller);
-#endif
-*/
+// #endif
 
     //Set GPIO1 to output mode
     PIN_FUNC_SELECT(PERIPHS_IO_MUX_U0TXD_U, FUNC_GPIO1);
