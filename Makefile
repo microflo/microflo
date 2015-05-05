@@ -192,8 +192,11 @@ build-esp:
 	mkdir -p $(BUILD_DIR)/esp
 	cp -r thirdparty/esp8266/esphttpd/include $(BUILD_DIR)/esp/
 	cp -r thirdparty/esp8266/ESP8266-EVB-blinkLED/* $(BUILD_DIR)/esp/
+	rm -rf $(BUILD_DIR)/esp/{firmware,build}
+	mkdir -p $(BUILD_DIR)/esp/{firmware,build}
 	rm $(BUILD_DIR)/esp/user/*.c || echo 'no C files'
-	$(MICROFLO) generate $(GRAPH) $(BUILD_DIR)/esp/user/ --target esp8266 --library microflo-core/components/arm-standard.json
+	rm $(BUILD_DIR)/esp/user/*.o || echo 'no .o files'
+	$(MICROFLO) generate $(GRAPH) $(BUILD_DIR)/esp/user/ --target esp8266 --library microflo-core/components/esp-minimal.json
 	cd $(BUILD_DIR)/esp && make $(ESP_OPTS)
 
 flash-esp: build-esp
