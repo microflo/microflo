@@ -3,7 +3,7 @@
 /* FIXME: unglobal */
 static os_timer_t tick_timer;
 static unsigned long g_time_ms = 0;
-static const int TICK_INTERVAL_MS = 100;
+static const unsigned int TICK_INTERVAL_MS = 100;
 void tick_timerfunc(void *arg) {
     g_time_ms += TICK_INTERVAL_MS;
 }
@@ -17,6 +17,9 @@ private:
 public:
     Esp8266IO()
     {
+    }
+
+    void setup() {
         os_timer_disarm(&tick_timer);
         os_timer_setfn(&tick_timer, (os_timer_func_t *)tick_timerfunc, NULL);
         os_timer_arm(&tick_timer, TICK_INTERVAL_MS, 1);
