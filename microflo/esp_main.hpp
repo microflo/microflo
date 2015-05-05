@@ -7,6 +7,8 @@ extern "C" {
 #include <c_types.h>
 #include <os_type.h>
 #include <user_interface.h>
+#include <mem.h>
+
 #include "user_config.h"
 
 }
@@ -23,6 +25,23 @@ do_global_ctors(void)
     void (**p)(void);
     for (p = &__init_array_start; p != &__init_array_end; ++p)
             (*p)();
+}
+
+void *operator new(size_t n)
+{
+  void * const p = os_malloc(n);
+  return p;
+}
+void operator delete(void * p)
+{
+  os_free(p);
+}
+
+extern "C"
+{
+    void __cxa_pure_virtual() {
+        while (1);
+    }
 }
 
 // Silence QtCreator
@@ -113,3 +132,5 @@ void ICACHE_FLASH_ATTR user_init(void) {
 }
 
 }
+
+#include "microflo.hpp"
