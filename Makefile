@@ -242,6 +242,7 @@ check-arduino-release:
 	cd $(BUILD_DIR)/microflo-arduino-check && cp lib/microflo/examples/Standalone/Standalone.pde src/Standalone.cpp
 	cd $(BUILD_DIR)/microflo-arduino-check && ino build
 
+# FIXME: run on Travis CI
 release-esp: build-esp
 
 release-mbed: build-mbed
@@ -256,7 +257,7 @@ release-stellaris: build-stellaris
 release-emscripten: build-emscripten
     # TODO: package?
 
-release: build release-mbed release-linux release-microflo release-arduino release-stellaris release-emscripten release-esp
+release: build release-mbed release-linux release-microflo release-arduino release-stellaris release-emscripten
 	rm -rf $(BUILD_DIR)/microflo-$(VERSION)
 	mkdir -p $(BUILD_DIR)/microflo-$(VERSION)
 	cp -r $(BUILD_DIR)/microflo-arduino.zip $(BUILD_DIR)/microflo-$(VERSION)/
