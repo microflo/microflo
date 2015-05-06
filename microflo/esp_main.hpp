@@ -73,28 +73,6 @@ loadFromProgMem(HostCommunication *controller) {
 
 static void user_procTask(os_event_t *events);
 
-
-void blink_leds(void)
-{
-    //Do blinky stuff
-    if (GPIO_REG_READ(GPIO_OUT_ADDRESS) & BIT1)
-    {
-        //Set GPIO1 to LOW
-        // gpio_output_set(0, BIT1, BIT1, 0);
-        io.DigitalWrite(13, false);
-    }
-    else
-    {
-        //Set GPIO1 to HIGH
-        // gpio_output_set(BIT1, 0, BIT1, 0);
-        io.DigitalWrite(13, true);
-    }
-}
-
-void some_timerfunc(void *arg) {
-    // blink_leds();
-}
-
 // Run MicroFlo main-loop
 static void ICACHE_FLASH_ATTR
 user_procTask(os_event_t *events)
@@ -103,13 +81,6 @@ user_procTask(os_event_t *events)
 
     transport.runTick();
     network.runTick();
-
-    // Manual timer test blinky
-    const long timeNow = io.TimerCurrentMs();
-    if (timeNow > (lastTime+1000) ) {
-        blink_leds();
-        lastTime = timeNow;
-    }
 
     system_os_post(user_procTaskPrio, 0, 0 );
 }
@@ -130,28 +101,10 @@ void ICACHE_FLASH_ATTR user_init(void) {
     loadFromProgMem(&controller);
 // #endif
 
-    //Set GPIO1 to output mode
+    //Set GPIO1 to output mode // TODO: move into Esp8266IO
     PIN_FUNC_SELECT(PERIPHS_IO_MUX_U0TXD_U, FUNC_GPIO1);
 
-    //Set GPIO1 low
-    //gpio_output_set(0, BIT1, BIT1, 0);
-
-    //Set GPIO1 to HIGH
-    //gpio_output_set(BIT1, 0, BIT1, 0);
-
-    //Disarm timer
-    // os_timer_disarm(&some_timer);
-
-    //Setup timer
-    // os_timer_setfn(&some_timer, (os_timer_func_t *)some_timerfunc, NULL);
-
-    //Arm the timer
-    //&some_timer is the pointer
-    //1000 is the fire time in ms
-    //0 for once and 1 for repeating
-    // os_timer_arm(&some_timer, 1000, 1);
-
-    //Start os task
+    // Run MicroFlo as os task
     system_os_task(user_procTask, user_procTaskPrio, user_procTaskQueue, user_procTaskQueueLen);
     system_os_post(user_procTaskPrio, 0, 0 );
 }
