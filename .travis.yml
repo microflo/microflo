@@ -2,7 +2,6 @@ language: node_js
 node_js:
 - '0.10'
 before_install:
-- sudo apt-get update -qq
 - sudo add-apt-repository -y ppa:terry.guo/gcc-arm-embedded
 - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
 - sudo add-apt-repository -y "deb http://llvm.org/apt/precise/ llvm-toolchain-precise-3.4
@@ -18,25 +17,6 @@ before_install:
 - cd emscripten && git checkout 1.26.0; cd -
 - wget -O energia.tgz http://energia.nu/downloads/downloadv3.php?file=energia-0101E0014-linux64.tgz
 - tar -xf energia.tgz
-# ESP8266
-- sudo apt-get install -qq autoconf gperf bison flex texinfo libtool libncurses5-dev gawk python-serial libexpat-dev xorriso
-- git clone https://github.com/igrr/esptool-ck.git
-- cd esptool-ck
-- sed -i -e "s|std=c99|std=gnu99|g" Makefile
-- make
-- cd $TRAVIS_BUILD_DIR
-- git clone -b lx106 git://github.com/jcmvbkbc/crosstool-NG.git -b lx106-g++
-- cd crosstool-NG
-- echo $LD_LIBRARY_PATH
-- unset LD_LIBRARY_PATH
-- ./bootstrap && ./configure --prefix=`pwd` && make && make install
-- ./ct-ng xtensa-lx106-elf
-- ./ct-ng build
-- cd ./builds
-- tar czf $TRAVIS_BUILD_DIR/linux64-xtensa-lx106-elf.tgz xtensa-lx106-elf/
-- ls -lh $TRAVIS_BUILD_DIR/linux64-xtensa-lx106-elf.tgz
-- cd $TRAVIS_BUILD_DIR
-
 script:
 - export LLVM=/usr/lib/llvm-3.4/bin/
 - export PATH=`pwd`/emscripten/:/usr/lib/llvm-3.4/bin/:$PATH
