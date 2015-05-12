@@ -33,6 +33,13 @@
     "Makefile",
     "Makefile.stellaris",
     "startup_gcc.c",
+    "thirdparty/Adafruit_NeoPixel",
+    "thirdparty/Adafruit_WS2801",
+    "thirdparty/DallasTemperature.patch",
+    "thirdparty/DallasTemperature.zip",
+    "thirdparty/OneWire.patch",
+    "thirdparty/OneWire.zip",
+    "thirdparty/NewPing",
     "stellaris.ld"
   ],
   "scripts": {
