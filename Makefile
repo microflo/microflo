@@ -6,7 +6,7 @@ MBED_GRAPH=examples/blink-mbed.fbp
 LINUX_GRAPH=examples/blink-rpi.fbp
 STELLARIS_GRAPH=examples/blink-stellaris.fbp
 UPLOAD_DIR=/mnt
-BUILD_DIR=`pwd`/build
+BUILD_DIR=$(shell echo `pwd`/build)
 MICROFLO_SOURCE_DIR=$(shell echo `pwd`/microflo)
 MICROFLO=./microflo.js
 
