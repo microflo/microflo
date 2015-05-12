@@ -101,6 +101,7 @@ build-arduino:
 	unzip -q -n ./thirdparty/DallasTemperature.zip -d $(BUILD_DIR)/arduino/lib/
 	cd thirdparty/Adafruit_NeoPixel && git checkout-index -f -a --prefix=$(BUILD_DIR)/arduino/lib/Adafruit_NeoPixel/
 	cd thirdparty/Adafruit_WS2801 && git checkout-index -f -a --prefix=$(BUILD_DIR)/arduino/lib/Adafruit_WS2801/
+	cd thirdparty/NewPing && git checkout-index -f -a --prefix=$(BUILD_DIR)/arduino/lib/NewPing/
 	cd $(BUILD_DIR)/arduino/lib && test -e patched || patch -p0 < ../../../thirdparty/DallasTemperature.patch
 	cd $(BUILD_DIR)/arduino/lib && test -e patched || patch -p0 < ../../../thirdparty/OneWire.patch
 	touch $(BUILD_DIR)/arduino/lib/patched
