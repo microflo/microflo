@@ -6,7 +6,7 @@
 #include "componentlib-ids.h"
 #include "componentlib-ports.h"
 
-/* microflo_component yaml plus_one_gen.h
+/* microflo_component yaml
     name: PlusOne
     description: Count upwards from 0, with step 1
 microflo_component */
@@ -20,7 +20,7 @@ struct PlusOne : public SingleOutputComponent {
     }
 };
 
-/* microflo_component yaml print_integer_gen.h
+/* microflo_component yaml
     name: PrintInteger
     description: "Print integer to stdout"
     inports:
@@ -37,7 +37,7 @@ struct PrintInteger : public SingleOutputComponent {
     }
 };
 
-/* microflo_graph fbp mygraph_gen.h
+/* microflo_graph fbp
     plusOne(PlusOne) OUT -> IN forward(Forward) OUT -> IN out(PrintInteger)
     '13' -> IN plusOne
 microflo_graph */
