@@ -2,37 +2,57 @@ MicroFlo: flow-based programming for microcontrollers
 ========================================================
 [![Build Status](https://travis-ci.org/microflo/microflo.png?branch=master)](https://travis-ci.org/microflo/microflo)
 
-Implementation of [Flow-based programming](http://en.wikipedia.org/wiki/Flow-based_programming).
-Inspired by and designed for integration with [NoFlo](http://noflojs.org/).
-The first hardware target is [Arduino](http://arduino.cc)-compatible boards.
+Implementation of [Flow-based programming](http://en.wikipedia.org/wiki/Flow-based_programming)
+for microcontrollers and embedded devices.
+MicroFlo supports multiple targets, including [Arduino](http://arduino.cc), Atmel AVR,
+ARM Cortex M devices (mbed, TI Tiva/Stellaris), ESP8266 and Embedded Linux.
 
-Different from most other physical computing involving Node.JS/JavaScript in that it
-aims to allow build _standalone_ microcontroller applications, that can also be
-reconfigured at runtime and programmed visually.
+Unlike most other visually programmable systems, MicroFlo programs runs _standalone_,
+does not make use of code generation, can be introspected and reconfigured at runtime,
+and supports automated testing.
 
 One can program with MicroFlo either:
-* Visually, using the [NoFlo UI](https://github.com/noflo/noflo-ui)
+
+* Visually, using [Flowhub](https://flowhub.io)/[NoFlo UI](https://github.com/noflo/noflo-ui)
 * Textually, using the declarative [.fbp DSL](http://noflojs.org/documentation/fbp)
-or [.json definition](http://noflojs.org/documentation/json) specced by NoFlo
+or [.json definition](http://noflojs.org/documentation/json)
 * Programatically, by embedding it and building a graph using the C++ API
+
+MicroFlo is designed to integrate with other FBP runtimes,
+like [NoFlo](http://noflojs.org/) and [msgflo](https://github.com)
 
 Status
 -------
-**Experimental**. Simple programs work, components exists for most I/O on standard Arduino devices.
-Suitable for those curious to play with alternative microcontroller programming models. Probably
-too early to use it for general tasks.
+**Minimally useful**. Simple programs work, components exists for most I/O on standard Arduino devices.
+Minimal support for automated testing.
+Suitable for those curious to play with alternative microcontroller programming models.
+Probably a bit early to use it for general tasks.
 
-Has been used to make simple applications, like a fridge which reads out temperature
-using a DS1820 digital thermometer and turns on/off the cooler to maintain desired temperature.
+MicroFlo in the wild:
+
+* [Jon's fridge thermostat](http://www.jonnor.com/2013/09/microflo-0-1-0-and-an-arduino-powered-fridge/)
+has been running uninterrupted since September 2013.
+* The [Ingress table](http://bergie.iki.fi/blog/ingress-table/) at [c-base station](http://en.wikipedia.org/wiki/C-base), Berlin uses MicroFlo
+to control the lights. One major upgrade/bugfix since March 2014.
+* The lights on the CNC-milled Christmas tree at [Bitraf](http://bitraf.no),
+Oslo ran for 4 weeks during Christmas 2013.
 
 Contact
 ----------
 Use the Google Group [Flow Based Programming](https://groups.google.com/forum/#!forum/flow-based-programming)
-or IRC channel [#fbp@freenode.org](irc://fbp.freenode.org).
+or IRC channel [#fbp@freenode.org](irc://fbp.freenode.org). Alternatively, file issues here on Github.
 
 
 Milestones
 -----------
+
+[Past milestones](../CHANGES.md)
+
+* September 2013, 0.1.0 "The Fridge". First deployment of a Microflo-based device
+* November 2013, 0.2.0 "The start of something visual". First version programmable using Flowhub
+* May 2014, 0.3.0 "Node in a Node, to infinity". Suppport for non-Arduino platforms, NoFlo integration
+
+Future roadmap
 
 * [0.4.0](https://github.com/microflo/microflo/issues?milestone=4), "Runtime persistable, Introspectable":
 Uploaded graphs can be persisted to EEPROM, be monitored at runtime, and be composed of sub-graphs
@@ -46,7 +66,6 @@ A commercial product based on MicroFlo has been shipped.
 An open source hardware, free software electronics product based on MicroFlo with an integrated IDE
 allowing and encouraging the user to customize the code has been shipped.
 
-[Past milestones](../CHANGES.md)
 
 TODO
 -----
@@ -123,12 +142,12 @@ License
 -------
 MIT for the code in MicroFlo, see [./LICENSE](./LICENSE).
 
-Note that MicroFlo currently uses the Arduino, DallasTemperature and OneWire libraries,
-which are under the GNU LGPL.
+Note that some MicroFlo components may be under other licenses!
 
 Goals
 ----------
-1. People should not need to understand text-based, C style programming to be able to program microcontrollers.
+1. People should not need to understand text-based,
+C style programming to be able to program microcontrollers.
 But those that do know it should be able to use that knowledge, and be able to mix-and-match it
 with higher-level paradims within a single program.
 2. It should be possible to verify correctness of a microcontroller program in an automated way,
