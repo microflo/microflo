@@ -6,13 +6,10 @@
 #include "componentlib-ids.h"
 #include "componentlib-ports.h"
 
-// FIXME: implement extraction, must generate ids and normalize structure to match components.json
-
 /* microflo_component yaml plus_one_gen.h
     name: PlusOne
     description: Count upwards from 0, with step 1
 microflo_component */
-// #include "plus_one_gen.h"
 struct PlusOne : public SingleOutputComponent {
     virtual void process(Packet in, MicroFlo::PortId port) {
         using namespace PlusOnePorts;
@@ -31,7 +28,6 @@ struct PlusOne : public SingleOutputComponent {
             type: integer
     outports: {}
 microflo_component */
-// #include "print_integer_gen.h"
 struct PrintInteger : public SingleOutputComponent {
     virtual void process(Packet in, MicroFlo::PortId port) {
         if (in.isData()) {
@@ -45,11 +41,10 @@ struct PrintInteger : public SingleOutputComponent {
     plusOne(PlusOne) OUT -> IN forward(Forward) OUT -> IN out(PrintInteger)
     '13' -> IN plusOne
 microflo_graph */
-// #include "mygraph_gen.h"
 
 #include "microflo.hpp"
 #include "componentlib-source.hpp"
-#include "main.h" // graph def
+#include "main.h" // generated graph definition
 
 int main(void) {
     LinuxIO io;
