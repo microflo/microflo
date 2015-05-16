@@ -247,6 +247,7 @@ void Network::setNotificationHandler(NetworkNotificationHandler *handler) {
 void Network::deliverMessages(MicroFlo::MessageId firstIndex, MicroFlo::MessageId lastIndex) {
 #ifndef HOST_BUILD
     // complains that the check can never hit
+    // FIXME: sometimes triggers. Off-by-one
     MICROFLO_RETURN_IF_FAIL(firstIndex < MICROFLO_MAX_MESSAGES && lastIndex < MICROFLO_MAX_MESSAGES,
                             notificationHandler, DebugLevelError, DebugDeliverMessagesInvalidMessageId);
 #endif
