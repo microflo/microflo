@@ -247,7 +247,7 @@ void Network::setNotificationHandler(NetworkNotificationHandler *handler) {
 void Network::deliverMessages(MicroFlo::MessageId firstIndex, MicroFlo::MessageId lastIndex) {
 #ifndef HOST_BUILD
     // complains that the check can never hit
-    // FIXME: sometimes triggers. Off-by-one
+    // FIXME: sometimes triggers. Off-by-one?
     MICROFLO_RETURN_IF_FAIL(firstIndex < MICROFLO_MAX_MESSAGES && lastIndex < MICROFLO_MAX_MESSAGES,
                             notificationHandler, DebugLevelError, DebugDeliverMessagesInvalidMessageId);
 #endif
@@ -257,10 +257,15 @@ void Network::deliverMessages(MicroFlo::MessageId firstIndex, MicroFlo::MessageI
             // FIXME: this should not happen
             continue;
         }
-        target->process(messages[i].pkg, messages[i].targetPort);
-        if (notificationHandler) {
-            notificationHandler->packetDelivered(i, messages[i]);
+
+        const Message &msg = messages[i];
+        const Component *sender = msg.sender;
+        const bool sendNotification = sender ? sender->connections[msg.senderPort].subscribed : false;
+        if (sendNotification && notificationHandler) {
+            notificationHandler->packetSent(i, msg);
         }
+
+        target->process(msg.pkg, msg.targetPort);
     }
 }
 
@@ -279,6 +284,7 @@ void Network::processMessages() {
     messageReadIndex = writeIndex;
 }
 
+/* Note: must be interrupt-safe */
 void Network::sendMessage(Component *target, MicroFlo::PortId targetPort, const Packet &pkg,
                           Component *sender, MicroFlo::PortId senderPort) {
     if (!target) {
@@ -316,11 +322,8 @@ void Network::sendMessage(Component *target, MicroFlo::PortId targetPort, const 
     msg.target = target;
     msg.targetPort = targetPort;
     msg.pkg = pkg;
-
-    const bool sendNotification = sender ? sender->connections[senderPort].subscribed : false;
-    if (sendNotification && notificationHandler) {
-        notificationHandler->packetSent(msgIndex, msg, sender, senderPort);
-    }
+    msg.sender = sender;
+    msg.senderPort = senderPort;
 }
 
 void Network::sendMessageId(MicroFlo::NodeId targetId, MicroFlo::PortId targetPort, const Packet &pkg) {
@@ -496,8 +499,10 @@ void HostCommunication::networkStateChanged(Network::State s) {
     transport->sendCommand((uint8_t *)&cmd, 1);
 }
 
-void HostCommunication::packetSent(int index, Message m, Component *src, MicroFlo::PortId srcPort) {
-    if (!src ) {
+void HostCommunication::packetSent(int index, const Message &m) {
+    const Component *src = m.sender;
+    MicroFlo::PortId srcPort = m.senderPort;
+    if (!src) {
         return;
     }
 
@@ -520,13 +525,6 @@ void HostCommunication::packetSent(int index, Message m, Component *src, MicroFl
         }
     }
     transport->sendCommand(cmd, sizeof(cmd));
-}
-
-// FIXME: implement
-void HostCommunication::packetDelivered(int index, Message m) {
-    /*Serial.print(index);
-    Serial.print(m.target->nodeId);
-    printPacket(&m.pkg);*/
 }
 
 void HostCommunication::emitDebug(DebugLevel level, DebugId id) {

@@ -173,10 +173,13 @@ private:
 
 class Component;
 
+// PERFORMANCE: make this smaller, maybe by reusing info in Connection?
 struct Message {
     Component *target;
     MicroFlo::PortId targetPort;
     Packet pkg;
+    Component *sender;
+    MicroFlo::PortId senderPort;
 };
 
 class NetworkNotificationHandler;
@@ -252,8 +255,7 @@ private:
 
 class NetworkNotificationHandler : public DebugHandler {
 public:
-    virtual void packetSent(int index, Message m, Component *sender, MicroFlo::PortId senderPort) = 0;
-    virtual void packetDelivered(int index, Message m) = 0;
+    virtual void packetSent(int index, const Message &m) = 0;
 
     virtual void nodeAdded(Component *c, MicroFlo::NodeId parentId) = 0;
     virtual void nodesConnected(Component *src, MicroFlo::PortId srcPort,
@@ -482,8 +484,7 @@ public:
     void parseByte(char b);
 
     // Implements NetworkNotificationHandler
-    virtual void packetSent(int index, Message m, Component *sender, MicroFlo::PortId senderPort);
-    virtual void packetDelivered(int index, Message m);
+    virtual void packetSent(int index, const Message &m);
     virtual void nodeAdded(Component *c, MicroFlo::NodeId parentId);
     virtual void nodesConnected(Component *src, MicroFlo::PortId srcPort,
                                 Component *target, MicroFlo::PortId targetPort);
