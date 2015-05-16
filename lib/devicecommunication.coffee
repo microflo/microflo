@@ -95,7 +95,7 @@ class SendQueue extends EventEmitter
         throw new Error 'SendQueue.write must be implemented by consumer'
 
     push: (buffer, callback) ->
-        console.log 'queuing buf', buffer, @queue.length, @sending if debug_comms
+        console.log 'queuing buf', buffer, @queue.length, buffer.length, @sending if debug_comms
 
         @bytesPerSec += buffer.length
 
@@ -120,22 +120,22 @@ class SendQueue extends EventEmitter
 
         sendCmd = (dataBuf, index) =>
             chunk = dataBuf.slice index, index+chunkSize
-            # console.log 'sendbuf, sending a chunk', chunk
             if not chunk.length
                 # Done sending, now waiting for response
-                # FIXME: error if this times out
+                # FIXME: error if waiting ofr response times out
                 return
             @current.sent = Date.now()
-            @write chunk, () =>
-                console.log 'MICROFLO SEND:', chunkSize, chunk if debug_comms
-                if index < dataBuf.length
+            @write chunk, (err, len) =>
+                errored = err or len == -1
+                if not errored and chunk.length and index < dataBuf.length
+                    console.log 'MICROFLO SEND:', chunkSize, chunk, err, len, errored if debug_comms
                     sendCmd dataBuf, index+=chunkSize
 
         sendCmd @current.data, 0 if @current?
 
     onResponse: (type) ->
         return if not @sending
-        return if type in ['IOCHANGE', 'DEBUG', 'UNKNOWN']
+        return if type in ['IOCHANGE', 'DEBUG', 'UNKNOWN', 'SEND']
 
         numberOfCommands = @current.data.length/commandstream.cmdFormat.commandSize
         @current.responses++
