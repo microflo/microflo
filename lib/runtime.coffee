@@ -318,17 +318,23 @@ handleNetworkStartStop = (runtime, connection, transport, debugLevel) ->
     # TODO: handle start/stop messages, send this to the UI
     graph = runtime.graph
 
-    data = commandstream.cmdStreamFromGraph runtime.library, graph, debugLevel
     if runtime.uploadInProgress
         console.log 'Ignoring multiple attempts of graph upload'
+        return
     runtime.uploadInProgress = true
 
-    runtime.device.sendCommands data, (err) ->
-        # Subscribe to change notifications
-        # TODO: use a dedicated mechanism for this based on subgraphs
-        edges = runtime.exportedEdges.concat runtime.edgesForInspection
-        handleNetworkEdges runtime, connection, edges, (err) ->
-            runtime.uploadInProgress = false
+    data = commandstream.cmdStreamFromGraph runtime.library, graph, debugLevel
+    send = () ->
+        runtime.device.sendCommands data, (err) ->
+            # Subscribe to change notifications
+            # TODO: use a dedicated mechanism for this based on subgraphs
+            edges = runtime.exportedEdges.concat runtime.edgesForInspection
+            handleNetworkEdges runtime, connection, edges, (err) ->
+                runtime.uploadInProgress = false
+    setTimeout () ->
+        runtime.device.open () ->
+            send()
+    , 1000 # wait for Arduino reset
 
 subscribeEdges = (runtime, edges, callback) ->
     graph = runtime.graph
