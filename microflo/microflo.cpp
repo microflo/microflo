@@ -437,7 +437,7 @@ void Network::subscribeToPort(MicroFlo::NodeId nodeId, MicroFlo::PortId portId, 
     MICROFLO_RETURN_IF_FAIL(MICROFLO_VALID_NODEID(nodeId),
                             notificationHandler, DebugLevelError, DebugSubscribePortInvalidNode);
     Component *c = nodes[nodeId];
-    MICROFLO_RETURN_IF_FAIL(portId > 0 && portId < c->nPorts,
+    MICROFLO_RETURN_IF_FAIL(portId >= 0 && portId < c->nPorts,
                             notificationHandler, DebugLevelError, DebugSubscribePortInvalidPort);
 
     c->connections[portId].subscribed = enable;
