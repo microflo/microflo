@@ -436,14 +436,11 @@ void Network::setIoValue(const uint8_t *buf, uint8_t len) {
 void Network::subscribeToPort(MicroFlo::NodeId nodeId, MicroFlo::PortId portId, bool enable) {
     MICROFLO_RETURN_IF_FAIL(MICROFLO_VALID_NODEID(nodeId),
                             notificationHandler, DebugLevelError, DebugSubscribePortInvalidNode);
-
     Component *c = nodes[nodeId];
-    if (portId >= c->nPorts) {
-        return;
-    }
+    MICROFLO_RETURN_IF_FAIL(portId > 0 && portId < c->nPorts,
+                            notificationHandler, DebugLevelError, DebugSubscribePortInvalidPort);
 
     c->connections[portId].subscribed = enable;
-
     if (notificationHandler) {
         notificationHandler->portSubscriptionChanged(nodeId, portId, enable);
     }

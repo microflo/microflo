@@ -88,6 +88,7 @@
         "EndOfTransmission": {"id": 32},
         "IoInvalidValueSet": {"id": 33},
         "UnknownIoType": {"id": 34},
+        "SubscribePortInvalidPort": {"id": 35},
 
         "User1": {"id": 100},
         "User2": {"id": 101},

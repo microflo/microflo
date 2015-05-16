@@ -91,6 +91,7 @@ enum DebugId {
     DebugEndOfTransmission = 32,
     DebugIoInvalidValueSet = 33,
     DebugUnknownIoType = 34,
+    DebugSubscribePortInvalidPort = 35,
     DebugUser1 = 100,
     DebugUser2 = 101,
     DebugUser3 = 102,
