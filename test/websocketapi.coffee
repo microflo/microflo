@@ -47,5 +47,5 @@ describe 'WebSocket API', ->
           'command': 'list'
         connection.sendUTF JSON.stringify(m)
 
-      client.connect 'ws://localhost:3888/', 'noflo'
+      client.connect 'ws://localhost:3888/'
 
