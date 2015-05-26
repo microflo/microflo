@@ -57,7 +57,6 @@
     "flowhub-registry": "~0.0.1",
     "js-yaml": "^3.2.7",
     "node-uuid": "^1.4.1",
-    "noflo": "~0.5.0",
     "pkginfo": "~0.3.0",
     "serialport": "^1.4.5",
     "websocket": "~1.0.8"

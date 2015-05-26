@@ -288,14 +288,13 @@ Testing strategy
 ----------------
 This is all TODO at the moment.
 
+* Invidual components
+    * Unittests. Component behaviour.
+    * Run same tests against host simulation (in subprocess) and real target (on device)
+    * https://github.com/flowbased/fbp-spec
 * MicroFlo framework
     * Behaviour tests. Graph manipulation, message passing.
     * Build tests around JavaScript interface to the MicroFlo graph.
-    * Run same tests against host simulation (in subprocess) and real target (on device)
-* Invidual components
-    * Unittests. Component behaviour.
-    * Something similar to noflo-test
-    * Maybe a DSL for simple message send/expect tests.
     * Run same tests against host simulation (in subprocess) and real target (on device)
 * Target implementation (I/O)
     * Functional tests. Analog/Digital in/out, Serial/UART in/out, PWM/ADC

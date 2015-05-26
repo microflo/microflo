@@ -18,8 +18,7 @@ describeIfSimulator = if build? then describe else describe.skip
 
 library = 'microflo-core/components/arduino-standard.json'
 
-# TODO: get rid of boilerplate. Use noflo-test + should,
-# instantiate simulator, load graph automatically?
+# TODO: use fbp-spec
 # TODO: also test that there are no side-effects of program,
 # and that output does not fire before it's time
 
