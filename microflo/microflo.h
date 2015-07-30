@@ -159,7 +159,6 @@ public:
 private:
     union PacketData {
         bool boolean;
-        char ch;
         unsigned char byte;
         long lng;
         float flt;
