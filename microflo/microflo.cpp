@@ -598,7 +598,7 @@ void FixedMessageQueue::clear()
 
 bool FixedMessageQueue::push(const Message &msg)
 {
-    if (current.write > MICROFLO_MAX_MESSAGES-1) {
+    if (current.write > maxMessages-1) {
         current.write = 0;
     }
     const MessageId msgIndex = current.write++;
@@ -615,7 +615,7 @@ bool FixedMessageQueue::pop(Message &msg)
         return false;
     }
     previous.read++;
-    if (previous.read >= MICROFLO_MAX_MESSAGES-1) {
+    if (previous.read >= maxMessages-1) {
         previous.read = 0;
     }
     msg = messages[previous.read];

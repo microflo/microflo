@@ -309,6 +309,7 @@ class FixedMessageQueue : public MessageQueue {
 public:
     FixedMessageQueue()
     {
+        maxMessages = MICROFLO_MAX_MESSAGES;
     }
 
     virtual void newTick();
@@ -316,6 +317,7 @@ public:
     virtual bool pop(Message &msg);
     virtual void clear();
 private:
+    MessageId maxMessages;
     Message messages[MICROFLO_MAX_MESSAGES];
     MessageRange current;
     MessageRange previous;
