@@ -171,13 +171,12 @@ private:
 
 class Component;
 
-// PERFORMANCE: make this smaller, maybe by reusing info in Connection?
+// We only store payload and sender info, then look up target on delivery from Connection
 struct Message {
     Packet pkg;
-    Component *target;
-    MicroFlo::PortId targetPort;
-    Component *sender;
-    MicroFlo::PortId senderPort;
+    MicroFlo::NodeId node;
+    MicroFlo::PortId port;
+    bool targetReferred; // case for IIPs and messages sent on external ports
 };
 
 class NetworkNotificationHandler;
@@ -222,9 +221,8 @@ public:
                          MicroFlo::NodeId subgraphNode, MicroFlo::PortId subgraphPort,
                          MicroFlo::NodeId childNode, MicroFlo::PortId childPort);
 
-    void sendMessage(Component *target, MicroFlo::PortId targetPort, const Packet &pkg,
-                     Component *sender=0, MicroFlo::PortId senderPort=-1);
-    void sendMessageId(MicroFlo::NodeId targetId, MicroFlo::PortId targetPort, const Packet &pkg);
+    void sendMessageFrom(Component *sender, MicroFlo::PortId senderPort, const Packet &pkg);
+    void sendMessageTo(MicroFlo::NodeId targetId, MicroFlo::PortId targetPort, const Packet &pkg);
 
     void subscribeToPort(MicroFlo::NodeId nodeId, MicroFlo::PortId portId, bool enable);
 
@@ -240,6 +238,9 @@ private:
     void distributePacket(const Packet &packet, MicroFlo::PortId port);
     void processMessages();
 
+    MicroFlo::PortId resolveMessageTarget(Message &msg, Component *sender);
+    void resolveMessageSubgraph(Message &msg, const Component *sender);
+
 private:
     Component *nodes[MICROFLO_MAX_NODES];
     MicroFlo::NodeId lastAddedNodeIndex;
@@ -253,7 +254,7 @@ private:
 
 class NetworkNotificationHandler : public DebugHandler {
 public:
-    virtual void packetSent(const Message &m) = 0;
+    virtual void packetSent(const Message &m, const Component *sender, MicroFlo::PortId senderPort) = 0;
 
     virtual void nodeAdded(Component *c, MicroFlo::NodeId parentId) = 0;
     virtual void nodesConnected(Component *src, MicroFlo::PortId srcPort,
@@ -524,7 +525,7 @@ public:
     void parseByte(char b);
 
     // Implements NetworkNotificationHandler
-    virtual void packetSent(const Message &m);
+    virtual void packetSent(const Message &m, const Component *src, MicroFlo::PortId senderPort);
     virtual void nodeAdded(Component *c, MicroFlo::NodeId parentId);
     virtual void nodesConnected(Component *src, MicroFlo::PortId srcPort,
                                 Component *target, MicroFlo::PortId targetPort);

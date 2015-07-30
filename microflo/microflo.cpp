@@ -160,7 +160,7 @@ void HostCommunication::parseCmd() {
         }
 
         if (p.isValid()) {
-            network->sendMessageId(buffer[1], buffer[2], p);
+            network->sendMessageTo(buffer[1], buffer[2], p);
             const uint8_t cmd[] = { GraphCmdSendPacketDone, buffer[1], buffer[2], (uint8_t)packetType };
             transport->sendCommand(cmd, sizeof(cmd));
         } else {
@@ -203,10 +203,7 @@ void Component::send(Packet out, MicroFlo::PortId port) {
     MICROFLO_RETURN_IF_FAIL(port < nPorts,
                             network->notificationHandler, DebugLevelError, DebugComponentSendInvalidPort);
 
-    if (connections[port].target && connections[port].targetPort >= 0) {
-        network->sendMessage(connections[port].target, connections[port].targetPort, out,
-                             this, port);
-    }
+    network->sendMessageFrom(this, port, out);
 }
 
 void Component::connect(MicroFlo::PortId outPort, Component *target, MicroFlo::PortId targetPort) {
@@ -247,37 +244,36 @@ void Network::processMessages() {
     messageQueue->newTick();
 
     while (messageQueue->pop(msg)) {
-        if (!msg.target) {
+        Component *sender = 0;
+        MicroFlo::PortId senderPort = resolveMessageTarget(msg, sender);
+        Component *target = nodes[msg.node];
+        if (!target) {
             continue; // FIXME: this should not happen
         }
 
-        const Component *sender = msg.sender;
-        const bool sendNotification = sender ? sender->connections[msg.senderPort].subscribed : false;
+        const bool sendNotification = sender ? sender->connections[senderPort].subscribed : false;
         if (sendNotification && notificationHandler) {
-            notificationHandler->packetSent(msg);
+            notificationHandler->packetSent(msg, sender, senderPort);
         }
 
-        msg.target->process(msg.pkg, msg.targetPort);
+        target->process(msg.pkg, msg.port);
     }
 }
 
-
-/* Note: must be interrupt-safe */
-void Network::sendMessage(Component *target, MicroFlo::PortId targetPort, const Packet &pkg,
-                          Component *sender, MicroFlo::PortId senderPort) {
-    if (!target) {
-        return;
-    }
-
+void Network::resolveMessageSubgraph(Message &msg, const Component *sender)
+{
 #ifdef MICROFLO_ENABLE_SUBGRAPHS
+    // Note: Assumes msg is target referred
+    Component *target = nodes[msg.node];
+    MicroFlo::PortId targetPort = msg.port;
     const bool senderIsChild = sender && sender->parentNodeId >= Network::firstNodeId;
     if (senderIsChild) {
         SubGraph *parent = (SubGraph *)nodes[sender->parentNodeId];
         if (target == parent) {
             // Redirect output message from child outport, emit message on the parent outport
             // FIXME: should we change @sender / @senderPort, for debugging?
-            target = parent->outputConnections[targetPort].target;
-            targetPort = parent->outputConnections[targetPort].targetPort;
+            msg.node = parent->outputConnections[targetPort].target->id();
+            msg.port = parent->outputConnections[targetPort].targetPort;
         }
     }
 
@@ -286,25 +282,50 @@ void Network::sendMessage(Component *target, MicroFlo::PortId targetPort, const 
         SubGraph *targetSubGraph = (SubGraph *)target;
         // Redirect input message from, send to desired port on child
         // FIXME: should we change @sender / @senderPort, for debugging?
-        target = targetSubGraph->inputConnections[targetPort].target;
-        targetPort = targetSubGraph->inputConnections[targetPort].targetPort;
+        msg.node = targetSubGraph->inputConnections[targetPort].target->id();
+        msg.port = targetSubGraph->inputConnections[targetPort].targetPort;
     }
 #endif
+}
+
+MicroFlo::PortId
+Network::resolveMessageTarget(Message &msg, Component *sender)
+{
+    MicroFlo::PortId senderPort = -1;
+    if (!msg.targetReferred) {
+        sender = nodes[msg.node];
+        senderPort = msg.port;
+        Connection &conn = sender->connections[msg.port];
+        msg.node = conn.target->id();
+        msg.port = conn.targetPort;
+        msg.targetReferred = true;
+    }
+    resolveMessageSubgraph(msg, sender);
+    return senderPort;
+}
+
+/* Note: must be interrupt-safe */
+void Network::sendMessageFrom(Component *sender, MicroFlo::PortId senderPort, const Packet &pkg) {
+    MICROFLO_RETURN_IF_FAIL(sender, notificationHandler, DebugLevelError, DebugSendMessageInvalidNode);
 
     Message msg;
-    msg.target = target;
-    msg.targetPort = targetPort;
     msg.pkg = pkg;
-    msg.sender = sender;
-    msg.senderPort = senderPort;
+    msg.targetReferred = false;
+    msg.node = sender->id();
+    msg.port = senderPort;
     messageQueue->push(msg);
 }
 
-void Network::sendMessageId(MicroFlo::NodeId targetId, MicroFlo::PortId targetPort, const Packet &pkg) {
+void Network::sendMessageTo(MicroFlo::NodeId targetId, MicroFlo::PortId targetPort, const Packet &pkg) {
     MICROFLO_RETURN_IF_FAIL(MICROFLO_VALID_NODEID(targetId),
                             notificationHandler, DebugLevelError, DebugSendMessageInvalidNode);
 
-    sendMessage(nodes[targetId], targetPort, pkg);
+    Message msg;
+    msg.pkg = pkg;
+    msg.targetReferred = true;
+    msg.node = targetId;
+    msg.port = targetPort;
+    messageQueue->push(msg);
 }
 
 void Network::distributePacket(const Packet &packet, MicroFlo::PortId port) {
@@ -472,15 +493,14 @@ void HostCommunication::networkStateChanged(Network::State s) {
     transport->sendCommand((uint8_t *)&cmd, 1);
 }
 
-void HostCommunication::packetSent(const Message &m) {
-    const Component *src = m.sender;
-    MicroFlo::PortId srcPort = m.senderPort;
+void HostCommunication::packetSent(const Message &m, const Component *src, MicroFlo::PortId srcPort) {
     if (!src) {
         return;
     }
 
-    uint8_t cmd[MICROFLO_CMD_SIZE] = { GraphCmdPacketSent, src->id(), (uint8_t)srcPort, m.target->id(),
-                                        (uint8_t)m.targetPort, (uint8_t)m.pkg.type(), 0, 0 };
+    uint8_t cmd[MICROFLO_CMD_SIZE] = { GraphCmdPacketSent, src->id(), (uint8_t)srcPort,
+                                       m.node, (uint8_t)m.port,
+                                       (uint8_t)m.pkg.type(), 0, 0 };
 
     if (m.pkg.isData()) {
         if (m.pkg.isBool()) {
