@@ -285,10 +285,10 @@ struct Connection {
 // allowing custom storage
 class MessageQueue {
 public:
-    virtual void newTick(); // indicates that we're now in a new tick
+    virtual void newTick() = 0; // indicates that we're now in a new tick
     virtual bool push(const Message &msg) = 0; // true on success. false on capacity exceeded
     virtual bool pop(Message &msg) = 0; // return true on success. false on no more messages *in current tick*
-    virtual void clear(); // should clear all messages
+    virtual void clear() = 0; // should clear all messages
 };
 
 // Simple statically allocated, fixed size queue
