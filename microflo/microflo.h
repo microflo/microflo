@@ -21,7 +21,7 @@ const int MICROFLO_MAX_NODES = 50;
 
 // Warning: may need to also adjust MessageId type
 #ifdef MICROFLO_MESSAGE_LIMIT
-const int MICROFLO_MAX_MESSAGES = MICROFLO_MESSAGE_LIMIT;
+const int MICROFLO_MAX_ = MICROFLO_MESSAGE_LIMIT;
 #else
 const int MICROFLO_MAX_MESSAGES = 50;
 #endif
@@ -100,7 +100,6 @@ do { \
 namespace MicroFlo {
     typedef uint8_t NodeId;
     typedef int8_t PortId;
-    typedef uint8_t MessageId;
     typedef uint8_t ComponentId;
 #ifdef STELLARIS
     typedef long PinId;
@@ -175,15 +174,16 @@ class Component;
 
 // PERFORMANCE: make this smaller, maybe by reusing info in Connection?
 struct Message {
+    Packet pkg;
     Component *target;
     MicroFlo::PortId targetPort;
-    Packet pkg;
     Component *sender;
     MicroFlo::PortId senderPort;
 };
 
 class NetworkNotificationHandler;
 class IO;
+class MessageQueue;
 
 class DebugHandler {
 public:
@@ -239,23 +239,22 @@ public:
 private:
     void runSetup();
     void distributePacket(const Packet &packet, MicroFlo::PortId port);
-    void deliverMessages(MicroFlo::MessageId firstIndex, MicroFlo::MessageId lastIndex);
     void processMessages();
 
 private:
     Component *nodes[MICROFLO_MAX_NODES];
     MicroFlo::NodeId lastAddedNodeIndex;
-    Message messages[MICROFLO_MAX_MESSAGES];
-    MicroFlo::MessageId messageWriteIndex;
-    MicroFlo::MessageId messageReadIndex;
+
+    MessageQueue *messageQueue;
     NetworkNotificationHandler *notificationHandler;
     IO *io;
+
     State state;
 };
 
 class NetworkNotificationHandler : public DebugHandler {
 public:
-    virtual void packetSent(int index, const Message &m) = 0;
+    virtual void packetSent(const Message &m) = 0;
 
     virtual void nodeAdded(Component *c, MicroFlo::NodeId parentId) = 0;
     virtual void nodesConnected(Component *src, MicroFlo::PortId srcPort,
@@ -280,6 +279,46 @@ struct Connection {
     Component *target;
     MicroFlo::PortId targetPort;
     bool subscribed;
+};
+
+// Interface for the global message queue
+// allowing custom storage
+class MessageQueue {
+public:
+    virtual void newTick(); // indicates that we're now in a new tick
+    virtual bool push(const Message &msg) = 0; // true on success. false on capacity exceeded
+    virtual bool pop(Message &msg) = 0; // return true on success. false on no more messages *in current tick*
+    virtual void clear(); // should clear all messages
+};
+
+// Simple statically allocated, fixed size queue
+// Configure size using MICROFLO_MESSAGE_LIMIT
+class FixedMessageQueue : public MessageQueue {
+    typedef uint8_t MessageId;
+
+    struct MessageRange {
+        MessageRange()
+            : read(0)
+            , write(0)
+        {
+        }
+        MessageId read;
+        MessageId write;
+    };
+
+public:
+    FixedMessageQueue()
+    {
+    }
+
+    virtual void newTick();
+    virtual bool push(const Message &msg);
+    virtual bool pop(Message &msg);
+    virtual void clear();
+private:
+    Message messages[MICROFLO_MAX_MESSAGES];
+    MessageRange current;
+    MessageRange previous;
 };
 
 
@@ -484,7 +523,7 @@ public:
     void parseByte(char b);
 
     // Implements NetworkNotificationHandler
-    virtual void packetSent(int index, const Message &m);
+    virtual void packetSent(const Message &m);
     virtual void nodeAdded(Component *c, MicroFlo::NodeId parentId);
     virtual void nodesConnected(Component *src, MicroFlo::PortId srcPort,
                                 Component *target, MicroFlo::PortId targetPort);
