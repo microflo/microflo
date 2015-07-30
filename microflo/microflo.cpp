@@ -598,7 +598,7 @@ void FixedMessageQueue::clear()
 
 bool FixedMessageQueue::push(const Message &msg)
 {
-    if (current.write > maxMessages-1) {
+    if (current.write >= maxMessages-1) {
         current.write = 0;
     }
     const MessageId msgIndex = current.write++;
@@ -619,4 +619,5 @@ bool FixedMessageQueue::pop(Message &msg)
         previous.read = 0;
     }
     msg = messages[previous.read];
+    return true;
 }
