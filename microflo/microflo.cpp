@@ -228,6 +228,8 @@ void Component::setNetwork(Network *net, int n, IO *i) {
 
 Network::Network(IO *io)
     : lastAddedNodeIndex(Network::firstNodeId)
+    , messageWriteIndex(0)
+    , messageReadIndex(0)
     , notificationHandler(0)
     , io(io)
     , state(Stopped)
@@ -242,25 +244,45 @@ void Network::setNotificationHandler(NetworkNotificationHandler *handler) {
     io->debug = handler;
 }
 
-void Network::processMessages() {
-    Message msg;
-    messageQueue->newTick();
-
-    while (messageQueue->pop(msg)) {
-        if (!msg.target) {
-            continue; // FIXME: this should not happen
+void Network::deliverMessages(MicroFlo::MessageId firstIndex, MicroFlo::MessageId lastIndex) {
+#ifndef HOST_BUILD
+    // complains that the check can never hit
+    // FIXME: sometimes triggers. Off-by-one?
+    MICROFLO_RETURN_IF_FAIL(firstIndex < MICROFLO_MAX_MESSAGES && lastIndex < MICROFLO_MAX_MESSAGES,
+                            notificationHandler, DebugLevelError, DebugDeliverMessagesInvalidMessageId);
+#endif
+    for (MicroFlo::MessageId i=firstIndex; i<=lastIndex; i++) {
+        Component *target = messages[i].target;
+        if (!target) {
+            // FIXME: this should not happen
+            continue;
         }
 
+        const Message &msg = messages[i];
         const Component *sender = msg.sender;
         const bool sendNotification = sender ? sender->connections[msg.senderPort].subscribed : false;
         if (sendNotification && notificationHandler) {
-            notificationHandler->packetSent(msg);
+            notificationHandler->packetSent(i, msg);
         }
 
-        msg.target->process(msg.pkg, msg.targetPort);
+        target->process(msg.pkg, msg.targetPort);
     }
 }
 
+void Network::processMessages() {
+    // Messages may be emitted during delivery, so copy the range we intend to deliver
+    const MicroFlo::MessageId readIndex = messageReadIndex;
+    const MicroFlo::MessageId writeIndex = messageWriteIndex;
+    if (readIndex > writeIndex) {
+        deliverMessages(readIndex, MICROFLO_MAX_MESSAGES-1);
+        deliverMessages(0, writeIndex-1);
+    } else if (readIndex < writeIndex) {
+        deliverMessages(readIndex, writeIndex-1);
+    } else {
+        // no messages
+    }
+    messageReadIndex = writeIndex;
+}
 
 /* Note: must be interrupt-safe */
 void Network::sendMessage(Component *target, MicroFlo::PortId targetPort, const Packet &pkg,
@@ -268,6 +290,11 @@ void Network::sendMessage(Component *target, MicroFlo::PortId targetPort, const 
     if (!target) {
         return;
     }
+
+    if (messageWriteIndex > MICROFLO_MAX_MESSAGES-1) {
+        messageWriteIndex = 0;
+    }
+    const MicroFlo::MessageId msgIndex = messageWriteIndex++;
 
 #ifdef MICROFLO_ENABLE_SUBGRAPHS
     const bool senderIsChild = sender && sender->parentNodeId >= Network::firstNodeId;
@@ -291,13 +318,12 @@ void Network::sendMessage(Component *target, MicroFlo::PortId targetPort, const 
     }
 #endif
 
-    Message msg;
+    Message &msg = messages[msgIndex];
     msg.target = target;
     msg.targetPort = targetPort;
     msg.pkg = pkg;
     msg.sender = sender;
     msg.senderPort = senderPort;
-    messageQueue->push(msg);
 }
 
 void Network::sendMessageId(MicroFlo::NodeId targetId, MicroFlo::PortId targetPort, const Packet &pkg) {
@@ -387,7 +413,8 @@ void Network::reset() {
         }
     }
     lastAddedNodeIndex = Network::firstNodeId;
-    messageQueue->clear();
+    messageWriteIndex = 0;
+    messageReadIndex = 0;
 }
 
 void Network::start() {
@@ -472,7 +499,7 @@ void HostCommunication::networkStateChanged(Network::State s) {
     transport->sendCommand((uint8_t *)&cmd, 1);
 }
 
-void HostCommunication::packetSent(const Message &m) {
+void HostCommunication::packetSent(int index, const Message &m) {
     const Component *src = m.sender;
     MicroFlo::PortId srcPort = m.senderPort;
     if (!src) {
@@ -583,40 +610,3 @@ void SubGraph::process(Packet in, MicroFlo::PortId port) {
                     network->notificationHandler,DebugLevelError, DebugSubGraphReceivedNormalMessage);
 }
 #endif
-
-void FixedMessageQueue::newTick()
-{
-    // Messages may be emitted during delivery, so copy the range we intend to deliver
-    previous = current;
-}
-
-void FixedMessageQueue::clear()
-{
-    previous = MessageRange();
-    current = MessageRange();
-}
-
-bool FixedMessageQueue::push(const Message &msg)
-{
-    if (current.write > MICROFLO_MAX_MESSAGES-1) {
-        current.write = 0;
-    }
-    const MessageId msgIndex = current.write++;
-    // FIXME: prevent overwriting
-    messages[msgIndex] = msg;
-    return true;
-}
-
-bool FixedMessageQueue::pop(Message &msg)
-{
-    if (previous.read == previous.write) {
-        // no messages left
-        current.read = previous.write;
-        return false;
-    }
-    previous.read++;
-    if (previous.read >= MICROFLO_MAX_MESSAGES-1) {
-        previous.read = 0;
-    }
-    msg = messages[previous.read];
-}
