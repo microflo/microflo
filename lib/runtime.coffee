@@ -14,7 +14,11 @@ else
     uuid = require("node-uuid")
     EventEmitter = require('events').EventEmitter;
 
-flowhub = require("flowhub-registry")
+try
+  flowhub = require("flowhub-registry")
+catch e
+  #
+
 commandstream = require("./commandstream")
 generate = require("./generate")
 c = require("./componentlib")
@@ -400,6 +404,8 @@ handleMessage = (runtime, contents) ->
     return
 
 createFlowhubRuntime = (user, ip, port, label, id, apihost) ->
+    return null if not flowhub
+
     # Unique identifier of the runtime instance
     id = id or uuid.v4()
     label = label or "MicroFlo"
@@ -421,6 +427,8 @@ createFlowhubRuntime = (user, ip, port, label, id, apihost) ->
     return rt
 
 setupFlowhubRuntimePing = (rt) ->
+    return if not rt
+
     # TODO: handle more sanely
     rtPingInterval = setInterval(->
         rt.ping (err) ->
@@ -429,6 +437,8 @@ setupFlowhubRuntimePing = (rt) ->
     return rtPingInterval
 
 registerFlowhubRuntime = (rt, callback) ->
+    return if not rt
+
     rt.register callback
     return
 
