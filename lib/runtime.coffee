@@ -6,14 +6,13 @@ util = require("./util")
 if util.isBrowser()
     http = window.http
     uuid = window.uuid
-    EventEmitter = require('emitter');
 else
     http = require("http")
     websocket = require("websocket")
     url = require("url")
     uuid = require("node-uuid")
-    EventEmitter = require('events').EventEmitter;
 
+EventEmitter = util.EventEmitter
 try
   flowhub = require("flowhub-registry")
 catch e

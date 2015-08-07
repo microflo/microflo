@@ -5,8 +5,14 @@
 exports.isBrowser = isBrowser = ->
   not (typeof (process) isnt "undefined" and process.execPath and process.execPath.indexOf("node") isnt -1)
 
-exports.EventEmitter = (if exports.isBrowser() then require("emitter") else require("events").EventEmitter)
 Buffer = require("buffer").Buffer
+
+try
+  EventEmitter = require 'emitter'
+catch e
+  EventEmitter = require("events").EventEmitter
+
+exports.EventEmitter = EventEmitter
 
 contains = (str, substr) ->  return str? and str.indexOf(substr) != -1
 
