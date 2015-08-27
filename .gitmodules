@@ -13,3 +13,6 @@
 [submodule "thirdparty/NewPing"]
 	path = thirdparty/NewPing
 	url = https://github.com/jonnor/NewPing.git
+[submodule "thirdparty/MIDI"]
+	path = thirdparty/MIDI
+	url = https://github.com/FortySevenEffects/arduino_midi_library.git
