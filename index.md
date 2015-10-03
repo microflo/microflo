@@ -24,6 +24,10 @@ or [.json definition](http://noflojs.org/documentation/json)
 MicroFlo is designed to integrate with other FBP runtimes,
 like [NoFlo](http://noflojs.org/) and [msgflo](https://github.com)
 
+Events
+-------
+    * Monday Oct 5: [MQTT hackathon at c-base, Berlin](https://plus.google.com/events/c532t23tqd6h901i3f6hv81mlps)
+
 Status
 -------
 **Minimally useful**.
