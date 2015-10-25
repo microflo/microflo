@@ -131,3 +131,4 @@ microflo.coffee
 lib/commandformat.coffee
 microflo/esp_main.hpp
 microflo/esp.hpp
+examples/mqtt.cpp
