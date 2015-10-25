@@ -150,7 +150,18 @@ updateComponentLibDefinitions = (componentLib, baseDir, factoryMethodName) ->
   fs.writeFileSync baseDir + "/componentlib-map.json", generateComponentMap componentLib
 
 updateDefinitions = (baseDir) ->
-  fs.writeFileSync baseDir + "/commandformat-gen.h", "// !! WARNING: This file is generated from commandformat.json !!" + "\n" + generateEnum("GraphCmd", "GraphCmd", cmdFormat.commands) + "\n" + generateEnum("Msg", "Msg", cmdFormat.packetTypes) + "\n" + generateEnum("DebugLevel", "DebugLevel", cmdFormat.debugLevels) + "\n" + generateEnum("DebugId", "Debug", cmdFormat.debugPoints) + "\n" + generateEnum("IoType", "IoType", cmdFormat.ioTypes)
+  contents = "// !! WARNING: This file is generated from commandformat.json !!" +
+        "\n" + generateEnum("GraphCmd", "GraphCmd", cmdFormat.commands) +
+        "\n" + declarec.generateStringMap('GraphCmd_names', cmdFormat.commands, extractId) +
+        "\n" + generateEnum("Msg", "Msg", cmdFormat.packetTypes) +
+        "\n" + declarec.generateStringMap('Msg_names', cmdFormat.packetTypes, extractId) +
+        "\n" + generateEnum("DebugLevel", "DebugLevel", cmdFormat.debugLevels) +
+        "\n" + declarec.generateStringMap('DebugLevel_names', cmdFormat.debugLevels, extractId) +
+        "\n" + generateEnum("DebugId", "Debug", cmdFormat.debugPoints) +
+        "\n" + declarec.generateStringMap('DebugId_names', cmdFormat.debugPoints, extractId) +
+        "\n" + generateEnum("IoType", "IoType", cmdFormat.ioTypes) +
+        "\n" + declarec.generateStringMap('IoType_names', cmdFormat.ioTypes, extractId)
+  fs.writeFileSync baseDir + "/commandformat-gen.h", contents
 
 generateOutput = (componentLib, inputFile, outputFile, target) ->
   outputBase = undefined
