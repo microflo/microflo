@@ -376,6 +376,11 @@ I'd love to be able to add pre- and post-conditions to my programs for instance.
 
 [UI as an Act of Programming](http://awelonblue.wordpress.com/2013/09/11/ui-as-an-act-of-programming)
 
+> The problem with UML is not that it's graphical,
+> but because it's not the ultimate source of truth in your software.
+> The UML isn't executable.
+https://news.ycombinator.com/item?id=10834315
+
 
 Arduino opinions/criticisms
 ============================
