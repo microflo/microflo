@@ -185,6 +185,16 @@ AVR8
 * https://gitorious.org/simavr
 * http://www.nongnu.org/simulavr/download.html
 
+Work by others
+-------
+
+* [Cucumber BDD implementation for embedded targets](https://github.com/ihassin/cucumber-wire-c)
+* [Deputy, dependent types for C](http://www.cs.berkeley.edu/~necula/Papers/deputy-esop07.pdf).
+Can handle mutation of variables, used hybric static/runtime checking, and uses inference where type annotations are missing.
+* [Ivy, language around set of projects researching safe C](ivy.cs.berkeley.edu/ivywiki/index.php/Main/Projects)
+* [mbedder, IDE with FSM, contracts and units built in](http://mbeddr.com/).
+Built on top of Jetbrains MPS, allows extending such custom programming constructs and integrating with imperative C code.
+
 
 Arduino, advancements and lacks
 ================================

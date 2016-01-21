@@ -196,6 +196,7 @@ int main(int argc, char **argv) {
     MICROFLO_LOAD_STATIC_GRAPH((&controller), graph);
 
     // FIXME: allow host, port, keepalive, name to be configured on commandline
+    // TODO: respect MSGFLO_BROKER envvar
     static const char *brokerHostname = "localhost";
     static const int brokerPort = 1883;
     static const int keepaliveSeconds = 60;
