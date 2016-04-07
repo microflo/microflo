@@ -83,6 +83,7 @@
     "grunt-zip": "^0.13.0",
     "microflo-core": "^0.3.31",
     "mocha": "^1.20.0",
-    "needle": "^0.7.2"
+    "needle": "^0.7.2",
+    "phantomjs": "^1.9.5"
   }
 }
