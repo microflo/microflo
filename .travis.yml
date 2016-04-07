@@ -36,6 +36,15 @@ notifications:
     on_success: change
     on_failure: change
 deploy:
+-
+  provider: npm
+  email: jononor@gmail.com
+  api_key:
+    secure: kmUQQMjqyx2TD2gn7xGgUvyuGIw2MN+qLkbI41/TZCht24OdurVfmbmPbNKAH2gjbA5gI+YR60fEOoc30oOJIF1XC9UMAH+htFultYFDt1g2ASRB1bmGc6SMpofzWgwGiwHcvwqAls+hSCBH4QcpJGCR+nbag7UaihVE5U6fxvU=
+  on:
+    tags: true
+    repo: microflo/microflo
+-
   provider: releases
   api_key:
     secure: OfaJ4+UHHy4LrL62k+hCzJzUwL1eo2PFuxvM75miEGEG+Y8kJlspMPLVmLsKFU9YI46ypaW2q53dLuK2zhCbaZy+8EpeJlAlWZrENcNPrxvnUX+yDY362VkHBDiPt9mGOZfre4NpiZbn1EFhAPqZeFbvg1E1M80T8ACpLZAS4x0=
