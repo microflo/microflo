@@ -732,14 +732,27 @@ Challenges:
 * Creating a C/C++ (or similar) toolchain. Some Forth might be a good start
 * Avoiding too much waste in fitting memory regions to a program
 
-References
+### References
+
+Open hardware soft-cpus
 
 * [The Supersmall soft processor](http://www.eecg.toronto.edu/~jayar/pubs/robinson/robinsonspl10.pdf)
 * [Navre, AVR8 compatible, used in Milkymist](http://opencores.org/project,navre)
 * [J1, 200-line Forth machine](http://excamera.com/sphinx/fpga-j1.html)
 * [gr0040, small 16-bit core, custom LLVM/llc backend](http://www.fpgacpu.org/papers/soc-gr0040-paper.pdf)
 
-Questions/ideas:
+Stack computers (as opposed to register)
+
+* [Stack Computers: the new wave (1989)](https://users.ece.cmu.edu/~koopman/stack_computers/index.html)
+* [Programming a 144-computer Chip to Minimize Power](http://www.infoq.com/presentations/power-144-chip),
+discusses GreenArray . 37 opcodes.
+Can 'jump to a port (memory mapped by neighbouring processor)', which allows waiting for instructions from it.
+* [4stack](https://en.wikiversity.org/wiki/Computer_Architecture_Lab/WS2007/SHWH/Processor_Comparison#4stack),
+four-way instruction-parallell processor.
+
+
+
+### Questions/ideas:
 
 * Can one save/avoid per-thread program counters
 by having one entrypoint for component and executing to completion always?
