@@ -223,8 +223,9 @@ void Component::setNetwork(Network *net, int n, IO *i) {
     }
 }
 
-Network::Network(IO *io)
+Network::Network(IO *io, MessageQueue *m)
     : lastAddedNodeIndex(Network::firstNodeId)
+    , messageQueue(m)
     , notificationHandler(0)
     , io(io)
     , state(Stopped)

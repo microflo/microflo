@@ -11,7 +11,8 @@ int main(void) {
     LinuxIO io;
     // TODO: add IP-based host transport
     NullHostTransport transport;
-    Network network(&io);
+    FixedMessageQueue queue;
+    Network network(&io, &queue);
     HostCommunication controller;
 
     transport.setup(&io, &controller);

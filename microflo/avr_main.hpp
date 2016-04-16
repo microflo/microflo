@@ -39,7 +39,8 @@ extern "C"
 Avr8IO io;
 const int serialPort = 0;
 const int serialBaudrate = 9600;
-Network network(&io);
+FixedMessageQueue queue;
+Network network(&io, &queue);
 HostCommunication controller;
 SerialHostTransport transport(serialPort, serialBaudrate);
 

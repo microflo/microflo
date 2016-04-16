@@ -49,7 +49,8 @@ microflo_graph */
 int main(void) {
     LinuxIO io;
     NullHostTransport transport;
-    Network network(&io);
+    FixedMessageQueue queue;
+    Network network(&io, &queue);
     HostCommunication controller;
     transport.setup(&io, &controller);
     controller.setup(&network, &transport);

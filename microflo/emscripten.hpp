@@ -197,7 +197,7 @@ class EmscriptenRuntime {
 
 public:
     EmscriptenRuntime()
-        : network(&io)
+        : network(&io, &queue)
     {
     }
     void setup() {
@@ -215,6 +215,7 @@ public:
 
 public:
     EmscriptenIO io;
+    FixedMessageQueue queue;
     EmscriptenHostTransport transport;
     Network network;
     HostCommunication controller;

@@ -188,7 +188,8 @@ static void die(const char *msg) {
 int main(int argc, char **argv) {
     LinuxIO io;
     NullHostTransport transport;
-    Network network(&io);
+    FixedMessageQueue queue;
+    Network network(&io, &queue);
     HostCommunication controller;
     //transport.setup(&io, &controller);
     controller.setup(&network, &transport);

@@ -207,7 +207,7 @@ public:
         Running
     };
 public:
-    Network(IO *io);
+    Network(IO *io, MessageQueue *m);
 
     void reset();
     void start();
