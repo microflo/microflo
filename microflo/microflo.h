@@ -21,7 +21,7 @@ const int MICROFLO_MAX_NODES = 50;
 
 // Warning: may need to also adjust MessageId type
 #ifdef MICROFLO_MESSAGE_LIMIT
-const int MICROFLO_MAX_ = MICROFLO_MESSAGE_LIMIT;
+const int MICROFLO_MAX_MESSAGES = MICROFLO_MESSAGE_LIMIT;
 #else
 const int MICROFLO_MAX_MESSAGES = 50;
 #endif
