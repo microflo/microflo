@@ -281,7 +281,7 @@ bool mqttParseOptions(MqttOptions *options, int argc, char **argv) {
     options->clientId = NULL; // MQTT will autogenerate
     options->info.role = "micro";
 
-    if (argc < 1) {
+    if (argc > 1) {
         options->info.role = std::string(argv[1]);
     }
 

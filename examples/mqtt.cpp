@@ -26,12 +26,15 @@ static void die(const char *msg) {
 
 bool findPorts(ParticipantInfo *info) {
     // FIXME: actually introspect from Network/graph data, instead of hardcode
+    // can first be done by looking at static graph data,
+    // which requires looking at .inports and .outports of graph
 
     info->addInport("input", 1, 0);
     info->addOutport("output", 2, 0);
     return true;
 }
 
+// TODO: move all this into linux_mqtt_main, and add a compile target for that
 int main(int argc, char **argv) {
     LinuxIO io;
     NullHostTransport transport;
