@@ -25,6 +25,13 @@ microflo_graph */
 
 class MqttMount;
 
+struct MqttOptions {
+    int brokerPort;
+    char * brokerHostname;
+    int keepaliveSeconds;
+    char * client;
+};
+
 static bool match(const char *topic, const char *key) {
     return 0 == strncmp(topic, key, strlen(key));
 }
@@ -40,8 +47,9 @@ public:
     }
 
 public:
-    MqttMount(Network *net)
+    MqttMount(Network *net, const MqttOptions &o)
         : network(net)
+        , options(o)
         , connection(NULL)
     {
         network->setNotificationHandler(this);
@@ -53,8 +61,8 @@ public:
         (void)mosquitto_lib_cleanup();
     }
 
-    bool connect(const char *host, int port, int keepalive, const char *clientName) {
-        struct mosquitto *m = mosquitto_new(clientName, true, this);
+    bool connect() {
+        struct mosquitto *m = mosquitto_new(options.client, true, this);
         this->connection = m;
 
         mosquitto_connect_callback_set(m, on_connect);
@@ -62,7 +70,8 @@ public:
         mosquitto_subscribe_callback_set(m, on_subscribe);
         mosquitto_message_callback_set(m, on_message);
 
-        const int res = mosquitto_connect(m, host, port, keepalive);
+        const int res = mosquitto_connect(m, options.brokerHostname, options.brokerPort,
+                                          options.keepaliveSeconds);
         return res == MOSQ_ERR_SUCCESS;
     }
     void disconnect() {} // FIXME: not implemented
@@ -172,6 +181,7 @@ private:
 
 private:
     Network *network;
+    MqttOptions options;
     struct mosquitto *connection;
 };
 
@@ -190,28 +200,56 @@ static void die(const char *msg) {
     exit(1);
 }
 
+bool parse_brokerurl(MqttOptions *options, const char *url) {
+    if (!url) {
+        return true;
+    }
+
+    int *ip = &options->brokerPort;
+    char *host = options->brokerHostname;
+    if (sscanf(url, "mqtt://%99[^:]:%i[^\n]", host, ip) == 2) {
+        return true;
+    } else if (sscanf(url, "mqtt://%99[^\n]", host) == 1) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+// FIXME: allow participant name to be configured on commandline
+bool parse_options(MqttOptions *options, int argc, char **argv) {
+
+    // defaults
+    options->brokerHostname = strndup("localhost", 99);
+    options->keepaliveSeconds = 60;
+    options->client = NULL;
+    options->brokerPort = 1883;
+
+    char* broker = getenv("MSGFLO_BROKER");
+    return parse_brokerurl(options, broker);
+}
+
 int main(int argc, char **argv) {
     LinuxIO io;
     NullHostTransport transport;
     FixedMessageQueue queue;
     Network network(&io, &queue);
     HostCommunication controller;
+    MqttOptions options;
     //transport.setup(&io, &controller);
     controller.setup(&network, &transport);
 
     MICROFLO_LOAD_STATIC_GRAPH((&controller), graph);
 
-    // FIXME: allow host, port, keepalive, name to be configured on commandline
-    // TODO: respect MSGFLO_BROKER envvar
-    static const char *brokerHostname = "localhost";
-    static const int brokerPort = 1883;
-    static const int keepaliveSeconds = 60;
-    static const char *client = "client_1";
+    const bool parsed = parse_options(&options, argc, argv);
+    if (!parsed) {
+        die("options parsing error\n");
+    }
 
-    MqttMount mount(&network);
-    const bool connected = mount.connect(brokerHostname, brokerPort, keepaliveSeconds, client);
+    MqttMount mount(&network, options);
+    const bool connected = mount.connect();
     if (connected) {
-        printf("Connected to %s:%d\n", brokerHostname, brokerPort);
+        printf("Connected to %s:%d\n", options.brokerHostname, options.brokerPort);
     } else {
         die("connect() failure\n");
     }
