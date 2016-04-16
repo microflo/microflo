@@ -238,8 +238,8 @@ private:
     void distributePacket(const Packet &packet, MicroFlo::PortId port);
     void processMessages();
 
-    MicroFlo::PortId resolveMessageTarget(Message &msg, Component *sender);
-    void resolveMessageSubgraph(Message &msg, const Component *sender);
+    MicroFlo::PortId resolveMessageTarget(Message &msg, Component **sender);
+    void resolveMessageSubgraph(Message &msg, const Component *out_sender);
 
 private:
     Component *nodes[MICROFLO_MAX_NODES];

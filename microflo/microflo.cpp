@@ -246,7 +246,10 @@ void Network::processMessages() {
 
     while (messageQueue->pop(msg)) {
         Component *sender = 0;
-        MicroFlo::PortId senderPort = resolveMessageTarget(msg, sender);
+        MicroFlo::PortId senderPort = resolveMessageTarget(msg, &sender);
+        if (!msg.targetReferred) {
+            continue; // could not resolve target, no-one connected on this port
+        }
         Component *target = nodes[msg.node];
         if (!target) {
             continue; // FIXME: this should not happen
@@ -290,18 +293,22 @@ void Network::resolveMessageSubgraph(Message &msg, const Component *sender)
 }
 
 MicroFlo::PortId
-Network::resolveMessageTarget(Message &msg, Component *sender)
+Network::resolveMessageTarget(Message &msg, Component **out_sender)
 {
     MicroFlo::PortId senderPort = -1;
     if (!msg.targetReferred) {
-        sender = nodes[msg.node];
-        senderPort = msg.port;
-        Connection &conn = sender->connections[msg.port];
-        msg.node = conn.target->id();
-        msg.port = conn.targetPort;
-        msg.targetReferred = true;
+        *out_sender = nodes[msg.node];
+        Connection &conn = (*out_sender)->connections[msg.port];
+        if (conn.target) {
+            msg.node = conn.target->id();
+            msg.port = conn.targetPort;
+            msg.targetReferred = true;
+            senderPort = msg.port;
+        }
     }
-    resolveMessageSubgraph(msg, sender);
+    if (msg.targetReferred) {
+        resolveMessageSubgraph(msg, *out_sender);
+    }
     return senderPort;
 }
 
