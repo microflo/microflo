@@ -891,6 +891,7 @@ Visual programming for Arduino/microcontrollers/embedded etc.
 * http://www.flowol.com/InterfaceArduino.aspx (non-free)
 * http://microuml.net/microuml.html (non-free service)
 * http://www.3d-svs.com/3dmicro-toolkit (non-free LabVIEW addon)
+* http://www.axoloti.com Audio/DSP oriented, has visual 'patching' UI, open source.
 
 Modelling and meta-programming tool
 * http://www.oooneida.org/RD_projects_ODC_Environment.html
