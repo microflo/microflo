@@ -90,7 +90,12 @@ public:
             network->sendMessageTo(targetNodeId, targetPort, pkg);
 
             // TODO: introduce a way to know when network is done processing, use here
-            for (int i=0; i<20; i++) {  network->runTick(); } // HAAACK
+            // Maybe check if there are packets for delivery
+            // runTick() could return the number remaining
+            // Generators should then continously send something, possibly on a hidden port
+            for (int i=0; i<20; i++) {
+                network->runTick();
+            } // XXX: HAAACK
 
             LOG("tick done\n");
         }
