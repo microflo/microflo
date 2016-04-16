@@ -2,7 +2,7 @@
 #define MICROFLO_EMBED_GRAPH
 
 /* microflo_graph fbp
-     first(Forward) OUT -> IN second(Forward)
+     first(Forward) OUT -> IN second(Forward) OUT -> IN third(Forward)
 microflo_graph */
 
 #include <stdlib.h>
@@ -13,6 +13,9 @@ microflo_graph */
 #include <string.h>
 #include <assert.h>
 #include <err.h>
+
+#include <string>
+#include <vector>
 
 #include "mosquitto.h"
 #include "microflo.h"
@@ -25,15 +28,72 @@ microflo_graph */
 
 class MqttMount;
 
+struct Port {
+    MicroFlo::NodeId node;
+    MicroFlo::PortId port;
+    std::string topic;
+
+    Port(std::string t, MicroFlo::NodeId n, MicroFlo::PortId p)
+        : node(n)
+        , port(p)
+        , topic(t)
+    {
+
+    }
+};
+
+std::string
+toTopic(std::string role, std::string portName) {
+    return "/" + role + "/" + portName;
+}
+
+struct ParticipantInfo {
+    std::vector<Port> inports;
+    std::vector<Port> outports;
+    std::string role;
+
+    ParticipantInfo *addInport(std::string name, MicroFlo::NodeId n, MicroFlo::PortId p) {
+        Port port(toTopic(role, name), n, p);
+        inports.push_back(port);
+        return this;
+    }
+    ParticipantInfo *addOutport(std::string name, MicroFlo::NodeId n, MicroFlo::PortId p) {
+        Port port(toTopic(role, name), n, p);
+        outports.push_back(port);
+        return this;
+    }
+};
+
+
 struct MqttOptions {
     int brokerPort;
     char * brokerHostname;
     int keepaliveSeconds;
-    char * client;
+    char * clientId;
+    ParticipantInfo info;
 };
 
-static bool match(const char *topic, const char *key) {
-    return 0 == strncmp(topic, key, strlen(key));
+
+const Port *
+findPortByTopic(const std::vector<Port> &ports, char *topic) {
+    for (std::vector<Port>::const_iterator it = ports.begin() ; it != ports.end(); ++it) {
+        const Port *port = &(*it);
+        if (port->topic == std::string(topic)) {
+            return port;
+        }
+    }
+    return NULL;
+}
+
+const Port *
+findPortByEdge(const std::vector<Port> &ports, MicroFlo::NodeId node, MicroFlo::PortId portId) {
+    for (std::vector<Port>::const_iterator it = ports.begin() ; it != ports.end(); ++it) {
+        const Port *port = &(*it);
+        if (port->node == node && port->port == portId) {
+            return port;
+        }
+    }
+    return NULL;
 }
 
 // TODO: send MsgFlo introspection data
@@ -62,7 +122,7 @@ public:
     }
 
     bool connect() {
-        struct mosquitto *m = mosquitto_new(options.client, true, this);
+        struct mosquitto *m = mosquitto_new(options.clientId, true, this);
         this->connection = m;
 
         mosquitto_connect_callback_set(m, on_connect);
@@ -81,22 +141,20 @@ public:
     void onConnect(int status) {
         const bool connected = status == 0;
         if (connected) {
-            subscribeInports();
+            subscribePorts();
         }
     }
 
     void onMessage(const struct mosquitto_message *msg) {
 
-        // TODO: unhardcode matching
-        if (match(msg->topic, "tick")) {
-            LOG("tick \n");
+        const Port *port = findPortByTopic(options.info.inports, msg->topic);
+        if (port) {
+            LOG("processing, sending to %d %d \n", port->node, port->port);
 
             // FIXME: parse out data from input message
             // FIXME: determine proper target node/port
             Packet pkg = Packet((long)msg->payloadlen);
-            const int targetNodeId = 1;
-            const int targetPort = 0;
-            network->sendMessageTo(targetNodeId, targetPort, pkg);
+            network->sendMessageTo(port->node, port->port, pkg);
 
             // TODO: introduce a way to know when network is done processing, use here
             // Maybe check if there are packets for delivery
@@ -106,7 +164,9 @@ public:
                 network->runTick();
             } // XXX: HAAACK
 
-            LOG("tick done\n");
+            LOG("processing done\n");
+        } else {
+            LOG("Failed to find port for MQTT topic: %s", msg->topic);
         }
     }
 
@@ -122,34 +182,45 @@ public:
                                    MicroFlo::PortId subgraphPort, MicroFlo::NodeId childNode, MicroFlo::PortId childPort) {}
 
     virtual void packetSent(const Message &m, const Component *sender, MicroFlo::PortId senderPort) {
-        // FIXME: proper logic from only sending from outport
-        LOG("packet sent %d\n", sender->id());
-        if (sender->id() != 1) {
-            return;
-        }
+        const MicroFlo::NodeId senderId = sender->id();
+        LOG("packet sent %d\n", senderId);
 
-        // FIXME: determine sane serialization
-        size_t payload_sz = 32;
-        char payload[payload_sz];
-        size_t payloadlen = 0;
-        payloadlen = snprintf(payload, payload_sz, "tock %d", (int)m.pkg.asInteger());
-        if (payload_sz < payloadlen) {
-            //die("snprintf\n");
-        }
+        const Port * port = findPortByEdge(options.info.outports, senderId, senderPort);
+        if (port) {
+            const char *outTopic = port->topic.c_str();
+            LOG("sending on MQTT topic %s\n", outTopic);
 
-        // TODO: determine outTopic correctly
-        const char *outTopic = "tock";
-        int res = mosquitto_publish(this->connection, NULL, outTopic, payloadlen, payload, 0, false);
-        if (res != MOSQ_ERR_SUCCESS) {
-            //die("publish\n");
+            // FIXME: determine sane serialization
+            size_t payload_sz = 32;
+            char payload[payload_sz];
+            size_t payloadlen = 0;
+            payloadlen = snprintf(payload, payload_sz, "tock %d", (int)m.pkg.asInteger());
+            if (payload_sz < payloadlen) {
+                //die("snprintf\n");
+            }
+
+            const int res = mosquitto_publish(this->connection, NULL, outTopic, payloadlen, payload, 0, false);
+            if (res != MOSQ_ERR_SUCCESS) {
+                //die("publish\n");
+            }
+        } else {
+            LOG("no MQTT topic associated\n");
         }
     }
 
 private:
-    void subscribeInports() {
-        // TODO: introspect exported ports to determine topics
-        mosquitto_subscribe(this->connection, NULL, "tick", 0);
-        network->subscribeToPort(1, 0, true);
+    void subscribePorts() {
+        for (std::vector<Port>::iterator it = options.info.inports.begin() ; it != options.info.inports.end(); ++it) {
+            const Port &port = *it;
+            const char *pattern = port.topic.c_str();
+            mosquitto_subscribe(this->connection, NULL, pattern, 0);
+            LOG("subscribed inport to MQTT topic: %s\n", pattern);
+        }
+        for (std::vector<Port>::iterator it = options.info.outports.begin() ; it != options.info.outports.end(); ++it) {
+            const Port &port = *it;
+            network->subscribeToPort(port.node, port.port, true);
+            LOG("setup outport to MQTT topic: %s\n", port.topic.c_str());
+        }
     }
 
 private:
@@ -221,12 +292,27 @@ bool parse_options(MqttOptions *options, int argc, char **argv) {
 
     // defaults
     options->brokerHostname = strndup("localhost", 99);
-    options->keepaliveSeconds = 60;
-    options->client = NULL;
     options->brokerPort = 1883;
+    options->keepaliveSeconds = 60;
+    options->clientId = NULL; // MQTT will autogenerate
+    options->info.role = "micro";
+
+    if (argc < 1) {
+        options->info.role = std::string(argv[1]);
+    }
 
     char* broker = getenv("MSGFLO_BROKER");
     return parse_brokerurl(options, broker);
+}
+
+
+
+bool find_ports(ParticipantInfo *info) {
+    // FIXME: actually introspect from Network/graph data, instead of hardcode
+
+    info->addInport("input", 1, 0);
+    info->addOutport("output", 2, 0);
+    return true;
 }
 
 int main(int argc, char **argv) {
@@ -245,6 +331,8 @@ int main(int argc, char **argv) {
     if (!parsed) {
         die("options parsing error\n");
     }
+
+    find_ports(&options.info);
 
     MqttMount mount(&network, options);
     const bool connected = mount.connect();
