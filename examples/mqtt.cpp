@@ -87,7 +87,7 @@ public:
             Packet pkg = Packet((long)msg->payloadlen);
             const int targetNodeId = 1;
             const int targetPort = 0;
-            network->sendMessageId(targetNodeId, targetPort, pkg);
+            network->sendMessageTo(targetNodeId, targetPort, pkg);
 
             // TODO: introduce a way to know when network is done processing, use here
             for (int i=0; i<20; i++) {  network->runTick(); } // HAAACK
@@ -107,10 +107,10 @@ public:
     virtual void subgraphConnected(bool isOutput, MicroFlo::NodeId subgraphNode,
                                    MicroFlo::PortId subgraphPort, MicroFlo::NodeId childNode, MicroFlo::PortId childPort) {}
 
-    virtual void packetSent(int index, const Message &m) {
+    virtual void packetSent(const Message &m, const Component *sender, MicroFlo::PortId senderPort) {
         // FIXME: proper logic from only sending from outport
-        LOG("packet sent %d\n", m.sender->id());
-        if (m.sender->id() != 1) {
+        LOG("packet sent %d\n", sender->id());
+        if (sender->id() != 1) {
             return;
         }
 

@@ -186,7 +186,7 @@ build-linux-mqtt:
 	rm -rf $(BUILD_DIR)/linux
 	mkdir -p $(BUILD_DIR)/linux
 	node microflo.js generate examples/mqtt.cpp $(BUILD_DIR)/linux/ --target linux --library microflo-core/components/linux-standard.json
-	cd $(BUILD_DIR)/linux && g++ -o firmware ../../examples/mqtt.cpp -std=c++0x -lmosquitto $(COMMON_CFLAGS) -DLINUX -Werror -lrt
+	cd $(BUILD_DIR)/linux && g++ -o firmware ../../examples/mqtt.cpp -std=c++0x -lmosquitto $(COMMON_CFLAGS) -DLINUX -Wno-error=unused-variable -Werror -lrt
 
 build-emscripten:
 	rm -rf $(BUILD_DIR)/emscripten
