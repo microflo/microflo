@@ -198,7 +198,6 @@ generateExported = (prefix, def, componentLib, type) ->
         '\n' + declareArray(cname+'port', 'MicroFlo::PortId', portIds)
 
 exportedPorts = (prefix, def, componentLib) ->
-    console.log def
 
     str = '// Top-level exported ports\n' +
         generateExported(prefix, def, componentLib, 'inport') + '\n' +
