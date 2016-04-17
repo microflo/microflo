@@ -80,7 +80,8 @@ printReceived = ->
 
 listComponents = (runtime, connection) ->
     componentLib = runtime.library
-    for name of componentLib.getComponents()
+    components = componentLib.getComponents()
+    for name of components
         comp = componentLib.getComponent(name)
         # TODO: also allow to send icon definitions
         resp =
@@ -93,7 +94,11 @@ listComponents = (runtime, connection) ->
                 outPorts: portDefAsArray(componentLib.outputPortsFor(name))
 
         connection.send resp
-    return
+
+    connection.send
+        protocol: 'component'
+        command: 'componentsready'
+        payload: Object.keys(components).length
 
 sendExportedPorts = (connection, runtime) ->
     # go over runtime.graph and expose exported ports
