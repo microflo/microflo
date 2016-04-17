@@ -24,7 +24,6 @@ script:
 - export EMCC_DEBUG=1
 - emcc
 - make
-- make check
 - make check-release ENERGIA=`pwd`/energia-0101E0012
 notifications:
   irc:
