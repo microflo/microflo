@@ -34,6 +34,7 @@ static void die(const char *msg) {
 bool findPorts(ParticipantInfo *info) {
     // FIXME: don't assume graph data is in 'graph_*'
 
+    // Exported ports
     for (size_t i=0; i<graph_inports_length; i++) {
         const char *name = graph_inports_name[i];
         MicroFlo::PortId portId = graph_inports_port[i];
@@ -46,6 +47,10 @@ bool findPorts(ParticipantInfo *info) {
         MicroFlo::NodeId nodeId = graph_outports_node[i];
         info->addOutport(name, nodeId, portId);
     }
+
+    // Graph name
+    // TODO: replace with command stream command for graph name
+    info->component = graph_name;
 
     return true;
 }
