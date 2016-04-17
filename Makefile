@@ -169,10 +169,10 @@ build-linux-embedding:
 	cd $(BUILD_DIR)/linux && g++ -o firmware ../../examples/embedding.cpp -std=c++0x $(COMMON_CFLAGS) -DLINUX -Werror -lrt
 
 build-linux-mqtt:
-	rm -rf $(BUILD_DIR)/linux
-	mkdir -p $(BUILD_DIR)/linux
-	node microflo.js generate examples/mqtt.cpp $(BUILD_DIR)/linux/ --target linux --library microflo-core/components/linux-standard.json
-	cd $(BUILD_DIR)/linux && g++ -o firmware ../../examples/mqtt.cpp -std=c++0x -lmosquitto $(COMMON_CFLAGS) -DLINUX -Werror -lrt
+	rm -rf $(BUILD_DIR)/linux-mqtt
+	mkdir -p $(BUILD_DIR)/linux-mqtt
+	node microflo.js generate $(LINUX_GRAPH) $(BUILD_DIR)/linux-mqtt/ --target linux-mqtt --library microflo-core/components/linux-standard.json
+	cd $(BUILD_DIR)/linux-mqtt/ && g++ -o firmware main.cpp -std=c++0x -lmosquitto $(COMMON_CFLAGS) -DLINUX -Werror -lrt
 
 build-emscripten:
 	rm -rf $(BUILD_DIR)/emscripten

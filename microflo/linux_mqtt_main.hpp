@@ -1,25 +1,13 @@
-
-#define MICROFLO_EMBED_GRAPH
-
-// FIXME: allow to receive PacketSent node/port without target
-
-/* microflo_graph fbp
-     INPORT=first.IN:INPUT
-     OUTPORT=third.OUT:OUTPUT
-
-     first(Forward) OUT -> IN second(Forward) OUT -> IN third(Forward)
-microflo_graph */
+/* MicroFlo - Flow-Based Programming for microcontrollers
+ * Copyright (c) 2013 Jon Nordby <jononor@gmail.com>
+ * MicroFlo may be freely distributed under the MIT license
+ */
 
 #define DEBUG 1
 
 #include "microflo.h"
 #include "mqtt.hpp"
 
-//#include "componentlib-ids.h"
-//#include "componentlib-ports.h"
-//#include "componentlib-source.hpp"
-#include "componentlib.hpp"
-#include "main.h" // generated graph definition
 #include "main_maps.h" // generated graph metadata
 #include "microflo.hpp"
 #include "linux.hpp"
@@ -55,7 +43,6 @@ bool findPorts(ParticipantInfo *info) {
     return true;
 }
 
-// TODO: move all this into linux_mqtt_main, and add a build target for that
 int main(int argc, char **argv) {
     LinuxIO io;
     NullHostTransport transport;
