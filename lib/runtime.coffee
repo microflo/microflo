@@ -229,9 +229,11 @@ handleGraphCommand = (command, payload, connection, runtime) ->
             process: payload.node
             port: payload.port
         sendExportedPorts connection, runtime
+        sendAck connection, { protocol: 'graph', command: command, payload: payload }
     else if command is "removeinport"
         delete graph.inports[payload.public]
         sendExportedPorts connection, runtime
+        sendAck connection, { protocol: 'graph', command: command, payload: payload }
     else if command is "addoutport"
         graph.outports = {} if not graph.outports?
         graph.outports[payload.public] =
@@ -243,9 +245,11 @@ handleGraphCommand = (command, payload, connection, runtime) ->
             src:
                 process: payload.node
                 port: payload.port
+        sendAck connection, { protocol: 'graph', command: command, payload: payload }
     else if command is "removeoutport"
         delete graph.outports[payload.public]
         sendExportedPorts connection, runtime
+        sendAck connection, { protocol: 'graph', command: command, payload: payload }
     else
         console.log "Unknown NoFlo UI command on protocol 'graph':", command, payload
     return
