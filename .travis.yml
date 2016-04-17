@@ -11,6 +11,7 @@ before_install:
 - sudo apt-get install -qq arduino-core arduino-mk
 - sudo apt-get install -qq -y gcc-arm-none-eabi
 - sudo apt-get install -qq -y clang-3.4
+- sudo apt-get install -qq -y mosquitto
 - sudo pip install ino
 - git submodule update --init --recursive
 - git clone https://github.com/kripken/emscripten.git

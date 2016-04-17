@@ -241,7 +241,7 @@ release-esp: build-esp
 release-mbed: build-mbed
     # TODO: package into something usable with MBed tools
 
-release-linux: build-linux
+release-linux: build-linux build-linux-embedding build-linux-mosquitto
     # TODO: package?
 
 release-stellaris: build-stellaris
@@ -250,7 +250,7 @@ release-stellaris: build-stellaris
 release-emscripten: build-emscripten
     # TODO: package?
 
-release: build release-mbed release-linux release-microflo release-arduino release-stellaris release-emscripten
+release: build release-linux release-mbed release-arduino release-stellaris release-emscripten
 	rm -rf $(BUILD_DIR)/microflo-$(VERSION)
 	mkdir -p $(BUILD_DIR)/microflo-$(VERSION)
 	cp -r $(BUILD_DIR)/microflo-arduino.zip $(BUILD_DIR)/microflo-$(VERSION)/
@@ -268,5 +268,5 @@ check-release: release
 check: build-emscripten
 	npm test
 
-.PHONY: all build update-defs clean release release-microflo release-arduino check-release
+.PHONY: all build update-defs clean release release-linux release-arduino check-release
 
