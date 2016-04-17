@@ -27,10 +27,12 @@ loadString = (data, type) ->
 
 loadFile = (filename, callback) ->
     fs.readFile filename, { encoding: "utf8" }, (err, data) ->
-        console.log filename
         return callback err if err
         type = path.extname filename
         def = loadString data, type
+        def.properties = {} if not def.properties
+        basename = path.basename(filename, path.extname(filename))
+        def.properties.name = basename if not def.properties.name
         return callback null, def
 
 exports.loadFile = loadFile

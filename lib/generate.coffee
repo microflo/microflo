@@ -205,6 +205,10 @@ exportedPorts = (prefix, def, componentLib) ->
 
     return str
 
+exportGraphName = (variable, graph) ->
+  graphName = graph.properties.name or "unknown"
+  return "static const char *const #{variable} = \"#{graphName}\";"
+
 generateOutput = (componentLib, inputFile, outputFile, target) ->
   outputBase = undefined
   outputDir = undefined
@@ -226,7 +230,9 @@ generateOutput = (componentLib, inputFile, outputFile, target) ->
       throw err  if err
 
     maps = declarec.generateStringMap("graph_nodeMap", def.nodeMap, extractId) +
-        '\n' + exportedPorts('graph_', def, componentLib)
+        '\n' + exportedPorts('graph_', def, componentLib) +
+        '\n' + exportGraphName('graph_name', def) +
+        '\n'
     fs.writeFile outputBase + "_maps.h", maps, (err) ->
       throw err  if err
 
