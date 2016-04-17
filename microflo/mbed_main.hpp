@@ -33,6 +33,7 @@ extern "C"
 MbedIO io;
 const int serialPort = 0;
 const int serialBaudrate = 9600;
+FixedMessageQueue queue;
 Network network(&io, &queue);
 HostCommunication controller;
 SerialHostTransport transport(serialPort, serialBaudrate);
