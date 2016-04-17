@@ -52,6 +52,8 @@ struct ParticipantInfo {
     std::vector<Port> inports;
     std::vector<Port> outports;
     std::string role;
+    std::string id;
+    std::string component;
 
     ParticipantInfo *addInport(std::string name, MicroFlo::NodeId n, MicroFlo::PortId p) {
         Port port(toTopic(role, name), n, p, name);
@@ -74,7 +76,7 @@ struct ParticipantInfo {
 
 std::string msgfloPorts(const std::vector<Port> &ports) {
     std::string str;
-    // FIXME: specify type
+    // TODO: specify datatype on ports
 
     for (int i=0; i<(int)ports.size(); i++) {
         const Port &port = ports[i];
@@ -98,9 +100,9 @@ std::string msgfloDiscoveryMessage(const ParticipantInfo *info) {
     std::string outports = msgfloPorts(info->outports);
 
     std::string msg = "{\n"
-        JSON_ATTR_STRING("id", "!!!FIXME")
+        JSON_ATTR_STRING("id", info->id)
         JSON_ATTR_STRING("role", info->role)
-        JSON_ATTR_STRING("component", "!!!FIXME")
+        JSON_ATTR_STRING("component", info->component)
         JSON_ATTR_ARRAY("inports", inports)
         JSON_ATTR_ARRAY("outports", outports)
         JSON_ATTR_ENDNULL("label")
@@ -140,7 +142,6 @@ findPortByEdge(const std::vector<Port> &ports, MicroFlo::NodeId node, MicroFlo::
     return NULL;
 }
 
-// TODO: send MsgFlo introspection data
 // FIXME: write automated test
 class MqttMount : public NetworkNotificationHandler {
 
@@ -178,7 +179,7 @@ public:
                                           options.keepaliveSeconds);
         return res == MOSQ_ERR_SUCCESS;
     }
-    void disconnect() {} // FIXME: not implemented
+    void disconnect() {} // TODO: implement
 
 public:
     // Not really public, used by C trampolines
@@ -197,7 +198,6 @@ public:
             LOG("processing, sending to %d %d \n", port->node, port->port);
 
             // FIXME: parse out data from input message
-            // FIXME: determine proper target node/port
             Packet pkg = Packet((long)msg->payloadlen);
             network->sendMessageTo(port->node, port->port, pkg);
 
@@ -331,7 +331,6 @@ bool parse_brokerurl(MqttOptions *options, const char *url) {
     }
 }
 
-// FIXME: allow participant name to be configured on commandline
 bool mqttParseOptions(MqttOptions *options, int argc, char **argv) {
 
     // defaults
@@ -340,10 +339,13 @@ bool mqttParseOptions(MqttOptions *options, int argc, char **argv) {
     options->keepaliveSeconds = 60;
     options->clientId = NULL; // MQTT will autogenerate
     options->info.role = "micro";
+    options->info.component = "microflo/Component"; // FIXME: take from graph
 
     if (argc > 1) {
         options->info.role = std::string(argv[1]);
     }
+
+    options->info.id = options->info.role + std::to_string(rand());
 
     char* broker = getenv("MSGFLO_BROKER");
     return parse_brokerurl(options, broker);
