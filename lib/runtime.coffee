@@ -346,7 +346,7 @@ handleNetworkStartStop = (runtime, connection, transport, debugLevel) ->
     setTimeout () ->
         runtime.device.open () ->
             send()
-    , 2000 # HACK: wait for Arduino reset
+    , 1000 # HACK: wait for Arduino reset
 
 subscribeEdges = (runtime, edges, callback) ->
     graph = runtime.graph
