@@ -23,7 +23,7 @@ OSX_ARDUINO_APP=/Applications/Arduino.app
 AVR_FCPU=1000000UL
 
 # Not normally customized
-CPPFLAGS=-ffunction-sections -fshort-enums -fdata-sections -g -Os -w
+CPPFLAGS=-ffunction-sections -fshort-enums -fdata-sections -Os -w
 DEFINES=
 ifeq ($(LIBRARY),arduino-standard)
 DEFINES+=-DHAVE_DALLAS_TEMPERATURE -DHAVE_ADAFRUIT_NEOPIXEL -DHAVE_ADAFRUIT_WS2801
@@ -60,7 +60,7 @@ endif
 
 EMSCRIPTEN_EXPORTS='["_emscripten_runtime_new", "_emscripten_runtime_free", "_emscripten_runtime_run", "_emscripten_runtime_send", "_emscripten_runtime_setup"]'
 
-COMMON_CFLAGS:=-I. -I${MICROFLO_SOURCE_DIR} -Wall
+COMMON_CFLAGS:=-I. -I${MICROFLO_SOURCE_DIR} -Wall -Wno-error=unused-variable
 
 # Platform specifics
 ifeq ($(OS),Windows_NT)
@@ -144,36 +144,22 @@ build-microflo-complib:
 	mkdir -p $(BUILD_DIR)/lib
 	node microflo.js generate $(LINUX_GRAPH) $(BUILD_DIR)/lib --target linux --library microflo-core/components/linux-standard.json
 	cp -r $(BUILD_DIR)/lib/componentlib.hpp $(BUILD_DIR)/lib/componentlib.cpp
-	g++ -c $(BUILD_DIR)/lib/componentlib.cpp -o $(BUILD_DIR)/lib/componentlib.o -I$(BUILD_DIR)/lib -I./microflo -std=c++0x -DLINUX -Wall -Werror
-
-# Build microFlo runtime as a dynamic loadable library, build/lib/libmicroflo.so
-build-microflo-sharedlib: 
-	rm -rf $(BUILD_DIR)/lib
-	mkdir -p $(BUILD_DIR)/lib
-	g++ -fPIC -c microflo/microflo.cpp -o microflo/microflo.o -std=c++0x -DLINUX -Wall -Werror
-	g++ -shared -Wl,-soname,libmicroflo.so -o $(BUILD_DIR)/lib/libmicroflo.so -I$(BUILD_DIR)/lib microflo/microflo.o
+	g++ -c $(BUILD_DIR)/lib/componentlib.cpp -o $(BUILD_DIR)/lib/componentlib.o -I$(BUILD_DIR)/lib $(COMMON_CFLAGS) -std=c++0x -DLINUX
 
 # Build microFlo runtime as an object library (to be static linked with app), $(BUILD_DIR)/lib/microflolib.o
-build-microflo-objlib: 
+build-microflo-objlib:
 	rm -rf $(BUILD_DIR)/lib
 	mkdir -p $(BUILD_DIR)/lib
 	# FIXME: only for internal defs...
 	# node microflo.js generate $(LINUX_GRAPH) $(BUILD_DIR)/lib --target linux --library microflo-core/components/linux-standard.json
-	g++ -c microflo/microflo.cpp -o $(BUILD_DIR)/lib/microflolib.o -std=c++0x -I$(BUILD_DIR)/lib -DLINUX -Wall -Werror
-
-# Build firmware linked to microflo runtime as dynamic loadable library, $(BUILD_DIR)/lib/libmicroflo.so
-build-linux-sharedlib: build-microflo-sharedlib
-	rm -rf $(BUILD_DIR)/linux
-	mkdir -p $(BUILD_DIR)/linux
-	node microflo.js generate $(LINUX_GRAPH) $(BUILD_DIR)/linux --target linux
-	g++ -o $(BUILD_DIR)/linux/firmware $(BUILD_DIR)/linux/main.cpp -std=c++0x -Wl,-rpath=$(BUILD_DIR)/lib -DLINUX -I./$(BUILD_DIR)/lib -I./microflo -Wall -Werror -lrt -L./$(BUILD_DIR)/lib -lmicroflo
+	g++ -c microflo/microflo.cpp -o $(BUILD_DIR)/lib/microflolib.o -std=c++0x -I$(BUILD_DIR)/lib -DLINUX $(COMMON_CFLAGS)
 
 # Build firmware statically linked to microflo runtime as object file, $(BUILD_DIR)/lib/microflolib.o
 build-linux: build-microflo-objlib build-microflo-complib build-linux-embedding
 	rm -rf $(BUILD_DIR)/linux
 	mkdir -p $(BUILD_DIR)/linux
 	node microflo.js generate $(LINUX_GRAPH) $(BUILD_DIR)/linux --target linux --library microflo-core/components/linux-standard.json
-	g++ -o $(BUILD_DIR)/linux/firmware $(BUILD_DIR)/linux/main.cpp -std=c++0x $(BUILD_DIR)/lib/microflolib.o -DLINUX -I$(BUILD_DIR)/lib -I./microflo -Wall -Werror -lrt
+	g++ -o $(BUILD_DIR)/linux/firmware $(BUILD_DIR)/linux/main.cpp -std=c++0x $(BUILD_DIR)/lib/microflolib.o -DLINUX -I$(BUILD_DIR)/lib $(COMMON_CFLAGS) -lrt
 
 # TODO: move to separate repo
 build-linux-embedding:
@@ -186,7 +172,7 @@ build-linux-mqtt:
 	rm -rf $(BUILD_DIR)/linux
 	mkdir -p $(BUILD_DIR)/linux
 	node microflo.js generate examples/mqtt.cpp $(BUILD_DIR)/linux/ --target linux --library microflo-core/components/linux-standard.json
-	cd $(BUILD_DIR)/linux && g++ -o firmware ../../examples/mqtt.cpp -std=c++0x -lmosquitto $(COMMON_CFLAGS) -DLINUX -Wno-error=unused-variable -Werror -lrt
+	cd $(BUILD_DIR)/linux && g++ -o firmware ../../examples/mqtt.cpp -std=c++0x -lmosquitto $(COMMON_CFLAGS) -DLINUX -Werror -lrt
 
 build-emscripten:
 	rm -rf $(BUILD_DIR)/emscripten
