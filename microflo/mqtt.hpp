@@ -31,11 +31,13 @@ struct Port {
     MicroFlo::NodeId node;
     MicroFlo::PortId port;
     std::string topic;
+    std::string name;
 
-    Port(std::string t, MicroFlo::NodeId n, MicroFlo::PortId p)
+    Port(std::string t, MicroFlo::NodeId n, MicroFlo::PortId p, std::string na)
         : node(n)
         , port(p)
         , topic(t)
+        , name(na)
     {
 
     }
@@ -52,16 +54,59 @@ struct ParticipantInfo {
     std::string role;
 
     ParticipantInfo *addInport(std::string name, MicroFlo::NodeId n, MicroFlo::PortId p) {
-        Port port(toTopic(role, name), n, p);
+        Port port(toTopic(role, name), n, p, name);
         inports.push_back(port);
         return this;
     }
     ParticipantInfo *addOutport(std::string name, MicroFlo::NodeId n, MicroFlo::PortId p) {
-        Port port(toTopic(role, name), n, p);
+        Port port(toTopic(role, name), n, p, name);
         outports.push_back(port);
         return this;
     }
 };
+
+#define JSON_ATTR_STRING(name, value) \
+    +std::string("    \"") +name+std::string("\": \"") + value + std::string("\",\n")
+#define JSON_ATTR_ARRAY(name, value) \
+    +std::string("    \"") +name+std::string("\": [") + value + std::string("],\n")
+#define JSON_ATTR_ENDNULL(name) \
+    +std::string("    \"") +name+std::string("\": ") + "null" + std::string("\n")
+
+std::string msgfloPorts(const std::vector<Port> &ports) {
+    std::string str;
+    // FIXME: specify type
+
+    for (int i=0; i<(int)ports.size(); i++) {
+        const Port &port = ports[i];
+        str += "\n    {\n"
+            JSON_ATTR_STRING("id", port.name)
+            JSON_ATTR_STRING("queue", port.topic)
+            JSON_ATTR_STRING("type", "any")
+            JSON_ATTR_ENDNULL("_")
+        + "    }";
+        if (i < (int)ports.size()-1) {
+            str =+ ",";
+        }
+    }
+    return str;
+}
+
+std::string msgfloDiscoveryMessage(const ParticipantInfo *info) {
+    // TODO: add label
+    // TODO: add icon
+    std::string inports = msgfloPorts(info->inports);
+    std::string outports = msgfloPorts(info->outports);
+
+    std::string msg = "{\n"
+        JSON_ATTR_STRING("id", "!!!FIXME")
+        JSON_ATTR_STRING("role", info->role)
+        JSON_ATTR_STRING("component", "!!!FIXME")
+        JSON_ATTR_ARRAY("inports", inports)
+        JSON_ATTR_ARRAY("outports", outports)
+        JSON_ATTR_ENDNULL("label")
+    + "}";
+    return msg;
+}
 
 
 struct MqttOptions {
@@ -141,6 +186,7 @@ public:
         const bool connected = status == 0;
         if (connected) {
             subscribePorts();
+            sendDiscovery();
         }
     }
 
@@ -219,6 +265,20 @@ private:
             const Port &port = *it;
             network->subscribeToPort(port.node, port.port, true);
             LOG("setup outport to MQTT topic: %s\n", port.topic.c_str());
+        }
+    }
+
+    void sendDiscovery() {
+        const std::string msgfloDiscoveryTopic = "fbp";
+        publish(msgfloDiscoveryTopic, msgfloDiscoveryMessage(&options.info));
+        LOG("sent MsgFlo discovery message\n");
+    }
+
+    void publish(std::string topic, std::string payload) {
+        const int res = mosquitto_publish(this->connection, NULL,
+                                          topic.c_str(), payload.size(), payload.c_str(), 0, false);
+        if (res != MOSQ_ERR_SUCCESS) {
+            //die("publish\n");
         }
     }
 
