@@ -247,17 +247,19 @@ void Network::processMessages() {
     while (messageQueue->pop(msg)) {
         Component *sender = 0;
         MicroFlo::PortId senderPort = resolveMessageTarget(msg, &sender);
+
+        // send notification first, so we can listen also to ports for which there is no connections. For testing/MQTT etc
+        const bool sendNotification = sender ? sender->connections[senderPort].subscribed : false;
+        if (sendNotification && notificationHandler) {
+            notificationHandler->packetSent(msg, sender, senderPort);
+        }
+
         if (!msg.targetReferred) {
             continue; // could not resolve target, no-one connected on this port
         }
         Component *target = nodes[msg.node];
         if (!target) {
             continue; // FIXME: this should not happen
-        }
-
-        const bool sendNotification = sender ? sender->connections[senderPort].subscribed : false;
-        if (sendNotification && notificationHandler) {
-            notificationHandler->packetSent(msg, sender, senderPort);
         }
 
         target->process(msg.pkg, msg.port);
@@ -298,12 +300,12 @@ Network::resolveMessageTarget(Message &msg, Component **out_sender)
     MicroFlo::PortId senderPort = -1;
     if (!msg.targetReferred) {
         *out_sender = nodes[msg.node];
+        senderPort = msg.port;
         Connection &conn = (*out_sender)->connections[msg.port];
         if (conn.target) {
             msg.node = conn.target->id();
             msg.port = conn.targetPort;
             msg.targetReferred = true;
-            senderPort = msg.port;
         }
     }
     if (msg.targetReferred) {

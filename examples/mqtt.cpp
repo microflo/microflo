@@ -5,7 +5,7 @@
 
 /* microflo_graph fbp
      INPORT=first.IN:INPUT
-     OUTPORT=second.OUT:OUTPUT
+     OUTPORT=third.OUT:OUTPUT
 
      first(Forward) OUT -> IN second(Forward) OUT -> IN third(Forward)
 microflo_graph */
