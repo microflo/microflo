@@ -129,6 +129,7 @@ cmdStreamBuildSubGraph = (currentNodeId, buffer, index, componentLib, graph, nod
   index += r.index
   currentNodeId = r.nodeId
   i = 0
+  # FIXME: use inports/outports instead of deprecated exports
   while i < subgraph.exports.length
     c = subgraph.exports[i]
     tok = c['private'].split('.')

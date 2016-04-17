@@ -163,6 +163,49 @@ updateDefinitions = (baseDir) ->
         "\n" + declarec.generateStringMap('IoType_names', cmdFormat.ioTypes, extractId)
   fs.writeFileSync baseDir + "/commandformat-gen.h", contents
 
+declareSize = (name, value) ->
+    return "const size_t #{name} = #{value};"
+
+declareArray = (name, type, array) ->
+    str = "const #{type} #{name}[] = {\n"
+    for v in array
+        str += "    #{v}\n"
+    str += "};\n"
+    return str
+
+generateExported = (prefix, def, componentLib, type) ->
+    getPorts = if type == 'inport' then 'inputPortsFor' else 'outputPortsFor'
+
+    portNo = 0
+    portIds = []
+    nodeIds = []
+    names = {}
+    for exported, internal of def[type+'s']
+        exportId = portNo++
+        names[exported] = exportId
+        nodeIds.push def.nodeMap[internal.process].id
+
+        # resolve port id
+        c = def.processes[internal.process].component
+        ports = componentLib[getPorts] c
+        p = ports[internal.port]
+        portIds.push p.id
+
+    cname = prefix+"#{type}s_"
+    str = declareSize(cname+"length", portNo) +
+        '\n' + declarec.generateStringMap(cname+"name", names) +
+        '\n' + declareArray(cname+'node', 'MicroFlo::NodeId', nodeIds) +
+        '\n' + declareArray(cname+'port', 'MicroFlo::PortId', portIds)
+
+exportedPorts = (prefix, def, componentLib) ->
+    console.log def
+
+    str = '// Top-level exported ports\n' +
+        generateExported(prefix, def, componentLib, 'inport') + '\n' +
+        generateExported(prefix, def, componentLib, 'outport')
+
+    return str
+
 generateOutput = (componentLib, inputFile, outputFile, target) ->
   outputBase = undefined
   outputDir = undefined
@@ -183,7 +226,9 @@ generateOutput = (componentLib, inputFile, outputFile, target) ->
     fs.writeFile outputBase + ".h", cmdStreamToCDefinition(data, target), (err) ->
       throw err  if err
 
-    fs.writeFile outputBase + "_maps.h", declarec.generateStringMap("graph_nodeMap", def.nodeMap, extractId), (err) ->
+    maps = declarec.generateStringMap("graph_nodeMap", def.nodeMap, extractId) +
+        '\n' + exportedPorts('graph_', def, componentLib)
+    fs.writeFile outputBase + "_maps.h", maps, (err) ->
       throw err  if err
 
     includes = """
