@@ -3,6 +3,10 @@
  * MicroFlo may be freely distributed under the MIT license
  */
 
+#ifdef MICROFLO_MAIN_FILE
+#include MICROFLO_MAIN_FILE
+#else
+
 #ifdef EMSCRIPTEN
 #include "emscripten_main.hpp"
 #endif
@@ -33,3 +37,7 @@
 #ifdef __ets__
 #include "esp_main.hpp"
 #endif
+
+#endif // MICROFLO_MAIN_FILE
+
+
