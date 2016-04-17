@@ -241,7 +241,7 @@ release-esp: build-esp
 release-mbed: build-mbed
     # TODO: package into something usable with MBed tools
 
-release-linux: build-linux build-linux-embedding build-linux-mosquitto
+release-linux: build-linux build-linux-embedding build-linux-mqtt
     # TODO: package?
 
 release-stellaris: build-stellaris
