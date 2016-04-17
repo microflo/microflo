@@ -293,6 +293,7 @@ parseReceivedCmd = (componentLib, graph, cmdData, handler) ->
     targetPort = componentLib.inputPortById(nodeLookup(graph, targetNode).component, cmdData.readUInt8(4)).name
     type = nodeNameById(cmdFormat.packetTypes, cmdData.readUInt8(5))
     data = undefined
+    # TODO: move next to dataLiteralToCommand, for symmetry
     if type == 'Boolean'
       data = if cmdData.readUInt8(6) then true else false
     else if type == 'Void'
@@ -317,17 +318,17 @@ parseReceivedCmd = (componentLib, graph, cmdData, handler) ->
   else if cmd == cmdFormat.commands.CommunicationOpen.id
     handler 'OPEN'
   else if cmd == cmdFormat.commands.Pong.id
-    handler 'PONG', cmdData.slice(1, 8)
+    handler 'PONG', cmdData.slice(1, cmdFormat.commandSize)
   else if cmd == cmdFormat.commands.TransmissionEnded.id
     handler 'EOT'
   else if cmd == cmdFormat.commands.IoValueChanged.id
-    handler 'IOCHANGE', cmdData.slice(0, 7)
+    handler 'IOCHANGE', cmdData.slice(0, cmdFormat.commandSize-1)
   else if cmd == cmdFormat.commands.SetIoValueCompleted.id
-    handler 'IOACK', cmdData.slice(0, 7)
+    handler 'IOACK', cmdData.slice(0, cmdFormat.commandSize-1)
   else if cmd == cmdFormat.commands.SendPacketDone.id
     handler 'SENDACK'
   else
-    handler 'UNKNOWN' + cmd.toString(16), cmdData.slice(0, 8)
+    handler 'UNKNOWN' + cmd.toString(16), cmdData.slice(0, cmdFormat.commandSize-1)
   return
 
 module.exports =

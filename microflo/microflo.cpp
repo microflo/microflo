@@ -151,6 +151,7 @@ void HostCommunication::parseCmd() {
                 || packetType == MsgVoid) {
             p = Packet(packetType);
         } else if (packetType == MsgInteger) {
+            // TODO: move into readInt32 function, take endianness into account
             const long val = buffer[4] + ((long)(buffer[5])<<8) + ((long)(buffer[6])<<16) + ((long)(buffer[7])<<24);
             p = Packet(val);
         } else if (packetType == MsgByte) {
@@ -517,6 +518,7 @@ void HostCommunication::packetSent(const Message &m, const Component *src, Micro
             cmd[6] = m.pkg.asBool();
         } else if (m.pkg.isNumber()){
             // FIXME: truncates
+            // TODO: move into writeInt32 function, take endianness into account
             const int i = m.pkg.asInteger();
             cmd[6] = i>>0;
             cmd[7] = i>>8;

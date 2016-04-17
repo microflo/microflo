@@ -351,7 +351,7 @@ handleNetworkStartStop = (runtime, connection, transport, debugLevel) ->
 subscribeEdges = (runtime, edges, callback) ->
     graph = runtime.graph
     maxCommands = graph.connections.length+edges.length
-    buffer = new commandstream.Buffer 8*maxCommands
+    buffer = new commandstream.Buffer cmdFormat.commandSize*maxCommands
     offset = 0
 
     # Loop over all edges, unsubscribe
