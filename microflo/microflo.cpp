@@ -646,10 +646,10 @@ bool FixedMessageQueue::pop(Message &msg)
         current.read = previous.write;
         return false;
     }
-    const MessageId msgIndex = previous.read++;
     if (previous.read >= maxMessages-1) {
         previous.read = 0;
     }
+    const MessageId msgIndex = previous.read++;
     msg = messages[msgIndex];
     return true;
 }
