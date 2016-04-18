@@ -160,8 +160,10 @@ public:
                 }
             } else {
                 LOG("mosquitto loop error: %s\n", mosquitto_strerror(status));
+                return false;
             }
         }
+        return true;
     }
 
 public:
