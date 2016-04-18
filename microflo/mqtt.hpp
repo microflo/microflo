@@ -147,8 +147,21 @@ class MqttMount : public NetworkNotificationHandler {
 
 public:
     static bool runForever(MqttMount *mount) {
-        const int res = mosquitto_loop_forever(mount->connection, 1000, 1000 /* unused */);
-        return res == MOSQ_ERR_SUCCESS;
+        const int timeoutMs = 10;
+
+        while(1){
+            const int status = mosquitto_loop(mount->connection, timeoutMs, 1);
+            if (status == MOSQ_ERR_CONN_LOST) {
+                mount->connect();
+            } else if (status == MOSQ_ERR_SUCCESS) {
+                // Run MicroFlo network
+                for (int i=0; i<20; i++) {
+                    mount->network->runTick();
+                }
+            } else {
+                LOG("mosquitto loop error: %s\n", mosquitto_strerror(status));
+            }
+        }
     }
 
 public:
@@ -200,14 +213,6 @@ public:
             // FIXME: parse out data from input message
             Packet pkg = Packet((long)msg->payloadlen);
             network->sendMessageTo(port->node, port->port, pkg);
-
-            // TODO: introduce a way to know when network is done processing, use here
-            // Maybe check if there are packets for delivery
-            // runTick() could return the number remaining
-            // Generators should then continously send something, possibly on a hidden port
-            for (int i=0; i<20; i++) {
-                network->runTick();
-            } // XXX: HAAACK
 
             LOG("processing done\n");
         } else {
