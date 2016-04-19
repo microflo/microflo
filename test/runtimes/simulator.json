@@ -1,0 +1,10 @@
+{
+  "label": "MicroFlo Simulator",
+  "description": "The first component in the world",
+  "type": "microflo",
+  "protocol": "websocket",
+  "address": "ws://localhost:3334",
+  "secret": "microflo32",
+  "id": "2ef763ff-1f28-49b8-b58f-5c6a5c23af25",
+  "command": "./microflo.js runtime --port 3334 --file build/emscripten/microflo-runtime.js"
+}
