@@ -32,7 +32,7 @@ describe 'WebSocket API', ->
       client.on 'connect', (connection) ->
         connection.on 'error', (error) ->
           assert.fail 'connect OK', 'connect error', error.toString()
-        connection.on 'message', (message) ->
+        onMessage = (message) ->
           if message.type == 'utf8'
             response = JSON.parse(message.utf8Data)
             assert.equal response.protocol, 'component'
@@ -40,8 +40,10 @@ describe 'WebSocket API', ->
             receivedComponent.push response.payload
             if receivedComponent.length == Object.keys(expectedComponents).length
               # TODO: verify value of component
+              connection.removeListener 'message', onMessage
               done()
-          return
+
+        connection.on 'message', onMessage
         m =
           'protocol': 'component'
           'command': 'list'
