@@ -171,6 +171,8 @@ build-linux-embedding:
 build-linux-mqtt:
 	rm -rf $(BUILD_DIR)/linux-mqtt
 	mkdir -p $(BUILD_DIR)/linux-mqtt
+	node microflo.js generate examples/Repeat.fbp $(BUILD_DIR)/linux-mqtt/ --target linux-mqtt --library microflo-core/components/linux-standard.json
+	cd $(BUILD_DIR)/linux-mqtt/ && g++ -o repeat main.cpp -std=c++0x -lmosquitto $(COMMON_CFLAGS) -DLINUX -Werror -lrt
 	node microflo.js generate $(LINUX_GRAPH) $(BUILD_DIR)/linux-mqtt/ --target linux-mqtt --library microflo-core/components/linux-standard.json
 	cd $(BUILD_DIR)/linux-mqtt/ && g++ -o firmware main.cpp -std=c++0x -lmosquitto $(COMMON_CFLAGS) -DLINUX -Werror -lrt
 

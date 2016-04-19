@@ -136,3 +136,5 @@ microflo/mqtt.hpp
 microflo/linux_mqtt_main.hpp
 test/fbpspec.coffee
 test/DataTypes.yaml
+test/msgflo.coffee
+examples/Repeat.fbp

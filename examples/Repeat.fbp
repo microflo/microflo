@@ -1,0 +1,4 @@
+INPORT=a.IN:IN
+OUTPORT=b.OUT:OUT
+
+a(Forward) OUT -> IN b(Forward)
