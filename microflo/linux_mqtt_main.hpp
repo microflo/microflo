@@ -66,6 +66,7 @@ int main(int argc, char **argv) {
     const bool connected = mount.connect();
     if (connected) {
         printf("Connected to %s:%d\n", options.brokerHostname, options.brokerPort);
+        fflush(stdout);
     } else {
         die("connect() failure\n");
     }
