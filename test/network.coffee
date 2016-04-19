@@ -14,48 +14,6 @@ catch e
 describeIfSimulator = if build? then describe else describe.skip
 
 describeIfSimulator 'Network', ->
-  describe.skip 'sending packets into graph of Forward components', ->
-    it 'should give the same packets out on other side', ->
-      componentLib = new (microflo.componentlib.ComponentLibrary)
-      compare = microflo.simulator.createCompare()
-      # Host runtime impl.
-      s = new microflo.simulator.RuntimeSimulator build
-      net = s.network
-      nodes = 7
-      messages = []
-      i = 0
-      while i < 10
-        messages[i] = i
-        i++
-      firstNode = -1
-      i = 0
-      while i < nodes
-        node = net.addNode(componentLib.getComponent('Forward').id)
-        if firstNode < 0
-          firstNode = node
-        i++
-      i = firstNode
-      while i < nodes
-        net.connect i, 0, i + 1, 0
-        i++
-      compare.expected = messages
-      net.connect nodes - 1, 0, net.addNode(compare), 0
-      i = 0
-      while i < messages.length
-        net.sendMessage 1, 0, messages[i]
-        i++
-      deadline = (new Date).getTime() + 1 * 1000
-      # ms
-      net.start()
-      while compare.expectingMore()
-        net.runTick()
-        if (new Date).getTime() > deadline
-          chai.expect(compare.actual.length).to.equal compare.expected.length, 'Did not get expected packages within deadline'
-          break
-      chai.expect compare.actual.length, 10
-      chai.expect(compare.actual).to.deep.equal compare.expected
-      return
-    return
   describe.skip 'sending packets through subgraph', ->
     it 'should give the same packets out on other side', ->
       messages = [
