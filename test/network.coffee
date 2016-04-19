@@ -101,11 +101,13 @@ describeIfSimulator 'Network', ->
       s.library.addComponent 'Forward', {}, 'Forward.hpp'
       graph = fbp.parse('a(Forward) OUT -> IN b(Forward) OUT -> IN c(Forward)')
       cmdstream = microflo.commandstream.cmdStreamFromGraph(s.library, graph)
-      expectedResponses = 9
+      expectedResponses = 10
       actualResponses = 0
       # TODO: API should allow to get callback when everything is completed
 
       handleFunc = ->
+        if arguments[0] == 'ERROR'
+          return finish new Error arguments[1]
         if arguments[0] != 'IOCHANGE'
           actualResponses++
         if arguments[0] == 'NETSTART'
