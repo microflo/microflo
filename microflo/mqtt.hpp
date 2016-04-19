@@ -54,6 +54,7 @@ struct ParticipantInfo {
     std::string role;
     std::string id;
     std::string component;
+    std::string icon;
 
     ParticipantInfo *addInport(std::string name, MicroFlo::NodeId n, MicroFlo::PortId p) {
         Port port(toTopic(role, name), n, p, name);
@@ -103,6 +104,7 @@ std::string msgfloDiscoveryMessage(const ParticipantInfo *info) {
         JSON_ATTR_STRING("id", info->id)
         JSON_ATTR_STRING("role", info->role)
         JSON_ATTR_STRING("component", info->component)
+        JSON_ATTR_STRING("icon", info->icon)
         JSON_ATTR_ARRAY("inports", inports)
         JSON_ATTR_ARRAY("outports", outports)
         JSON_ATTR_ENDNULL("label")
@@ -389,7 +391,8 @@ bool mqttParseOptions(MqttOptions *options, int argc, char **argv) {
     options->keepaliveSeconds = 60;
     options->clientId = NULL; // MQTT will autogenerate
     options->info.role = "micro";
-    options->info.component = "microflo/Component"; // FIXME: take from graph
+    options->info.component = "MicroFloDevice";
+    options->info.icon = "lightbulb-o";
 
     if (argc > 1) {
         options->info.role = std::string(argv[1]);
