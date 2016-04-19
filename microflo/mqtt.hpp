@@ -142,6 +142,58 @@ findPortByEdge(const std::vector<Port> &ports, MicroFlo::NodeId node, MicroFlo::
     return NULL;
 }
 
+// C++ version of the logic in commandstream dataLiteralToCommand etc
+Packet decodePacket(const std::string &str) {
+    // TODO: handle floats
+    // TODO: handle brackets
+    // MAYBE: handle hex and octal integers?
+    // TODO: handle byte streams
+    // TODO: handle brackets
+    const long int10 = strtol(str.c_str(), NULL, 10);
+    if (str == "null") {
+        return Packet(); // void
+    } else if (str == "true") {
+        return Packet(true);
+    } else if (str == "false") {
+        return Packet(false);
+    } else if (str == "0") {
+        return Packet((long)0); // bad strtol error value..
+    } else if (int10 != 0) {
+        return Packet(int10);
+    } else {
+        return Packet(MsgInvalid);
+    }
+}
+std::string encodePacket(const Packet &pkg) {
+    switch (pkg.type()) {
+    case MsgVoid:
+        return "null";
+    case MsgBoolean:
+        return pkg.asBool() ? "true" : "false";
+    case MsgInteger:
+        return std::to_string(pkg.asInteger());
+    case MsgByte: // TODO: handle byte streams
+        return "";
+    case MsgFloat: // TOOD: handle floats
+        return "";
+
+    case MsgBracketStart: // TOOD: handle brackets
+    case MsgBracketEnd: // TOOD: handle brackets
+        return "";
+
+    // internal types
+    case MsgMax:
+    case MsgMaxDefined:
+    case MsgSetup:
+    case MsgTick:
+    case MsgInvalid:
+        return "";
+    }
+
+    return ""; // above should be exclusive but compiler complains...
+}
+
+
 // FIXME: write automated test
 class MqttMount : public NetworkNotificationHandler {
 
@@ -212,8 +264,7 @@ public:
         if (port) {
             LOG("processing, sending to %d %d \n", port->node, port->port);
 
-            // FIXME: parse out data from input message
-            Packet pkg = Packet((long)msg->payloadlen);
+            const Packet pkg = decodePacket(std::string((const char *)msg->payload));
             network->sendMessageTo(port->node, port->port, pkg);
 
             LOG("processing done\n");
@@ -235,23 +286,16 @@ public:
 
     virtual void packetSent(const Message &m, const Component *sender, MicroFlo::PortId senderPort) {
         const MicroFlo::NodeId senderId = sender->id();
-        LOG("packet sent %d\n", senderId);
+        //LOG("packet sent %d\n", senderId);
 
         const Port * port = findPortByEdge(options.info.outports, senderId, senderPort);
         if (port) {
             const char *outTopic = port->topic.c_str();
             LOG("sending on MQTT topic %s\n", outTopic);
 
-            // FIXME: determine sane serialization
-            size_t payload_sz = 32;
-            char payload[payload_sz];
-            size_t payloadlen = 0;
-            payloadlen = snprintf(payload, payload_sz, "tock %d", (int)m.pkg.asInteger());
-            if (payload_sz < payloadlen) {
-                //die("snprintf\n");
-            }
-
-            const int res = mosquitto_publish(this->connection, NULL, outTopic, payloadlen, payload, 0, false);
+            const std::string data = encodePacket(m.pkg);
+            const int res = mosquitto_publish(this->connection, NULL, outTopic,
+                                              data.size(), data.c_str(), 0, false);
             if (res != MOSQ_ERR_SUCCESS) {
                 //die("publish\n");
             }
