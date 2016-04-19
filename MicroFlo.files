@@ -134,3 +134,5 @@ microflo/esp.hpp
 examples/mqtt.cpp
 microflo/mqtt.hpp
 microflo/linux_mqtt_main.hpp
+test/fbpspec.coffee
+test/DataTypes.yaml

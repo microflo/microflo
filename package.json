@@ -65,6 +65,7 @@
     "chai": "~1.8.0",
     "coffeelint": "^1.9.2",
     "fbp-protocol": "^0.1.6",
+    "fbp-spec": "^0.1.7",
     "grunt": "~0.4.1",
     "grunt-cli": "~0.1.7",
     "grunt-coffeelint": "0.0.13",

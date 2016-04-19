@@ -1,0 +1,112 @@
+name: 'Roundtripping different datatypes (fbp-spec)'
+topic: Forward
+cases:
+-
+  name: 'boolean true'
+  assertion: 'should be identical'
+  inputs:
+    in: true
+  expect:
+    out:
+     equals: true
+-
+  name: 'boolean false'
+  assertion: 'should be identical'
+  inputs:
+    in: false
+  expect:
+    out:
+     equals: false
+-
+  name: 'positive integer'
+  assertion: 'should be identical'
+  inputs:
+    in: 10
+  expect:
+    out:
+     equals: 10
+-
+  name: 'large integer (16bit unsigned)'
+  assertion: 'should be identical'
+  skip: 'currently inverts?'
+  inputs:
+    in: 0xFFEE
+  expect:
+    out:
+     equals: 0xFFEE
+-
+  name: 'huge integer (32bit unsigned)'
+  assertion: 'should be identical'
+  skip: 'currently causes timeout'
+  inputs:
+    in: 0xFFEEDDCC
+  expect:
+    out:
+     equals: 0xFFEEDDCC
+-
+  name: 'negative integer'
+  assertion: 'should be identical'
+  inputs:
+    in: -10
+  expect:
+    out:
+     equals: -10
+-
+  name: 'positive float'
+  assertion: 'should be identical'
+  skip: 'currently truncates'
+  inputs:
+    in: 9.9
+  expect:
+    out:
+     equals: 9.9
+-
+  name: 'negative float'
+  assertion: 'should be identical'
+  skip: 'currently truncates'
+  inputs:
+    in: -7.7
+  expect:
+    out:
+     equals: -7.7
+-
+  name: 'bang (null)'
+  assertion: 'should be identical'
+  skip: 'currently failing'
+  inputs:
+    in: null
+  expect:
+    out:
+     equals: null
+-
+  name: 'byte'
+  assertion: 'should be identical'
+  inputs:
+    in: 0x44
+  expect:
+    out:
+     equals: 0x44
+-
+  name: 'byte in string'
+  assertion: 'should be identical'
+  inputs:
+    in: "0x44"
+  expect:
+    out:
+     equals: 0x44
+-
+  name: 'brackets only'
+  assertion: 'should be identical'
+  inputs:
+    in: []
+  expect:
+    out:
+     equals: []
+-
+  name: 'bracketed numbers'
+  assertion: 'should be identical'
+  inputs:
+    in: [ 0, -100, 100 ]
+  expect:
+    out:
+     equals: [ 0, -100, 100 ]
