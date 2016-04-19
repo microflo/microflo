@@ -524,6 +524,8 @@ class Runtime extends EventEmitter
         @library = new c.ComponentLibrary
         @device = new devicecommunication.DeviceCommunication @transport, @graph, @library
         @io = new devicecommunication.RemoteIo @device
+        @exportedEdges = []
+        @edgesForInspection = []
         @conn =
             send: (response) =>
                 console.log 'FBP MICROFLO SEND:', response if util.debug_protocol
