@@ -259,15 +259,15 @@ public:
     }
 
     void onMessage(const struct mosquitto_message *msg) {
+        char *payloadStr = strndup((const char *)msg->payload, msg->payloadlen);
+        const Packet pkg = decodePacket(std::string(payloadStr));
+        LOG("got MQTT message on topic %s: %s", msg->topic, payloadStr);
+        free(payloadStr);
 
         const Port *port = findPortByTopic(options.info.inports, msg->topic);
         if (port) {
-            LOG("processing, sending to %d %d \n", port->node, port->port);
-
-            const Packet pkg = decodePacket(std::string((const char *)msg->payload));
+            LOG("sending to %d %d \n", port->node, port->port);
             network->sendMessageTo(port->node, port->port, pkg);
-
-            LOG("processing done\n");
         } else {
             LOG("Failed to find port for MQTT topic: %s", msg->topic);
         }
@@ -291,11 +291,12 @@ public:
         const Port * port = findPortByEdge(options.info.outports, senderId, senderPort);
         if (port) {
             const char *outTopic = port->topic.c_str();
-            LOG("sending on MQTT topic %s\n", outTopic);
 
             const std::string data = encodePacket(m.pkg);
             const int res = mosquitto_publish(this->connection, NULL, outTopic,
                                               data.size(), data.c_str(), 0, false);
+            LOG("sending on MQTT topic %s: %s\n", outTopic, data.c_str());
+
             if (res != MOSQ_ERR_SUCCESS) {
                 //die("publish\n");
             }
@@ -345,8 +346,6 @@ private:
         if (msg == NULL) {
             return;
         }
-        LOG("-- got message @ %s: (%d, QoS %d, %s) '%s'\n",
-            msg->topic, msg->payloadlen, msg->qos, msg->retain ? "R" : "!r", (char *)msg->payload);
         MqttMount *self = (MqttMount *)udata;
         self->onMessage(msg);
     }
