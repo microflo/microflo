@@ -267,7 +267,7 @@ check-release: release
     # TODO: check npm and component.io packages
     # TODO: check arduino package by importing with ino, building
 
-check: build-emscripten
+check: build-emscripten build-linux-mqtt
 	npm test
 
 .PHONY: all build update-defs clean release release-linux release-arduino check-release
