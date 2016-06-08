@@ -10,7 +10,7 @@
   "dependencies": {
     "component/emitter": "*",
     "the-grid/flowhub-registry": "*",
-    "noflo/fbp": "*",
+    "flowbased/fbp": "*",
     "jonnor/buffer": "*"
   },
   "main": "lib/microflo.coffee",
