@@ -7,10 +7,6 @@
 #include MICROFLO_MAIN_FILE
 #else
 
-#ifdef EMSCRIPTEN
-#include "emscripten_main.hpp"
-#endif
-
 #ifdef ARDUINO
 #include "arduino_main.hpp"
 #endif

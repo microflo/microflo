@@ -50,7 +50,6 @@ lib/util.coffee
 Gruntfile.coffee
 app/style.css
 .travis.yml
-microflo/emscripten.hpp
 microflo/arduino.hpp
 microflo/avr.hpp
 microflo/commandformat.h
@@ -58,7 +57,6 @@ microflo/commandformat.json
 microflo/components.hpp
 microflo/components.h
 microflo/components.json
-microflo/emscripten.hpp
 microflo/linux.hpp
 microflo/main.hpp
 microflo/mbed.hpp
@@ -120,7 +118,6 @@ lib/devicecommunication.coffee
 microflo/arduino_main.hpp
 microflo/linux_main.hpp
 microflo/mbed_main.hpp
-microflo/emscripten_main.hpp
 microflo/avr_main.hpp
 microflo/stellaris_main.hpp
 lib/definition.coffee

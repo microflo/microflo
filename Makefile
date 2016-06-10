@@ -58,8 +58,6 @@ ENERGIA=/opt/energia/
 endif
 
 
-EMSCRIPTEN_EXPORTS='["_emscripten_runtime_new", "_emscripten_runtime_free", "_emscripten_runtime_run", "_emscripten_runtime_send", "_emscripten_runtime_setup"]'
-
 COMMON_CFLAGS:=-I. -I${MICROFLO_SOURCE_DIR} -Wall -Wno-error=unused-variable
 
 # Platform specifics
@@ -176,12 +174,6 @@ build-linux-mqtt:
 	node microflo.js generate $(LINUX_GRAPH) $(BUILD_DIR)/linux-mqtt/ --target linux-mqtt --library microflo-core/components/linux-standard.json
 	cd $(BUILD_DIR)/linux-mqtt/ && g++ -o firmware main.cpp -std=c++0x -lmosquitto $(COMMON_CFLAGS) -DLINUX -Werror -lrt
 
-build-emscripten:
-	rm -rf $(BUILD_DIR)/emscripten
-	mkdir -p $(BUILD_DIR)/emscripten
-	$(MICROFLO) generate $(GRAPH) $(BUILD_DIR)/emscripten --target emscripten ${LIBRARYOPTION}
-	cd $(BUILD_DIR)/emscripten && emcc -o microflo-runtime.html --pre-js $(MICROFLO_SOURCE_DIR)/emscripten-pre.js main.cpp $(COMMON_CFLAGS) -DMICROFLO_MESSAGE_LIMIT=200 -s NO_DYNAMIC_EXECUTION=1 -s EXPORTED_FUNCTIONS=$(EMSCRIPTEN_EXPORTS) -s RESERVED_FUNCTION_POINTERS=10
-
 build-esp:
 	rm -rf $(BUILD_DIR)/esp
 	mkdir -p $(BUILD_DIR)/esp
@@ -249,10 +241,7 @@ release-linux: build-linux build-linux-embedding build-linux-mqtt
 release-stellaris: build-stellaris
     # TODO: package?
 
-release-emscripten: build-emscripten
-    # TODO: package?
-
-release: build release-linux release-mbed release-arduino release-stellaris release-emscripten
+release: build release-linux release-mbed release-arduino release-stellaris
 	rm -rf $(BUILD_DIR)/microflo-$(VERSION)
 	mkdir -p $(BUILD_DIR)/microflo-$(VERSION)
 	cp -r $(BUILD_DIR)/microflo-arduino.zip $(BUILD_DIR)/microflo-$(VERSION)/
@@ -267,7 +256,7 @@ check-release: release
     # TODO: check npm and component.io packages
     # TODO: check arduino package by importing with ino, building
 
-check: build-emscripten build-linux-mqtt
+check: build-linux-mqtt
 	npm test
 
 .PHONY: all build update-defs clean release release-linux release-arduino check-release
