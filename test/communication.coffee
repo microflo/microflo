@@ -2,7 +2,7 @@ microflo = require '../lib/microflo'
 chai = require 'chai'
 
 try
-  build = require '../build/emscripten/microflo-runtime.js'
+  build = require '../node_modules/microflo-emscripten/dist/microflo-runtime.js'
 catch e
   console.log 'WARN: could not load Emscripten build', e.toString()
 

@@ -83,6 +83,7 @@
     "grunt-shell-spawn": "^0.3.2",
     "grunt-zip": "^0.13.0",
     "microflo-core": "^0.3.31",
+    "microflo-emscripten": "^0.3.36",
     "mocha": "^1.20.0",
     "msgflo": "^0.5.33",
     "needle": "^0.7.2",

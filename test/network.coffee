@@ -8,7 +8,7 @@ microflo = require('../lib/microflo')
 fbp = require('fbp')
 
 try
-  build = require '../build/emscripten/microflo-runtime.js'
+  build = require '../node_modules/microflo-emscripten/dist/microflo-runtime.js'
 catch e
   console.log 'WARN: could not load Emscripten build', e.toString()
 describeIfSimulator = if build? then describe else describe.skip
