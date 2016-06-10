@@ -6,11 +6,7 @@ exports.isBrowser = isBrowser = ->
   not (typeof (process) isnt "undefined" and process.execPath and process.execPath.indexOf("node") isnt -1)
 
 Buffer = require("buffer").Buffer
-
-try
-  EventEmitter = require 'emitter'
-catch e
-  EventEmitter = require("events").EventEmitter
+EventEmitter = require("events").EventEmitter
 
 exports.EventEmitter = EventEmitter
 

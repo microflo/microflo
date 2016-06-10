@@ -8,7 +8,7 @@
     "FBP"
   ],
   "dependencies": {
-    "component/emitter": "*",
+    "bergie/emitter": "*",
     "the-grid/flowhub-registry": "*",
     "flowbased/fbp": "*",
     "jonnor/buffer": "*"
