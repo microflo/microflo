@@ -27,14 +27,6 @@ script:
 - make
 - make check
 - make check-release ENERGIA=`pwd`/energia-0101E0012
-notifications:
-  irc:
-    channels:
-    - chat.freenode.net#fbp
-    template:
-    - "%{repository}@%{branch} (%{commit}) : %{message} : %{build_url}"
-    on_success: change
-    on_failure: change
 deploy:
 -
   provider: npm
