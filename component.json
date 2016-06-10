@@ -11,7 +11,7 @@
     "bergie/emitter": "*",
     "the-grid/flowhub-registry": "*",
     "flowbased/fbp": "*",
-    "jonnor/buffer": "*"
+    "microflo/buffer": "*"
   },
   "main": "lib/microflo.coffee",
   "scripts": [
