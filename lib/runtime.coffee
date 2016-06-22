@@ -478,7 +478,8 @@ setupWebsocket = (runtime, ip, port, callback) ->
         console.log "MicroFlo runtime listening at", ip + ":" + port
         return callback null, httpServer
 
-setupRuntime = (serialPortToUse, baudRate, port, debugLevel, ip, callback) ->
+# FIXME: specify most of these things through a `options` object
+setupRuntime = (serialPortToUse, baudRate, port, debugLevel, ip, library, callback) ->
 
     serial.openTransport serialPortToUse, baudRate, (err, transport) ->
         return callback err, null if err
