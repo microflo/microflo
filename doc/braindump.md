@@ -848,6 +848,20 @@ References
 Case study on re-implementing imperative/OOP with functional programming in C.
 Includes implementation of the I/O monad and Maybe monad.
 Cons: garbage collection from enforcement of immutability.
+* [Threading the Arduino with Haskell](https://tfp2016.org/papers/TFP_2016_paper_5.pdf),
+Haskino.
+* [frp-arduino](https://github.com/frp-arduino/frp-arduino).
+Haskell embedded DSL, with streams and operators as the main primitives. Compiles to C.
+* [Juniper](http://www.juniper-lang.org/), functional reactive programming language for Arduino,
+compiles to C++.
+* [The Curse of the Excluded Middle](http://queue.acm.org/detail.cfm?id=2611829), 
+"Mostly functional" programming does not work.
+* [Functional Reactive Programming for Real-Time Reactive Systems](http://haskell.cs.yale.edu/wp-content/uploads/2011/02/wan-thesis.pdf)
+includes a comparison of syncronous dataflow and FBP.
+* [Emfrp: A Functional Reactive Programming Language for Small-Scale Embedded Systems](http://www.psg.cs.titech.ac.jp/files/crow2016.pdf)
+* [Higher-Order Functional Reactive Programming without Spacetime Leaks](https://www.mpi-sws.org/~neelk/simple-frp.pdf)
+* [Practical Functional Reactive Programming](http://www.cs.jhu.edu/~roe/padl2014.pdf), using Python as host language.
+* [Building Embedded Systems with Embedded DSLs](https://www.cs.indiana.edu/~lepike/pubs/embedded-experience.pdf)
 
 
 Introspective programs
