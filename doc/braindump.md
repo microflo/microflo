@@ -806,6 +806,50 @@ Robotics, smart-physical device development
 
 Moved to [bitraf/mirusumo](https://github.com/bitraf/mirusumo) project
 
+# Functional programming embedded devices
+
+## Ideas
+
+## Time-dependent logic
+
+Expressing time-dependent logic as a function of time, by passing monotonic timestamps,
+including current time to the function from the outside.
+For instance done in [dlock13-msgflo](https://github.com/bitraf/dlock13/blob/master/dlock13-msgflo/dlock13.cpp#L83)
+
+## Separate state calculation and application
+
+Separating calculation of new state from the realization of such a state.
+
+Express the entire state as a datastructure of plain-old-data, with value semantics.
+On each event which may change state, re-calculate the state.
+If new state depends on old state, pass the previous state in (as immutable value).
+The I/O parts can now be hidden inside the function which realizes the passed state value.
+It can be implemented from scratch, or using existing libraries.
+But, we can also use alternative implementations.
+For instance a function which renders a (virtual) graphical representation of the state.
+Now we can develop & validate large parts of our app off-target, in a way very suited for automated testing (TDD/BDD).
+
+Verification of the IO application can also be done rigoriously, as the possiblities
+are stated in the datastructure (assuming static typing).
+The state can be (de)serialized, enabling data-driven tests.
+
+Because state is just a value, we can represent many states, for instance for time-travel debugging,
+or to explore impacts of changing an input, or the code ('alternative universes'), on a whole sequence of state changes.
+
+This is similar to functional-reactive-programming (FRP), and webapplication tools like React/Redux, Elm etc.
+One could see the I/O of the microcontroller/embedded-system as a very thin "View" layer.
+
+Some of this being explored in https://github.com/jonnor/projects/blob/master/introspectable-computing/neopixels-frp/neopixels.cpp
+
+
+References
+
+* [The Functional Paradigm in Embedded Real-Time Systems](http://www.idt.mdh.se/utbildning/exjobb/files/TR1636.pdf) (2014)
+Case study on re-implementing imperative/OOP with functional programming in C.
+Includes implementation of the I/O monad and Maybe monad.
+Cons: garbage collection from enforcement of immutability.
+
+
 Introspective programs
 =======================
 
