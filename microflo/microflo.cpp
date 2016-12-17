@@ -17,6 +17,7 @@
 
 
 static const char MICROFLO_GRAPH_MAGIC[] = { 'u','C','/','F','l','o', '0', '1' };
+static ComponentLibrary DefaultComponentLibrary; // XXX
 
 bool Packet::asBool() const {
     if (msg == MsgVoid) {
@@ -138,7 +139,7 @@ void HostCommunication::parseCmd() {
         network->start();
     } else if (cmd == GraphCmdCreateComponent) {
         MICROFLO_DEBUG(this, DebugLevelDetailed, DebugComponentCreateStart);
-        Component *c = createComponent((MicroFlo::ComponentId)buffer[1]);
+        Component *c = DefaultComponentLibrary.create((MicroFlo::ComponentId)buffer[1]);
         MICROFLO_DEBUG(this, DebugLevelDetailed, DebugComponentCreateEnd);
         network->addNode(c, buffer[2]);
     } else if (cmd == GraphCmdConnectNodes) {
@@ -653,3 +654,23 @@ bool FixedMessageQueue::pop(Message &msg)
     msg = messages[msgIndex];
     return true;
 }
+
+// ComponentLibrary
+MicroFlo::ComponentId
+ComponentLibrary::add(CreateComponentFunction func, const char * const name) {
+    // FIXME: ensure space is available
+    const MicroFlo::ComponentId id = highest++;
+    factories[id] = func;
+    names[id] = name;
+    return id;
+}
+
+Component *
+ComponentLibrary::create(MicroFlo::ComponentId id) {
+    // FIXME: input validation
+    CreateComponentFunction func = factories[id];
+    return func();
+}
+
+
+
