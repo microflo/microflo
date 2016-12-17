@@ -284,13 +284,6 @@ buildMappings = (messages) ->
     components: componentMap
   return r
 
-cmdStreamBuildGraph = (messages, buffer, index, componentLib) ->
-  mapping = buildMappings messages
-  for message in messages
-    index = toCommandStreamBuffer message, componentLib, mapping.nodes, mapping.components, buffer, index
-
-  return index
-
 cmdStreamFromGraph = (componentLib, graph, debugLevel, openclose) ->
   debugLevel = debugLevel or 'Error'
   buffer = new Buffer(10*1024) # FIXME: unhardcode
@@ -298,7 +291,9 @@ cmdStreamFromGraph = (componentLib, graph, debugLevel, openclose) ->
   graphName = 'default'
 
   messages = initialGraphMessages graph, graphName, debugLevel, openclose
-  index = cmdStreamBuildGraph messages, buffer, index, componentLib
+  mapping = buildMappings messages
+  for message in messages
+    index = toCommandStreamBuffer message, componentLib, mapping.nodes, mapping.components, buffer, index
 
   buffer = buffer.slice(0, index)
   return buffer
