@@ -267,10 +267,11 @@ initialGraphMessages = (graph, graphName, debugLevel, openclose) ->
 
   return messages
 
-cmdStreamBuildGraph = (messages, currentNodeId, buffer, index, componentLib, nodeMap, componentMap) ->
-  startIndex = index
-
-  # Build component/node mapping
+# Build component/node mapping
+buildMappings = (messages) ->
+  nodeMap = {}
+  componentMap = {}
+  currentNodeId = 1
   for message in messages
     if message.command == 'addnode'
       name = message.payload.id
@@ -278,29 +279,26 @@ cmdStreamBuildGraph = (messages, currentNodeId, buffer, index, componentLib, nod
       nodeMap[name] =
         id: currentNodeId++
       componentMap[name] = message.payload.component
-
-  for message in messages
-    index = toCommandStreamBuffer message, componentLib, nodeMap, componentMap, buffer, index
-
   r =
-    index: index - startIndex
-    nodeId: currentNodeId
+    nodes: nodeMap
+    components: componentMap
   return r
+
+cmdStreamBuildGraph = (messages, buffer, index, componentLib) ->
+  mapping = buildMappings messages
+  for message in messages
+    index = toCommandStreamBuffer message, componentLib, mapping.nodes, mapping.components, buffer, index
+
+  return index
 
 cmdStreamFromGraph = (componentLib, graph, debugLevel, openclose) ->
   debugLevel = debugLevel or 'Error'
   buffer = new Buffer(10*1024) # FIXME: unhardcode
   index = 0
-  currentNodeId = 1
-  if !graph.nodeMap
-    graph.nodeMap = {}
   graphName = 'default'
-  
-  graph.componentMap = {}
 
   messages = initialGraphMessages graph, graphName, debugLevel, openclose
-  r = cmdStreamBuildGraph messages, currentNodeId, buffer, index, componentLib, graph.nodeMap, graph.componentMap
-  index = r.index
+  index = cmdStreamBuildGraph messages, buffer, index, componentLib
 
   buffer = buffer.slice(0, index)
   return buffer
