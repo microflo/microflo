@@ -183,13 +183,11 @@ openCommunication = (payload, buffer, index) ->
   return index
 
 closeCommunication = (payload, buffer, index) ->
-  console.log 'b', buffer, index
   index += writeCmd(buffer, index, cmdFormat.commands.End.id)
   return index
 
 # TODO: implement the inverse, getting a FBP protocol message from CS
 toCommandStreamBuffer = (message, componentLib, nodeMap, componentMap, buffer, index) ->
-  console.log 'm', message.command, index
   if message.protocol == 'graph'
     # TODO: also support removenode/removeedge/removeinitial
     if message.command == 'clear'
@@ -406,3 +404,6 @@ module.exports =
   format: cmdFormat
   parseReceivedCmd: parseReceivedCmd
   Buffer: Buffer
+  buildMappings: buildMappings
+  initialGraphMessages: initialGraphMessages
+  toCommandStreamBuffer: toCommandStreamBuffer
