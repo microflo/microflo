@@ -71,9 +71,8 @@ generateEnum = (name, prefix, enums) ->
   out += "\n};\n"
   out
 
-generateComponentPortDefinitions = (componentLib) ->
-  out = "#ifndef COMPONENTLIB_PORTS_H\n#define COMPONENTLIB_PORTS_H\n\n"
-  for name of componentLib.getComponents()
+componentPortDefinition = (componentLib, name) ->
+    out = ""
     out += "\n" + "namespace " + name + "Ports {\n"
     out += "struct InPorts {\n"
     out += generateEnum("Ports", "", componentLib.inputPortsFor(name))
@@ -82,6 +81,12 @@ generateComponentPortDefinitions = (componentLib) ->
     out += generateEnum("Ports", "", componentLib.outputPortsFor(name))
     out += "};"
     out += "\n}\n"
+    return out
+
+generateComponentPortDefinitions = (componentLib) ->
+  out = "#ifndef COMPONENTLIB_PORTS_H\n#define COMPONENTLIB_PORTS_H\n\n"
+  for name of componentLib.getComponents()
+    out += componentPortDefinition componentLib, name
   out += "\n#endif // COMPONENTLIB_PORTS_H\n"
   out
 
@@ -258,3 +263,4 @@ module.exports =
   cmdStreamToCDefinition: cmdStreamToCDefinition
   generateEnum: generateEnum
   generateOutput: generateOutput
+  componentPorts: componentPortDefinition

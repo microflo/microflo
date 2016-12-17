@@ -85,6 +85,29 @@ flashCommand = (file, env) ->
 updateDefsCommand = (directory) ->
     microflo.generate.updateDefinitions directory
 
+generateFactory = (name) ->
+    return """namespace #{name}F {
+        static Component *create() {
+            return new ::#{name}();
+        }
+        static const MicroFlo::ComponentId id = DefaultComponentLibrary.add(create);
+    }"""
+
+
+componentDefsCommand = (componentFile, env) ->
+    lib = new microflo.componentlib.ComponentLibrary()
+    lib.loadFile componentFile
+
+    components = Object.keys lib.getComponents()
+    if not components.length
+        console.error "Could not find any MicroFlo components in #{componentFile}"
+        process.exit 1
+    name = components[0]
+    registration = generateFactory name
+    ports = microflo.generate.componentPorts lib, name
+    fs.writeFileSync componentFile+".ports", ports
+    fs.writeFileSync componentFile+".registration", registration 
+
 main = ->
     commander.version module.exports.version
     commander.command("componentlib <JsonFile> <OutputPath> <FactoryMethodName>")
@@ -93,6 +116,9 @@ main = ->
     commander.command("update-defs")
         .description("Update internal generated definitions")
         .action updateDefsCommand
+    commander.command("component-defs <COMPONENT.hpp>")
+        .description("Update generated definitions for component")
+        .action componentDefsCommand
     commander.command("generate <INPUT> <OUTPUT>")
         .description("Generate MicroFlo firmware code, with embedded graph.")
         .option("-l, --library <FILE.json>", "Component library file")
