@@ -120,6 +120,7 @@ findPort = (componentLib, graph, nodeName, portName) ->
     port: port
   }
 
+# TODO: move all these down into "protocol", along with the inverse functions
 addNode = (payload, componentLib, buffer, index) ->
   nodeName = payload.id
   componentName = payload.component
@@ -162,24 +163,37 @@ addInitial = (payload, componentLib, nodeMap, componentMap, buffer, index) ->
   index += writeCmd buffer, index, cmdBuf
   return index
 
-cmdStreamBuildGraph = (currentNodeId, buffer, index, componentLib, graph) ->
-  messages = protocol.graphToFbpMessages graph, 'default'
+clearGraph = (payload, buffer, index) ->
+  # Clear existing graph
+  index += writeCmd(buffer, index, cmdFormat.commands.Reset.id)
+  return index
 
-  nodeMap = graph.nodeMap
-  startIndex = index
+startNetwork = (payload, buffer, index) ->
+  index += writeCmd(buffer, index, cmdFormat.commands.StartNetwork.id)
+  return index
 
-  componentMap = {}
-  for message in messages
-    if message.command == 'addnode'
-      name = message.payload.id
-      # Assign node names in consecutive order. Note: assumes runtime commandstream parsing does the same
-      nodeMap[name] =
-        id: currentNodeId++
-      componentMap[name] = message.payload.component
+# The following are MicroFlo specific, not part of FBP runtime protocol
+configureDebug = (payload, buffer, index) ->
+  debugLevel = payload.level
+  index += writeCmd(buffer, index, cmdFormat.commands.ConfigureDebug.id, cmdFormat.debugLevels[debugLevel].id)
+  return index
 
-  for message in messages
-    if message.protocol != 'graph'
-      throw new Error "Unknown FBP runtime sub-protocol #{message.protocol}"
+openCommunication = (payload, buffer, index) ->
+  index += writeString(buffer, index, cmdFormat.magicString)
+  return index
+
+closeCommunication = (payload, buffer, index) ->
+  console.log 'b', buffer, index
+  index += writeCmd(buffer, index, cmdFormat.commands.End.id)
+  return index
+
+# TODO: implement the inverse, getting a FBP protocol message from CS
+toCommandStreamBuffer = (message, componentLib, nodeMap, componentMap, buffer, index) ->
+  console.log 'm', message.command, index
+  if message.protocol == 'graph'
+    # TODO: also support removenode/removeedge/removeinitial
+    if message.command == 'clear'
+      index = clearGraph message.payload, buffer, index
     else if message.command == 'addnode'
       index = addNode message.payload, componentLib, buffer, index
     else if message.command == 'addedge'
@@ -189,38 +203,107 @@ cmdStreamBuildGraph = (currentNodeId, buffer, index, componentLib, graph) ->
     else
       throw new Error "Unknown FBP runtime graph command #{message.command}" 
 
+  else if message.protocol == 'network'
+    if message.command == 'start'
+      index = startNetwork message.payload, buffer, index
+    else
+      throw new Error "Unknown FBP runtime network command #{message.command}"
+
+  else if message.protocol == 'microflo'
+    if message.command == 'opencommunication'
+      index = openCommunication message.payload, buffer, index
+    else if message.command == 'closecommunication'
+      index = closeCommunication message.payload, buffer, index
+    else if message.command == 'configuredebug'
+      index = configureDebug message.payload, buffer, index
+    else
+      throw new Error "Unknown FBP runtime microflo command #{message.command}"
+  else    
+      throw new Error "Unknown FBP runtime sub-protocol #{message.protocol}"
+
+  return index
+
+# As a list of FBP runtime messages
+initialGraphMessages = (graph, graphName, debugLevel, openclose) ->
+  messages = []
+
+  # Start comm
+  if openclose
+    messages.push
+      protocol: 'microflo'
+      command: 'opencommunication'
+      payload: null
+
+  # Clear graph
+  messages.push
+    protocol: 'graph'
+    command: 'clear'
+    payload:
+      id: graphName
+
+  # Config
+  messages.push
+    protocol: 'microflo'
+    command: 'configuredebug'
+    payload:
+      level: debugLevel
+
+  # Actual graph
+  graphMessages = protocol.graphToFbpMessages graph, 'default'
+  messages = messages.concat graphMessages
+
+  # Start the network
+  messages.push
+    protocol: 'network'
+    command: 'start'
+    payload: null
+
+  # Stop comm
+  if openclose
+    messages.push
+      protocol: 'microflo'
+      command: 'closecommunication'
+      payload: null
+
+  return messages
+
+cmdStreamBuildGraph = (messages, currentNodeId, buffer, index, componentLib, nodeMap, componentMap) ->
+  startIndex = index
+
+  # Build component/node mapping
+  for message in messages
+    if message.command == 'addnode'
+      name = message.payload.id
+      # Assign node names in consecutive order. Note: assumes runtime commandstream parsing does the same
+      nodeMap[name] =
+        id: currentNodeId++
+      componentMap[name] = message.payload.component
+
+  for message in messages
+    index = toCommandStreamBuffer message, componentLib, nodeMap, componentMap, buffer, index
+
   r =
     index: index - startIndex
     nodeId: currentNodeId
   return r
 
-# TODO: actually add observers to graph, and emit a command stream for the changes
-
 cmdStreamFromGraph = (componentLib, graph, debugLevel, openclose) ->
   debugLevel = debugLevel or 'Error'
-  buffer = new Buffer(1024)
-  # FIXME: unhardcode
+  buffer = new Buffer(10*1024) # FIXME: unhardcode
   index = 0
   currentNodeId = 1
   if !graph.nodeMap
     graph.nodeMap = {}
-  # Start comm
-  if openclose
-    index += writeString(buffer, index, cmdFormat.magicString)
-  # Clear existing graph
-  index += writeCmd(buffer, index, cmdFormat.commands.Reset.id)
-  # Config
-  index += writeCmd(buffer, index, cmdFormat.commands.ConfigureDebug.id, cmdFormat.debugLevels[debugLevel].id)
-  # Actual graph
-  r = cmdStreamBuildGraph(currentNodeId, buffer, index, componentLib, graph)
-  index += r.index
-  currentNodeId = r.nodeId
-  # Start the network
-  index += writeCmd(buffer, index, cmdFormat.commands.StartNetwork.id)
-  if openclose
-    index += writeCmd(buffer, index, cmdFormat.commands.End.id)
+  graphName = 'default'
+  
+  graph.componentMap = {}
+
+  messages = initialGraphMessages graph, graphName, debugLevel, openclose
+  r = cmdStreamBuildGraph messages, currentNodeId, buffer, index, componentLib, graph.nodeMap, graph.componentMap
+  index = r.index
+
   buffer = buffer.slice(0, index)
-  buffer
+  return buffer
 
 nodeNameById = (nodeMap, wantedId) ->
   for name of nodeMap
@@ -235,6 +318,8 @@ nodeLookup = (graph, nodeName) ->
   r = if parent != undefined then graph.processes[nodeNameById(graph.nodeMap, parent)].graph.processes else graph.processes
   r[nodeName]
 
+# TODO: move each parsing into individual function and merge logic deviceResponseToFbpProtocol
+# to return a FBP runtime message directly. Should then be the inverse of toCommandStreamBuffer/addNode/addInitial etc.
 parseReceivedCmd = (componentLib, graph, cmdData, handler) ->
   `var targetPort`
   `var targetNode`
