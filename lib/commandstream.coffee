@@ -293,6 +293,7 @@ cmdStreamFromGraph = (componentLib, graph, debugLevel, openclose) ->
   for message in messages
     index = toCommandStreamBuffer message, componentLib, mapping.nodes, mapping.components, buffer, index
 
+  graph.nodeMap = mapping.nodes # HACK
   buffer = buffer.slice(0, index)
   return buffer
 
