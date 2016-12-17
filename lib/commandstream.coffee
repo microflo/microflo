@@ -4,6 +4,7 @@
 ###
 
 cmdFormat = require('./commandformat')
+protocol = require './protocol'
 util = require('./util')
 Buffer = util.Buffer
 fbp = require('fbp')
@@ -119,93 +120,79 @@ findPort = (componentLib, graph, nodeName, portName) ->
     port: port
   }
 
-cmdStreamBuildSubGraph = (currentNodeId, buffer, index, componentLib, graph, nodeName, comp) ->
-  index += writeCmd(buffer, index, cmdFormat.commands.CreateComponent.id, componentLib.getComponent('SubGraph').id)
-  graph.nodeMap[nodeName] = id: currentNodeId++
-  subgraph = comp.graph
-  subgraph.nodeMap = graph.nodeMap
-  graph.processes[nodeName].graph = subgraph
-  r = cmdStreamBuildGraph(currentNodeId, buffer, index, componentLib, subgraph, nodeName)
-  index += r.index
-  currentNodeId = r.nodeId
-  i = 0
-  # FIXME: use inports/outports instead of deprecated exports
-  while i < subgraph.exports.length
-    c = subgraph.exports[i]
-    tok = c['private'].split('.')
-    if tok.length != 2
-      throw 'Invalid export definition'
-    childNode = graph.nodeMap[tok[0]]
-    childPort = findPort(componentLib, subgraph, tok[0], tok[1])
-    subgraphNode = graph.nodeMap[nodeName]
-    subgraphPort = componentLib.inputPort(graph.processes[nodeName].component, c['public'])
-    value = if childPort.isOutput then 1 else 0
-    index += writeCmd buffer, index, cmdFormat.commands.ConnectSubgraphPort.id, value,
-                      subgraphNode.id, subgraphPort.id, childNode.id, childPort.port.id
-    i++
-  {
-    index: index
-    nodeId: currentNodeId
-  }
+addNode = (payload, componentLib, buffer, index) ->
+  nodeName = payload.id
+  componentName = payload.component
+  comp = componentLib.getComponent(componentName)
+  if typeof comp == 'undefined'
+    throw new Error('Cannot find component: ' + componentName)
 
-cmdStreamBuildGraph = (currentNodeId, buffer, index, componentLib, graph, parent) ->
+  # Add normal component
+  parentId = undefined # subgraph not supported yet
+  index += writeCmd(buffer, index, cmdFormat.commands.CreateComponent.id, comp.id, parentId or 0)
+  return index
+
+addEdge = (payload, componentLib, nodeMap, componentMap, buffer, index) ->
+  srcNode = payload.src.node
+  tgtNode = payload.tgt.node
+  srcPort = undefined
+  tgtPort = undefined
+  try
+    srcComponent = componentMap[srcNode]
+    tgtComponent = componentMap[tgtNode]
+    srcPort = componentLib.outputPort(srcComponent, payload.src.port).id
+    tgtPort = componentLib.inputPort(tgtComponent, payload.tgt.port).id
+  catch err
+    throw new Error "Could not connect: #{srcNode} #{payload.src.port} -> #{payload.tgt.port} #{tgtNode} : #{err}"
+  if tgtPort and srcPort
+    index += writeCmd(buffer, index, cmdFormat.commands.ConnectNodes.id, nodeMap[srcNode].id, nodeMap[tgtNode].id, srcPort, tgtPort)
+
+  return index
+
+addInitial = (payload, componentLib, nodeMap, componentMap, buffer, index) ->
+  tgtNode = payload.tgt.node
+  tgtPort = undefined
+  data = payload.src.data
+  try
+    tgtComponent = componentMap[tgtNode]
+    tgtPort = componentLib.inputPort(tgtComponent, payload.tgt.port).id
+  catch err
+    throw new Error "Could not attach IIP: '#{data} -> #{tgtPort} #{tgtNode} : #{err}"
+  cmdBuf = dataLiteralToCommand(data, nodeMap[tgtNode].id, tgtPort)
+  index += writeCmd buffer, index, cmdBuf
+  return index
+
+cmdStreamBuildGraph = (currentNodeId, buffer, index, componentLib, graph) ->
+  messages = protocol.graphToFbpMessages graph, 'default'
+
   nodeMap = graph.nodeMap
   startIndex = index
-  # Create components
-  for nodeName of graph.processes
-    if !graph.processes.hasOwnProperty(nodeName)
-      i++
-      continue
-    process = graph.processes[nodeName]
-    comp = componentLib.getComponent(process.component)
-    if typeof comp == 'undefined'
-      throw new Error('Cannot find component: ' + process.component)
-    if comp.graph or comp.graphFile
-      # Inject subgraph
-      r = cmdStreamBuildSubGraph(currentNodeId, buffer, index, componentLib, graph, nodeName, comp)
-      index = r.index
-      currentNodeId = r.nodeId
-    else
-      # Add normal component
-      parentId = if parent then nodeMap[parent].id else undefined
-      if parentId
-        graph.processes[nodeName].parent = parentId
-      index += writeCmd(buffer, index, cmdFormat.commands.CreateComponent.id, comp.id, parentId or 0)
-      nodeMap[nodeName] =
+
+  componentMap = {}
+  for message in messages
+    if message.command == 'addnode'
+      name = message.payload.id
+      # Assign node names in consecutive order. Note: assumes runtime commandstream parsing does the same
+      nodeMap[name] =
         id: currentNodeId++
-        parent: parentId
-  # Connect nodes
-  graph.connections.forEach (connection) ->
-    if connection.src != undefined
-      srcNode = connection.src.process
-      tgtNode = connection.tgt.process
-      srcPort = undefined
-      tgtPort = undefined
-      try
-        srcPort = componentLib.outputPort(graph.processes[srcNode].component, connection.src.port).id
-        tgtPort = componentLib.inputPort(graph.processes[tgtNode].component, connection.tgt.port).id
-      catch err
-        throw 'Could not connect: ' + srcNode + ' ' + connection.src.port + ' -> ' + connection.tgt.port + ' ' + tgtNode + ' : ' + err.toString()
-      if tgtPort != undefined and srcPort != undefined
-        index += writeCmd(buffer, index, cmdFormat.commands.ConnectNodes.id, nodeMap[srcNode].id, nodeMap[tgtNode].id, srcPort, tgtPort)
-    return
-  # Send IIPs
-  graph.connections.forEach (connection) ->
-    if connection.data != undefined
-      tgtNode = connection.tgt.process
-      tgtPort = undefined
-      try
-        component = graph.processes[tgtNode].component
-        tgtPort = componentLib.inputPort(component, connection.tgt.port).id
-      catch err
-        throw 'Could not attach IIP: \'' + connection.data.toString() + '\' -> ' + tgtPort + ' ' + tgtNode + ' : ' + err
-      cmdBuf = dataLiteralToCommand(connection.data, nodeMap[tgtNode].id, tgtPort)
-      index += writeCmd buffer, index, cmdBuf
-    return
-  {
+      componentMap[name] = message.payload.component
+
+  for message in messages
+    if message.protocol != 'graph'
+      throw new Error "Unknown FBP runtime sub-protocol #{message.protocol}"
+    else if message.command == 'addnode'
+      index = addNode message.payload, componentLib, buffer, index
+    else if message.command == 'addedge'
+      index = addEdge message.payload, componentLib, nodeMap, componentMap, buffer, index
+    else if message.command == 'addinitial'
+      index = addInitial message.payload, componentLib, nodeMap, componentMap, buffer, index
+    else
+      throw new Error "Unknown FBP runtime graph command #{message.command}" 
+
+  r =
     index: index - startIndex
     nodeId: currentNodeId
-  }
+  return r
 
 # TODO: actually add observers to graph, and emit a command stream for the changes
 
