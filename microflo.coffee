@@ -108,6 +108,15 @@ componentDefsCommand = (componentFile, env) ->
     fs.writeFileSync componentFile+".ports", ports
     fs.writeFileSync componentFile+".registration", registration 
 
+graphCommand = (graphFile, env) ->
+    lib = new microflo.componentlib.ComponentLibrary()
+    lib.loadFile graphFile
+
+    microflo.definition.loadFile graphFile, (err, graph) ->
+        throw err if err
+        graph = microflo.generate.initialCmdStream lib, graph
+        fs.writeFileSync graphFile+".graph.h", graph
+
 main = ->
     commander.version module.exports.version
     commander.command("componentlib <JsonFile> <OutputPath> <FactoryMethodName>")
@@ -119,6 +128,10 @@ main = ->
     commander.command("component-defs <COMPONENT.hpp>")
         .description("Update generated definitions for component")
         .action componentDefsCommand
+    commander.command("graph <COMPONENT.hpp>")
+        .description("Update generated definitions for component")
+        .option("-t, --target <platform>", "Target platform: arduino|linux|avr8")
+        .action graphCommand
     commander.command("generate <INPUT> <OUTPUT>")
         .description("Generate MicroFlo firmware code, with embedded graph.")
         .option("-l, --library <FILE.json>", "Component library file")

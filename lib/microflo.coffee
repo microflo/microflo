@@ -5,5 +5,6 @@ module.exports =
   generate: require "./generate"
   commandstream: require "./commandstream"
   devicecommunication: require "./devicecommunication"
+  definition: require "./definition"
   simulator: require "./simulator"
   serial: require "./serial"

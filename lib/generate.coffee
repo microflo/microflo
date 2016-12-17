@@ -20,9 +20,7 @@ cmdStreamToCDefinition = (cmdStream, target) ->
     out += cmdStreamToC(cmdStream)
   out
 
-cmdStreamToC = (cmdStream, annotation) ->
-  annotation = ""  unless annotation
-  variableName = "graph"
+cmdStreamValuesToC = (cmdStream) ->
   values = []
   i = 0
 
@@ -41,8 +39,70 @@ cmdStreamToC = (cmdStream, annotation) ->
       prettyValues = prettyValues.concat("\n")
       commas = 0
     i++
+  return prettyValues
+
+cmdStreamToC = (cmdStream, annotation) ->
+  annotation = ""  unless annotation
+  variableName = "graph"
+
+  prettyValues = cmdStreamValuesToC cmdStream  
   cCode = "const unsigned char " + variableName + "[] " + annotation + " = {\n" + prettyValues + "\n};"
   cCode
+
+toSymbolicCommandStr = (message, componentLib, mapping) -> 
+  nodeId = (name) ->
+    return mapping.nodes[name].id
+  componentId = (name) ->
+    return "#{name}F::id"
+  portId = (node, port, src) ->
+    component = mapping.components[node]
+    ports = if src then "OutPorts" else "InPorts" 
+    return "#{component}Ports::#{ports}::#{port}"
+
+  # Overrides
+  if message.protocol == 'graph' and message.command == 'addnode'
+    id = componentId message.payload.component 
+    cmd = ["GraphCmdCreateComponent", id, "0x00", "0x00", "0x00", "0x00", "0x00", "0x00" ]
+    return cmd.join ', '
+  else if message.protocol == 'graph' and message.command == 'addedge'
+    p = message.payload
+    srcPort = portId p.src.node, p.src.port, true
+    tgtPort = portId p.tgt.node, p.tgt.port, false
+    cmd = ["GraphCmdConnectNodes", nodeId(p.src.node), nodeId(p.tgt.node), srcPort, tgtPort, "0x00", "0x00" ]
+    return cmd.join ', '
+  else if message.protocol == 'graph' and message.command == 'addinitial'
+    data = message.payload.src.data
+    cmdBuf = commandstream.dataLiteralToCommand data, 1, 2 # FIXME
+    cmd = ["GraphCmdSendPacket", "0x00", "0x00", "0x00", "0x00", "0x00", "0x00", "0x00" ]
+    return cmd.join ', '
+
+  else
+    buffer = new Buffer(1024)
+    start = 0
+    index = commandstream.toCommandStreamBuffer message, componentLib, mapping.nodes, mapping.components, buffer, start
+    buffer = buffer.slice start, index
+    pretty = cmdStreamValuesToC buffer
+    return pretty
+
+initialCmdStreamSymbolic = (componentLib, graph, debugLevel) ->
+  debugLevel = debugLevel or 'Error'
+  buffer = new Buffer(10*1024) # FIXME: unhardcode
+  graphName = 'default'
+  openclose = true
+
+  strings = []
+  messages = commandstream.initialGraphMessages graph, graphName, debugLevel, openclose
+  mapping = commandstream.buildMappings messages
+  for message in messages
+    strings.push toSymbolicCommandStr message, componentLib, mapping
+
+  variableName = 'graph'
+  annotation = ''
+  lines = strings.join ',\n'
+  cCode = "const unsigned char " + variableName + "[] " + annotation + " = {\n" + lines + "\n};"
+
+  return cCode
+
 
 generateConstInt = (prefix, iconsts) ->
   return ""  if Object.keys(iconsts).length is 0
@@ -264,3 +324,4 @@ module.exports =
   generateEnum: generateEnum
   generateOutput: generateOutput
   componentPorts: componentPortDefinition
+  initialCmdStream: initialCmdStreamSymbolic
