@@ -9,13 +9,13 @@ if util.isBrowser()
   if 'chrome' in window and 'serial' in window.chrome
     serial = window.chrome.serial
 else
-  serialport = require 'serialport'
+  SerialPort = require 'serialport'
 
 isLikelyArduinoSerial = (e) ->
   e.comName.indexOf('usbserial') != -1 or e.comName.indexOf('usbmodem') != -1
 
 guessSerialPort = (wantedPortName, callback) ->
-  serialport.list (err, ports) ->
+  SerialPort.list (err, ports) ->
     if err
       callback err
       return
@@ -54,10 +54,9 @@ getSerial = (serialPortToUse, baudRate, cb) ->
       )
       console.log 'Available serial ports: ', ports
       console.log 'Using serial port: ' + portName
-      serial = new (serialport.SerialPort)(portName, { baudrate: baudRate }, false)
-      serial.open ->
+      serial = new SerialPort portName, { baudrate: baudRate }, (err) ->
         if cb
-          cb undefined, serial
+          cb err, serial
         return
 
       serial.getTransportType = ->
