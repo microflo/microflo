@@ -99,9 +99,6 @@ module.exports = ->
   @loadNpmTasks 'grunt-contrib-connect'
   @loadNpmTasks 'grunt-mocha-test'
   @loadNpmTasks 'grunt-mocha-phantomjs'
-  @loadNpmTasks 'grunt-shell-spawn'
-
-  @loadNpmTasks 'grunt-exec'
 
   # Our local tasks
   @registerTask 'build', 'Build MicroFlo for the chosen target platform', (target = 'all') =>
