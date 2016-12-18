@@ -22,7 +22,7 @@ deploy:
   provider: npm
   email: jononor@gmail.com
   api_key:
-    secure: kmUQQMjqyx2TD2gn7xGgUvyuGIw2MN+qLkbI41/TZCht24OdurVfmbmPbNKAH2gjbA5gI+YR60fEOoc30oOJIF1XC9UMAH+htFultYFDt1g2ASRB1bmGc6SMpofzWgwGiwHcvwqAls+hSCBH4QcpJGCR+nbag7UaihVE5U6fxvU=
+    secure: d/v+q0HL0Lwtbywm5t632ME0YJ6EN2N/6E4FeiVY/oFULMO9C07lZV7xYc5Cd2GmAwKpH1byjGZa8AFQ2OmajTGDXdBZQsz2W87C/F1qYsxjxk/rXqVBzXlS4AaWkx969JCiabnaw0+O9LUo+bLqKra6dogDMSgf5qEKl0RES4o=
   on:
     tags: true
     repo: microflo/microflo
