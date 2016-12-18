@@ -10,7 +10,7 @@ else
     http = require("http")
     websocket = require("websocket")
     url = require("url")
-    uuid = require("node-uuid")
+    uuid = require "uuid"
 
 EventEmitter = util.EventEmitter
 try
