@@ -62,7 +62,7 @@
     "websocket": "~1.0.8"
   },
   "devDependencies": {
-    "chai": "~1.8.0",
+    "chai": "^3.5.0",
     "coffeelint": "^1.9.2",
     "fbp-protocol": "^0.1.6",
     "fbp-spec": "^0.1.7",
