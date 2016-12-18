@@ -145,9 +145,12 @@ addEdge = (payload, componentLib, nodeMap, componentMap, buffer, index) ->
     tgtPort = componentLib.inputPort(tgtComponent, payload.tgt.port).id
   catch err
     throw new Error "Could not connect: #{srcNode} #{payload.src.port} -> #{payload.tgt.port} #{tgtNode} : #{err}"
-  if tgtPort and srcPort
-    index += writeCmd(buffer, index, cmdFormat.commands.ConnectNodes.id, nodeMap[srcNode].id, nodeMap[tgtNode].id, srcPort, tgtPort)
+  if not tgtPort?
+    throw new Error "Could not find target port #{tgtNode}(#{tgtComponent}) #{payload.tgt.port}"
+  if not srcPort?
+    throw new Error "Could not find source port #{srcNode}#{srcComponent} #{payload.src.port}"
 
+  index += writeCmd(buffer, index, cmdFormat.commands.ConnectNodes.id, nodeMap[srcNode].id, nodeMap[tgtNode].id, srcPort, tgtPort)  
   return index
 
 addInitial = (payload, componentLib, nodeMap, componentMap, buffer, index) ->
