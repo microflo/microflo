@@ -276,7 +276,7 @@ such complex systems as they run may prove of enormous value.
 
 * NoFlo targets computers and clients.
 * MicroFlo targets embedded devices.
-* For clusters, perhaps something based on ZeroMQ?
+* For clusters, MsgFlo?
 * For the cloud, ???
 
 Other interesting domains...
@@ -710,6 +710,105 @@ Then once can seamlessly move parts of the simulation into the real target envir
 with real implementations. The acceptance tests should continue to run with no/minimal modifications, and be able to target both the simulation and implementation seamlessly.
 This way one ensures that both the simulation and implementation is correct, and thus that one can use either for validation.
 
+# Simulations in software development
+
+http://www.embedded.com/design/real-time-and-performance/4007090/Using-simulation-tools-for-embedded-systems-software-development-Part-1
+
+> Ironically, while simulation is almost universally implemented as software on computers,
+> the use of simulation to develop computer software itself is still quite rare.
+> ...
+> The ability to inject extreme and faulty cases is a key benefit from simulation. 
+
+* Abstraction vs. Detail
+* Simulating the Environment
+* Simulating the Human User Interface (of the device)
+* Simulating the Network (that the system talks to)
+
+https://www.infoq.com/articles/simulation-based-embedded-agile-development
+
+* Using simulation environment for early and continious integration of code from different teams
+* Evaluating consequences of changes to product dependencies
+* Simulation highlights areas of low performance, guiding what to focus on
+* Simulation-first requires system architecture and requirements to be fleshed out earlier, uncovering unknowns.
+
+## Tools
+
+Open source
+
+* QEMU for processor emulation. Upstream includes basic ARM Cortex devices.
+https://github.com/gnuarmeclipse/qemu contains lots more. 
+
+# Embedded systems and Internet of Things challenges
+
+Aspects
+
+* Reliability
+Best practices: Automated testing, static analysis, model-driven development, simulation of extreme cases, safe-subset languages, formal verification
+* Robustness
+Best practices: FMEA, graceful degradation, watchdogs
+* In-field upgrades
+Best practices: ?
+* Hardware dependencies pushing software development back.
+Best practices: Simulation
+* Slow & unreliable network connectivity
+Best practices: acknowledgement required, on-edge-temporary storage
+* Large data volumes
+Best practices: Compression, on-edge processing
+* Low latency, real-time requirements
+Best practices: Worst-case analysis, bounded loops, lockfree. 
+* Power requirements, battery-only
+Best practices: Radio shutoff, processor sleep w/periodic wakeups.
+* Distributed systems
+* Heterogenous nodes
+
+Usecases
+
+* [50 IoT sensor applications](http://www.libelium.com/resources/top_50_iot_sensor_applications_ranking/),
+various types of environment monitoring, warning and automatic regulation, optimization of resource usage - agross major industries.
+* [IEEE: IoT scenarios](http://iot.ieee.org/iot-scenarios.html), hundreds of community contributed small stories/papers
+about how IoT could make an impact on everyday scenarios.
+
+Related
+
+[Data dissemination](http://www.embedded.com/design/real-time-and-performance/4237947/Build-wireless-M2M-and-IoT-sensor-networks--Data-dissemination), using peer2peer models like flodding, gossip protocols.
+
+## Network connectivity
+
+Radio technology
+
+* WiFi. ~100 meters. Internet-path usually included.
+* BLE. Bluetooth 4.0 Low Energy. ~10 meters. Internet path usually not included, until BT+IPv6 becomes widespread.
+* Cellular. 3/4G. Extremely widely deployed. Internet path nearly always.
+Sevice providers: https://hologram.io
+* LoRa. 1000-5000 meters. Still needs custom gateway deployment, some standarization on transport protocol happening.
+Internet may be included.
+
+Application protocols
+
+* CoAP
+* MQTT
+
+Authentication
+
+* Transport-level encryption: TLS
+* Message-level encryption
+
+Stacks
+
+LoRa to MQTT
+
+* LoRa to MQTT. [lora-gateway-bridge](https://github.com/brocaar/lora-gateway-bridge).
+[node.js script](http://blog.telenor.io/2015/10/15/lora-aws.html)
+* [The Things Network](https://www.thethingsnetwork.org/) (TTN).
+[Introduction](http://ktorz.github.io/2016/03/24/so_you_want_to_build_a_distributed_network_for_iot/)
+Uses end-to-end encryption between LoRa `nodes`, and application `handlers`.
+Provisioning mechanisms for encryption keys is provided.
+All compliant gateway participates in propagating messages from/to nodes,
+regardless of which application they belong to. A MQTT handler is provided.
+* LoRa gateways available from DIY approaches with RPi at <100 EUR, to commercial units ranging 500EUR+
+
+
+
 
 Dataflow instruction-set and processsors
 ==========================================
@@ -814,7 +913,8 @@ Moved to [bitraf/mirusumo](https://github.com/bitraf/mirusumo) project
 
 Expressing time-dependent logic as a function of time, by passing monotonic timestamps,
 including current time to the function from the outside.
-For instance done in [dlock13-msgflo](https://github.com/bitraf/dlock13/blob/master/dlock13-msgflo/dlock13.cpp#L83)
+For instance done in [dlock13-msgflo](https://github.com/bitraf/dlock13/blob/master/dlock13-msgflo/dlock13.cpp#L83),
+and in [rebirth](https://github.com/jonnor/rebirth).
 
 ## Separate state calculation and application
 
@@ -862,6 +962,7 @@ includes a comparison of syncronous dataflow and FBP.
 * [Higher-Order Functional Reactive Programming without Spacetime Leaks](https://www.mpi-sws.org/~neelk/simple-frp.pdf)
 * [Practical Functional Reactive Programming](http://www.cs.jhu.edu/~roe/padl2014.pdf), using Python as host language.
 * [Building Embedded Systems with Embedded DSLs](https://www.cs.indiana.edu/~lepike/pubs/embedded-experience.pdf)
+
 
 
 Introspective programs
