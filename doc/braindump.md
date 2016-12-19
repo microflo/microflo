@@ -1047,6 +1047,8 @@ Visual programming for Arduino/microcontrollers/embedded etc.
 * http://playground.arduino.cc/Code/QP
 * http://ardomotic.com/ (web-UI GUI builder)
 * http://sourceforge.net/projects/ktechlab (poorly maintained)
+* http://www.embrio.io/ (non-free, Windows-only).
+Freemium, 50 USD full version. Nice data-visualizers built-in.
 * http://www.flowol.com/InterfaceArduino.aspx (non-free)
 * http://microuml.net/microuml.html (non-free service)
 * http://www.3d-svs.com/3dmicro-toolkit (non-free LabVIEW addon)
