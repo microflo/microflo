@@ -44,7 +44,46 @@ writeNewCmd = () ->
   writeCmd.apply this, args
   return b
 
-dataToCommand = (data, tgt, tgtPort) ->
+serializeData = (literal) ->
+  # Integer
+  value = parseInt(literal)
+  if typeof value == 'number' and value % 1 == 0
+    b = new Buffer(cmdFormat.commandSize-4)
+    b.fill(0)
+    b.writeInt32LE value, 0
+    return { type: 'Integer', data: b }
+  # Boolean
+  isBool = literal == 'true' or literal == 'false'
+  value = literal == 'true'
+  if isBool
+    b = new Buffer(cmdFormat.commandSize-4)
+    b.fill(0)
+    val = if value then 1 else 0
+    b.writeInt8 val, 0
+    return { type: 'Boolean', data: b }
+
+  return null # not a plain value
+  # TODO: handle floats
+
+deserializeData = (buf, offset) ->
+    type = nodeNameById cmdFormat.packetTypes, buf.readUInt8(offset)
+    data = undefined
+    if type == 'Boolean'
+      data = if buf.readUInt8(offset+1) then true else false
+    else if type == 'Void'
+      data = null
+    else if type == 'Integer' or type == 'Float'
+      data = buf.readInt16LE(offset+1) # FIXME: not enough space in PacketSent
+    else if type == 'Byte'
+      data = buf.readUInt8(offset+1)
+    else if type == 'BracketStart' or type == 'BracketEnd'
+      data = type
+    else
+      console.log 'Unknown data type in PacketSent: ', type
+    return { type: type, data: data }
+
+
+dataToCommandDescriptions = (data) ->
     # XXX: wrong way around, literal should call this, not
     if Array.isArray data
         literal = JSON.stringify data
@@ -52,62 +91,59 @@ dataToCommand = (data, tgt, tgtPort) ->
 #        literal = "\"#{data}\""
     else
         literal = data+''
-    return dataLiteralToCommand literal, tgt, tgtPort
+    return dataLiteralToCommandDescriptions literal
 
-dataLiteralToCommand = (literal, tgt, tgtPort) ->
-  b = null
+# literal is a string, typically from a .FBP graph
+dataLiteralToCommandDescriptions = (literal) ->
+  commands = [] # [ { type: '', data: ?Buffer } ]
   literal = literal.replace('^"|"$', '')
-  # Integer
-  value = parseInt(literal)
-  if typeof value == 'number' and value % 1 == 0
-    b = new Buffer(cmdFormat.commandSize)
-    b.fill 0
-    b.writeUInt8 cmdFormat.commands.SendPacket.id, 0
-    b.writeUInt8 tgt, 1
-    b.writeUInt8 tgtPort, 2
-    b.writeInt8 cmdFormat.packetTypes.Integer.id, 3
-    b.writeInt32LE value, 4
-    return b
-  # Boolean
-  isBool = literal == 'true' or literal == 'false'
-  value = literal == 'true'
-  if isBool
-    b = new Buffer(cmdFormat.commandSize)
-    b.fill 0
-    b.writeUInt8 cmdFormat.commands.SendPacket.id, 0
-    b.writeUInt8 tgt, 1
-    b.writeUInt8 tgtPort, 2
-    b.writeInt8 cmdFormat.packetTypes.Boolean.id, 3
-    val = if value then 1 else 0
-    b.writeInt8 val, 4
-    return b
 
-  # TODO: handle floats
+  basic = serializeData literal
+  if basic
+    return [ basic ]
 
+  # compound type / stream
   try
     value = JSON.parse(literal)
   catch err
     throw 'Unknown IIP data type for literal \'' + literal + '\' :' + err
 
   if Array.isArray value
-    buffers = []
-    # start bracket
-    b = writeNewCmd cmdFormat.commands.SendPacket.id,
-            tgt, tgtPort, cmdFormat.packetTypes.BracketStart.id,
-    buffers.push b
-    # values
+    commands.push { type: "BracketStart" }
     for val in value
-        b = dataToCommand val, tgt, tgtPort
-        buffers.push b
-    # end bracket
-    b = writeNewCmd cmdFormat.commands.SendPacket.id,
-            tgt, tgtPort, cmdFormat.packetTypes.BracketEnd.id,
-    buffers.push b
-
-    return Buffer.concat buffers
+        subs = dataToCommandDescriptions val
+        commands = commands.concat subs
+    commands.push { type: "BracketEnd" }
+    return commands
 
   throw 'Unknown IIP data type for literal \'' + literal + '\''
 
+serializeCommands = (commands, tgt, tgtPort) ->
+  buffers = []
+  for cmd in commands
+    type = cmdFormat.packetTypes[cmd.type].id
+    header = new Buffer 4
+    header.writeInt8 cmdFormat.commands.SendPacket.id, 0
+    header.writeUInt8 tgt, 1
+    header.writeUInt8 tgtPort, 2
+    header.writeUInt8 type, 3
+    data = cmd.data
+    if not data
+        data = new Buffer cmdFormat.commandSize-4
+        data.fill 0
+    buffers.push header
+    buffers.push data
+
+  r = Buffer.concat buffers
+  return r
+
+dataLiteralToCommand = (literal, tgt, tgtPort) ->
+  commands = dataLiteralToCommandDescriptions literal
+  return serializeCommands commands, tgt, tgtPort
+
+dataToCommand = (data, tgt, tgtPort) ->
+  commands = dataToCommandDescriptions data
+  return serializeCommands commands, tgt, tgtPort
 
 findPort = (componentLib, graph, nodeName, portName) ->
   isOutput = false
@@ -358,21 +394,8 @@ parseReceivedCmd = (componentLib, graph, cmdData, handler) ->
     srcPort = componentLib.outputPortById(nodeLookup(graph, srcNode).component, cmdData.readUInt8(2)).name
     targetNode = nodeNameById(graph.nodeMap, cmdData.readUInt8(3))
     targetPort = componentLib.inputPortById(nodeLookup(graph, targetNode).component, cmdData.readUInt8(4)).name
-    type = nodeNameById(cmdFormat.packetTypes, cmdData.readUInt8(5))
-    data = undefined
-    # TODO: move next to dataLiteralToCommand, for symmetry
-    if type == 'Boolean'
-      data = if cmdData.readUInt8(6) then true else false
-    else if type == 'Void'
-      data = null
-    else if type == 'Integer' or type == 'Float'
-      data = cmdData.readInt16LE(6)
-    else if type == 'Byte'
-      data = cmdData.readUInt8(6)
-    else if type == 'BracketStart' or type == 'BracketEnd'
-      data = type
-    else
-      console.log 'Unknown data type in PacketSent: ', type
+    dataOffset = 5
+    { data, type } = deserializeData cmdData, dataOffset
     handler 'SEND', srcNode, srcPort, type, data, targetNode, targetPort
   else if cmd == cmdFormat.commands.SubgraphPortConnected.id
     direction = if cmdData.readUInt8(1) then 'output' else 'input'
