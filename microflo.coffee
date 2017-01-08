@@ -86,27 +86,34 @@ updateDefsCommand = (directory) ->
     microflo.generate.updateDefinitions directory
 
 generateFactory = (name) ->
-    return """namespace #{name}F {
-        static Component *create() {
-            return new ::#{name}();
-        }
-        static const MicroFlo::ComponentId id = DefaultComponentLibrary.add(create);
-    }"""
+    return """static Component *create() { return new #{name}(); }
+    static const MicroFlo::ComponentId id = DefaultComponentLibrary.add(create);
+    """
 
+generateComponent = (lib, name, sourceFile) ->
+    ports = microflo.generate.componentPorts lib, name
+    factory = generateFactory name
+    return """namespace #{name} {
+    #{ports}
+    #include "#{sourceFile}"
 
-componentDefsCommand = (componentFile, env) ->
+    #{factory}
+    } // end namespace #{name}"""
+
+componentDefsCommand = (sourceFile, env) ->
     lib = new microflo.componentlib.ComponentLibrary()
-    lib.loadFile componentFile
+    lib.loadFile sourceFile
 
     components = Object.keys lib.getComponents()
     if not components.length
-        console.error "Could not find any MicroFlo components in #{componentFile}"
+        console.error "Could not find any MicroFlo components in #{sourceFile}"
         process.exit 1
     name = components[0]
-    registration = generateFactory name
-    ports = microflo.generate.componentPorts lib, name
-    fs.writeFileSync componentFile+".ports", ports
-    fs.writeFileSync componentFile+".registration", registration 
+
+    componentFile = sourceFile.replace(path.extname(sourceFile), ".component")
+    includePath = "./" + path.basename sourceFile
+    componentWrapper = generateComponent lib, name, includePath
+    fs.writeFileSync componentFile, componentWrapper
 
 graphCommand = (graphFile, env) ->
     lib = new microflo.componentlib.ComponentLibrary()

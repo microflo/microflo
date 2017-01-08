@@ -53,11 +53,11 @@ toSymbolicCommandStr = (message, componentLib, mapping) ->
   nodeId = (name) ->
     return mapping.nodes[name].id
   componentId = (name) ->
-    return "#{name}F::id"
+    return "#{name}::id"
   portId = (node, port, src) ->
     component = mapping.components[node]
     ports = if src then "OutPorts" else "InPorts" 
-    return "#{component}Ports::#{ports}::#{port}"
+    return "#{component}::#{component}Ports::#{ports}::#{port}"
 
   # Overrides
   if message.protocol == 'graph' and message.command == 'addnode'
