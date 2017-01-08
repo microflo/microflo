@@ -87,7 +87,8 @@ updateDefsCommand = (directory) ->
 
 generateFactory = (name) ->
     return """static Component *create() { return new #{name}(); }
-    static const MicroFlo::ComponentId id = DefaultComponentLibrary.add(create);
+    static const char * const name = "#{name}";
+    static const MicroFlo::ComponentId id = DefaultComponentLibrary.add(create, name);
     """
 
 generateComponent = (lib, name, sourceFile) ->
