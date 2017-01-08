@@ -125,7 +125,7 @@ main = ->
     commander.command("update-defs")
         .description("Update internal generated definitions")
         .action updateDefsCommand
-    commander.command("component-defs <COMPONENT.hpp>")
+    commander.command("component <COMPONENT.hpp>")
         .description("Update generated definitions for component")
         .action componentDefsCommand
     commander.command("graph <COMPONENT.hpp>")
