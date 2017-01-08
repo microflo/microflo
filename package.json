@@ -82,6 +82,7 @@
     "microflo-core": "^0.3.31",
     "microflo-emscripten": "^0.3.36",
     "mocha": "^3.2.0",
+    "mqtt": "^1.4.0",
     "msgflo": "^0.9.0",
     "phantomjs": "^2.1.7"
   }
