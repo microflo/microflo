@@ -808,6 +808,29 @@ regardless of which application they belong to. A MQTT handler is provided.
 * LoRa gateways available from DIY approaches with RPi at <100 EUR, to commercial units ranging 500EUR+
 
 
+# Persistent message queues
+
+When network connectivity is unreliable / intermittent, sensors producing data should
+hold the data locally until it can be sent (and message reception is confirmed).
+When the device is battery powered and utilizing sleep, the to-be-sent data should be persisted
+to a non-volatile storage medium.
+This again is challening because both EEPROM and Flash support very few write/erase cycles on the cell level.
+Naive implementations will just last for months/weeks for per-minute updates.
+
+
+Existing implementations
+
+* [kentfitch/Simple-message-queue](https://github.com/kentfitch/Simple-message-queue). Java
+* [Persistent pipes in Linux](https://gist.github.com/CAFxX/571a1558db9a7b393579)
+* [RingFS](https://github.com/cloudyourcar/ringfs). C99, optimized for NOR flash
+* [flashee](https://github.com/m-mcgowan/spark-flashee-eeprom). Implements wear-levelling and circular buffers on external SPI Flash.
+For Spark Photon/Particle, but pluggable IO backends.
+
+References
+
+* [ELF: An Efficient Log-Structured Flash File System For Micro Sensor Nodes](https://www.cs.colorado.edu/~rhan/Papers/sensys_elf_external.pdf)
+* [ournaled Flash Storage – Emulating EEPROM over Flash, ACID Transactions, and More](http://ithare.com/journaled-flash-storage-emulating-eeprom-over-flash-acid-transactions-and-more-part-ii-existing-implementations-by-atmel-silabs-ti-stm-and-microchip/)
+* [Avoiding EEPROM wearout](https://betterembsw.blogspot.com.es/2015/07/avoiding-eeprom-wearout.html)
 
 
 Dataflow instruction-set and processsors
@@ -1048,7 +1071,6 @@ Visual programming for Arduino/microcontrollers/embedded etc.
 * http://ardomotic.com/ (web-UI GUI builder)
 * http://sourceforge.net/projects/ktechlab (poorly maintained)
 * http://www.embrio.io/ (non-free, Windows-only).
-Freemium, 50 USD full version. Nice data-visualizers built-in.
 * http://www.flowol.com/InterfaceArduino.aspx (non-free)
 * http://microuml.net/microuml.html (non-free service)
 * http://www.3d-svs.com/3dmicro-toolkit (non-free LabVIEW addon)
