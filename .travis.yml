@@ -9,7 +9,6 @@ before_install:
 - sudo apt-get install -qq arduino-core arduino-mk
 - sudo apt-get install -qq -y gcc-arm-none-eabi --force-yes
 - sudo apt-get install -qq -y mosquitto libmosquitto-dev
-- sudo pip install ino
 - git submodule update --init --recursive
 - wget -O energia.tgz http://energia.nu/downloads/downloadv3.php?file=energia-0101E0012-linux64.tgz
 - tar -xf energia.tgz
