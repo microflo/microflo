@@ -346,6 +346,8 @@ generateMain = (componentLib, inputFile, options) ->
     # FIXME: the mainfiles should not include MicroFlo themselves
 
     lines.push "\n// Components"
+    lines.push "static ComponentLibrary defaultComponentLibrary;"
+    #lines.push "ComponentLibrary::set(&defaultComponentLibrary);"
     lines = lines.concat components
 
     lines.push "\n// Graph"

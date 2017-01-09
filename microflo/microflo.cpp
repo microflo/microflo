@@ -17,7 +17,7 @@
 
 
 static const char MICROFLO_GRAPH_MAGIC[] = { 'u','C','/','F','l','o', '0', '1' };
-static ComponentLibrary DefaultComponentLibrary; // XXX
+ComponentLibrary *ComponentLibrary::instance = 0;
 
 bool Packet::asBool() const {
     if (msg == MsgVoid) {
@@ -139,7 +139,7 @@ void HostCommunication::parseCmd() {
         network->start();
     } else if (cmd == GraphCmdCreateComponent) {
         MICROFLO_DEBUG(this, DebugLevelDetailed, DebugComponentCreateStart);
-        Component *c = DefaultComponentLibrary.create((MicroFlo::ComponentId)buffer[1]);
+        Component *c = ComponentLibrary::get()->create((MicroFlo::ComponentId)buffer[1]);
         MICROFLO_DEBUG(this, DebugLevelDetailed, DebugComponentCreateEnd);
         network->addNode(c, buffer[2]);
     } else if (cmd == GraphCmdConnectNodes) {

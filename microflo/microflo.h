@@ -180,13 +180,22 @@ typedef Component *(*CreateComponentFunction)(void);
 
 class ComponentLibrary {
 public:
+    // Get/set the current instance
+    //static void set(ComponentLibrary *i) { instance = i; }
+    static ComponentLibrary *get() { return instance; }
+
+public:
     ComponentLibrary()
         : highest(0)
-    {};
+    {
+        ComponentLibrary::instance = this; // HACK
+    };
 
     MicroFlo::ComponentId add(CreateComponentFunction func, const char * const name);
     Component *create(MicroFlo::ComponentId id);
 
+public:
+    static ComponentLibrary *instance;
 private:
     MicroFlo::ComponentId highest;
     CreateComponentFunction factories[MICROFLO_MAX_COMPONENTS];
