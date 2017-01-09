@@ -166,10 +166,12 @@ build-linux-embedding:
 build-linux-mqtt:
 	rm -rf $(BUILD_DIR)/linux-mqtt
 	mkdir -p $(BUILD_DIR)/linux-mqtt
-	node microflo.js generate examples/Repeat.fbp $(BUILD_DIR)/linux-mqtt/ --target linux-mqtt --library microflo-core/components/linux-standard.json
-	cd $(BUILD_DIR)/linux-mqtt/ && g++ -o repeat main.cpp -std=c++0x -lmosquitto $(COMMON_CFLAGS) -DLINUX -Werror -lrt
-	node microflo.js generate $(LINUX_GRAPH) $(BUILD_DIR)/linux-mqtt/ --target linux-mqtt --library microflo-core/components/linux-standard.json
-	cd $(BUILD_DIR)/linux-mqtt/ && g++ -o firmware main.cpp -std=c++0x -lmosquitto $(COMMON_CFLAGS) -DLINUX -Werror -lrt
+    # repeat
+	node microflo.js main examples/Repeat.fbp $(BUILD_DIR)/linux-mqtt/ --target linux-mqtt --mainfile "linux_mqtt_main.hpp" --library microflo-core/components/linux-standard.json -o $(BUILD_DIR)/linux-mqtt/repeat.cpp --enable-maps
+	cd $(BUILD_DIR)/linux-mqtt/ && g++ -o repeat repeat.cpp -std=c++0x -lmosquitto $(COMMON_CFLAGS) -I../../node_modules/microflo-core/components -DLINUX -Werror -lrt
+    # LINUX_GRAPH
+	node microflo.js main $(LINUX_GRAPH) $(BUILD_DIR)/linux-mqtt/ --target linux-mqtt --mainfile "linux_mqtt_main.hpp" --library microflo-core/components/linux-standard.json -o $(BUILD_DIR)/linux-mqtt/main.cpp --enable-maps
+	cd $(BUILD_DIR)/linux-mqtt/ && g++ -o firmware main.cpp -std=c++0x -lmosquitto $(COMMON_CFLAGS) -I../../node_modules/microflo-core/components -DLINUX -Werror -lrt
 
 build-esp:
 	rm -rf $(BUILD_DIR)/esp
