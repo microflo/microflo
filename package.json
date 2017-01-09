@@ -79,7 +79,7 @@
     "grunt-mocha-test": "^0.12.1",
     "grunt-noflo-browser": "^0.1.3",
     "grunt-zip": "^0.13.0",
-    "microflo-core": "^0.3.36",
+    "microflo-core": "^0.3.37",
     "microflo-emscripten": "^0.3.38",
     "mocha": "^3.2.0",
     "mqtt": "^1.4.0",
