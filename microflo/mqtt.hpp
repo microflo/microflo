@@ -72,6 +72,8 @@ struct ParticipantInfo {
     +std::string("    \"") +name+std::string("\": \"") + value + std::string("\",\n")
 #define JSON_ATTR_ARRAY(name, value) \
     +std::string("    \"") +name+std::string("\": [") + value + std::string("],\n")
+#define JSON_ATTR_RAW(name, value) \
+    +std::string("    \"") +name+std::string("\": ") + value + std::string("\n")
 #define JSON_ATTR_ENDNULL(name) \
     +std::string("    \"") +name+std::string("\": ") + "null" + std::string("\n")
 
@@ -118,8 +120,7 @@ std::string msgfloDiscoveryMessage(const ParticipantInfo *info) {
     std::string msg = "{\n"
         JSON_ATTR_STRING("protocol", "discovery")
         JSON_ATTR_STRING("command", "participant")
-        JSON_ATTR_STRING("payload", payload)
-        JSON_ATTR_ENDNULL("_")
+        JSON_ATTR_RAW("payload", payload)
     + "}";
     return msg;
 }
