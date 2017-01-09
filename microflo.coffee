@@ -151,7 +151,10 @@ main = ->
     commander.command("main <GRAPH>")
         .description("Generate an entrypoint file")
         .option("-t, --target <platform>", "Target platform: arduino|linux|avr8")
+        .option("-m, --mainfile <FILE.hpp>", "File to include for providing main()")
         .option("-o, --output <FILE>", "File to output to. Defaults to $graphname.cpp")
+        .option("-l, --library <FILE.json>", "Component library file") # WARN: to be deprecated
+        .option("--enable-maps", "Enable graph info maps")
         .action mainCommand
 
     commander.command("generate <INPUT> <OUTPUT>")
