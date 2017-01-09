@@ -25,6 +25,7 @@ cmdFormat = require("./commandformat")
 serial = require("./serial")
 devicecommunication = require("./devicecommunication")
 definition = require './definition'
+protocol = require './protocol'
 
 # TODO: allow port types to be declared in component metadata,
 # and send the appropriate types instead of just "all"
@@ -49,24 +50,6 @@ connectionsWithoutEdge = (connections, findConn) ->
         else
             newList.push conn
     return newList
-
-wsConnectionFormatToFbp = (ws) ->
-    if ws.src and ws.src.port
-        src:
-            port: ws.src.port
-            process: ws.src.node
-        tgt:
-            port: ws.tgt.port
-            process: ws.tgt.node
-    else
-        # IIP
-        out = {}
-        out.tgt =
-            port: ws.tgt.port
-            process: ws.tgt.node
-
-        out.data = ws.src.data if ws.src
-        out
 
 printReceived = ->
     args = []
@@ -215,16 +198,16 @@ handleGraphCommand = (command, payload, connection, runtime) ->
         # FIXME: ignored
         sendAck connection, { protocol: 'graph', command: command, payload: payload }
     else if command is "addedge"
-        graph.connections.push wsConnectionFormatToFbp(payload)
+        graph.connections.push protocol.wsConnectionFormatToFbp(payload)
         sendAck connection, { protocol: 'graph', command: command, payload: payload }
     else if command is "removeedge"
-        graph.connections = connectionsWithoutEdge(graph.connections, wsConnectionFormatToFbp(payload))
+        graph.connections = connectionsWithoutEdge(graph.connections, protocol.wsConnectionFormatToFbp(payload))
         sendAck connection, { protocol: 'graph', command: command, payload: payload }
     else if command is "addinitial"
-        graph.connections.push wsConnectionFormatToFbp(payload)
+        graph.connections.push protocol.wsConnectionFormatToFbp(payload)
         sendAck connection, { protocol: 'graph', command: command, payload: payload }
     else if command is "removeinitial"
-        graph.connections = connectionsWithoutEdge(graph.connections, wsConnectionFormatToFbp(payload))
+        graph.connections = connectionsWithoutEdge(graph.connections, protocol.wsConnectionFormatToFbp(payload))
         sendAck connection, { protocol: 'graph', command: command, payload: payload }
 
     # PROTOCOL: Inconsistent that these don't ack on same format?

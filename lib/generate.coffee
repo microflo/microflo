@@ -20,9 +20,7 @@ cmdStreamToCDefinition = (cmdStream, target) ->
     out += cmdStreamToC(cmdStream)
   out
 
-cmdStreamToC = (cmdStream, annotation) ->
-  annotation = ""  unless annotation
-  variableName = "graph"
+cmdStreamValuesToC = (cmdStream) ->
   values = []
   i = 0
 
@@ -41,8 +39,85 @@ cmdStreamToC = (cmdStream, annotation) ->
       prettyValues = prettyValues.concat("\n")
       commas = 0
     i++
+  return prettyValues
+
+cmdStreamToC = (cmdStream, annotation) ->
+  annotation = ""  unless annotation
+  variableName = "graph"
+
+  prettyValues = cmdStreamValuesToC cmdStream  
   cCode = "const unsigned char " + variableName + "[] " + annotation + " = {\n" + prettyValues + "\n};"
   cCode
+
+toSymbolicCommandStr = (message, componentLib, mapping) -> 
+  nodeId = (name) ->
+    return mapping.nodes[name].id
+  componentId = (name) ->
+    return "#{name}::id"
+  portId = (node, port, out) ->
+    component = mapping.components[node]
+    ports = if out then "OutPorts" else "InPorts"
+    return "#{component}::#{component}Ports::#{ports}::#{port}"
+
+  # Overrides
+  if message.protocol == 'graph' and message.command == 'addnode'
+    id = componentId message.payload.component 
+    cmd = ["GraphCmdCreateComponent", id, "0x00", "0x00", "0x00", "0x00", "0x00", "0x00" ]
+    return cmd.join ', '
+  else if message.protocol == 'graph' and message.command == 'addedge'
+    p = message.payload
+    srcPort = portId p.src.node, p.src.port, true
+    tgtPort = portId p.tgt.node, p.tgt.port, false
+    cmd = ["GraphCmdConnectNodes", nodeId(p.src.node), nodeId(p.tgt.node), srcPort, tgtPort, "0x00", "0x00" ]
+    return cmd.join ', '
+  else if message.protocol == 'graph' and message.command == 'addinitial'
+    p = message.payload
+    commands = commandstream.dataLiteralToCommandDescriptions p.src.data
+    tgtPort = portId p.tgt.node, p.tgt.port, false
+    cmd = []
+    for command in commands
+        type = "Msg#{command.type}"
+        cmd = cmd.concat ["GraphCmdSendPacket", nodeId(p.tgt.node), tgtPort, type]
+        data = command.data
+        if data
+            d = []
+            for i in [0...data.length]
+                d[i] = "0x" + data.readUInt8(i).toString(16)
+            data = d
+        else
+            data = ['0x00', '0x00', '0x00', '0x00'] if not data
+        cmd = cmd.concat data
+
+    return cmd.join ', '
+
+  else
+    buffer = new Buffer(1024)
+    start = 0
+    index = commandstream.toCommandStreamBuffer message, componentLib, mapping.nodes, mapping.components, buffer, start
+    buffer = buffer.slice start, index
+    pretty = cmdStreamValuesToC buffer
+    return pretty
+
+initialCmdStreamSymbolic = (componentLib, graph, debugLevel) ->
+  debugLevel = debugLevel or 'Error'
+  buffer = new Buffer(10*1024) # FIXME: unhardcode
+  graphName = 'default'
+  openclose = true
+
+  strings = []
+  messages = commandstream.initialGraphMessages graph, graphName, debugLevel, openclose
+  mapping = commandstream.buildMappings messages
+  for message in messages
+    strings.push toSymbolicCommandStr message, componentLib, mapping
+
+  graph.nodeMap = mapping.nodes # HACK
+  variableName = 'graph'
+  annotation = ''
+  lines = strings.join ',\n'
+  cCode = "const unsigned char " + variableName + "[] " + annotation + " = {\n" + lines + "\n};"
+
+  return cCode
+
 
 generateConstInt = (prefix, iconsts) ->
   return ""  if Object.keys(iconsts).length is 0
@@ -71,9 +146,8 @@ generateEnum = (name, prefix, enums) ->
   out += "\n};\n"
   out
 
-generateComponentPortDefinitions = (componentLib) ->
-  out = "#ifndef COMPONENTLIB_PORTS_H\n#define COMPONENTLIB_PORTS_H\n\n"
-  for name of componentLib.getComponents()
+componentPortDefinition = (componentLib, name) ->
+    out = ""
     out += "\n" + "namespace " + name + "Ports {\n"
     out += "struct InPorts {\n"
     out += generateEnum("Ports", "", componentLib.inputPortsFor(name))
@@ -82,6 +156,12 @@ generateComponentPortDefinitions = (componentLib) ->
     out += generateEnum("Ports", "", componentLib.outputPortsFor(name))
     out += "};"
     out += "\n}\n"
+    return out
+
+generateComponentPortDefinitions = (componentLib) ->
+  out = "#ifndef COMPONENTLIB_PORTS_H\n#define COMPONENTLIB_PORTS_H\n\n"
+  for name of componentLib.getComponents()
+    out += componentPortDefinition componentLib, name
   out += "\n#endif // COMPONENTLIB_PORTS_H\n"
   out
 
@@ -209,6 +289,79 @@ exportGraphName = (variable, graph) ->
   graphName = graph.properties.name or "unknown"
   return "static const char *const #{variable} = \"#{graphName}\";"
 
+generateComponentIncludesNew = (componentLib) ->
+  lines = []
+  componentNames = componentLib.listComponents()
+  for name in componentNames
+    data = componentLib.getComponent name
+    #console.log 'n', name, data
+    componentFile = path.basename(data.filename).replace('.hpp', '.component')
+    lines.push "#include \"#{componentFile}\"" 
+
+  return lines
+
+include = (file) ->
+  return "#include \"#{file}\""
+define = (symbol, val) ->
+  return "#define #{symbol} #{val}"
+
+extension = (target) ->
+  ext = '.cpp'
+  ext = '.ino' if target == 'arduino'
+  return ext
+
+generateGraphMaps = (componentLib, def) ->
+  maps = declarec.generateStringMap("graph_nodeMap", def.nodeMap, extractId) +
+      '\n' + exportedPorts('graph_', def, componentLib) +
+      '\n' + exportGraphName('graph_name', def) +
+      '\n'
+  return maps
+
+generateMain = (componentLib, inputFile, options) ->
+  options.target = 'arduino' if not options.target
+  # TODO: use platform-specific mainfile based on .target
+  options.mainfile = 'microflo/main.hpp' if not options.mainfile
+  preferredExtension = extension options.target
+  if not options.output
+    options.output = inputFile.replace(path.extname(inputFile), preferredExtension)
+  if not path.extname options.output
+    options.output += preferredExtension
+  options.enableMaps = false if not options.enableMaps?
+
+  outputDir = path.dirname options.output
+  fs.mkdirSync outputDir unless fs.existsSync outputDir
+
+  # XXX: some duplicaion with 'graph' command here
+  definition.loadFile inputFile, (err, graph) ->
+    throw err if err
+
+    graph = initialCmdStreamSymbolic componentLib, graph
+    components = generateComponentIncludesNew componentLib
+    maps = generateGraphMaps componentLib, graph
+
+    lines = []
+    lines.push "// !!! generated by: microflo main #{inputFile}"
+    lines.push include "microflo.h"
+    #lines.push include "microflo.hpp" if options.target != 'arduino'
+    # FIXME: the mainfiles should not include MicroFlo themselves
+
+    lines.push "\n// Components"
+    lines = lines.concat components
+
+    lines.push "\n// Graph"
+    lines.push define 'MICROFLO_EMBED_GRAPH', '1'
+    lines.push graphStream
+
+    if options.enableMaps
+      lines.push "\n// Graph mapping"
+      lines.push maps
+
+    lines.push "\n// Main"
+    lines.push include options.mainfile
+
+    out = lines.join '\n'
+    fs.writeFileSync options.output, out
+
 generateOutput = (componentLib, inputFile, outputFile, target) ->
   outputBase = undefined
   outputDir = undefined
@@ -229,10 +382,7 @@ generateOutput = (componentLib, inputFile, outputFile, target) ->
     fs.writeFile outputBase + ".h", cmdStreamToCDefinition(data, target), (err) ->
       throw err  if err
 
-    maps = declarec.generateStringMap("graph_nodeMap", def.nodeMap, extractId) +
-        '\n' + exportedPorts('graph_', def, componentLib) +
-        '\n' + exportGraphName('graph_name', def) +
-        '\n'
+    maps = generateGraphMaps componentLib, def
     fs.writeFile outputBase + "_maps.h", maps, (err) ->
       throw err  if err
 
@@ -258,3 +408,6 @@ module.exports =
   cmdStreamToCDefinition: cmdStreamToCDefinition
   generateEnum: generateEnum
   generateOutput: generateOutput
+  componentPorts: componentPortDefinition
+  initialCmdStream: initialCmdStreamSymbolic
+  generateMain: generateMain

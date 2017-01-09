@@ -85,6 +85,61 @@ flashCommand = (file, env) ->
 updateDefsCommand = (directory) ->
     microflo.generate.updateDefinitions directory
 
+generateFactory = (componentLib, name) ->
+    instantiator = "new #{name}()"
+    comp = componentLib.getComponent name
+    if comp.type is "pure2"
+      # XXX: can we get rid of this??
+      t0 = componentLib.inputPortById(name, 0).ctype
+      t1 = componentLib.inputPortById(name, 0).ctype
+      instantiator = "new PureFunctionComponent2<" + name + "," + t0 + "," + t1 + ">"
+    return """static Component *create() { return #{instantiator}; }
+    static const char * const name = "#{name}";
+    static const MicroFlo::ComponentId id = ComponentLibrary::get()->add(create, name);
+    """
+
+generateComponent = (lib, name, sourceFile) ->
+    ports = microflo.generate.componentPorts lib, name
+    factory = generateFactory lib, name
+    return """namespace #{name} {
+    #{ports}
+    #include "#{sourceFile}"
+
+    #{factory}
+    } // end namespace #{name}"""
+
+componentDefsCommand = (sourceFile, env) ->
+    lib = new microflo.componentlib.ComponentLibrary()
+    lib.loadFile sourceFile
+
+    components = Object.keys lib.getComponents()
+    if not components.length
+        console.error "Could not find any MicroFlo components in #{sourceFile}"
+        process.exit 1
+    name = components[0]
+
+    componentFile = sourceFile.replace(path.extname(sourceFile), ".component")
+    includePath = "./" + path.basename sourceFile
+    componentWrapper = generateComponent lib, name, includePath
+    fs.writeFileSync componentFile, componentWrapper
+
+graphCommand = (graphFile, env) ->
+    lib = new microflo.componentlib.ComponentLibrary()
+    lib.loadFile graphFile
+
+    microflo.definition.loadFile graphFile, (err, graph) ->
+        throw err if err
+        graph = microflo.generate.initialCmdStream lib, graph
+        fs.writeFileSync graphFile+".graph.h", graph
+
+mainCommand = (inputFile, env) ->
+    library = env.library or defaultLibrary
+    componentLib = new microflo.componentlib.ComponentLibrary()
+    componentLib.loadSetFile library, (err) ->
+        throw err if err
+
+        microflo.generate.generateMain componentLib, inputFile, env
+
 main = ->
     commander.version module.exports.version
     commander.command("componentlib <JsonFile> <OutputPath> <FactoryMethodName>")
@@ -93,6 +148,22 @@ main = ->
     commander.command("update-defs")
         .description("Update internal generated definitions")
         .action updateDefsCommand
+    commander.command("component <COMPONENT.hpp>")
+        .description("Update generated definitions for component")
+        .action componentDefsCommand
+    commander.command("graph <COMPONENT.hpp>")
+        .description("Update generated definitions for component")
+        .option("-t, --target <platform>", "Target platform: arduino|linux|avr8")
+        .action graphCommand
+    commander.command("main <GRAPH>")
+        .description("Generate an entrypoint file")
+        .option("-t, --target <platform>", "Target platform: arduino|linux|avr8")
+        .option("-m, --mainfile <FILE.hpp>", "File to include for providing main()")
+        .option("-o, --output <FILE>", "File to output to. Defaults to $graphname.cpp")
+        .option("-l, --library <FILE.json>", "Component library file") # WARN: to be deprecated
+        .option("--enable-maps", "Enable graph info maps")
+        .action mainCommand
+
     commander.command("generate <INPUT> <OUTPUT>")
         .description("Generate MicroFlo firmware code, with embedded graph.")
         .option("-l, --library <FILE.json>", "Component library file")
