@@ -125,6 +125,14 @@ graphCommand = (graphFile, env) ->
         graph = microflo.generate.initialCmdStream lib, graph
         fs.writeFileSync graphFile+".graph.h", graph
 
+mainCommand = (inputFile, env) ->
+    library = env.library or defaultLibrary
+    componentLib = new microflo.componentlib.ComponentLibrary()
+    componentLib.loadSetFile library, (err) ->
+        throw err if err
+
+        microflo.generate.generateMain componentLib, inputFile, env
+
 main = ->
     commander.version module.exports.version
     commander.command("componentlib <JsonFile> <OutputPath> <FactoryMethodName>")
@@ -140,6 +148,12 @@ main = ->
         .description("Update generated definitions for component")
         .option("-t, --target <platform>", "Target platform: arduino|linux|avr8")
         .action graphCommand
+    commander.command("main <GRAPH>")
+        .description("Generate an entrypoint file")
+        .option("-t, --target <platform>", "Target platform: arduino|linux|avr8")
+        .option("-o, --output <FILE>", "File to output to. Defaults to $graphname.cpp")
+        .action mainCommand
+
     commander.command("generate <INPUT> <OUTPUT>")
         .description("Generate MicroFlo firmware code, with embedded graph.")
         .option("-l, --library <FILE.json>", "Component library file")
