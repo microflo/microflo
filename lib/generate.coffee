@@ -54,9 +54,9 @@ toSymbolicCommandStr = (message, componentLib, mapping) ->
     return mapping.nodes[name].id
   componentId = (name) ->
     return "#{name}::id"
-  portId = (node, port, src) ->
+  portId = (node, port, out) ->
     component = mapping.components[node]
-    ports = if src then "OutPorts" else "InPorts" 
+    ports = if out then "OutPorts" else "InPorts"
     return "#{component}::#{component}Ports::#{ports}::#{port}"
 
   # Overrides
@@ -71,9 +71,23 @@ toSymbolicCommandStr = (message, componentLib, mapping) ->
     cmd = ["GraphCmdConnectNodes", nodeId(p.src.node), nodeId(p.tgt.node), srcPort, tgtPort, "0x00", "0x00" ]
     return cmd.join ', '
   else if message.protocol == 'graph' and message.command == 'addinitial'
-    data = message.payload.src.data
-    cmdBuf = commandstream.dataLiteralToCommand data, 1, 2 # FIXME
-    cmd = ["GraphCmdSendPacket", "0x00", "0x00", "0x00", "0x00", "0x00", "0x00", "0x00" ]
+    p = message.payload
+    commands = commandstream.dataLiteralToCommandDescriptions p.src.data
+    tgtPort = portId p.tgt.node, p.tgt.port, false
+    cmd = []
+    for command in commands
+        type = "Msg#{command.type}"
+        cmd = cmd.concat ["GraphCmdSendPacket", nodeId(p.tgt.node), tgtPort, type]
+        data = command.data
+        if data
+            d = []
+            for i in [0...data.length]
+                d[i] = "0x" + data.readUInt8(i).toString(16)
+            data = d
+        else
+            data = ['0x00', '0x00', '0x00', '0x00'] if not data
+        cmd = cmd.concat data
+
     return cmd.join ', '
 
   else

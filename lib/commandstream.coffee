@@ -425,6 +425,7 @@ module.exports =
   cmdStreamFromGraph: cmdStreamFromGraph
   dataLiteralToCommand: dataLiteralToCommand
   dataToCommand: dataToCommand
+  dataLiteralToCommandDescriptions: dataLiteralToCommandDescriptions
   writeCmd: writeCmd
   writeString: writeString
   cmdFormat: cmdFormat
