@@ -94,7 +94,7 @@ std::string msgfloPorts(const std::vector<Port> &ports) {
     return str;
 }
 
-std::string msgfloDiscoveryMessage(const ParticipantInfo *info) {
+std::string msgfloParticipantInfo(const ParticipantInfo *info) {
     // TODO: add label
     // TODO: add icon
     std::string inports = msgfloPorts(info->inports);
@@ -112,6 +112,17 @@ std::string msgfloDiscoveryMessage(const ParticipantInfo *info) {
     return msg;
 }
 
+std::string msgfloDiscoveryMessage(const ParticipantInfo *info) {
+    const std::string payload = msgfloParticipantInfo(info);
+
+    std::string msg = "{\n"
+        JSON_ATTR_STRING("protocol", "discovery")
+        JSON_ATTR_STRING("command", "participant")
+        JSON_ATTR_STRING("payload", payload)
+        JSON_ATTR_ENDNULL("_")
+    + "}";
+    return msg;
+}
 
 struct MqttOptions {
     int brokerPort;
