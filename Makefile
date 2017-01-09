@@ -1,6 +1,7 @@
 # User configuration options
 GRAPH=examples/blink.fbp
 MODEL=uno
+BOARD=arduino:avr:uno
 AVRMODEL=at90usb1287
 MBED_GRAPH=examples/blink-mbed.fbp
 LINUX_GRAPH=examples/blink-rpi.fbp
@@ -42,21 +43,25 @@ LIBRARYOPTION=--library=$(LIBRARY)
 endif
 
 ESP_OPTS = ESPRESSIF_DIR=/home/jon/temp/Espressif ESPTOOL=/usr/bin/esptool.py V=1 ESPTOOL_CK=/home/jon/temp/Espressif/esptool-ck/esptool SDK_EXTRA_INCLUDES=$(MICROFLO_SOURCE_DIR) LD_SCRIPT="-T ./eagle.app.v6.ld"
-INOOPTIONS=--board-model=$(MODEL)
 
 ifdef SERIALPORT
-INOUPLOADOPTIONS=--serial-port=$(SERIALPORT)
 ESP_OPTS+=ESPPORT=$(SERIALPORT)
+else
+SERIALPORT=/dev/ttyACM0
 endif
 
-ifdef ARDUINO
-INOOPTIONS+=--arduino-dist=$(ARDUINO)
+ifndef ARDUINO
+ARDUINO:=$(shell echo `pwd`/arduino-1.8.1)
 endif
 
 ifndef ENERGIA
 ENERGIA=/opt/energia/
 endif
 
+AVRDUDE_OPTIONS=-patmega328p -carduino -b115200 # uno
+#AVRDUDE_OPTIONS=-patmega32u4 -cavr109 -b57600 # leonardo
+
+BUILDER_OPTIONS=-hardware $(ARDUINO)/hardware -tools $(ARDUINO)/tools-builder -tools $(ARDUINO)/hardware/tools -fqbn $(BOARD) -libraries ./ -build-path `pwd`/build/arduino/builder
 
 COMMON_CFLAGS:=-I. -I${MICROFLO_SOURCE_DIR} -Wall -Wno-error=unused-variable
 
@@ -81,19 +86,11 @@ all: build
 update-defs:
 	$(MICROFLO) update-defs $(MICROFLO_SOURCE_DIR)
 
-build-arduino-min:
+build-arduino:
 	rm -rf $(BUILD_DIR)/arduino || echo 'WARN: failure to clean Arduino build'
 	mkdir -p $(BUILD_DIR)/arduino/src
 	mkdir -p $(BUILD_DIR)/arduino/lib
-	cp -r $(MICROFLO_SOURCE_DIR) $(BUILD_DIR)/arduino/lib/
-	$(MICROFLO) generate $(GRAPH) $(BUILD_DIR)/arduino/src/ --target arduino
-	cd $(BUILD_DIR)/arduino && ino build $(INOOPTIONS) --verbose --cppflags="$(CPPFLAGS) $(DEFINES) -I./src"
-	$(AVRSIZE) -A $(BUILD_DIR)/arduino/.build/$(MODEL)/firmware.elf
-
-build-arduino:
-#	rm -rf $(BUILD_DIR)/arduino || echo 'WARN: failure to clean Arduino build'
-	mkdir -p $(BUILD_DIR)/arduino/src
-	mkdir -p $(BUILD_DIR)/arduino/lib
+	mkdir -p $(BUILD_DIR)/arduino/builder
 	cp -r $(MICROFLO_SOURCE_DIR) $(BUILD_DIR)/arduino/lib/
 	unzip -q -n ./thirdparty/OneWire.zip -d $(BUILD_DIR)/arduino/lib/
 	unzip -q -n ./thirdparty/DallasTemperature.zip -d $(BUILD_DIR)/arduino/lib/
@@ -104,8 +101,8 @@ build-arduino:
 	cd $(BUILD_DIR)/arduino/lib && test -e patched || patch -p0 < ../../../thirdparty/OneWire.patch
 	touch $(BUILD_DIR)/arduino/lib/patched
 	$(MICROFLO) generate $(GRAPH) $(BUILD_DIR)/arduino/src/ arduino
-	cd $(BUILD_DIR)/arduino && ino build $(INOOPTIONS) --verbose --cppflags="$(CPPFLAGS) $(DEFINES) -I./src"
-	$(AVRSIZE) -A $(BUILD_DIR)/arduino/.build/$(MODEL)/firmware.elf
+	mv $(BUILD_DIR)/arduino/src/main.cpp $(BUILD_DIR)/arduino/src/main.ino
+	arduino-builder -compile $(BUILDER_OPTIONS) $(BUILD_DIR)/arduino/src/main.ino
 
 build-avr:
 	mkdir -p $(BUILD_DIR)/avr
@@ -192,7 +189,7 @@ flash-esp: build-esp
 build: update-defs build-arduino build-avr
 
 upload: build-arduino
-	cd $(BUILD_DIR)/arduino && ino upload $(INOUPLOADOPTIONS) $(INOOPTIONS)
+	avrdude -C$(ARDUINO)/hardware/tools/avr/etc/avrdude.conf -v -P$(SERIALPORT) $(AVRDUDE_OPTIONS) -D -Uflash:w:$(BUILD_DIR)/arduino/builder/main.ino.hex:i
 
 upload-dfu: build-avr
 	cd $(BUILD_DIR)/avr && sudo $(DFUPROGRAMMER) $(AVRMODEL) erase
@@ -219,14 +216,14 @@ release-arduino:
 	cp -r build/arduino/src/componentlib* $(BUILD_DIR)/microflo-arduino/microflo/
 	ls -ls $(BUILD_DIR)/arduino/src
 	cp -r $(BUILD_DIR)/arduino/src/*.h $(BUILD_DIR)/microflo-arduino/microflo
-	cp $(BUILD_DIR)/arduino/src/main.cpp $(BUILD_DIR)/microflo-arduino/microflo/examples/Standalone/Standalone.pde
+	cp $(BUILD_DIR)/arduino/src/main.ino $(BUILD_DIR)/microflo-arduino/microflo/examples/Standalone/Standalone.ino
 	cd $(BUILD_DIR)/microflo-arduino && zip -q -r ../microflo-arduino.zip microflo
 
 check-arduino-release:
 	rm -rf $(BUILD_DIR)/microflo-arduino-check
 	mkdir -p $(BUILD_DIR)/microflo-arduino-check/{src,lib}
 	cd $(BUILD_DIR)/microflo-arduino-check/lib && unzip ../../microflo-arduino.zip
-	cd $(BUILD_DIR)/microflo-arduino-check && cp lib/microflo/examples/Standalone/Standalone.pde src/Standalone.cpp
+	cd $(BUILD_DIR)/microflo-arduino-check && cp lib/microflo/examples/Standalone/Standalone.ino src/Standalone.cpp
 	cd $(BUILD_DIR)/microflo-arduino-check && ino build
 
 # FIXME: run on Travis CI
