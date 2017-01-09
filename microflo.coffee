@@ -85,15 +85,22 @@ flashCommand = (file, env) ->
 updateDefsCommand = (directory) ->
     microflo.generate.updateDefinitions directory
 
-generateFactory = (name) ->
-    return """static Component *create() { return new #{name}(); }
+generateFactory = (componentLib, name) ->
+    instantiator = "new #{name}()"
+    comp = componentLib.getComponent name
+    if comp.type is "pure2"
+      # XXX: can we get rid of this??
+      t0 = componentLib.inputPortById(name, 0).ctype
+      t1 = componentLib.inputPortById(name, 0).ctype
+      instantiator = "new PureFunctionComponent2<" + name + "," + t0 + "," + t1 + ">"
+    return """static Component *create() { return #{instantiator}; }
     static const char * const name = "#{name}";
-    static const MicroFlo::ComponentId id = DefaultComponentLibrary.add(create, name);
+    static const MicroFlo::ComponentId id = ComponentLibrary::get()->add(create, name);
     """
 
 generateComponent = (lib, name, sourceFile) ->
     ports = microflo.generate.componentPorts lib, name
-    factory = generateFactory name
+    factory = generateFactory lib, name
     return """namespace #{name} {
     #{ports}
     #include "#{sourceFile}"
