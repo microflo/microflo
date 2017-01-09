@@ -216,14 +216,14 @@ release-arduino:
 	cp -r build/arduino/src/componentlib* $(BUILD_DIR)/microflo-arduino/microflo/
 	ls -ls $(BUILD_DIR)/arduino/src
 	cp -r $(BUILD_DIR)/arduino/src/*.h $(BUILD_DIR)/microflo-arduino/microflo
-	cp $(BUILD_DIR)/arduino/src/main.cpp $(BUILD_DIR)/microflo-arduino/microflo/examples/Standalone/Standalone.pde
+	cp $(BUILD_DIR)/arduino/src/main.ino $(BUILD_DIR)/microflo-arduino/microflo/examples/Standalone/Standalone.ino
 	cd $(BUILD_DIR)/microflo-arduino && zip -q -r ../microflo-arduino.zip microflo
 
 check-arduino-release:
 	rm -rf $(BUILD_DIR)/microflo-arduino-check
 	mkdir -p $(BUILD_DIR)/microflo-arduino-check/{src,lib}
 	cd $(BUILD_DIR)/microflo-arduino-check/lib && unzip ../../microflo-arduino.zip
-	cd $(BUILD_DIR)/microflo-arduino-check && cp lib/microflo/examples/Standalone/Standalone.pde src/Standalone.cpp
+	cd $(BUILD_DIR)/microflo-arduino-check && cp lib/microflo/examples/Standalone/Standalone.ino src/Standalone.cpp
 	cd $(BUILD_DIR)/microflo-arduino-check && ino build
 
 # FIXME: run on Travis CI
