@@ -335,7 +335,7 @@ generateMain = (componentLib, inputFile, options) ->
   definition.loadFile inputFile, (err, graph) ->
     throw err if err
 
-    graphStream = initialCmdStreamSymbolic componentLib, graph
+    graphStream = initialCmdStreamSymbolic componentLib, graph, options.debug
     components = generateComponentIncludesNew componentLib
     maps = generateGraphMaps componentLib, graph
 
