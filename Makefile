@@ -1,6 +1,5 @@
 # User configuration options
 GRAPH=examples/blink.fbp
-MODEL=uno
 BOARD=arduino:avr:uno
 AVRMODEL=at90usb1287
 MBED_GRAPH=examples/blink-mbed.fbp
@@ -59,7 +58,12 @@ ENERGIA=/opt/energia/
 endif
 
 AVRDUDE_OPTIONS=-patmega328p -carduino -b115200 # uno
-#AVRDUDE_OPTIONS=-patmega32u4 -cavr109 -b57600 # leonardo
+ARDUINO_RESET_CMD=echo Reset command not needed
+
+ifeq ($(BOARD),arduino:avr:leonardo)
+	AVRDUDE_OPTIONS=-patmega32u4 -cavr109 -b57600 # leonardo
+	ARDUINO_RESET_CMD=python2 ./tools/leonardo-reset.py $(SERIALPORT); sleep 2;
+endif
 
 BUILDER_OPTIONS=-hardware $(ARDUINO)/hardware -tools $(ARDUINO)/tools-builder -tools $(ARDUINO)/hardware/tools -fqbn $(BOARD) -libraries ./ -build-path `pwd`/build/arduino/builder
 
@@ -189,6 +193,7 @@ flash-esp: build-esp
 build: update-defs build-arduino build-avr
 
 upload: build-arduino
+	$(ARDUINO_RESET_CMD)
 	avrdude -C$(ARDUINO)/hardware/tools/avr/etc/avrdude.conf -v -P$(SERIALPORT) $(AVRDUDE_OPTIONS) -D -Uflash:w:$(BUILD_DIR)/arduino/builder/main.ino.hex:i
 
 upload-dfu: build-avr
