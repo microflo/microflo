@@ -126,10 +126,12 @@ class SendQueue extends EventEmitter
                 return
             @current.sent = Date.now()
             @write chunk, (err, len) =>
-                errored = err or len == -1
-                if not errored and chunk.length and index < dataBuf.length
-                    console.log 'MICROFLO SEND:', chunkSize, chunk, err, len, errored if debug_comms
-                    sendCmd dataBuf, index+=chunkSize
+                setTimeout =>
+                    errored = err or len == -1
+                    if not errored and chunk.length and index < dataBuf.length
+                        console.log 'MICROFLO SEND:', chunkSize, chunk, err, len, errored if debug_comms
+                        sendCmd dataBuf, index+=chunkSize
+                , 0
 
         sendCmd @current.data, 0 if @current?
 
