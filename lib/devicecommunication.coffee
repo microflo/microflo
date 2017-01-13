@@ -116,7 +116,7 @@ class SendQueue extends EventEmitter
 
         # console.log 'popping buff off queue'
         @current = @queue.shift()
-        chunkSize = commandstream.cmdFormat.commandSize
+        chunkSize = commandstream.cmdFormat.commandSize*5
 
         sendCmd = (dataBuf, index) =>
             chunk = dataBuf.slice index, index+chunkSize
