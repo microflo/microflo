@@ -41,9 +41,9 @@ portDefAsArray = (port) ->
 
 connectionsWithoutEdge = (connections, findConn) ->
     edgeEq = (a, b) ->
-        JSON.stringify a == JSON.stringify b
+        return a.port == b.port and a.process == b.process
     newList = []
-    connections.forEach (conn) ->
+    for conn in connections
         if conn.src and edgeEq conn.src, findConn.src and edgeEq conn.tgt, findConn.tgt
             # Connection
         else if conn.data and edgeEq conn.tgt, findConn.tgt
