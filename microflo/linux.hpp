@@ -12,6 +12,54 @@
 #include <fstream>
 #include <time.h>
 
+#include <errno.h>
+#include <fcntl.h> 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <termios.h>
+#include <unistd.h>
+
+namespace linux_serial {
+
+static int
+set_interface_attribs(int fd, int speed)
+{
+    struct termios tty;
+
+    if (tcgetattr(fd, &tty) < 0) {
+        printf("Error from tcgetattr: %s\n", strerror(errno));
+        return -1;
+    }
+
+    cfsetospeed(&tty, (speed_t)speed);
+    cfsetispeed(&tty, (speed_t)speed);
+
+    tty.c_cflag |= (CLOCAL | CREAD);    /* ignore modem controls */
+    tty.c_cflag &= ~CSIZE;
+    tty.c_cflag |= CS8;         /* 8-bit characters */
+    tty.c_cflag &= ~PARENB;     /* no parity bit */
+    tty.c_cflag &= ~CSTOPB;     /* only need 1 stop bit */
+    tty.c_cflag &= ~CRTSCTS;    /* no hardware flowcontrol */
+
+    /* setup for non-canonical mode */
+    tty.c_iflag &= ~(IGNBRK | BRKINT | PARMRK | ISTRIP | INLCR | IGNCR | ICRNL | IXON);
+    tty.c_lflag &= ~(ECHO | ECHONL | ICANON | ISIG | IEXTEN);
+    tty.c_oflag &= ~OPOST;
+
+    /* fetch bytes as they become available */
+    tty.c_cc[VMIN] = 1;
+    tty.c_cc[VTIME] = 1;
+
+    if (tcsetattr(fd, TCSANOW, &tty) != 0) {
+        printf("Error from tcsetattr: %s\n", strerror(errno));
+        return -1;
+    }
+    return 0;
+}
+
+} //end namespace
+
 namespace {
     static const std::string SYS_GPIO_BASE = "/sys/class/gpio/";
 
@@ -55,6 +103,67 @@ namespace {
         }
         return temp;
     }
+}
+
+
+
+class LinuxSerialTransport : public HostTransport {
+public:
+    LinuxSerialTransport(const std::string &p)
+        : path(p)
+    {
+    }
+
+    // implements HostTransport
+    virtual void setup(IO *i, HostCommunication *c);
+    virtual void runTick();
+    virtual void sendCommand(const uint8_t *buf, uint8_t len);
+
+private:
+    IO *io;
+    HostCommunication *controller;
+    int baudrate;
+    std::string path;
+    int fd;
+};
+
+void LinuxSerialTransport::setup(IO *i, HostCommunication *c) {
+    io = i;
+    controller = c;
+
+    fd = open(path.c_str(), O_RDWR | O_NOCTTY | O_SYNC);
+    /*baudrate 115200, 8 bits, no parity, 1 stop bit */
+    if (fd >= 0) {
+        linux_serial::set_interface_attribs(fd, B115200);
+    }
+}
+
+void LinuxSerialTransport::runTick() {
+   
+    // simple noncanonical input
+    const size_t cmdSize = MICROFLO_CMD_SIZE;
+    unsigned char buf[cmdSize];
+    const size_t bytesRead = read(fd, buf, cmdSize);
+    if (bytesRead > 0) {
+        for (size_t i=0; i<bytesRead; i++) {
+            controller->parseByte(buf[i]);
+        }
+    }
+}
+
+void LinuxSerialTransport::sendCommand(const uint8_t *b, uint8_t len) {
+    // Make sure to pad to the cmd size
+    const size_t cmdSize = MICROFLO_CMD_SIZE;
+    char cmd[cmdSize];
+    for (uint8_t i=0; i<cmdSize; i++) {
+        cmd[i] = ((i < len) ?  b[i] : 0x00);
+    }
+
+    size_t written = write(fd, cmd, cmdSize);
+    //if (written != cmdSize) {
+    //    printf("Error from write: %d, %d\n", wlen, errno);
+    //}
+    tcdrain(fd); /* delay for output */
 }
 
 

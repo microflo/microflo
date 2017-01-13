@@ -7,19 +7,26 @@
 #include "linux.hpp"
 #include <unistd.h>
 
-int main(void) {
+int main(int argc, char *argv[]) {
     LinuxIO io;
-    // TODO: add IP-based host transport
-    NullHostTransport transport;
     FixedMessageQueue queue;
     Network network(&io, &queue);
     HostCommunication controller;
+    HostTransport *transport;
+    if (argc >= 1) {
+        const std::string port = argv[1];
+        LinuxSerialTransport serial(port);
+        transport = &serial;
+    } else {
+        NullHostTransport t;
+        transport = &t;
+    }
 
-    transport.setup(&io, &controller);
-    controller.setup(&network, &transport);
+    transport->setup(&io, &controller);
+    controller.setup(&network, transport);
     MICROFLO_LOAD_STATIC_GRAPH((&controller), graph);
     while (1) {
-        transport.runTick();
+        transport->runTick();
         network.runTick();
         // HACK: do some sane scheduling instead
         usleep(1);
