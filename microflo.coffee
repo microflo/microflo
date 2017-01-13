@@ -18,13 +18,13 @@ setupRuntimeCommand = (env) ->
     debugLevel = env.debug or "Error"
     ip = env.ip or "127.0.0.1"
     baud = parseInt(env.baudrate) or 9600
-    library = env.library or defaultLibrary
+    componentMap = env.componentmap
     if env.file
         file = path.resolve env.file
         microflo.runtime.setupSimulator file, baud, port, debugLevel, ip, (err, runtime) ->
             throw err if err
     else
-        microflo.runtime.setupRuntime serialPortToUse, baud, port, debugLevel, ip, library, (err, runtime) ->
+        microflo.runtime.setupRuntime serialPortToUse, baud, port, debugLevel, ip, componentMap, (err, runtime) ->
             throw err  if err
 
 
@@ -183,6 +183,7 @@ main = ->
         .option("-p, --port <PORT>", "which port to use for WebSocket")
         .option("-i, --ip <IP>", "which IP to use for WebSocket")
         .option("-f, --file <FILE>", "Firmware file to run (.js or binary)")
+        .option("-m, --componentmap <.json>", "Component mapping definition")
         .action setupRuntimeCommand
     commander.command("register [USER]")
         .description("Register the runtime with Flowhub registry")

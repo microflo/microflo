@@ -11,6 +11,7 @@ else
     websocket = require("websocket")
     url = require("url")
     uuid = require "uuid"
+    fs = require 'fs'
 
 EventEmitter = util.EventEmitter
 try
@@ -462,11 +463,19 @@ setupWebsocket = (runtime, ip, port, callback) ->
         return callback null, httpServer
 
 # FIXME: specify most of these things through a `options` object
-setupRuntime = (serialPortToUse, baudRate, port, debugLevel, ip, library, callback) ->
+setupRuntime = (serialPortToUse, baudRate, port, debugLevel, ip, componentMap, callback) ->
 
     serial.openTransport serialPortToUse, baudRate, (err, transport) ->
         return callback err, null if err
         runtime = new Runtime transport
+
+        # TODO: support automatically looking up in runtime
+        if componentMap
+            try
+                runtime.library.definition = JSON.parse(fs.readFileSync(componentMap, 'utf-8'))
+            catch e
+                console.log 'WARN: could not load component mapping', e
+
         setupWebsocket runtime, ip, port, (err, server) ->
             # FIXME: ping Flowhub
             return callback null, runtime
