@@ -395,6 +395,30 @@ handleMessage = (runtime, contents) ->
         console.log "Unknown NoFlo UI protocol:", contents
     return
 
+class BracketDataCollector
+  constructor: () ->
+    received = {}
+    bracketed = null
+  
+  # Returns null if there is no (completed bracketed data)
+  # or a list of the data contained in bracket if there is
+  pushData: (payload) ->
+    # FIXME: assumes all data is on a single edge!
+    {data, type} = payload
+    if not @bracketed? and type != 'BracketStart'
+      # return original
+      return data
+    if @bracketed? and type != 'BracketEnd'
+      @bracketed.push data
+      return null
+    if type == 'BracketStart'
+      @bracketed = []
+      return null
+    if type == 'BracketEnd'
+      out = @bracketed.slice() 
+      @bracketed = null
+      return out
+
 createFlowhubRuntime = (user, ip, port, label, id, apihost) ->
     return null if not flowhub
 
@@ -516,6 +540,7 @@ class Runtime extends EventEmitter
         @library = new c.ComponentLibrary
         @device = new devicecommunication.DeviceCommunication @transport
         @io = new devicecommunication.RemoteIo @device
+        @collector = new BracketDataCollector()
         @exportedEdges = []
         @edgesForInspection = []
         @conn =
@@ -531,16 +556,10 @@ class Runtime extends EventEmitter
                 event = args[0]
                 if event == 'SEND'
                     [event, node, port, type, data] = args
-                    console.log event, node, port, type, data
-                    if bracketed? and type != 'BracketEnd'
-                        bracketed.push data
-                        return
-                    if type == 'BracketStart'
-                        bracketed = []
-                        return
-                    if type == 'BracketEnd'
-                        data = bracketed.slice()
-                        bracketed = null
+                    payload = { data: data, type: type }
+                    data = @collector.pushData payload
+                    if data?
+                        data = data
                     args = [event, node, port, type, data]
                     deviceResponseToFbpProtocol @, @conn.send, args
                 else
