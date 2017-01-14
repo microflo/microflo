@@ -161,11 +161,8 @@ class SendQueue extends EventEmitter
 # Any parsing/interpretation of these commands must be done on a higher level
 class DeviceCommunication extends EventEmitter
 
-    # FIXME:remove graph/componentLib access
-    constructor: (transport, graph, componentLib) ->
-        @graph = graph
+    constructor: (transport) ->
         @transport = transport
-        @componentLib = componentLib
         @accumulator = new CommandAccumulator commandstream.cmdFormat.commandSize
 
         return if not @transport

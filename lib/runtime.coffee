@@ -505,7 +505,6 @@ uploadGraphFromFile = (graphPath, serialPortName, baudRate, debugLevel) ->
     serial.openTransport serialPortName, baudRate, (err, transport) ->
         definition.loadFile graphPath, (err, graph) ->
             data = commandstream.cmdStreamFromGraph(runtime.library, graph, debugLevel)
-            # FIXME: reimplement using devicecomm directly
             uploadGraph transport, data, graph
 
 class Runtime extends EventEmitter
@@ -515,7 +514,7 @@ class Runtime extends EventEmitter
         @transport = transport
         @debugLevel = options?.debug or 'Error'
         @library = new c.ComponentLibrary
-        @device = new devicecommunication.DeviceCommunication @transport, @graph, @library
+        @device = new devicecommunication.DeviceCommunication @transport
         @io = new devicecommunication.RemoteIo @device
         @exportedEdges = []
         @edgesForInspection = []
@@ -553,7 +552,6 @@ class Runtime extends EventEmitter
 
     uploadGraph: (graph, callback) ->
         @graph = graph
-        @device.graph = graph # XXX: not so nice
 
         checkUploadDone = (m) =>
             if m.protocol == 'network' and m.command == 'started'
