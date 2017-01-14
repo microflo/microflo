@@ -153,13 +153,12 @@ class SendQueue extends EventEmitter
             @next()
 
 
-# FIXME: probably need a open/connect and close/disconnect?
-
-# Mirrors the HostCommunication class found on the device side
-# Handles converting from JS objects to the FBCS commands and back
+# Send/receive data from the MicroFlo runtime on-device
+# Takes Buffers filled with with FBCS/commandstream commands and returns the same
+# Any parsing/interpretation of these commands must be done on a higher level
 class DeviceCommunication extends EventEmitter
 
-    # XXX: not liking the graph access that well
+    # FIXME:remove graph/componentLib access
     constructor: (transport, graph, componentLib) ->
         @graph = graph
         @transport = transport
@@ -195,29 +194,6 @@ class DeviceCommunication extends EventEmitter
         commandstream.writeCmd buffer, 0, commandstream.cmdFormat.commands.Ping.id
         @sendCommands buffer, cb
     # pong
-
-
-    # Should maybe be separate, to allow batching up commmands into an object,
-    # then send all those commands (potentially just 1) as one batch/transaction?
-    addNode: (node, component, cb) ->
-    removeNode: (node, cb) ->
-    # nodeAdded, nodeRemoved
-
-    addEdge: (srcNode, srcPort, tgtNode, tgtPort, cb) ->
-    removeEdge: (srcNode, srcPort, tgtNode, tgtPort, cb) ->
-    # edgeAdded, edgeRemoved
-
-    addInitial: (tgtNode, tgtPort, data, cb) ->
-    removeInitial: (tgtNode, tgtPort, cb) ->
-    # iipAdded, iipRemoved
-
-    startNetwork: (cb) ->
-    stopNetwork: (cb) ->
-    # networkStarted, networkStopped
-
-    subscribePort: () ->
-    configureDebug: () ->
-    # portSubscribed, debugConfigured
 
     # Send batched
     sendCommands: (buffer, callback) ->
