@@ -526,25 +526,26 @@ class Runtime extends EventEmitter
 
         received = {}
         bracketed = null
-        @device.on 'response', () =>
-            args = Array.prototype.slice.call arguments
-            event = args[0]
-            if event == 'SEND'
-                [event, node, port, type, data] = args
-                console.log event, node, port, type, data
-                if bracketed? and type != 'BracketEnd'
-                    bracketed.push data
-                    return
-                if type == 'BracketStart'
-                    bracketed = []
-                    return
-                if type == 'BracketEnd'
-                    data = bracketed.slice()
-                    bracketed = null
-                args = [event, node, port, type, data]
-                deviceResponseToFbpProtocol @, @conn.send, args
-            else
-                deviceResponseToFbpProtocol @, @conn.send, args
+        @device.on 'response', (cmd) =>
+            commandstream.parseReceivedCmd @library, @graph, cmd, () =>
+                args = Array.prototype.slice.call arguments
+                event = args[0]
+                if event == 'SEND'
+                    [event, node, port, type, data] = args
+                    console.log event, node, port, type, data
+                    if bracketed? and type != 'BracketEnd'
+                        bracketed.push data
+                        return
+                    if type == 'BracketStart'
+                        bracketed = []
+                        return
+                    if type == 'BracketEnd'
+                        data = bracketed.slice()
+                        bracketed = null
+                    args = [event, node, port, type, data]
+                    deviceResponseToFbpProtocol @, @conn.send, args
+                else
+                    deviceResponseToFbpProtocol @, @conn.send, args
 
     handleMessage: (msg) ->
         console.log 'FBP MICROFLO RECV:', msg if util.debug_protocol
