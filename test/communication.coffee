@@ -10,10 +10,7 @@ describeIfSimulator = if build? then describe else describe.skip
 
 describeIfSimulator 'Device communication', ->
   runtime = new microflo.simulator.RuntimeSimulator build
-  componentLib = new microflo.componentlib.ComponentLibrary
-  transport = runtime.transport
-  graph = {}
-  comm = new microflo.devicecommunication.DeviceCommunication transport, graph, componentLib
+  comm = new microflo.devicecommunication.DeviceCommunication runtime.transport
 
   before (done) ->
     runtime.start()

@@ -505,7 +505,6 @@ uploadGraphFromFile = (graphPath, serialPortName, baudRate, debugLevel) ->
     serial.openTransport serialPortName, baudRate, (err, transport) ->
         definition.loadFile graphPath, (err, graph) ->
             data = commandstream.cmdStreamFromGraph(runtime.library, graph, debugLevel)
-            # FIXME: reimplement using devicecomm directly
             uploadGraph transport, data, graph
 
 class Runtime extends EventEmitter
@@ -515,7 +514,7 @@ class Runtime extends EventEmitter
         @transport = transport
         @debugLevel = options?.debug or 'Error'
         @library = new c.ComponentLibrary
-        @device = new devicecommunication.DeviceCommunication @transport, @graph, @library
+        @device = new devicecommunication.DeviceCommunication @transport
         @io = new devicecommunication.RemoteIo @device
         @exportedEdges = []
         @edgesForInspection = []
@@ -526,25 +525,26 @@ class Runtime extends EventEmitter
 
         received = {}
         bracketed = null
-        @device.on 'response', () =>
-            args = Array.prototype.slice.call arguments
-            event = args[0]
-            if event == 'SEND'
-                [event, node, port, type, data] = args
-                console.log event, node, port, type, data
-                if bracketed? and type != 'BracketEnd'
-                    bracketed.push data
-                    return
-                if type == 'BracketStart'
-                    bracketed = []
-                    return
-                if type == 'BracketEnd'
-                    data = bracketed.slice()
-                    bracketed = null
-                args = [event, node, port, type, data]
-                deviceResponseToFbpProtocol @, @conn.send, args
-            else
-                deviceResponseToFbpProtocol @, @conn.send, args
+        @device.on 'response', (cmd) =>
+            commandstream.parseReceivedCmd @library, @graph, cmd, () =>
+                args = Array.prototype.slice.call arguments
+                event = args[0]
+                if event == 'SEND'
+                    [event, node, port, type, data] = args
+                    console.log event, node, port, type, data
+                    if bracketed? and type != 'BracketEnd'
+                        bracketed.push data
+                        return
+                    if type == 'BracketStart'
+                        bracketed = []
+                        return
+                    if type == 'BracketEnd'
+                        data = bracketed.slice()
+                        bracketed = null
+                    args = [event, node, port, type, data]
+                    deviceResponseToFbpProtocol @, @conn.send, args
+                else
+                    deviceResponseToFbpProtocol @, @conn.send, args
 
     handleMessage: (msg) ->
         console.log 'FBP MICROFLO RECV:', msg if util.debug_protocol
@@ -552,7 +552,6 @@ class Runtime extends EventEmitter
 
     uploadGraph: (graph, callback) ->
         @graph = graph
-        @device.graph = graph # XXX: not so nice
 
         checkUploadDone = (m) =>
             if m.protocol == 'network' and m.command == 'started'

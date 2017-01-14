@@ -63,18 +63,19 @@ describeIfSimulator 'Network', ->
       actualResponses = 0
       # TODO: API should allow to get callback when everything is completed
 
-      handleFunc = ->
-        if arguments[0] == 'ERROR'
-          return finish new Error arguments[1]
-        if arguments[0] != 'IOCHANGE'
+      handleFunc = (cmd) ->
+        type = cmd.readUInt8 0
+        cmds = microflo.commandstream.cmdFormat.commands
+        if type != cmds.IoValueChanged.id
           actualResponses++
-        if arguments[0] == 'NETSTART'
+        if type == cmds.NetworkStarted.id
           chai.expect(actualResponses).to.equal expectedResponses
           finish()
         return
 
       s.start()
       s.device.on 'response', handleFunc
+      s.device.on 'error', () -> return finish err
       s.device.open ->
         s.uploadGraph graph, ->
           s.device.close ->
