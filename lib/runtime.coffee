@@ -19,6 +19,9 @@ try
 catch e
   #
 
+liveProgramming = process.env.MICROFLO_LIVE?
+console.log 'microflo: Live programming enabled' if liveProgramming
+
 commandstream = require("./commandstream")
 generate = require("./generate")
 { ComponentLibrary } = require "./componentlib"
@@ -41,7 +44,7 @@ portDefAsArray = (port) ->
 
 connectionsWithoutEdge = (connections, findConn) ->
     edgeEq = (a, b) ->
-        return a.port == b.port and a.process == b.process
+        return a?.port == b?.port and a?.process == b?.process
     newList = []
     for conn in connections
         if conn.src and edgeEq conn.src, findConn.src and edgeEq conn.tgt, findConn.tgt
@@ -142,11 +145,19 @@ handleRuntimeCommand = (command, payload, connection, runtime) ->
             type: "microflo"
             version: "0.4"
             capabilities: caps
-        connection.send
-            protocol: "runtime"
-            command: "runtime"
-            payload: r
-        sendExportedPorts connection, runtime
+        if liveProgramming
+          runtime.device.open () ->
+            connection.send
+              protocol: "runtime"
+              command: "runtime"
+              payload: r
+          sendExportedPorts connection, runtime       
+        else
+          connection.send
+              protocol: "runtime"
+              command: "runtime"
+              payload: r
+          sendExportedPorts connection, runtime
     else if command is 'packet'
         sendPacket runtime, payload.port, payload.event, payload.payload
     else
@@ -180,17 +191,33 @@ handleGraphCommand = (command, payload, connection, runtime) ->
         graph.processes = {}
         graph.connections = []
         graph.name = payload.name or ''
-        graph.nodeMap = {} # nodeName->numericNodeId
+        graph.nodeMap = {}
+        graph.componentMap = {}
+        graph.currentNodeId = 1
         # FIXME: should be on the graph!
         runtime.exportedEdges = []
         runtime.edgesForInspection = []
-        sendAck connection, { protocol: 'graph', command: command, payload: payload }
+        if liveProgramming
+          sendMessage runtime, { protocol: 'graph', command: command, payload: payload }
+        else
+          sendAck connection, { protocol: 'graph', command: command, payload: payload }
     else if command is "addnode"
         graph.processes[payload.id] = payload
-        sendAck connection, { protocol: 'graph', command: command, payload: payload }
+        graph.nodeMap[payload.id] = { id: graph.currentNodeId++ }
+        graph.componentMap[payload.id] = payload.component
+        # TODO: wait for nodeId from runtime, update nodeMap then
+        if liveProgramming
+          sendMessage runtime, { protocol: 'graph', command: command, payload: payload }
+        else
+          sendAck connection, { protocol: 'graph', command: command, payload: payload }
     else if command is "removenode"
+        if liveProgramming
+          sendMessage runtime, { protocol: 'graph', command: command, payload: payload }
+        else
+          sendAck connection, { protocol: 'graph', command: command, payload: payload }
         delete graph.processes[payload.id]
-        sendAck connection, { protocol: 'graph', command: command, payload: payload }
+        delete graph.nodeMap[payload.id]
+        delete graph.componentMap[payload.id]
     else if command is "renamenode"
         node = graph.processes[payload.from]
         graph.processes[payload.to] = node
@@ -200,13 +227,22 @@ handleGraphCommand = (command, payload, connection, runtime) ->
         sendAck connection, { protocol: 'graph', command: command, payload: payload }
     else if command is "addedge"
         graph.connections.push protocol.wsConnectionFormatToFbp(payload)
-        sendAck connection, { protocol: 'graph', command: command, payload: payload }
+        if liveProgramming
+          sendMessage runtime, { protocol: 'graph', command: command, payload: payload }
+        else
+          sendAck connection, { protocol: 'graph', command: command, payload: payload }
     else if command is "removeedge"
         graph.connections = connectionsWithoutEdge(graph.connections, protocol.wsConnectionFormatToFbp(payload))
-        sendAck connection, { protocol: 'graph', command: command, payload: payload }
+        if liveProgramming
+          sendMessage runtime, { protocol: 'graph', command: command, payload: payload }
+        else
+          sendAck connection, { protocol: 'graph', command: command, payload: payload }
     else if command is "addinitial"
         graph.connections.push protocol.wsConnectionFormatToFbp(payload)
-        sendAck connection, { protocol: 'graph', command: command, payload: payload }
+        if liveProgramming
+          sendMessage runtime, { protocol: 'graph', command: command, payload: payload }
+        else
+          sendAck connection, { protocol: 'graph', command: command, payload: payload }
     else if command is "removeinitial"
         graph.connections = connectionsWithoutEdge(graph.connections, protocol.wsConnectionFormatToFbp(payload))
         sendAck connection, { protocol: 'graph', command: command, payload: payload }
@@ -234,6 +270,11 @@ handleGraphCommand = (command, payload, connection, runtime) ->
             src:
                 process: payload.node
                 port: payload.port
+        if liveProgramming
+            edges = runtime.exportedEdges.concat runtime.edgesForInspection
+            handleNetworkEdges runtime, connection, edges, (err) ->
+              console.log 'handle network edges error', err if err
+
         sendAck connection, { protocol: 'graph', command: command, payload: payload }
     else if command is "removeoutport"
         delete graph.outports[payload.public]
@@ -312,10 +353,10 @@ mapMessage = (graph, collector, message)->
         return [ message ]
         
 
-handleNetworkStartStop = (runtime, connection, transport, debugLevel) ->
+# non-live programming way of uploading
+resetAndUploadGraph = (runtime, connection, transport, debugLevel) ->
     # FIXME: also do error handling, and send that across
     # https://github.com/noflo/noflo-runtime-websocket/blob/master/runtime/network.js
-    # TODO: handle start/stop messages, send this to the UI
     graph = runtime.graph
 
     if runtime.uploadInProgress
@@ -370,20 +411,35 @@ subscribeEdges = (runtime, edges, callback) ->
 handleNetworkEdges = (runtime, connection, edges, callback) ->
     subscribeEdges runtime, edges, callback
 
+sendMessage = (runtime, message) ->
+  temp = new commandstream.Buffer 1024
+  g = runtime.graph
+  index = commandstream.toCommandStreamBuffer message, runtime.library, g.nodeMap, g.componentMap, temp, 0
+  data = temp.slice(0, index)
+  runtime.device.sendCommands data, (err) ->
+    console.og 'sendMessage error', err if err
+
 handleNetworkCommand = (command, payload, connection, runtime, transport, debugLevel) ->
     if command is "start"
-        # TODO: handle stop command separately, actually pause the graph
-        handleNetworkStartStop runtime, connection, debugLevel
+        if liveProgramming
+          m = { protocol: 'network', command: command, payload: payload }
+          sendMessage runtime, m
+        else
+          resetAndUploadGraph runtime, connection, debugLevel
     else if command is "stop"
-        m =
-            protocol: "network"
-            command: "stopped"
-            payload:
-                running: false
-                started: false
-        sendAck connection, m
+        if liveProgramming
+          m = { protocol: 'network', command: command, payload: payload }
+          sendMessage runtime, m
+        else
+          m =
+              protocol: "network"
+              command: "stopped"
+              payload:
+                  running: false
+                  started: false
+          sendAck connection, m
     else if command is "edges"
-        # TOD: merge with those of exported outports
+        # TODO: merge with those of exported outports
         runtime.edgesForInspection = payload.edges
         edges = runtime.edgesForInspection.concat runtime.exportedEdges
         handleNetworkEdges runtime, connection, edges
@@ -555,6 +611,12 @@ class Runtime extends EventEmitter
         @collector = new BracketDataCollector()
         @exportedEdges = []
         @edgesForInspection = []
+
+        # Needed because the runtime on microcontroller only has numerical identifiers
+        @graph.nodeMap = {} # "nodeName" -> { id: numericNodeId }
+        @graph.componentMap = {} # "nodeName" -> "componentName"
+        @graph.currentNodeId = 1
+
         @conn =
             send: (response) =>
                 console.log 'FBP MICROFLO SEND:', response if util.debug_protocol
