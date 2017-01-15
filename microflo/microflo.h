@@ -216,10 +216,18 @@ public:
     void stop();
 
     MicroFlo::NodeId addNode(Component *node, MicroFlo::NodeId parentId);
+
+    // Connect an outport of one node, to the inport of another node
     void connect(Component *src, MicroFlo::PortId srcPort,
                  Component *target, MicroFlo::PortId targetPort);
     void connect(MicroFlo::NodeId srcId, MicroFlo::PortId srcPort,
                  MicroFlo::NodeId targetId, MicroFlo::PortId targetPort);
+    // Disconnect
+    void disconnect(Component *src, MicroFlo::PortId srcPort,
+                 Component *target, MicroFlo::PortId targetPort);
+    void disconnect(MicroFlo::NodeId srcId, MicroFlo::PortId srcPort,
+                 MicroFlo::NodeId targetId, MicroFlo::PortId targetPort);
+
     void connectSubgraph(bool isOutput,
                          MicroFlo::NodeId subgraphNode, MicroFlo::PortId subgraphPort,
                          MicroFlo::NodeId childNode, MicroFlo::PortId childPort);
@@ -260,8 +268,12 @@ public:
     virtual void packetSent(const Message &m, const Component *sender, MicroFlo::PortId senderPort) = 0;
 
     virtual void nodeAdded(Component *c, MicroFlo::NodeId parentId) = 0;
+
     virtual void nodesConnected(Component *src, MicroFlo::PortId srcPort,
                                 Component *target, MicroFlo::PortId targetPort) = 0;
+    virtual void nodesDisconnected(Component *src, MicroFlo::PortId srcPort,
+                                Component *target, MicroFlo::PortId targetPort) = 0;
+
     virtual void networkStateChanged(Network::State s) = 0;
     virtual void subgraphConnected(bool isOutput,
                                    MicroFlo::NodeId subgraphNode, MicroFlo::PortId subgraphPort,
@@ -416,8 +428,11 @@ protected:
 protected:
     void send(Packet out, MicroFlo::PortId port=0); // send packet out
 private:
-    void connect(MicroFlo::PortId outPort, // Use Network.connect()
+    void connect(MicroFlo::PortId outPort, // Used by Network.connect()
                  Component *target, MicroFlo::PortId targetPort);
+    void disconnect(MicroFlo::PortId outPort, // Used by Network.disconnect()
+                 Component *target, MicroFlo::PortId targetPort);
+
     void setParent(int parentId) { parentNodeId = parentId; }
     void setNetwork(Network *net, int n, IO *io);
 private:
@@ -530,8 +545,12 @@ public:
     // Implements NetworkNotificationHandler
     virtual void packetSent(const Message &m, const Component *src, MicroFlo::PortId senderPort);
     virtual void nodeAdded(Component *c, MicroFlo::NodeId parentId);
+
     virtual void nodesConnected(Component *src, MicroFlo::PortId srcPort,
                                 Component *target, MicroFlo::PortId targetPort);
+    virtual void nodesDisconnected(Component *src, MicroFlo::PortId srcPort,
+                                Component *target, MicroFlo::PortId targetPort);
+
     virtual void networkStateChanged(Network::State s);
     virtual void emitDebug(DebugLevel level, DebugId id);
     virtual void debugChanged(DebugLevel level);

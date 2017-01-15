@@ -289,8 +289,12 @@ public:
 
     // implements NetworkNotificationHandler
     virtual void nodeAdded(Component *c, MicroFlo::NodeId parentId) {}
+
     virtual void nodesConnected(Component *src, MicroFlo::PortId srcPort,
                                 Component *target, MicroFlo::PortId targetPort) {}
+    virtual void nodesDisconnected(Component *src, MicroFlo::PortId srcPort,
+                                Component *target, MicroFlo::PortId targetPort) {}
+
     virtual void networkStateChanged(Network::State s) {}
     virtual void emitDebug(DebugLevel level, DebugId id) {
         const char *levelStr = DebugLevel_names[level];

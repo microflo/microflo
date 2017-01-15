@@ -15,6 +15,7 @@
         "StartNetwork": {"id": 20},
         "SetIoValue": {"id": 21},
         "StopNetwork": {"id": 22},
+        "DisconnectNodes": {"id": 23},
 
         "NetworkStopped": {"id": 100},
         "NodeAdded": {"id": 101},
@@ -32,6 +33,7 @@
         "IoValueChanged":  {"id": 113},
         "SendPacketDone":  {"id": 114},
         "NetworkReset": {"id": 115},
+        "NodesDisconnected": {"id": 116},
 
         "Invalid": { },
         "Max": { "id": 255 }
