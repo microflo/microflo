@@ -14,6 +14,7 @@
         "CommunicationOpen": {"id": 19, "type": "response"},
         "StartNetwork": {"id": 20},
         "SetIoValue": {"id": 21},
+        "StopNetwork": {"id": 22},
 
         "NetworkStopped": {"id": 100},
         "NodeAdded": {"id": 101},
@@ -25,10 +26,12 @@
         "PortSubscriptionChanged": {"id": 107},
         "SubgraphPortConnected": {"id": 108},
         "Pong": {"id": 109},
+
         "TransmissionEnded": {"id": 111},
         "SetIoValueCompleted":  {"id": 112},
         "IoValueChanged":  {"id": 113},
         "SendPacketDone":  {"id": 114},
+        "NetworkReset": {"id": 115},
 
         "Invalid": { },
         "Max": { "id": 255 }

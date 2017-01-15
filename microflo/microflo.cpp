@@ -134,6 +134,8 @@ void HostCommunication::parseCmd() {
         state = LookForHeader;
     } else if (cmd == GraphCmdReset) {
         network->reset();
+    } else if (cmd == GraphCmdStopNetwork) {
+        network->stop();
     } else if (cmd == GraphCmdStartNetwork) {
         network->start();
     } else if (cmd == GraphCmdCreateComponent) {
@@ -229,7 +231,7 @@ Network::Network(IO *io, MessageQueue *m)
     , messageQueue(m)
     , notificationHandler(0)
     , io(io)
-    , state(Stopped)
+    , state(Reset)
 {
     for (int i=0; i<MICROFLO_MAX_NODES; i++) {
         nodes[i] = 0;
@@ -405,13 +407,8 @@ MicroFlo::NodeId Network::addNode(Component *node, MicroFlo::NodeId parentId) {
     return nodeId;
 }
 
-// TODO: separate out stopping (pausing execution) of network and deleting nodes
 void Network::reset() {
-    state = Stopped;
-    if (notificationHandler) {
-        notificationHandler->networkStateChanged(state);
-    }
-
+    state = Reset;
     for (int i=0; i<MICROFLO_MAX_NODES; i++) {
         if (nodes[i]) {
             delete nodes[i];
@@ -420,6 +417,9 @@ void Network::reset() {
     }
     lastAddedNodeIndex = Network::firstNodeId;
     messageQueue->clear();
+    if (notificationHandler) {
+        notificationHandler->networkStateChanged(state);
+    }
 }
 
 void Network::start() {
@@ -429,6 +429,13 @@ void Network::start() {
     }
 
     runSetup();
+}
+
+void Network::stop() {
+    state = Stopped;
+    if (notificationHandler) {
+        notificationHandler->networkStateChanged(state);
+    }
 }
 
 void Network::setDebugLevel(DebugLevel level) {
@@ -500,6 +507,8 @@ void HostCommunication::networkStateChanged(Network::State s) {
         cmd = GraphCmdNetworkStarted;
     } else if (s == Network::Stopped) {
         cmd = GraphCmdNetworkStopped;
+    } else if (s == Network::Reset) {
+        cmd = GraphCmdNetworkReset;
     }
     transport->sendCommand((uint8_t *)&cmd, 1);
 }

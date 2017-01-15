@@ -203,6 +203,7 @@ public:
     static const MicroFlo::NodeId firstNodeId = 1; // 0=reserved: no-parent-node
     enum State {
         Invalid = -1,
+        Reset,
         Stopped,
         Running
     };
@@ -210,7 +211,9 @@ public:
     Network(IO *io, MessageQueue *m);
 
     void reset();
+
     void start();
+    void stop();
 
     MicroFlo::NodeId addNode(Component *node, MicroFlo::NodeId parentId);
     void connect(Component *src, MicroFlo::PortId srcPort,
