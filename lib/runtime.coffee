@@ -354,7 +354,7 @@ mapMessage = (graph, collector, message)->
         
 
 # non-live programming way of uploading
-resetAndUploadGraph = (runtime, connection, transport, debugLevel) ->
+resetAndUploadGraph = (runtime, connection, debugLevel) ->
     # FIXME: also do error handling, and send that across
     # https://github.com/noflo/noflo-runtime-websocket/blob/master/runtime/network.js
     graph = runtime.graph
@@ -593,11 +593,22 @@ setupSimulator = (file, baudRate, port, debugLevel, ip, callback) ->
             return callback null, runtime
 
 
-uploadGraphFromFile = (graphPath, serialPortName, baudRate, debugLevel) ->
-    serial.openTransport serialPortName, baudRate, (err, transport) ->
-        definition.loadFile graphPath, (err, graph) ->
-            data = commandstream.cmdStreamFromGraph(runtime.library, graph, debugLevel)
-            uploadGraph transport, data, graph
+uploadGraphFromFile = (graphPath, options, callback) ->
+  console.log 'o', graphPath
+  serial.openTransport options.serial, options.baudrate, (err, transport) ->
+    return callback err if err
+    runtime = new Runtime transport, { debug: options.debug }
+    # TODO: support automatically looking up in runtime
+    if options.componentmap
+      try
+        runtime.library.definition = JSON.parse(fs.readFileSync(options.componentmap, 'utf-8'))
+      catch e
+        return callback e
+    definition.loadFile graphPath, (err, graph) ->
+      return callback err if err
+      runtime.uploadGraph graph, (err) ->
+        return callback err if err
+        return callback null, err
 
 class Runtime extends EventEmitter
     constructor: (transport, options) ->
@@ -643,7 +654,7 @@ class Runtime extends EventEmitter
 
         @on 'message', checkUploadDone
         try
-            @handleMessage { protocol: 'network', command: 'start' }
+            resetAndUploadGraph this, @conn, @debugLevel
         catch e
             return callback e
 
