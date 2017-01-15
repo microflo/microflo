@@ -163,7 +163,6 @@ commands =
   runtime: {}
   microflo: {}
 
-# TODO: support graph.removenode
 commands.graph.addnode = (payload, buffer, index, componentLib) ->
   nodeName = payload.id
   componentName = payload.component
@@ -174,6 +173,14 @@ commands.graph.addnode = (payload, buffer, index, componentLib) ->
   # Add normal component
   parentId = undefined # subgraph not supported yet
   index += writeCmd(buffer, index, cmdFormat.commands.CreateComponent.id, comp.id, parentId or 0)
+  return index
+
+commands.graph.removenode = (payload, buffer, index, componentLib, nodeMap) ->
+  nodeName = payload.id
+  nodeId = nodeMap[nodeName].id
+
+  # Add normal component
+  index += writeCmd(buffer, index, cmdFormat.commands.RemoveNode.id, nodeId)
   return index
 
 commands.graph.addedge = (payload, buffer, index, componentLib, nodeMap, componentMap) ->
@@ -306,6 +313,15 @@ responses.NodeAdded = (componentLib, graph, cmdData) ->
     payload:
       id: nodeName
       component: component
+  return m
+responses.NodeRemoved = (componentLib, graph, cmdData) ->
+  nodeName = nodeNameById(graph.nodeMap, cmdData.readUInt8(1))
+  m =
+    protocol: 'graph'
+    command: 'removenode'
+    payload:
+      id: nodeName
+  return m
 
 responses.NodesConnected = (componentLib, graph, cmdData) ->
   # TODO: implement
