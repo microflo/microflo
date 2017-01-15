@@ -216,6 +216,7 @@ public:
     void stop();
 
     MicroFlo::NodeId addNode(Component *node, MicroFlo::NodeId parentId);
+    MicroFlo::NodeId removeNode(MicroFlo::NodeId nodeId);
 
     // Connect an outport of one node, to the inport of another node
     void connect(Component *src, MicroFlo::PortId srcPort,
@@ -268,6 +269,7 @@ public:
     virtual void packetSent(const Message &m, const Component *sender, MicroFlo::PortId senderPort) = 0;
 
     virtual void nodeAdded(Component *c, MicroFlo::NodeId parentId) = 0;
+    virtual void nodeRemoved(Component *c, MicroFlo::NodeId parentId) = 0;
 
     virtual void nodesConnected(Component *src, MicroFlo::PortId srcPort,
                                 Component *target, MicroFlo::PortId targetPort) = 0;
@@ -545,6 +547,7 @@ public:
     // Implements NetworkNotificationHandler
     virtual void packetSent(const Message &m, const Component *src, MicroFlo::PortId senderPort);
     virtual void nodeAdded(Component *c, MicroFlo::NodeId parentId);
+    virtual void nodeRemoved(Component *c, MicroFlo::NodeId parentId);
 
     virtual void nodesConnected(Component *src, MicroFlo::PortId srcPort,
                                 Component *target, MicroFlo::PortId targetPort);

@@ -16,6 +16,7 @@
         "SetIoValue": {"id": 21},
         "StopNetwork": {"id": 22},
         "DisconnectNodes": {"id": 23},
+        "RemoveNode": {"id": 24},
 
         "NetworkStopped": {"id": 100},
         "NodeAdded": {"id": 101},
@@ -34,6 +35,7 @@
         "SendPacketDone":  {"id": 114},
         "NetworkReset": {"id": 115},
         "NodesDisconnected": {"id": 116},
+        "NodeRemoved": {"id": 117},
 
         "Invalid": { },
         "Max": { "id": 255 }
@@ -93,6 +95,8 @@
         "IoInvalidValueSet": {"id": 33},
         "UnknownIoType": {"id": 34},
         "SubscribePortInvalidPort": {"id": 35},
+        "RemoveNodeInvalidInstance": {"id": 36},
+        "RemoveNodeInvalidParent": {"id": 37},
 
         "User1": {"id": 100},
         "User2": {"id": 101},

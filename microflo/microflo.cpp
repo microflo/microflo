@@ -138,11 +138,15 @@ void HostCommunication::parseCmd() {
         network->stop();
     } else if (cmd == GraphCmdStartNetwork) {
         network->start();
+
     } else if (cmd == GraphCmdCreateComponent) {
         MICROFLO_DEBUG(this, DebugLevelDetailed, DebugComponentCreateStart);
         Component *c = createComponent((MicroFlo::ComponentId)buffer[1]);
         MICROFLO_DEBUG(this, DebugLevelDetailed, DebugComponentCreateEnd);
         network->addNode(c, buffer[2]);
+    } else if (cmd == GraphCmdRemoveNode) {
+        //MICROFLO_DEBUG(this, DebugLevelDetailed, DebugComponentCreateStart);
+        network->removeNode(buffer[1]);
     } else if (cmd == GraphCmdConnectNodes) {
         MICROFLO_DEBUG(this, DebugLevelDetailed, DebugConnectNodesStart);
         network->connect(buffer[1], buffer[3], buffer[2], buffer[4]);
@@ -432,6 +436,19 @@ MicroFlo::NodeId Network::addNode(Component *node, MicroFlo::NodeId parentId) {
     return nodeId;
 }
 
+MicroFlo::NodeId Network::removeNode(MicroFlo::NodeId nodeId) {
+    MICROFLO_RETURN_VAL_IF_FAIL(nodeId <= lastAddedNodeIndex, 0,
+                                notificationHandler, DebugLevelError, DebugRemoveNodeInvalidInstance);
+    Component *node = nodes[nodeId];
+
+    if (notificationHandler) {
+        notificationHandler->nodeRemoved(node, node->parentNodeId);
+    }
+    delete node; // after notification, so it can refer it
+
+    return nodeId;
+}
+
 void Network::reset() {
     state = Reset;
     for (int i=0; i<MICROFLO_MAX_NODES; i++) {
@@ -515,6 +532,11 @@ void Network::connectSubgraph(bool isOutput,
 
 void HostCommunication::nodeAdded(Component *c, MicroFlo::NodeId parentId) {
     const uint8_t cmd[] = { GraphCmdNodeAdded, c->component(), c->id(), parentId };
+    transport->sendCommand(cmd, sizeof(cmd));
+}
+
+void HostCommunication::nodeRemoved(Component *c, MicroFlo::NodeId parentId) {
+    const uint8_t cmd[] = { GraphCmdNodeRemoved, c->id() };
     transport->sendCommand(cmd, sizeof(cmd));
 }
 
