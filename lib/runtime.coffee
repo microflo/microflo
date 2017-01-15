@@ -21,7 +21,7 @@ catch e
 
 commandstream = require("./commandstream")
 generate = require("./generate")
-c = require("./componentlib")
+{ ComponentLibrary } = require "./componentlib"
 cmdFormat = require("./commandformat")
 serial = require("./serial")
 devicecommunication = require("./devicecommunication")
@@ -541,7 +541,7 @@ class Runtime extends EventEmitter
         @graph = {}
         @transport = transport
         @debugLevel = options?.debug or 'Error'
-        @library = new c.ComponentLibrary
+        @library = new ComponentLibrary
         @device = new devicecommunication.DeviceCommunication @transport
         @io = new devicecommunication.RemoteIo @device
         @collector = new BracketDataCollector()
