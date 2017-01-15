@@ -647,13 +647,6 @@ class Runtime extends EventEmitter
         catch e
             return callback e
 
-    uploadFBP: (prog, callback) ->
-        try
-            graph = require('fbp').parse(prog)
-        catch e
-            return callback e
-        @uploadGraph graph, callback
-
 module.exports =
     setupRuntime: setupRuntime
     setupWebsocket: setupWebsocket
