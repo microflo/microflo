@@ -371,9 +371,17 @@ handleNetworkEdges = (runtime, connection, edges, callback) ->
     subscribeEdges runtime, edges, callback
 
 handleNetworkCommand = (command, payload, connection, runtime, transport, debugLevel) ->
-    if command is "start" or command is "stop"
+    if command is "start"
         # TODO: handle stop command separately, actually pause the graph
         handleNetworkStartStop runtime, connection, debugLevel
+    else if command is "stop"
+        m =
+            protocol: "network"
+            command: "stopped"
+            payload:
+                running: false
+                started: false
+        sendAck connection, m
     else if command is "edges"
         # TOD: merge with those of exported outports
         runtime.edgesForInspection = payload.edges
