@@ -156,8 +156,13 @@ findPort = (componentLib, graph, nodeName, portName) ->
     port: port
   }
 
-# TODO: move all these down into "protocol", along with the inverse functions
-addNode = (payload, componentLib, buffer, index) ->
+# outgoing communication
+commands =
+  graph: {}
+  network: {}
+  runtime: {}
+  microflo: {}
+commands.graph.addnode = (payload, buffer, index, componentLib) ->
   nodeName = payload.id
   componentName = payload.component
   comp = componentLib.getComponent(componentName)
@@ -169,7 +174,8 @@ addNode = (payload, componentLib, buffer, index) ->
   index += writeCmd(buffer, index, cmdFormat.commands.CreateComponent.id, comp.id, parentId or 0)
   return index
 
-addEdge = (payload, componentLib, nodeMap, componentMap, buffer, index) ->
+# TODO: also support removenode/removeedge/removeinitial
+commands.graph.addedge = (payload, buffer, index, componentLib, nodeMap, componentMap) ->
   srcNode = payload.src.node
   tgtNode = payload.tgt.node
   srcPort = undefined
@@ -189,7 +195,7 @@ addEdge = (payload, componentLib, nodeMap, componentMap, buffer, index) ->
   index += writeCmd(buffer, index, cmdFormat.commands.ConnectNodes.id, nodeMap[srcNode].id, nodeMap[tgtNode].id, srcPort, tgtPort)  
   return index
 
-addInitial = (payload, componentLib, nodeMap, componentMap, buffer, index) ->
+commands.graph.addinitial = (payload, buffer, index, componentLib, nodeMap, componentMap) ->
   tgtNode = payload.tgt.node
   tgtPort = undefined
   data = payload.src.data
@@ -202,61 +208,41 @@ addInitial = (payload, componentLib, nodeMap, componentMap, buffer, index) ->
   index += writeCmd buffer, index, cmdBuf
   return index
 
-clearGraph = (payload, buffer, index) ->
+commands.graph.clear = (payload, buffer, index) ->
   # Clear existing graph
   index += writeCmd(buffer, index, cmdFormat.commands.Reset.id)
   return index
 
-startNetwork = (payload, buffer, index) ->
+commands.network.start = (payload, buffer, index) ->
   index += writeCmd(buffer, index, cmdFormat.commands.StartNetwork.id)
   return index
 
 # The following are MicroFlo specific, not part of FBP runtime protocol
-configureDebug = (payload, buffer, index) ->
+commands.microflo.configuredebug = (payload, buffer, index) ->
   debugLevel = payload.level
   index += writeCmd(buffer, index, cmdFormat.commands.ConfigureDebug.id, cmdFormat.debugLevels[debugLevel].id)
   return index
 
-openCommunication = (payload, buffer, index) ->
+commands.microflo.opencommunication = (payload, buffer, index) ->
   index += writeString(buffer, index, cmdFormat.magicString)
   return index
 
-closeCommunication = (payload, buffer, index) ->
+commands.microflo.closecommunication = (payload, buffer, index) ->
   index += writeCmd(buffer, index, cmdFormat.commands.End.id)
   return index
 
 # Note: inverse of fromCommand
 toCommandStreamBuffer = (message, componentLib, nodeMap, componentMap, buffer, index) ->
-  if message.protocol == 'graph'
-    # TODO: also support removenode/removeedge/removeinitial
-    if message.command == 'clear'
-      index = clearGraph message.payload, buffer, index
-    else if message.command == 'addnode'
-      index = addNode message.payload, componentLib, buffer, index
-    else if message.command == 'addedge'
-      index = addEdge message.payload, componentLib, nodeMap, componentMap, buffer, index
-    else if message.command == 'addinitial'
-      index = addInitial message.payload, componentLib, nodeMap, componentMap, buffer, index
-    else
-      throw new Error "Unknown FBP runtime graph command #{message.command}" 
 
-  else if message.protocol == 'network'
-    if message.command == 'start'
-      index = startNetwork message.payload, buffer, index
-    else
-      throw new Error "Unknown FBP runtime network command #{message.command}"
+  handlers = commands[message.protocol]
+  if not handlers?    
+    throw new Error "Unknown FBP runtime sub-protocol #{message.protocol}"
 
-  else if message.protocol == 'microflo'
-    if message.command == 'opencommunication'
-      index = openCommunication message.payload, buffer, index
-    else if message.command == 'closecommunication'
-      index = closeCommunication message.payload, buffer, index
-    else if message.command == 'configuredebug'
-      index = configureDebug message.payload, buffer, index
-    else
-      throw new Error "Unknown FBP runtime microflo command #{message.command}"
-  else    
-      throw new Error "Unknown FBP runtime sub-protocol #{message.protocol}"
+  handler = handlers[message.command] 
+  if not handler?
+    throw new Error "Unknown FBP runtime command #{message.command} for protocol #{message.protocol}"
+
+  index = handler message.payload, buffer, index, componentLib, nodeMap, componentMap
 
   return index
 
