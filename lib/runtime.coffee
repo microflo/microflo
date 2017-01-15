@@ -44,7 +44,7 @@ portDefAsArray = (port) ->
 
 connectionsWithoutEdge = (connections, findConn) ->
     edgeEq = (a, b) ->
-        return a.port == b.port and a.process == b.process
+        return a?.port == b?.port and a?.process == b?.process
     newList = []
     for conn in connections
         if conn.src and edgeEq conn.src, findConn.src and edgeEq conn.tgt, findConn.tgt
