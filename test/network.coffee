@@ -75,7 +75,7 @@ describeIfSimulator 'Network', ->
 
       s.start()
       s.device.on 'response', handleFunc
-      s.device.on 'error', () -> return finish err
+      s.device.on 'error', (err) -> return finish err
       s.device.open ->
         s.uploadGraph graph, ->
           s.device.close ->
