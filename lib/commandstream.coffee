@@ -162,6 +162,8 @@ commands =
   network: {}
   runtime: {}
   microflo: {}
+
+# TODO: support graph.removenode
 commands.graph.addnode = (payload, buffer, index, componentLib) ->
   nodeName = payload.id
   componentName = payload.component
@@ -174,7 +176,6 @@ commands.graph.addnode = (payload, buffer, index, componentLib) ->
   index += writeCmd(buffer, index, cmdFormat.commands.CreateComponent.id, comp.id, parentId or 0)
   return index
 
-# TODO: also support removenode/removeedge/removeinitial
 commands.graph.addedge = (payload, buffer, index, componentLib, nodeMap, componentMap) ->
   srcNode = payload.src.node
   tgtNode = payload.tgt.node
@@ -195,6 +196,27 @@ commands.graph.addedge = (payload, buffer, index, componentLib, nodeMap, compone
   index += writeCmd(buffer, index, cmdFormat.commands.ConnectNodes.id, nodeMap[srcNode].id, nodeMap[tgtNode].id, srcPort, tgtPort)  
   return index
 
+commands.graph.removeedge = (payload, buffer, index, componentLib, nodeMap, componentMap) ->
+  srcNode = payload.src.node
+  tgtNode = payload.tgt.node
+  srcPort = undefined
+  tgtPort = undefined
+  try
+    srcComponent = componentMap[srcNode]
+    tgtComponent = componentMap[tgtNode]
+    srcPort = componentLib.outputPort(srcComponent, payload.src.port).id
+    tgtPort = componentLib.inputPort(tgtComponent, payload.tgt.port).id
+  catch err
+    throw new Error "Could not disconnect: #{srcNode} #{payload.src.port} -> #{payload.tgt.port} #{tgtNode} : #{err}"
+  if not tgtPort?
+    throw new Error "Could not find target port #{tgtNode}(#{tgtComponent}) #{payload.tgt.port}"
+  if not srcPort?
+    throw new Error "Could not find source port #{srcNode}#{srcComponent} #{payload.src.port}"
+
+  index += writeCmd(buffer, index, cmdFormat.commands.DisconnectNodes.id, nodeMap[srcNode].id, nodeMap[tgtNode].id, srcPort, tgtPort)
+  return index
+
+# TODO: support graph.removeinitial
 commands.graph.addinitial = (payload, buffer, index, componentLib, nodeMap, componentMap) ->
   tgtNode = payload.tgt.node
   tgtPort = undefined
@@ -290,6 +312,19 @@ responses.NodesConnected = (componentLib, graph, cmdData) ->
   m =
     protocol: 'graph'
     command: 'addedge'
+    payload:
+      src:
+        node: null
+        port: null
+      tgt:
+        node: null
+        port: null
+  return undefined
+responses.NodesDisconnected = (componentLib, graph, cmdData) ->
+  # TODO: implement
+  m =
+    protocol: 'graph'
+    command: 'removeedge'
     payload:
       src:
         node: null
