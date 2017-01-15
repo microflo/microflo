@@ -217,6 +217,10 @@ commands.network.start = (payload, buffer, index) ->
   index += writeCmd(buffer, index, cmdFormat.commands.StartNetwork.id)
   return index
 
+commands.network.stop = (payload, buffer, index) ->
+  index += writeCmd(buffer, index, cmdFormat.commands.StopNetwork.id)
+  return index
+
 # The following are MicroFlo specific, not part of FBP runtime protocol
 commands.microflo.configuredebug = (payload, buffer, index) ->
   debugLevel = payload.level
@@ -263,6 +267,12 @@ responses.NetworkStarted = () ->
     payload:
       running: true
       started: true
+  return m
+responses.NetworkReset = () ->
+  m =
+    protocol: "graph"
+    command: "clear"
+    payload: {}
   return m
 
 responses.NodeAdded = (componentLib, graph, cmdData) ->
