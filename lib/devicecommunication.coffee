@@ -202,6 +202,7 @@ class DeviceCommunication extends EventEmitter
     # Low-level
     _onCommandReceived: (buf) ->
         try
+            console.log 'MICROFLO RECV:', buf.length, buf if debug_comms
             @_handleCommandReceived null, buf
         catch err
             console.log 'MICROFLO RECV ERROR:', buf.length, buf, err if debug_comms

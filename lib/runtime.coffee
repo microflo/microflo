@@ -21,7 +21,7 @@ catch e
 
 commandstream = require("./commandstream")
 generate = require("./generate")
-c = require("./componentlib")
+{ ComponentLibrary } = require "./componentlib"
 cmdFormat = require("./commandformat")
 serial = require("./serial")
 devicecommunication = require("./devicecommunication")
@@ -243,70 +243,74 @@ handleGraphCommand = (command, payload, connection, runtime) ->
         console.log "Unknown NoFlo UI command on protocol 'graph':", command, payload
     return
 
-deviceResponseToFbpProtocol = (runtime, send, args)->
-    if args[0] is "SEND"
-        data = `undefined`
-        if args[3] is "Void"
-            data = "!"
-        else
-            data = args[4]
-        src =
-            node: args[1]
-            port: args[2]
-        tgt =
-            node: args[5]
-            port: args[6]
-        send
-            protocol: "network"
-            command: "data"
-            payload:
-                src: src
-                tgt: tgt
-                data: data
+packetSent = (graph, collector, payload) ->
+    messages = []
 
-        # Check if exported outport
-        if runtime.graph.outports
-            found = null
-            for pub, internal of runtime.graph.outports
-                match = internal.process == src.node and internal.port == src.port
-                found = pub if match
-            m =
-                protocol: "runtime"
-                command: "packet"
-                payload:
-                    port: found
-                    event: 'data'
-                    payload: data
-                    index: null
-            send m if found
-
-    else if args[0] is "NETSTOP"
-        m =
-            protocol: "network"
-            command: "stopped"
-            payload:
-                running: false
-                started: false
-        send m
-    else if args[0] is "NETSTART"
-        m =
-            protocol: "network"
-            command: "started"
-            payload:
-                running: true
-                started: true
-        send m
+    data = collector.pushData payload
+    if data?
+        payload.data = data
     else
-        string = args.join(", ")
-        string = string.replace(/\n$/, "")
-        msg =
-            protocol: "network"
-            command: "output"
-            payload:
-                message: string
-        # send msg
-        # Should only be used for "output" from program in the runtime itself
+        return [] # in the middle of bracketed data, will send when gets to the end
 
+    # Check if exported outport
+    if graph.outports
+        found = null
+        for pub, internal of graph.outports
+            match = internal.process == payload.src.node and internal.port == payload.src.port
+            found = pub if match
+        m =
+            protocol: "runtime"
+            command: "packet"
+            payload:
+                port: found
+                event: 'data'
+                payload: data
+                index: null
+        messages.push m
+
+    # Sent network:packet for edge introspection
+    m =
+        protocol: 'network'
+        command: 'packet'
+        payload: payload
+    messages.push m
+
+    return messages
+
+
+mapMessage = (graph, collector, message)->
+    if message.protocol == 'microflo'
+        if message.command == 'packetsent'
+            # TODO: move this down to commandstream?
+            messages = packetSent graph, collector, message.payload
+            return messages
+        else if message.command in ['subscribeedge'] # TODO: make network:edges
+          return []
+        else if message.command in ['debugchanged','communicationopen', 'sendpacketdone', 'iovaluechanged']
+          console.log 'FBP MICROFLO RESPONSE IGNORED:', message.command if util.debug_protocol
+          # ignore
+          return []
+        else if message.command == 'debugmessage'
+            p = message.payload
+            msg =
+                protocol: "network"
+                command: "output"
+                payload:
+                    message: "Debug point triggered: #{p.level} #{p.point}"
+            return [ msg ]
+        else
+            console.log 'FBP MICROFLO RESPONSE sent as network:output', message.command if util.debug_protocol
+            string = "#{message.command}: " + JSON.stringify message.payload
+            msg =
+                protocol: "network"
+                command: "output"
+                payload:
+                    message: string
+            return [ msg ]
+    else
+        # pass-through
+        return [ message ]
+        
 
 handleNetworkStartStop = (runtime, connection, transport, debugLevel) ->
     # FIXME: also do error handling, and send that across
@@ -394,6 +398,30 @@ handleMessage = (runtime, contents) ->
     else
         console.log "Unknown NoFlo UI protocol:", contents
     return
+
+class BracketDataCollector
+  constructor: () ->
+    received = {}
+    bracketed = null
+  
+  # Returns null if there is no (completed bracketed data)
+  # or a list of the data contained in bracket if there is
+  pushData: (payload) ->
+    # FIXME: assumes all data is on a single edge!
+    {data, type} = payload
+    if not @bracketed? and type != 'BracketStart'
+      # return original
+      return data
+    if @bracketed? and type != 'BracketEnd'
+      @bracketed.push data
+      return null
+    if type == 'BracketStart'
+      @bracketed = []
+      return null
+    if type == 'BracketEnd'
+      out = @bracketed.slice() 
+      @bracketed = null
+      return out
 
 createFlowhubRuntime = (user, ip, port, label, id, apihost) ->
     return null if not flowhub
@@ -513,9 +541,10 @@ class Runtime extends EventEmitter
         @graph = {}
         @transport = transport
         @debugLevel = options?.debug or 'Error'
-        @library = new c.ComponentLibrary
+        @library = new ComponentLibrary
         @device = new devicecommunication.DeviceCommunication @transport
         @io = new devicecommunication.RemoteIo @device
+        @collector = new BracketDataCollector()
         @exportedEdges = []
         @edgesForInspection = []
         @conn =
@@ -523,28 +552,12 @@ class Runtime extends EventEmitter
                 console.log 'FBP MICROFLO SEND:', response if util.debug_protocol
                 @emit 'message', response
 
-        received = {}
-        bracketed = null
         @device.on 'response', (cmd) =>
-            commandstream.parseReceivedCmd @library, @graph, cmd, () =>
-                args = Array.prototype.slice.call arguments
-                event = args[0]
-                if event == 'SEND'
-                    [event, node, port, type, data] = args
-                    console.log event, node, port, type, data
-                    if bracketed? and type != 'BracketEnd'
-                        bracketed.push data
-                        return
-                    if type == 'BracketStart'
-                        bracketed = []
-                        return
-                    if type == 'BracketEnd'
-                        data = bracketed.slice()
-                        bracketed = null
-                    args = [event, node, port, type, data]
-                    deviceResponseToFbpProtocol @, @conn.send, args
-                else
-                    deviceResponseToFbpProtocol @, @conn.send, args
+            messages = commandstream.fromCommand @library, @graph, cmd
+            for m in messages
+                converted = mapMessage @graph, @collector, m
+                for c in converted
+                    @conn.send c
 
     handleMessage: (msg) ->
         console.log 'FBP MICROFLO RECV:', msg if util.debug_protocol
@@ -579,3 +592,4 @@ module.exports =
     uploadGraphFromFile: uploadGraphFromFile
     createFlowhubRuntime: createFlowhubRuntime
     registerFlowhubRuntime: registerFlowhubRuntime
+
