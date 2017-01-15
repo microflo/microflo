@@ -289,6 +289,7 @@ public:
 
     // implements NetworkNotificationHandler
     virtual void nodeAdded(Component *c, MicroFlo::NodeId parentId) {}
+    virtual void nodeRemoved(Component *c, MicroFlo::NodeId parentId) {}
 
     virtual void nodesConnected(Component *src, MicroFlo::PortId srcPort,
                                 Component *target, MicroFlo::PortId targetPort) {}
