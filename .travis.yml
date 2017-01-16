@@ -16,7 +16,6 @@ before_install:
 - tar -xf energia.tgz
 script:
 - export PATH=`pwd`/arduino-1.8.1/:$PATH
-- export MICROFLO_LIVE=1
 - make
 - make check
 - make check-release ENERGIA=`pwd`/energia-0101E0012
