@@ -20,7 +20,6 @@ catch e
   #
 
 liveProgramming = process.env.MICROFLO_LIVE?
-console.log 'microflo: Live programming enabled' if liveProgramming
 
 commandstream = require("./commandstream")
 generate = require("./generate")
