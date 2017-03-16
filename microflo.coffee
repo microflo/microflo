@@ -37,17 +37,19 @@ uploadGraphCommand = (graphPath, env) ->
     console.log 'Graph uploaded and running'
     process.exit 0
 
-generateFwCommand = (inputFile, outputDir, env) ->
+generateFwCommand = (inputFile, output, env) ->
 
     target = env.target or "arduino"
-    outputFile = outputDir + "/main.cpp"
+    if output[output.length-1] == '/'
+      output += 'main.cpp'
+    outputDir = path.dirname output
     library = env.library or defaultLibrary
     componentLib = new microflo.componentlib.ComponentLibrary()
     componentLib.loadSetFile library, (err) ->
         throw err  if err
         componentLib.loadFile inputFile
         microflo.generate.updateComponentLibDefinitions componentLib, outputDir, "createComponent"
-        microflo.generate.generateOutput componentLib, inputFile, outputFile, target
+        microflo.generate.generateOutput componentLib, inputFile, output, target
 
 
 registerRuntimeCommand = (user, env) ->

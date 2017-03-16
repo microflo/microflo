@@ -366,8 +366,8 @@ generateOutput = (componentLib, inputFile, outputFile, target) ->
   outputBase = undefined
   outputDir = undefined
   outputBase = outputFile.replace(path.extname(outputFile), "")
-  outputFile = outputFile + ".ino"  unless path.extname(outputFile)
-  outputDir = path.dirname(outputBase)
+  outputDir = path.dirname outputBase
+
   fs.mkdirSync outputDir  unless fs.existsSync(outputDir)
   definition.loadFile inputFile, (err, def) ->
     data = undefined
@@ -395,7 +395,7 @@ generateOutput = (componentLib, inputFile, outputFile, target) ->
     #define MICROFLO_EMBED_GRAPH 1
     #include \"microflo.h\"
     #include \"main.hpp\"
-    #include \"componentlib.hpp\"
+    #include \"./componentlib.hpp\"
 
     """
 
