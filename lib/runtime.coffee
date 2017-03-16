@@ -181,7 +181,7 @@ handleGraphCommand = (command, payload, connection, runtime) ->
     if command is "clear"
         graph.processes = {}
         graph.connections = []
-        graph.name = payload.name or ''
+        graph.name = payload.id or 'default/main'
         graph.nodeMap = {}
         graph.componentMap = {}
         graph.currentNodeId = 1
@@ -262,6 +262,10 @@ handleGraphCommand = (command, payload, connection, runtime) ->
 packetSent = (graph, collector, payload) ->
     messages = []
 
+    payload.graph = graph.name
+    p = payload
+    payload.id = "#{p.src.node}() #{p.src.port.toUpperCase()} -> #{p.tgt.port.toUpperCase()} #{p.tgt.node}()"
+
     data = collector.pushData payload
     if data?
         payload.data = data
@@ -284,10 +288,11 @@ packetSent = (graph, collector, payload) ->
                 index: null
         messages.push m
 
-    # Sent network:packet for edge introspection
+    # Sent network:data for edge introspection
+    delete payload.type
     m =
         protocol: 'network'
-        command: 'packet'
+        command: 'data'
         payload: payload
     messages.push m
 
