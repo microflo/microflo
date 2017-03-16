@@ -242,7 +242,7 @@ handleGraphCommand = (command, payload, connection, runtime) ->
         # For subscribing to output packets
         runtime.exportedEdges.push
             src:
-                process: payload.node
+                node: payload.node
                 port: payload.port
 
         # update subscriptions on device side
@@ -359,18 +359,19 @@ subscribeEdges = (runtime, edges, callback) ->
     offset = 0
 
     # Loop over all edges, unsubscribe
-    graph.connections.forEach (edge) ->
-        if edge.src
-            srcId = graph.nodeMap[edge.src.process].id
-            srcComp = graph.processes[edge.src.process].component
-            srcPort = runtime.library.outputPort(srcComp, edge.src.port).id
+    graph.connections.forEach (conn) ->
+        if conn.src
+            srcId = graph.nodeMap[conn.src.process].id
+            srcComp = graph.processes[conn.src.process].component
+            srcPort = runtime.library.outputPort(srcComp, conn.src.port).id
             offset += commandstream.writeCmd buffer, offset,
                         cmdFormat.commands.SubscribeToPort.id, srcId, srcPort, 0
         return
     # Subscribe to enabled edges
     edges.forEach (edge) ->
-        srcId = graph.nodeMap[edge.src.process].id
-        srcComp = graph.processes[edge.src.process].component
+        console.log 'subscribing', edge.src, graph.nodeMap 
+        srcId = graph.nodeMap[edge.src.node].id
+        srcComp = graph.processes[edge.src.node].component
         srcPort = runtime.library.outputPort(srcComp, edge.src.port).id
         offset += commandstream.writeCmd buffer, offset,
                     cmdFormat.commands.SubscribeToPort.id, srcId, srcPort, 1
@@ -405,8 +406,10 @@ handleNetworkCommand = (command, payload, connection, runtime, transport, debugL
         # TODO: merge with those of exported outports
         runtime.edgesForInspection = payload.edges
         edges = runtime.edgesForInspection.concat runtime.exportedEdges
-        handleNetworkEdges runtime, connection, edges
-        sendAck connection, { protocol: 'network', command: command, payload: payload }
+        handleNetworkEdges runtime, connection, edges, (err) ->
+          if err
+            return sendAck connection, { protocol: 'network', command: 'error', payload: { message: err.message } }
+          sendAck connection, { protocol: 'network', command: command, payload: payload }
     else
         console.log "Unknown NoFlo UI command on protocol 'network':", command, payload
     return
