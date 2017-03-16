@@ -263,8 +263,7 @@ packetSent = (graph, collector, payload) ->
     messages = []
 
     payload.graph = graph.name
-    p = payload
-    payload.id = "#{p.src.node}() #{p.src.port.toUpperCase()} -> #{p.tgt.port.toUpperCase()} #{p.tgt.node}()"
+    payload.id = "dummy"
 
     data = collector.pushData payload
     if data?
@@ -289,7 +288,6 @@ packetSent = (graph, collector, payload) ->
         messages.push m
 
     # Sent network:data for edge introspection
-    delete payload.type
     m =
         protocol: 'network'
         command: 'data'
@@ -374,7 +372,6 @@ subscribeEdges = (runtime, edges, callback) ->
         return
     # Subscribe to enabled edges
     edges.forEach (edge) ->
-        console.log 'subscribing', edge.src, graph.nodeMap 
         srcId = graph.nodeMap[edge.src.node].id
         srcComp = graph.processes[edge.src.node].component
         srcPort = runtime.library.outputPort(srcComp, edge.src.port).id
