@@ -3,6 +3,9 @@
  * MicroFlo may be freely distributed under the MIT license
  */
 
+#ifndef MICROFLO_CPP
+#define MICROFLO_CPP
+
 #include "microflo.h"
 
 
@@ -716,3 +719,5 @@ bool FixedMessageQueue::pop(Message &msg)
     msg = messages[msgIndex];
     return true;
 }
+
+#endif // MICROFLO_CPP
