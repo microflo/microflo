@@ -92,7 +92,6 @@ update-defs:
 
 build-arduino:
 	rm -rf $(BUILD_DIR)/arduino || echo 'WARN: failure to clean Arduino build'
-	mkdir -p $(BUILD_DIR)/arduino/src
 	mkdir -p $(BUILD_DIR)/arduino/lib
 	mkdir -p $(BUILD_DIR)/arduino/builder
 	cp -r $(MICROFLO_SOURCE_DIR) $(BUILD_DIR)/arduino/lib/
@@ -108,7 +107,6 @@ build-arduino:
 	arduino-builder -compile $(BUILDER_OPTIONS) $(BUILD_DIR)/arduino/src/main.ino
 
 build-avr:
-	mkdir -p $(BUILD_DIR)/avr
 	node microflo.js generate $(GRAPH) $(BUILD_DIR)/avr/ --target avr
 	cd $(BUILD_DIR)/avr && $(AVRGCC) -o firmware.elf main.cpp -DF_CPU=$(AVR_FCPU) -DAVR=1 $(COMMON_CFLAGS) -Werror -Wno-error=overflow -mmcu=$(AVRMODEL) -fno-exceptions -fno-rtti $(CPPFLAGS)
 	cd $(BUILD_DIR)/avr && $(AVROBJCOPY) -j .text -j .data -O ihex firmware.elf firmware.hex
@@ -117,7 +115,6 @@ build-avr:
 build-mbed:
 	cd thirdparty/mbed && python2 workspace_tools/build.py -t GCC_ARM -m LPC1768
 	rm -rf $(BUILD_DIR)/mbed
-	mkdir -p $(BUILD_DIR)/mbed
 	node microflo.js generate $(MBED_GRAPH) $(BUILD_DIR)/mbed/ --target mbed --library microflo-core/components/arm-standard.json
 	cp Makefile.mbed $(BUILD_DIR)/mbed/Makefile
 	cd $(BUILD_DIR)/mbed && make ROOT_DIR=./../../
@@ -140,20 +137,17 @@ build-stellaris:
 # Build firmware statically linked to microflo runtime as object file, $(BUILD_DIR)/lib/microflolib.o
 build-linux: build-linux-embedding
 	rm -rf $(BUILD_DIR)/linux
-	mkdir -p $(BUILD_DIR)/linux
 	node microflo.js generate $(LINUX_GRAPH) $(BUILD_DIR)/linux/ --target linux --library microflo-core/components/linux-standard.json
 	g++ -o $(BUILD_DIR)/linux/firmware $(BUILD_DIR)/linux/main.cpp -std=c++0x -DLINUX -I$(BUILD_DIR)/lib $(COMMON_CFLAGS) -lrt
 
 # TODO: move to separate repo
 build-linux-embedding:
 	rm -rf $(BUILD_DIR)/linux
-	mkdir -p $(BUILD_DIR)/linux
 	node microflo.js generate examples/embedding.cpp $(BUILD_DIR)/linux/ --target linux --library microflo-core/components/linux-standard.json
 	cd $(BUILD_DIR)/linux && g++ -o firmware ../../examples/embedding.cpp -std=c++0x $(COMMON_CFLAGS) -DLINUX -Werror -lrt
 
 build-linux-mqtt:
 	rm -rf $(BUILD_DIR)/linux-mqtt
-	mkdir -p $(BUILD_DIR)/linux-mqtt
 	node microflo.js generate examples/Repeat.fbp $(BUILD_DIR)/linux-mqtt/ --target linux-mqtt --library microflo-core/components/linux-standard.json
 	cd $(BUILD_DIR)/linux-mqtt/ && g++ -o repeat main.cpp -std=c++0x -lmosquitto $(COMMON_CFLAGS) -DLINUX -Werror -lrt
 	node microflo.js generate $(LINUX_GRAPH) $(BUILD_DIR)/linux-mqtt/ --target linux-mqtt --library microflo-core/components/linux-standard.json

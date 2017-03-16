@@ -217,6 +217,7 @@ extractId = (map, key) ->
 
 updateComponentLibDefinitions = (componentLib, baseDir, factoryMethodName) ->
   sourceOutput = ""
+  fs.mkdirSync baseDir unless fs.existsSync(baseDir)
   ids = generateConstInt("Id", componentLib.getComponents(true, true))
   ports = generateComponentPortDefinitions(componentLib)
   fs.writeFileSync baseDir + "/componentlib-ids.h", ids
