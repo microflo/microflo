@@ -37,17 +37,19 @@ uploadGraphCommand = (graphPath, env) ->
     console.log 'Graph uploaded and running'
     process.exit 0
 
-generateFwCommand = (inputFile, outputDir, env) ->
+generateFwCommand = (inputFile, output, env) ->
 
     target = env.target or "arduino"
-    outputFile = outputDir + "/main.cpp"
+    if output[output.length-1] == '/'
+      output += 'main.cpp'
+    outputDir = path.dirname output
     library = env.library or defaultLibrary
     componentLib = new microflo.componentlib.ComponentLibrary()
     componentLib.loadSetFile library, (err) ->
         throw err  if err
         componentLib.loadFile inputFile
         microflo.generate.updateComponentLibDefinitions componentLib, outputDir, "createComponent"
-        microflo.generate.generateOutput componentLib, inputFile, outputFile, target
+        microflo.generate.generateOutput componentLib, inputFile, output, target
 
 
 registerRuntimeCommand = (user, env) ->
@@ -64,19 +66,6 @@ registerRuntimeCommand = (user, env) ->
             process.exit 1
         else
             console.log "Runtime registered with id:", rt.runtime.id
-
-
-generateComponentLib = (componentlibJsonFile, componentlibOutputPath, factoryMethodName, env) ->
-    componentLibraryDefinition = undefined
-    componentLibrary = undefined
-
-    # load specified component library Json definition
-    componentLibraryDefinition = require(componentlibJsonFile)
-    componentLibrary = new microflo.componentlib.ComponentLibrary(componentLibraryDefinition, componentlibOutputPath)
-    componentLibrary.load()
-
-    # write component library definitions to external source or inside microflo project
-    microflo.generate.updateComponentLibDefinitions componentLibrary, componentlibOutputPath, factoryMethodName
 
 flashCommand = (file, env) ->
     upload = require("./lib/flash.coffee")
@@ -145,12 +134,10 @@ mainCommand = (inputFile, env) ->
 
 main = ->
     commander.version module.exports.version
-    commander.command("componentlib <JsonFile> <OutputPath> <FactoryMethodName>")
-        .description("Generate compilable sources of specified component library from .json definition")
-        .action generateComponentLib
     commander.command("update-defs")
         .description("Update internal generated definitions")
         .action updateDefsCommand
+
     commander.command("component <COMPONENT.hpp>")
         .description("Update generated definitions for component")
         .action componentDefsCommand

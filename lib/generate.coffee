@@ -225,7 +225,7 @@ updateComponentLibDefinitions = (componentLib, baseDir, factoryMethodName) ->
   sourceOutput += "\n\n"
   sourceOutput += generateComponentFactory(componentLib, factoryMethodName)
   fs.writeFileSync baseDir + "/componentlib-source.hpp", sourceOutput
-  all = "\n#include \"microflo.h\"\n" + ids + ports + sourceOutput
+  all = ids + ports + sourceOutput
   fs.writeFileSync baseDir + "/componentlib.hpp", all
   fs.writeFileSync baseDir + "/componentlib-map.json", generateComponentMap componentLib
 
@@ -366,8 +366,8 @@ generateOutput = (componentLib, inputFile, outputFile, target) ->
   outputBase = undefined
   outputDir = undefined
   outputBase = outputFile.replace(path.extname(outputFile), "")
-  outputFile = outputFile + ".ino"  unless path.extname(outputFile)
-  outputDir = path.dirname(outputBase)
+  outputDir = path.dirname outputBase
+
   fs.mkdirSync outputDir  unless fs.existsSync(outputDir)
   definition.loadFile inputFile, (err, def) ->
     data = undefined
@@ -391,16 +391,15 @@ generateOutput = (componentLib, inputFile, outputFile, target) ->
     if target == 'linux-mqtt' # FIXME: generalize, allow specifying explicitly, and have default based on target name
         includes += "#define MICROFLO_MAIN_FILE \"linux_mqtt_main.hpp\"\n"
 
-    includes += """
-    #define MICROFLO_EMBED_GRAPH 1
-    #include \"microflo.h\"
-    #include \"main.hpp\"
-    #include \"componentlib.hpp\"
+    microfloDir = path.join __dirname, '..', 'microflo'
 
-    """
+    includes += "#define MICROFLO_EMBED_GRAPH 1" + '\n'
+    includes += include(path.join microfloDir, 'microflo.h') + '\n'
+    includes += include(path.join microfloDir, 'main.hpp') + '\n'
+    includes += include('./componentlib.hpp') + '\n'
 
     fs.writeFile outputFile, cmdStreamToCDefinition(data, target) + includes, (err) ->
-      throw err  if err
+      throw err if err
 
 module.exports =
   updateDefinitions: updateDefinitions

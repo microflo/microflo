@@ -104,8 +104,7 @@ build-arduino:
 	cd $(BUILD_DIR)/arduino/lib && test -e patched || patch -p0 < ../../../thirdparty/DallasTemperature.patch
 	cd $(BUILD_DIR)/arduino/lib && test -e patched || patch -p0 < ../../../thirdparty/OneWire.patch
 	touch $(BUILD_DIR)/arduino/lib/patched
-	$(MICROFLO) generate $(GRAPH) $(BUILD_DIR)/arduino/src/ arduino
-	mv $(BUILD_DIR)/arduino/src/main.cpp $(BUILD_DIR)/arduino/src/main.ino
+	$(MICROFLO) generate $(GRAPH) $(BUILD_DIR)/arduino/src/main.ino arduino
 	arduino-builder -compile $(BUILDER_OPTIONS) $(BUILD_DIR)/arduino/src/main.ino
 
 build-avr:
@@ -138,27 +137,12 @@ build-stellaris:
 	cp Makefile.stellaris.app $(BUILD_DIR)/stellaris/Makefile
 	cd $(BUILD_DIR)/stellaris && make ROOT=./ IPATH="$(ENERGIA)/hardware/lm4f/cores/lm4f $(ENERGIA)/hardware/lm4f/variants/stellarpad ../../microflo/"
 
-# Build microFlo components as an object library, build/lib/componentlib.o
-build-microflo-complib:
-	mkdir -p $(BUILD_DIR)/lib
-	node microflo.js generate $(LINUX_GRAPH) $(BUILD_DIR)/lib --target linux --library microflo-core/components/linux-standard.json
-	cp -r $(BUILD_DIR)/lib/componentlib.hpp $(BUILD_DIR)/lib/componentlib.cpp
-	g++ -c $(BUILD_DIR)/lib/componentlib.cpp -o $(BUILD_DIR)/lib/componentlib.o -I$(BUILD_DIR)/lib $(COMMON_CFLAGS) -std=c++0x -DLINUX
-
-# Build microFlo runtime as an object library (to be static linked with app), $(BUILD_DIR)/lib/microflolib.o
-build-microflo-objlib:
-	rm -rf $(BUILD_DIR)/lib
-	mkdir -p $(BUILD_DIR)/lib
-	# FIXME: only for internal defs...
-	# node microflo.js generate $(LINUX_GRAPH) $(BUILD_DIR)/lib --target linux --library microflo-core/components/linux-standard.json
-	g++ -c microflo/microflo.cpp -o $(BUILD_DIR)/lib/microflolib.o -std=c++0x -I$(BUILD_DIR)/lib -DLINUX $(COMMON_CFLAGS)
-
 # Build firmware statically linked to microflo runtime as object file, $(BUILD_DIR)/lib/microflolib.o
-build-linux: build-microflo-objlib build-microflo-complib build-linux-embedding
+build-linux: build-linux-embedding
 	rm -rf $(BUILD_DIR)/linux
 	mkdir -p $(BUILD_DIR)/linux
-	node microflo.js generate $(LINUX_GRAPH) $(BUILD_DIR)/linux --target linux --library microflo-core/components/linux-standard.json
-	g++ -o $(BUILD_DIR)/linux/firmware $(BUILD_DIR)/linux/main.cpp -std=c++0x $(BUILD_DIR)/lib/microflolib.o -DLINUX -I$(BUILD_DIR)/lib $(COMMON_CFLAGS) -lrt
+	node microflo.js generate $(LINUX_GRAPH) $(BUILD_DIR)/linux/ --target linux --library microflo-core/components/linux-standard.json
+	g++ -o $(BUILD_DIR)/linux/firmware $(BUILD_DIR)/linux/main.cpp -std=c++0x -DLINUX -I$(BUILD_DIR)/lib $(COMMON_CFLAGS) -lrt
 
 # TODO: move to separate repo
 build-linux-embedding:
