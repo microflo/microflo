@@ -67,19 +67,6 @@ registerRuntimeCommand = (user, env) ->
         else
             console.log "Runtime registered with id:", rt.runtime.id
 
-
-generateComponentLib = (componentlibJsonFile, componentlibOutputPath, factoryMethodName, env) ->
-    componentLibraryDefinition = undefined
-    componentLibrary = undefined
-
-    # load specified component library Json definition
-    componentLibraryDefinition = require(componentlibJsonFile)
-    componentLibrary = new microflo.componentlib.ComponentLibrary(componentLibraryDefinition, componentlibOutputPath)
-    componentLibrary.load()
-
-    # write component library definitions to external source or inside microflo project
-    microflo.generate.updateComponentLibDefinitions componentLibrary, componentlibOutputPath, factoryMethodName
-
 flashCommand = (file, env) ->
     upload = require("./lib/flash.coffee")
     tty = env.serial
@@ -147,12 +134,10 @@ mainCommand = (inputFile, env) ->
 
 main = ->
     commander.version module.exports.version
-    commander.command("componentlib <JsonFile> <OutputPath> <FactoryMethodName>")
-        .description("Generate compilable sources of specified component library from .json definition")
-        .action generateComponentLib
     commander.command("update-defs")
         .description("Update internal generated definitions")
         .action updateDefsCommand
+
     commander.command("component <COMPONENT.hpp>")
         .description("Update generated definitions for component")
         .action componentDefsCommand
