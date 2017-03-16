@@ -95,6 +95,7 @@ class SendQueue extends EventEmitter
         throw new Error 'SendQueue.write must be implemented by consumer'
 
     push: (buffer, callback) ->
+        throw new Error "DeviceCommunication.push missing callback" if not callback
         console.log 'queuing buf', buffer, @queue.length, buffer.length, @sending if debug_comms
 
         @bytesPerSec += buffer.length

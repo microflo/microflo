@@ -181,7 +181,7 @@ handleGraphCommand = (command, payload, connection, runtime) ->
     if command is "clear"
         graph.processes = {}
         graph.connections = []
-        graph.name = payload.name or ''
+        graph.name = payload.id or 'default/main'
         graph.nodeMap = {}
         graph.componentMap = {}
         graph.currentNodeId = 1
@@ -242,7 +242,7 @@ handleGraphCommand = (command, payload, connection, runtime) ->
         # For subscribing to output packets
         runtime.exportedEdges.push
             src:
-                process: payload.node
+                node: payload.node
                 port: payload.port
 
         # update subscriptions on device side
@@ -261,6 +261,9 @@ handleGraphCommand = (command, payload, connection, runtime) ->
 
 packetSent = (graph, collector, payload) ->
     messages = []
+
+    payload.graph = graph.name
+    payload.id = "dummy"
 
     data = collector.pushData payload
     if data?
@@ -284,10 +287,10 @@ packetSent = (graph, collector, payload) ->
                 index: null
         messages.push m
 
-    # Sent network:packet for edge introspection
+    # Sent network:data for edge introspection
     m =
         protocol: 'network'
-        command: 'packet'
+        command: 'data'
         payload: payload
     messages.push m
 
@@ -359,18 +362,18 @@ subscribeEdges = (runtime, edges, callback) ->
     offset = 0
 
     # Loop over all edges, unsubscribe
-    graph.connections.forEach (edge) ->
-        if edge.src
-            srcId = graph.nodeMap[edge.src.process].id
-            srcComp = graph.processes[edge.src.process].component
-            srcPort = runtime.library.outputPort(srcComp, edge.src.port).id
+    graph.connections.forEach (conn) ->
+        if conn.src
+            srcId = graph.nodeMap[conn.src.process].id
+            srcComp = graph.processes[conn.src.process].component
+            srcPort = runtime.library.outputPort(srcComp, conn.src.port).id
             offset += commandstream.writeCmd buffer, offset,
                         cmdFormat.commands.SubscribeToPort.id, srcId, srcPort, 0
         return
     # Subscribe to enabled edges
     edges.forEach (edge) ->
-        srcId = graph.nodeMap[edge.src.process].id
-        srcComp = graph.processes[edge.src.process].component
+        srcId = graph.nodeMap[edge.src.node].id
+        srcComp = graph.processes[edge.src.node].component
         srcPort = runtime.library.outputPort(srcComp, edge.src.port).id
         offset += commandstream.writeCmd buffer, offset,
                     cmdFormat.commands.SubscribeToPort.id, srcId, srcPort, 1
@@ -405,8 +408,10 @@ handleNetworkCommand = (command, payload, connection, runtime, transport, debugL
         # TODO: merge with those of exported outports
         runtime.edgesForInspection = payload.edges
         edges = runtime.edgesForInspection.concat runtime.exportedEdges
-        handleNetworkEdges runtime, connection, edges
-        sendAck connection, { protocol: 'network', command: command, payload: payload }
+        handleNetworkEdges runtime, connection, edges, (err) ->
+          if err
+            return sendAck connection, { protocol: 'network', command: 'error', payload: { message: err.message } }
+          sendAck connection, { protocol: 'network', command: command, payload: payload }
     else
         console.log "Unknown NoFlo UI command on protocol 'network':", command, payload
     return

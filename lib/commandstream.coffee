@@ -369,8 +369,8 @@ responses.PacketSent = (componentLib, graph, cmdData) ->
         node: srcNode
         port: srcPort
       tgt:
-        node: targetPort
-        port: targetNode
+        node: targetNode
+        port: targetPort
       data: data
       type: type
   return m
