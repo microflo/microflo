@@ -106,6 +106,7 @@ namespace MicroFlo {
 #else
     typedef int8_t PinId;
 #endif
+    typedef int8_t PointerType;
 
     // This must match the ID in "microflo/components.json"
     const ComponentId IdSubGraph = 100;
@@ -115,6 +116,11 @@ namespace Components {
     class SubGraph;
     class DummyComponent;
 }
+
+static MicroFlo::PointerType microfloPointerTypeLast = 0;
+
+// Assigns and returns a unique PointerType
+#define MICROFLO_DEFINE_POINTER_TYPE(name) (microfloPointerTypeLast++)
 
 // Packet
 // XXX: should setup & ticks really be IPs??
@@ -126,6 +132,7 @@ public:
     Packet(unsigned char by): msg(MsgByte) { data.byte = by; }
     Packet(long l): msg(MsgInteger) { data.lng = l; }
     Packet(float f): msg(MsgFloat) { data.flt = f; }
+    Packet(MicroFlo::PointerType type, void *ptr): msg((Msg)(MsgPointerFirst+type)) { data.ptr = ptr; }
     Packet(Msg m): msg(m) {}
 
     Msg type() const { return msg; }
@@ -150,6 +157,7 @@ public:
     float asFloat() const ;
     long asInteger() const ;
     unsigned char asByte() const ;
+    void *asPointer(MicroFlo::PointerType type) const;
 
     bool operator==(const Packet& rhs) const;
 
@@ -162,6 +170,7 @@ private:
         unsigned char byte;
         long lng;
         float flt;
+        void *ptr;
     } data;
     enum Msg msg;
 };

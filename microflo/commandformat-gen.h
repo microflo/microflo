@@ -306,6 +306,8 @@ enum Msg {
     MsgFloat = 8,
     MsgBracketStart = 9,
     MsgBracketEnd = 10,
+    MsgPointerFirst = 11,
+    MsgPointerMax = 100,
     MsgMaxDefined,
     MsgMax = 255
 };
@@ -322,6 +324,7 @@ static const char *Msg_names[] = {
     "Float",
     "BracketStart",
     "BracketEnd",
+    "PointerFirst",
     0,
     0,
     0,
@@ -410,8 +413,7 @@ static const char *Msg_names[] = {
     0,
     0,
     0,
-    0,
-    0,
+    "PointerMax",
     0,
     0,
     0,

@@ -50,6 +50,15 @@ unsigned char Packet::asByte() const {
         return data.byte;
     }
 }
+void *
+Packet::asPointer(MicroFlo::PointerType desired) const {
+    const MicroFlo::PointerType actual = msg - MsgPointerFirst;
+    if (msg >= MsgPointerFirst && actual == desired) {
+        return data.ptr;
+    } else {
+        return NULL;
+    }
+}
 
 bool Packet::operator==(const Packet& rhs) const {
     return msg == rhs.msg && memcmp(&data, &rhs.data, sizeof(PacketData)) == 0;

@@ -54,6 +54,9 @@
         "BracketStart": { "id": 9 },
         "BracketEnd": { "id": 10 },
 
+        "PointerFirst": { "id": 11 },
+        "PointerMax": { "id": 100 },
+
         "MaxDefined": { },
         "Max": { "id": 255 }
     },
