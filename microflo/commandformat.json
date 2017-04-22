@@ -129,5 +129,14 @@
         "PinMode": {"id": 4},
 
         "Max": {"id": 255}
+    },
+    "errors": {
+        "Other": { "id": 0, "description": "An unspecified error occurred" },
+        "ComponentBug": { "id": 1, "description": "Component caused a bug", "kind": "component-error" },
+        "UnsupportedType": { "id": 2, "description": "Type is not supported", "kind": "usage-error" },
+        "UnsupportedValue": { "id": 3, "description": "Value is not supported", "kind": "usage-error" },
+        "InvalidInput": { "id": 4, "description": "The input or combination of inputs is invalid", "kind": "usage-error" },
+        "OperationFailed": { "id": 5, "description": "The operation failed", "kind": "external-error" },
+        "OperationTimeout": { "id": 6, "description": "The operation timed out", "kind": "external-error" }
     }
 }

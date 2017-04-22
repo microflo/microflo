@@ -1146,6 +1146,26 @@ static const char *DebugId_names[] = {
     "Max"
 };
 
+enum Error {
+    ErrorOther = 0,
+    ErrorComponentBug = 1,
+    ErrorUnsupportedType = 2,
+    ErrorUnsupportedValue = 3,
+    ErrorInvalidInput = 4,
+    ErrorOperationFailed = 5,
+    ErrorOperationTimeout = 6
+};
+
+static const char *Error_names[] = {
+    "Other",
+    "ComponentBug",
+    "UnsupportedType",
+    "UnsupportedValue",
+    "InvalidInput",
+    "OperationFailed",
+    "OperationTimeout"
+};
+
 enum IoType {
     IoTypeInvalid = 0,
     IoTypeAnalog = 1,

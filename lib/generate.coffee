@@ -240,6 +240,8 @@ updateDefinitions = (baseDir) ->
         "\n" + declarec.generateStringMap('DebugLevel_names', cmdFormat.debugLevels, extractId) +
         "\n" + generateEnum("DebugId", "Debug", cmdFormat.debugPoints) +
         "\n" + declarec.generateStringMap('DebugId_names', cmdFormat.debugPoints, extractId) +
+        "\n" + generateEnum("Error", "Error", cmdFormat.errors) +
+        "\n" + declarec.generateStringMap('Error_names', cmdFormat.errors, extractId) +
         "\n" + generateEnum("IoType", "IoType", cmdFormat.ioTypes) +
         "\n" + declarec.generateStringMap('IoType_names', cmdFormat.ioTypes, extractId)
   fs.writeFileSync baseDir + "/commandformat-gen.h", contents
