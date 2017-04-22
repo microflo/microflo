@@ -133,6 +133,7 @@ public:
     Packet(long l): msg(MsgInteger) { data.lng = l; }
     Packet(float f): msg(MsgFloat) { data.flt = f; }
     Packet(MicroFlo::PointerType type, void *ptr): msg((Msg)(MsgPointerFirst+type)) { data.ptr = ptr; }
+    Packet(Error error): msg(MsgError) { data.err = error; }
     Packet(Msg m): msg(m) {}
 
     Msg type() const { return msg; }
@@ -152,12 +153,14 @@ public:
     bool isInteger() const { return msg == MsgInteger; }
     bool isFloat() const { return msg == MsgFloat; }
     bool isNumber() const { return isInteger() || isFloat(); }
+    bool isError() const { return msg == MsgError; }
 
     bool asBool() const ;
     float asFloat() const ;
     long asInteger() const ;
     unsigned char asByte() const ;
     void *asPointer(MicroFlo::PointerType type) const;
+    Error asError() const { return data.err; }
 
     bool operator==(const Packet& rhs) const;
 
@@ -171,6 +174,7 @@ private:
         long lng;
         float flt;
         void *ptr;
+        Error err;
     } data;
     enum Msg msg;
 };

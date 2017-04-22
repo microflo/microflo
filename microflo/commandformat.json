@@ -53,8 +53,9 @@
         "Float": { "id": 8 },
         "BracketStart": { "id": 9 },
         "BracketEnd": { "id": 10 },
+        "Error": { "id": 11 },
 
-        "PointerFirst": { "id": 11 },
+        "PointerFirst": { "id": 12 },
         "PointerMax": { "id": 100 },
 
         "MaxDefined": { },
