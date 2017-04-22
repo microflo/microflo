@@ -1,6 +1,5 @@
 
 #include <microflo.h>
-#include <microflo.cpp>
 
 struct Point2 {
     int x;
@@ -54,22 +53,4 @@ test_pointer_types() {
     return 0;
 }
 
-#include <stdio.h>
 
-// XXX: Hack, generated component factory is currently needed
-Component *
-createComponent(unsigned char) {
-}
-
-int
-main(int argc, char *argv[]) {
-    fprintf(stderr, "test_pointer_types():\n");
-    const int pointer_fails = test_pointer_types();
-    if (pointer_fails != 0) {
-        fprintf(stderr, "\tfailed at %d\n", pointer_fails);
-        return 1;
-    } else {
-        fprintf(stderr, "\tPASS\n");
-    }
-    return 0;
-}
