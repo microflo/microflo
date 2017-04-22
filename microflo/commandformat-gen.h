@@ -306,6 +306,9 @@ enum Msg {
     MsgFloat = 8,
     MsgBracketStart = 9,
     MsgBracketEnd = 10,
+    MsgError = 11,
+    MsgPointerFirst = 12,
+    MsgPointerMax = 100,
     MsgMaxDefined,
     MsgMax = 255
 };
@@ -322,6 +325,8 @@ static const char *Msg_names[] = {
     "Float",
     "BracketStart",
     "BracketEnd",
+    "Error",
+    "PointerFirst",
     0,
     0,
     0,
@@ -409,9 +414,7 @@ static const char *Msg_names[] = {
     0,
     0,
     0,
-    0,
-    0,
-    0,
+    "PointerMax",
     0,
     0,
     0,
@@ -1142,6 +1145,26 @@ static const char *DebugId_names[] = {
     0,
     0,
     "Max"
+};
+
+enum Error {
+    ErrorOther = 0,
+    ErrorComponentBug = 1,
+    ErrorUnsupportedType = 2,
+    ErrorUnsupportedValue = 3,
+    ErrorInvalidInput = 4,
+    ErrorOperationFailed = 5,
+    ErrorOperationTimeout = 6
+};
+
+static const char *Error_names[] = {
+    "Other",
+    "ComponentBug",
+    "UnsupportedType",
+    "UnsupportedValue",
+    "InvalidInput",
+    "OperationFailed",
+    "OperationTimeout"
 };
 
 enum IoType {

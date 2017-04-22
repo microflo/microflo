@@ -186,10 +186,16 @@ std::string encodePacket(const Packet &pkg) {
         return pkg.asBool() ? "true" : "false";
     case MsgInteger:
         return std::to_string(pkg.asInteger());
-    case MsgByte: // TODO: handle byte streams
-        return "";
-    case MsgFloat: // TOOD: handle floats
-        return "";
+    case MsgByte:
+        return std::to_string(pkg.asByte());
+    case MsgFloat:
+        return std::to_string(pkg.asFloat());
+    case MsgError:
+        if (Error_names[pkg.asError()]) {
+            return std::string("Error: ") + Error_names[pkg.asError()];
+        } else {
+            return "Error: Invalid error";
+        }
 
     case MsgBracketStart: // TOOD: handle brackets
     case MsgBracketEnd: // TOOD: handle brackets
@@ -202,6 +208,8 @@ std::string encodePacket(const Packet &pkg) {
     case MsgTick:
     case MsgInvalid:
         return "";
+    default:
+        return "Error: Unknown MicroFlo::Packet type";
     }
 
     return ""; // above should be exclusive but compiler complains...

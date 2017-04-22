@@ -168,7 +168,12 @@ build-esp:
 flash-esp: build-esp
 	cd $(BUILD_DIR)/esp && make flash $(ESP_OPTS)
 
-build: update-defs build-arduino build-avr
+build-tests:
+	rm -rf $(BUILD_DIR)/tests
+	mkdir -p $(BUILD_DIR)/tests
+	g++ -o $(BUILD_DIR)/tests/run test/runtime.cpp -I./microflo
+
+build: update-defs build-tests build-arduino build-avr
 
 upload: build-arduino
 	$(ARDUINO_RESET_CMD)
@@ -236,7 +241,10 @@ check-release: release
     # TODO: check npm and component.io packages
     # TODO: check arduino package by importing with ino, building
 
-check: build-linux-mqtt
+runtime-tests: build-tests
+	$(BUILD_DIR)/tests/run
+
+check: runtime-tests build-linux-mqtt
 	npm test
 
 .PHONY: all build update-defs clean release release-linux release-arduino check-release
