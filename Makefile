@@ -100,11 +100,11 @@ build-arduino:
 	cd $(BUILD_DIR)/arduino/lib && test -e patched || patch -p0 < ../../../thirdparty/DallasTemperature.patch
 	cd $(BUILD_DIR)/arduino/lib && test -e patched || patch -p0 < ../../../thirdparty/OneWire.patch
 	touch $(BUILD_DIR)/arduino/lib/patched
-	$(MICROFLO) generate $(GRAPH) $(BUILD_DIR)/arduino/src/main.ino arduino
+	$(MICROFLO) generate $(GRAPH) $(BUILD_DIR)/arduino/src/main.ino arduino --library $(LIBRARY)
 	arduino-builder -compile $(BUILDER_OPTIONS) $(BUILD_DIR)/arduino/src/main.ino
 
 build-avr:
-	node microflo.js generate $(GRAPH) $(BUILD_DIR)/avr/ --target avr
+	node microflo.js generate $(GRAPH) $(BUILD_DIR)/avr/ --target avr --library $(LIBRARY)
 	cd $(BUILD_DIR)/avr && $(AVRGCC) -o firmware.elf main.cpp -DF_CPU=$(AVR_FCPU) -DAVR=1 $(COMMON_CFLAGS) -Werror -Wno-error=overflow -mmcu=$(AVRMODEL) -fno-exceptions -fno-rtti $(CPPFLAGS)
 	cd $(BUILD_DIR)/avr && $(AVROBJCOPY) -j .text -j .data -O ihex firmware.elf firmware.hex
 	$(AVRSIZE) -A $(BUILD_DIR)/avr/firmware.elf
@@ -159,7 +159,7 @@ build-esp:
 	mkdir -p $(BUILD_DIR)/esp/{firmware,build}
 	rm $(BUILD_DIR)/esp/user/*.c || echo 'no C files'
 	rm $(BUILD_DIR)/esp/user/*.o || echo 'no .o files'
-	$(MICROFLO) generate $(GRAPH) $(BUILD_DIR)/esp/user/ --target esp8266 --library microflo-core/components/esp-minimal.json
+	$(MICROFLO) generate $(GRAPH) $(BUILD_DIR)/esp/user/ --target esp8266 --library $(LIBRARY)
 	cd $(BUILD_DIR)/esp && make $(ESP_OPTS)
 
 flash-esp: build-esp
