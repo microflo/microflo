@@ -31,8 +31,8 @@ describe 'ComponentLibrary', ->
 
   describe 'listing all components', ->
 
-    it 'should give above 20 components', ->
-      chai.expect(normal.length).to.be.above 20
+    it 'should give above 5 components', ->
+      chai.expect(normal.length).to.be.above 4
     it 'Max,Invalid should be skipped', ->
       chai.expect(normal).to.not.contain '_Max'
       chai.expect(normal).to.not.contain 'Invalid'
