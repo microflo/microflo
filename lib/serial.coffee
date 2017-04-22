@@ -44,6 +44,10 @@ getSerial = (serialPortToUse, baudRate, cb) ->
   console.log 'Using serial baudrate with ' + serialPortToUse, baudRate
   serial = undefined
   guessSerialPort serialPortToUse, (err, portName, ports) ->
+
+    if serialPortToUse.indexOf('.microflo') != -1
+      portName = serialPortToUse
+
     if err
       console.log 'No serial port found!: ', err
       if cb
