@@ -143,9 +143,9 @@ void LinuxSerialTransport::runTick() {
     // simple noncanonical input
     const size_t cmdSize = MICROFLO_CMD_SIZE;
     unsigned char buf[cmdSize];
-    const size_t bytesRead = read(fd, buf, cmdSize);
+    const ssize_t bytesRead = read(fd, buf, cmdSize);
     if (bytesRead > 0) {
-        for (size_t i=0; i<bytesRead; i++) {
+        for (ssize_t i=0; i<bytesRead; i++) {
             controller->parseByte(buf[i]);
         }
     }
