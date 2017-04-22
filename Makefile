@@ -217,7 +217,7 @@ release-esp: build-esp
 release-mbed: build-mbed
     # TODO: package into something usable with MBed tools
 
-release-linux: build-linux build-linux-embedding build-linux-mqtt
+release-linux: build-linux-embedding build-linux-mqtt
     # TODO: package?
 
 release-stellaris: build-stellaris
@@ -241,7 +241,7 @@ check-release: release
 runtime-tests: build-tests
 	$(BUILD_DIR)/tests/run
 
-check: runtime-tests build-linux-mqtt
+check: runtime-tests build-linux build-linux-mqtt
 	npm test
 
 .PHONY: all build update-defs clean release release-linux release-arduino check-release
