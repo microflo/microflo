@@ -186,10 +186,10 @@ std::string encodePacket(const Packet &pkg) {
         return pkg.asBool() ? "true" : "false";
     case MsgInteger:
         return std::to_string(pkg.asInteger());
-    case MsgByte: // TODO: handle byte streams
-        return "";
-    case MsgFloat: // TOOD: handle floats
-        return "";
+    case MsgByte:
+        return std::to_string(pkg.asByte());
+    case MsgFloat:
+        return std::to_string(pkg.asFloat());
     case MsgError:
         if (Error_names[pkg.asError()]) {
             return std::string("Error: ") + Error_names[pkg.asError()];
