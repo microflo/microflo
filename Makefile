@@ -9,6 +9,7 @@ UPLOAD_DIR=/mnt
 BUILD_DIR=$(shell echo `pwd`/build)
 MICROFLO_SOURCE_DIR=$(shell echo `pwd`/microflo)
 MICROFLO=./microflo.js
+LIBRARY=./test/components/components.json
 
 # SERIALPORT=/dev/somecustom
 # ARDUINO=/home/user/Arduino-1.0.5
@@ -35,10 +36,6 @@ endif
 
 ifdef NO_SUBGRAPHS
 DEFINES+=-DMICROFLO_DISABLE_SUBGRAPHS
-endif
-
-ifdef LIBRARY
-LIBRARYOPTION=--library=$(LIBRARY)
 endif
 
 ESP_OPTS = ESPRESSIF_DIR=/home/jon/temp/Espressif ESPTOOL=/usr/bin/esptool.py V=1 ESPTOOL_CK=/home/jon/temp/Espressif/esptool-ck/esptool SDK_EXTRA_INCLUDES=$(MICROFLO_SOURCE_DIR) LD_SCRIPT="-T ./eagle.app.v6.ld"
@@ -115,7 +112,7 @@ build-avr:
 build-mbed:
 	cd thirdparty/mbed && python2 workspace_tools/build.py -t GCC_ARM -m LPC1768
 	rm -rf $(BUILD_DIR)/mbed
-	node microflo.js generate $(MBED_GRAPH) $(BUILD_DIR)/mbed/ --target mbed --library microflo-core/components/arm-standard.json
+	node microflo.js generate $(MBED_GRAPH) $(BUILD_DIR)/mbed/ --target mbed --library $(LIBRARY)
 	cp Makefile.mbed $(BUILD_DIR)/mbed/Makefile
 	cd $(BUILD_DIR)/mbed && make ROOT_DIR=./../../
 
@@ -130,27 +127,27 @@ build-stellaris:
 	# app
 	cp ./startup_gcc.c $(BUILD_DIR)/stellaris/
 	cp $(ENERGIA)/hardware/lm4f/cores/lm4f/lm4fcpp_blizzard.ld $(BUILD_DIR)/stellaris/gcc/standalone.ld
-	$(MICROFLO) generate $(STELLARIS_GRAPH) $(BUILD_DIR)/stellaris/ --target stellaris --library microflo-core/components/arm-standard.json
+	$(MICROFLO) generate $(STELLARIS_GRAPH) $(BUILD_DIR)/stellaris/ --target stellaris --library $(LIBRARY)
 	cp Makefile.stellaris.app $(BUILD_DIR)/stellaris/Makefile
 	cd $(BUILD_DIR)/stellaris && make ROOT=./ IPATH="$(ENERGIA)/hardware/lm4f/cores/lm4f $(ENERGIA)/hardware/lm4f/variants/stellarpad ../../microflo/"
 
 # Build firmware statically linked to microflo runtime as object file, $(BUILD_DIR)/lib/microflolib.o
 build-linux: build-linux-embedding
 	rm -rf $(BUILD_DIR)/linux
-	node microflo.js generate $(LINUX_GRAPH) $(BUILD_DIR)/linux/ --target linux --library microflo-core/components/linux-standard.json
+	node microflo.js generate $(LINUX_GRAPH) $(BUILD_DIR)/linux/ --target linux --library $(LIBRARY)
 	g++ -o $(BUILD_DIR)/linux/firmware $(BUILD_DIR)/linux/main.cpp -std=c++0x -DLINUX -I$(BUILD_DIR)/lib $(COMMON_CFLAGS) -lrt
 
 # TODO: move to separate repo
 build-linux-embedding:
 	rm -rf $(BUILD_DIR)/linux
-	node microflo.js generate examples/embedding.cpp $(BUILD_DIR)/linux/ --target linux --library microflo-core/components/linux-standard.json
+	node microflo.js generate examples/embedding.cpp $(BUILD_DIR)/linux/ --target linux --library $(LIBRARY)
 	cd $(BUILD_DIR)/linux && g++ -o firmware ../../examples/embedding.cpp -std=c++0x $(COMMON_CFLAGS) -DLINUX -Werror -lrt
 
 build-linux-mqtt:
 	rm -rf $(BUILD_DIR)/linux-mqtt
-	node microflo.js generate examples/Repeat.fbp $(BUILD_DIR)/linux-mqtt/ --target linux-mqtt --library microflo-core/components/linux-standard.json
+	node microflo.js generate examples/Repeat.fbp $(BUILD_DIR)/linux-mqtt/ --target linux-mqtt --library $(LIBRARY)
 	cd $(BUILD_DIR)/linux-mqtt/ && g++ -o repeat main.cpp -std=c++0x -lmosquitto $(COMMON_CFLAGS) -DLINUX -Werror -lrt
-	node microflo.js generate $(LINUX_GRAPH) $(BUILD_DIR)/linux-mqtt/ --target linux-mqtt --library microflo-core/components/linux-standard.json
+	node microflo.js generate $(LINUX_GRAPH) $(BUILD_DIR)/linux-mqtt/ --target linux-mqtt --library $(LIBRARY)
 	cd $(BUILD_DIR)/linux-mqtt/ && g++ -o firmware main.cpp -std=c++0x -lmosquitto $(COMMON_CFLAGS) -DLINUX -Werror -lrt
 
 build-esp:

@@ -7,7 +7,7 @@ assert = require('assert')
 microflo = require('../lib/microflo')
 websocket = require('websocket')
 
-library = 'microflo-core/components/arduino-standard.json'
+library = './test/components/components.json'
 
 describe 'WebSocket API', ->
   runtime = null

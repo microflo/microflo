@@ -1,0 +1,9 @@
+{
+    "components": [
+        "Forward",
+        "DigitalWrite",
+        "ToggleBoolean",
+        "Timer",
+        "Split"
+    ]
+}

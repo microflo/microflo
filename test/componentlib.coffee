@@ -12,7 +12,7 @@ else
   componentlib = require 'microflo/lib/componentlib'
 componentLib = new componentlib.ComponentLibrary
 
-library = 'microflo-core/components/arduino-standard.json'
+library = './test/components/components.json'
 
 describe 'ComponentLibrary', ->
   normal = []
