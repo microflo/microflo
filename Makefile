@@ -169,7 +169,9 @@ flash-esp: build-esp
 	cd $(BUILD_DIR)/esp && make flash $(ESP_OPTS)
 
 build-tests:
-	g++ -o build/runtests test/runtime.cpp -I./microflo
+	rm -rf $(BUILD_DIR)/tests
+	mkdir -p $(BUILD_DIR)/tests
+	g++ -o $(BUILD_DIR)/tests/run test/runtime.cpp -I./microflo
 
 build: update-defs build-tests build-arduino build-avr
 
@@ -240,7 +242,7 @@ check-release: release
     # TODO: check arduino package by importing with ino, building
 
 runtime-tests: build-tests
-	./build/runtests
+	$(BUILD_DIR)/tests/run
 
 check: runtime-tests build-linux-mqtt
 	npm test
