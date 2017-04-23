@@ -6,5 +6,5 @@
   "address": "ws://localhost:3334",
   "secret": "microflo32",
   "id": "2ef763ff-1f28-49b8-b58f-5c6a5c23af25",
-  "command": "./build/linux/firmware test.microflo & ./microflo.js runtime --port 3334 --baudrate 115200 --serial test.microflo --componentmap build/linux/componentlib-map.json"
+  "command": "sh test/start-runtime.sh"
 }
