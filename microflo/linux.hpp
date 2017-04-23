@@ -123,6 +123,10 @@ class LinuxSerialTransport : public HostTransport {
 public:
     LinuxSerialTransport(const std::string &p)
         : path(p)
+        , slave(-1)
+        , master(-1)
+        , io(NULL)
+        , controller(NULL)
     {
     }
 
@@ -132,22 +136,20 @@ public:
     virtual void sendCommand(const uint8_t *buf, uint8_t len);
 
 private:
-    IO *io;
-    HostCommunication *controller;
-    int baudrate;
     std::string path;
     int slave;
     int master;
+    IO *io;
+    HostCommunication *controller;
 };
 
 void LinuxSerialTransport::setup(IO *i, HostCommunication *c) {
     io = i;
     controller = c;
 
-    char name[256];
-    const int ptyopened = openpty(&master, &slave, &name[0], NULL, NULL);
-    if (ptyopened < 0) {
-        fprintf(stderr, "Failed to open PTY: %d\n", ptyopened);
+    const int ptyopened = openpty(&master, &slave, NULL, NULL, NULL);
+    if (ptyopened != 0) {
+        fprintf(stderr, "Failed to open PTY: %s\n", strerror(errno));
         return;
     }
 
