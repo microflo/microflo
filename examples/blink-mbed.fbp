@@ -1,4 +1,4 @@
 timer(Timer) OUT -> IN toggle(ToggleBoolean)
 toggle() OUT -> IN led(DigitalWrite)
 '300' -> INTERVAL timer()
-board(MbedLPC) LED1 -> PIN led()
+'1' -> PIN led()
