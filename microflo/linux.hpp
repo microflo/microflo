@@ -147,6 +147,7 @@ void LinuxSerialTransport::setup(IO *i, HostCommunication *c) {
     char name[256];
     const int ptyopened = openpty(&master, &slave, &name[0], NULL, NULL);
     if (ptyopened < 0) {
+        fprintf(stderr, "Failed to open PTY: %d\n", ptyopened);
         return;
     }
 
@@ -154,13 +155,19 @@ void LinuxSerialTransport::setup(IO *i, HostCommunication *c) {
     unlink(path.c_str());
     const char *devname = ttyname(slave);
     if (!devname) {
+        fprintf(stderr, "Failed to get PTY name\n");
         return;
     }
-    symlink(devname, path.c_str());
+    const int symlinked = symlink(devname, path.c_str());
+    if (symlinked < 0) {
+        fprintf(stderr, "Failed to create symlink for PTY: %s\n", strerror(errno));
+    }
 
     /* baudrate 115200, 8 bits, no parity, 1 stop bit */
     if (master >= 0) {
         linux_serial::set_interface_attribs(master, B115200);
+    } else {
+        fprintf(stderr, "PTY master filedescriptor is invalid\n");
     }
 }
 
