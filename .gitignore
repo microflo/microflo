@@ -8,3 +8,4 @@ build
 test/result.*
 test/*.js
 lib/*.js
+test.microflo
