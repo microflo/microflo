@@ -6,4 +6,5 @@ OPTIONS="--port 3334 --baudrate 115200 --serial $SERIALFILE"
 trap 'kill $(jobs -p)' EXIT
 
 ./build/linux/firmware $SERIALFILE &
+sleep 2
 ./microflo.js runtime $OPTIONS --componentmap build/linux/componentlib-map.json | grep 'listening'
