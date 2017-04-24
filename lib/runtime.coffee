@@ -11,6 +11,7 @@ else
     websocket = require("websocket")
     url = require("url")
     uuid = require "uuid"
+    fs = require 'fs'
 
 EventEmitter = util.EventEmitter
 try
@@ -20,7 +21,7 @@ catch e
 
 commandstream = require("./commandstream")
 generate = require("./generate")
-c = require("./componentlib")
+{ ComponentLibrary } = require "./componentlib"
 cmdFormat = require("./commandformat")
 serial = require("./serial")
 devicecommunication = require("./devicecommunication")
@@ -40,9 +41,9 @@ portDefAsArray = (port) ->
 
 connectionsWithoutEdge = (connections, findConn) ->
     edgeEq = (a, b) ->
-        JSON.stringify a == JSON.stringify b
+        return a?.port == b?.port and a?.process == b?.process
     newList = []
-    connections.forEach (conn) ->
+    for conn in connections
         if conn.src and edgeEq conn.src, findConn.src and edgeEq conn.tgt, findConn.tgt
             # Connection
         else if conn.data and edgeEq conn.tgt, findConn.tgt
@@ -141,11 +142,13 @@ handleRuntimeCommand = (command, payload, connection, runtime) ->
             type: "microflo"
             version: "0.4"
             capabilities: caps
-        connection.send
+
+        runtime.device.open () ->
+          connection.send
             protocol: "runtime"
             command: "runtime"
             payload: r
-        sendExportedPorts connection, runtime
+          sendExportedPorts connection, runtime       
     else if command is 'packet'
         sendPacket runtime, payload.port, payload.event, payload.payload
     else
@@ -178,18 +181,25 @@ handleGraphCommand = (command, payload, connection, runtime) ->
     if command is "clear"
         graph.processes = {}
         graph.connections = []
-        graph.name = payload.name or ''
-        graph.nodeMap = {} # nodeName->numericNodeId
-        # FIXME: should be on the graph!
+        graph.name = payload.id or 'default/main'
+        graph.nodeMap = {}
+        graph.componentMap = {}
+        graph.currentNodeId = 1
         runtime.exportedEdges = []
         runtime.edgesForInspection = []
-        sendAck connection, { protocol: 'graph', command: command, payload: payload }
+
+        sendMessage runtime, { protocol: 'graph', command: command, payload: payload }
     else if command is "addnode"
         graph.processes[payload.id] = payload
-        sendAck connection, { protocol: 'graph', command: command, payload: payload }
+        graph.nodeMap[payload.id] = { id: graph.currentNodeId++ }
+        graph.componentMap[payload.id] = payload.component
+        # TODO: wait for nodeId from runtime, update nodeMap then
+        sendMessage runtime, { protocol: 'graph', command: command, payload: payload }
     else if command is "removenode"
+        sendMessage runtime, { protocol: 'graph', command: command, payload: payload }
         delete graph.processes[payload.id]
-        sendAck connection, { protocol: 'graph', command: command, payload: payload }
+        delete graph.nodeMap[payload.id]
+        delete graph.componentMap[payload.id]
     else if command is "renamenode"
         node = graph.processes[payload.from]
         graph.processes[payload.to] = node
@@ -199,14 +209,15 @@ handleGraphCommand = (command, payload, connection, runtime) ->
         sendAck connection, { protocol: 'graph', command: command, payload: payload }
     else if command is "addedge"
         graph.connections.push protocol.wsConnectionFormatToFbp(payload)
-        sendAck connection, { protocol: 'graph', command: command, payload: payload }
+        sendMessage runtime, { protocol: 'graph', command: command, payload: payload }
     else if command is "removeedge"
         graph.connections = connectionsWithoutEdge(graph.connections, protocol.wsConnectionFormatToFbp(payload))
-        sendAck connection, { protocol: 'graph', command: command, payload: payload }
+        sendMessage runtime, { protocol: 'graph', command: command, payload: payload }
     else if command is "addinitial"
         graph.connections.push protocol.wsConnectionFormatToFbp(payload)
-        sendAck connection, { protocol: 'graph', command: command, payload: payload }
+        sendMessage runtime, { protocol: 'graph', command: command, payload: payload }
     else if command is "removeinitial"
+        # TODO: send to runtime side, wait for response
         graph.connections = connectionsWithoutEdge(graph.connections, protocol.wsConnectionFormatToFbp(payload))
         sendAck connection, { protocol: 'graph', command: command, payload: payload }
 
@@ -231,8 +242,14 @@ handleGraphCommand = (command, payload, connection, runtime) ->
         # For subscribing to output packets
         runtime.exportedEdges.push
             src:
-                process: payload.node
+                node: payload.node
                 port: payload.port
+
+        # update subscriptions on device side
+        edges = runtime.exportedEdges.concat runtime.edgesForInspection
+        handleNetworkEdges runtime, connection, edges, (err) ->
+          console.log 'handle network edges error', err if err
+
         sendAck connection, { protocol: 'graph', command: command, payload: payload }
     else if command is "removeoutport"
         delete graph.outports[payload.public]
@@ -242,75 +259,82 @@ handleGraphCommand = (command, payload, connection, runtime) ->
         console.log "Unknown NoFlo UI command on protocol 'graph':", command, payload
     return
 
-deviceResponseToFbpProtocol = (runtime, send, args)->
-    if args[0] is "SEND"
-        data = `undefined`
-        if args[3] is "Void"
-            data = "!"
-        else
-            data = args[4]
-        src =
-            node: args[1]
-            port: args[2]
-        tgt =
-            node: args[5]
-            port: args[6]
-        send
-            protocol: "network"
-            command: "data"
-            payload:
-                src: src
-                tgt: tgt
-                data: data
+packetSent = (graph, collector, payload) ->
+    messages = []
 
-        # Check if exported outport
-        if runtime.graph.outports
-            found = null
-            for pub, internal of runtime.graph.outports
-                match = internal.process == src.node and internal.port == src.port
-                found = pub if match
-            m =
-                protocol: "runtime"
-                command: "packet"
-                payload:
-                    port: found
-                    event: 'data'
-                    payload: data
-                    index: null
-            send m if found
+    payload.graph = graph.name
+    payload.id = "dummy"
 
-    else if args[0] is "NETSTOP"
-        m =
-            protocol: "network"
-            command: "stopped"
-            payload:
-                running: false
-                started: false
-        send m
-    else if args[0] is "NETSTART"
-        m =
-            protocol: "network"
-            command: "started"
-            payload:
-                running: true
-                started: true
-        send m
+    data = collector.pushData payload
+    if data?
+        payload.data = data
     else
-        string = args.join(", ")
-        string = string.replace(/\n$/, "")
-        msg =
-            protocol: "network"
-            command: "output"
+        return [] # in the middle of bracketed data, will send when gets to the end
+
+    # Check if exported outport
+    if graph.outports
+        found = null
+        for pub, internal of graph.outports
+            match = internal.process == payload.src.node and internal.port == payload.src.port
+            found = pub if match
+        m =
+            protocol: "runtime"
+            command: "packet"
             payload:
-                message: string
-        # send msg
-        # Should only be used for "output" from program in the runtime itself
+                port: found
+                event: 'data'
+                payload: data
+                index: null
+        messages.push m
+
+    # Sent network:data for edge introspection
+    m =
+        protocol: 'network'
+        command: 'data'
+        payload: payload
+    messages.push m
+
+    return messages
 
 
-handleNetworkStartStop = (runtime, connection, transport, debugLevel) ->
+mapMessage = (graph, collector, message)->
+    if message.protocol == 'microflo'
+        if message.command == 'packetsent'
+            # TODO: move this down to commandstream?
+            messages = packetSent graph, collector, message.payload
+            return messages
+        else if message.command in ['subscribeedge'] # TODO: make network:edges
+          return []
+        else if message.command in ['debugchanged','communicationopen', 'sendpacketdone', 'iovaluechanged']
+          console.log 'FBP MICROFLO RESPONSE IGNORED:', message.command if util.debug_protocol
+          # ignore
+          return []
+        else if message.command == 'debugmessage'
+            p = message.payload
+            msg =
+                protocol: "network"
+                command: "output"
+                payload:
+                    message: "Debug point triggered: #{p.level} #{p.point}"
+            return [ msg ]
+        else
+            console.log 'FBP MICROFLO RESPONSE sent as network:output', message.command if util.debug_protocol
+            string = "#{message.command}: " + JSON.stringify message.payload
+            msg =
+                protocol: "network"
+                command: "output"
+                payload:
+                    message: string
+            return [ msg ]
+    else
+        # pass-through
+        return [ message ]
+        
+
+# non-live programming way of uploading
+resetAndUploadGraph = (runtime, connection, debugLevel) ->
     # FIXME: also do error handling, and send that across
     # https://github.com/noflo/noflo-runtime-websocket/blob/master/runtime/network.js
-    # TODO: handle start/stop messages, send this to the UI
     graph = runtime.graph
 
     if runtime.uploadInProgress
@@ -338,18 +362,18 @@ subscribeEdges = (runtime, edges, callback) ->
     offset = 0
 
     # Loop over all edges, unsubscribe
-    graph.connections.forEach (edge) ->
-        if edge.src
-            srcId = graph.nodeMap[edge.src.process].id
-            srcComp = graph.processes[edge.src.process].component
-            srcPort = runtime.library.outputPort(srcComp, edge.src.port).id
+    graph.connections.forEach (conn) ->
+        if conn.src
+            srcId = graph.nodeMap[conn.src.process].id
+            srcComp = graph.processes[conn.src.process].component
+            srcPort = runtime.library.outputPort(srcComp, conn.src.port).id
             offset += commandstream.writeCmd buffer, offset,
                         cmdFormat.commands.SubscribeToPort.id, srcId, srcPort, 0
         return
     # Subscribe to enabled edges
     edges.forEach (edge) ->
-        srcId = graph.nodeMap[edge.src.process].id
-        srcComp = graph.processes[edge.src.process].component
+        srcId = graph.nodeMap[edge.src.node].id
+        srcComp = graph.processes[edge.src.node].component
         srcPort = runtime.library.outputPort(srcComp, edge.src.port).id
         offset += commandstream.writeCmd buffer, offset,
                     cmdFormat.commands.SubscribeToPort.id, srcId, srcPort, 1
@@ -365,16 +389,29 @@ subscribeEdges = (runtime, edges, callback) ->
 handleNetworkEdges = (runtime, connection, edges, callback) ->
     subscribeEdges runtime, edges, callback
 
+sendMessage = (runtime, message) ->
+  temp = new commandstream.Buffer 1024
+  g = runtime.graph
+  index = commandstream.toCommandStreamBuffer message, runtime.library, g.nodeMap, g.componentMap, temp, 0
+  data = temp.slice(0, index)
+  runtime.device.sendCommands data, (err) ->
+    console.og 'sendMessage error', err if err
+
 handleNetworkCommand = (command, payload, connection, runtime, transport, debugLevel) ->
-    if command is "start" or command is "stop"
-        # TODO: handle stop command separately, actually pause the graph
-        handleNetworkStartStop runtime, connection, debugLevel
+    if command is "start"
+        m = { protocol: 'network', command: command, payload: payload }
+        sendMessage runtime, m
+    else if command is "stop"
+        m = { protocol: 'network', command: command, payload: payload }
+        sendMessage runtime, m
     else if command is "edges"
-        # TOD: merge with those of exported outports
+        # TODO: merge with those of exported outports
         runtime.edgesForInspection = payload.edges
         edges = runtime.edgesForInspection.concat runtime.exportedEdges
-        handleNetworkEdges runtime, connection, edges
-        sendAck connection, { protocol: 'network', command: command, payload: payload }
+        handleNetworkEdges runtime, connection, edges, (err) ->
+          if err
+            return sendAck connection, { protocol: 'network', command: 'error', payload: { message: err.message } }
+          sendAck connection, { protocol: 'network', command: command, payload: payload }
     else
         console.log "Unknown NoFlo UI command on protocol 'network':", command, payload
     return
@@ -393,6 +430,30 @@ handleMessage = (runtime, contents) ->
     else
         console.log "Unknown NoFlo UI protocol:", contents
     return
+
+class BracketDataCollector
+  constructor: () ->
+    received = {}
+    bracketed = null
+  
+  # Returns null if there is no (completed bracketed data)
+  # or a list of the data contained in bracket if there is
+  pushData: (payload) ->
+    # FIXME: assumes all data is on a single edge!
+    {data, type} = payload
+    if not @bracketed? and type != 'BracketStart'
+      # return original
+      return data
+    if @bracketed? and type != 'BracketEnd'
+      @bracketed.push data
+      return null
+    if type == 'BracketStart'
+      @bracketed = []
+      return null
+    if type == 'BracketEnd'
+      out = @bracketed.slice() 
+      @bracketed = null
+      return out
 
 createFlowhubRuntime = (user, ip, port, label, id, apihost) ->
     return null if not flowhub
@@ -462,11 +523,19 @@ setupWebsocket = (runtime, ip, port, callback) ->
         return callback null, httpServer
 
 # FIXME: specify most of these things through a `options` object
-setupRuntime = (serialPortToUse, baudRate, port, debugLevel, ip, library, callback) ->
+setupRuntime = (serialPortToUse, baudRate, port, debugLevel, ip, componentMap, callback) ->
 
     serial.openTransport serialPortToUse, baudRate, (err, transport) ->
         return callback err, null if err
         runtime = new Runtime transport
+
+        # TODO: support automatically looking up in runtime
+        if componentMap
+            try
+                runtime.library.definition = JSON.parse(fs.readFileSync(componentMap, 'utf-8'))
+            catch e
+                console.log 'WARN: could not load component mapping', e
+
         setupWebsocket runtime, ip, port, (err, server) ->
             # FIXME: ping Flowhub
             return callback null, runtime
@@ -492,12 +561,22 @@ setupSimulator = (file, baudRate, port, debugLevel, ip, callback) ->
             return callback null, runtime
 
 
-uploadGraphFromFile = (graphPath, serialPortName, baudRate, debugLevel) ->
-    serial.openTransport serialPortName, baudRate, (err, transport) ->
-        definition.loadFile graphPath, (err, graph) ->
-            data = commandstream.cmdStreamFromGraph(runtime.library, graph, debugLevel)
-            # FIXME: reimplement using devicecomm directly
-            uploadGraph transport, data, graph
+uploadGraphFromFile = (graphPath, options, callback) ->
+  console.log 'o', graphPath
+  serial.openTransport options.serial, options.baudrate, (err, transport) ->
+    return callback err if err
+    runtime = new Runtime transport, { debug: options.debug }
+    # TODO: support automatically looking up in runtime
+    if options.componentmap
+      try
+        runtime.library.definition = JSON.parse(fs.readFileSync(options.componentmap, 'utf-8'))
+      catch e
+        return callback e
+    definition.loadFile graphPath, (err, graph) ->
+      return callback err if err
+      runtime.uploadGraph graph, (err) ->
+        return callback err if err
+        return callback null, err
 
 class Runtime extends EventEmitter
     constructor: (transport, options) ->
@@ -505,37 +584,29 @@ class Runtime extends EventEmitter
         @graph = {}
         @transport = transport
         @debugLevel = options?.debug or 'Error'
-        @library = new c.ComponentLibrary
-        @device = new devicecommunication.DeviceCommunication @transport, @graph, @library
+        @library = new ComponentLibrary
+        @device = new devicecommunication.DeviceCommunication @transport
         @io = new devicecommunication.RemoteIo @device
+        @collector = new BracketDataCollector()
         @exportedEdges = []
         @edgesForInspection = []
+
+        # Needed because the runtime on microcontroller only has numerical identifiers
+        @graph.nodeMap = {} # "nodeName" -> { id: numericNodeId }
+        @graph.componentMap = {} # "nodeName" -> "componentName"
+        @graph.currentNodeId = 1
+
         @conn =
             send: (response) =>
                 console.log 'FBP MICROFLO SEND:', response if util.debug_protocol
                 @emit 'message', response
 
-        received = {}
-        bracketed = null
-        @device.on 'response', () =>
-            args = Array.prototype.slice.call arguments
-            event = args[0]
-            if event == 'SEND'
-                [event, node, port, type, data] = args
-                console.log event, node, port, type, data
-                if bracketed? and type != 'BracketEnd'
-                    bracketed.push data
-                    return
-                if type == 'BracketStart'
-                    bracketed = []
-                    return
-                if type == 'BracketEnd'
-                    data = bracketed.slice()
-                    bracketed = null
-                args = [event, node, port, type, data]
-                deviceResponseToFbpProtocol @, @conn.send, args
-            else
-                deviceResponseToFbpProtocol @, @conn.send, args
+        @device.on 'response', (cmd) =>
+            messages = commandstream.fromCommand @library, @graph, cmd
+            for m in messages
+                converted = mapMessage @graph, @collector, m
+                for c in converted
+                    @conn.send c
 
     handleMessage: (msg) ->
         console.log 'FBP MICROFLO RECV:', msg if util.debug_protocol
@@ -543,7 +614,6 @@ class Runtime extends EventEmitter
 
     uploadGraph: (graph, callback) ->
         @graph = graph
-        @device.graph = graph # XXX: not so nice
 
         checkUploadDone = (m) =>
             if m.protocol == 'network' and m.command == 'started'
@@ -552,16 +622,9 @@ class Runtime extends EventEmitter
 
         @on 'message', checkUploadDone
         try
-            @handleMessage { protocol: 'network', command: 'start' }
+            resetAndUploadGraph this, @conn, @debugLevel
         catch e
             return callback e
-
-    uploadFBP: (prog, callback) ->
-        try
-            graph = require('fbp').parse(prog)
-        catch e
-            return callback e
-        @uploadGraph graph, callback
 
 module.exports =
     setupRuntime: setupRuntime
@@ -571,3 +634,4 @@ module.exports =
     uploadGraphFromFile: uploadGraphFromFile
     createFlowhubRuntime: createFlowhubRuntime
     registerFlowhubRuntime: registerFlowhubRuntime
+

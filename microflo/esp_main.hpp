@@ -36,6 +36,10 @@ void operator delete(void * p)
 {
   os_free(p);
 }
+void operator delete(void * p, size_t n)
+{
+  os_free(p);
+}
 
 extern "C"
 {

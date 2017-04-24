@@ -186,10 +186,16 @@ std::string encodePacket(const Packet &pkg) {
         return pkg.asBool() ? "true" : "false";
     case MsgInteger:
         return std::to_string(pkg.asInteger());
-    case MsgByte: // TODO: handle byte streams
-        return "";
-    case MsgFloat: // TOOD: handle floats
-        return "";
+    case MsgByte:
+        return std::to_string(pkg.asByte());
+    case MsgFloat:
+        return std::to_string(pkg.asFloat());
+    case MsgError:
+        if (Error_names[pkg.asError()]) {
+            return std::string("Error: ") + Error_names[pkg.asError()];
+        } else {
+            return "Error: Invalid error";
+        }
 
     case MsgBracketStart: // TOOD: handle brackets
     case MsgBracketEnd: // TOOD: handle brackets
@@ -202,6 +208,8 @@ std::string encodePacket(const Packet &pkg) {
     case MsgTick:
     case MsgInvalid:
         return "";
+    default:
+        return "Error: Unknown MicroFlo::Packet type";
     }
 
     return ""; // above should be exclusive but compiler complains...
@@ -289,11 +297,20 @@ public:
 
     // implements NetworkNotificationHandler
     virtual void nodeAdded(Component *c, MicroFlo::NodeId parentId) {}
+    virtual void nodeRemoved(Component *c, MicroFlo::NodeId parentId) {}
+
     virtual void nodesConnected(Component *src, MicroFlo::PortId srcPort,
                                 Component *target, MicroFlo::PortId targetPort) {}
+    virtual void nodesDisconnected(Component *src, MicroFlo::PortId srcPort,
+                                Component *target, MicroFlo::PortId targetPort) {}
+
     virtual void networkStateChanged(Network::State s) {}
-    virtual void emitDebug(DebugLevel level, DebugId id) {}
-    virtual void debugChanged(DebugLevel level) {}
+    virtual void emitDebug(DebugLevel level, DebugId id) {
+        const char *levelStr = DebugLevel_names[level];
+        const char *message = DebugId_names[id];
+        LOG("%s: %s\n", levelStr, message);
+    }
+    virtual void debugChanged(DebugLevel level) { }
     virtual void portSubscriptionChanged(MicroFlo::NodeId nodeId, MicroFlo::PortId portId, bool enable) {}
     virtual void subgraphConnected(bool isOutput, MicroFlo::NodeId subgraphNode,
                                    MicroFlo::PortId subgraphPort, MicroFlo::NodeId childNode, MicroFlo::PortId childPort) {}

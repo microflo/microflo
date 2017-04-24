@@ -4,4 +4,4 @@ OUTPORT=led.OUT:LIGHTON
 timer(Timer) OUT -> IN toggle(ToggleBoolean)
 toggle() OUT -> IN led(DigitalWrite)
 '2000' -> INTERVAL timer()
-board(RaspberryPi) PIN3 -> PIN led()
+'3' -> PIN led()

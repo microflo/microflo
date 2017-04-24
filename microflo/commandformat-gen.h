@@ -12,6 +12,9 @@ enum GraphCmd {
     GraphCmdCommunicationOpen = 19,
     GraphCmdStartNetwork = 20,
     GraphCmdSetIoValue = 21,
+    GraphCmdStopNetwork = 22,
+    GraphCmdDisconnectNodes = 23,
+    GraphCmdRemoveNode = 24,
     GraphCmdNetworkStopped = 100,
     GraphCmdNodeAdded = 101,
     GraphCmdNodesConnected = 102,
@@ -22,11 +25,13 @@ enum GraphCmd {
     GraphCmdPortSubscriptionChanged = 107,
     GraphCmdSubgraphPortConnected = 108,
     GraphCmdPong = 109,
-    GraphCmdPacketDelivered = 110,
     GraphCmdTransmissionEnded = 111,
     GraphCmdSetIoValueCompleted = 112,
     GraphCmdIoValueChanged = 113,
     GraphCmdSendPacketDone = 114,
+    GraphCmdNetworkReset = 115,
+    GraphCmdNodesDisconnected = 116,
+    GraphCmdNodeRemoved = 117,
     GraphCmdInvalid,
     GraphCmdMax = 255
 };
@@ -54,9 +59,9 @@ static const char *GraphCmd_names[] = {
     "CommunicationOpen",
     "StartNetwork",
     "SetIoValue",
-    0,
-    0,
-    0,
+    "StopNetwork",
+    "DisconnectNodes",
+    "RemoveNode",
     0,
     0,
     0,
@@ -142,14 +147,14 @@ static const char *GraphCmd_names[] = {
     "PortSubscriptionChanged",
     "SubgraphPortConnected",
     "Pong",
-    "PacketDelivered",
+    0,
     "TransmissionEnded",
     "SetIoValueCompleted",
     "IoValueChanged",
     "SendPacketDone",
-    0,
-    0,
-    0,
+    "NetworkReset",
+    "NodesDisconnected",
+    "NodeRemoved",
     0,
     0,
     0,
@@ -301,6 +306,9 @@ enum Msg {
     MsgFloat = 8,
     MsgBracketStart = 9,
     MsgBracketEnd = 10,
+    MsgError = 11,
+    MsgPointerFirst = 12,
+    MsgPointerMax = 100,
     MsgMaxDefined,
     MsgMax = 255
 };
@@ -317,6 +325,8 @@ static const char *Msg_names[] = {
     "Float",
     "BracketStart",
     "BracketEnd",
+    "Error",
+    "PointerFirst",
     0,
     0,
     0,
@@ -404,9 +414,7 @@ static const char *Msg_names[] = {
     0,
     0,
     0,
-    0,
-    0,
-    0,
+    "PointerMax",
     0,
     0,
     0,
@@ -869,6 +877,8 @@ enum DebugId {
     DebugIoInvalidValueSet = 33,
     DebugUnknownIoType = 34,
     DebugSubscribePortInvalidPort = 35,
+    DebugRemoveNodeInvalidInstance = 36,
+    DebugRemoveNodeInvalidParent = 37,
     DebugUser1 = 100,
     DebugUser2 = 101,
     DebugUser3 = 102,
@@ -915,8 +925,8 @@ static const char *DebugId_names[] = {
     "IoInvalidValueSet",
     "UnknownIoType",
     "SubscribePortInvalidPort",
-    0,
-    0,
+    "RemoveNodeInvalidInstance",
+    "RemoveNodeInvalidParent",
     0,
     0,
     0,
@@ -1135,6 +1145,26 @@ static const char *DebugId_names[] = {
     0,
     0,
     "Max"
+};
+
+enum Error {
+    ErrorOther = 0,
+    ErrorComponentBug = 1,
+    ErrorUnsupportedType = 2,
+    ErrorUnsupportedValue = 3,
+    ErrorInvalidInput = 4,
+    ErrorOperationFailed = 5,
+    ErrorOperationTimeout = 6
+};
+
+static const char *Error_names[] = {
+    "Other",
+    "ComponentBug",
+    "UnsupportedType",
+    "UnsupportedValue",
+    "InvalidInput",
+    "OperationFailed",
+    "OperationTimeout"
 };
 
 enum IoType {

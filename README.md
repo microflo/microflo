@@ -82,10 +82,10 @@ Developing/Hacking
 -----------------
 
 Instructions below valid for
+
 * Arch Linux and Ubuntu (any GNU/Linux should be OK),
 * Mac OSX 10.8 Mountain Lion (10.6 -> 10.9 should be OK)
 
-Note: Uploading as shown below not work on Windows atm, as [Ino](http://inotool.org/#limitations) does not support it.
 You can however use the Arduino IDE or another tool for flashing your microcontroller.
 
 Note: Mostly tested on Arduino Uno R3 and Arduino Nano R3. Other Arduino devices should however work.
@@ -96,11 +96,7 @@ Get the code
     cd microflo
     git submodule update --init # only for old git versions
 
-Install prerequsites; Arduino and Ino
-
-    apt-get install arduino # Ubuntu
-    # On OSX, download Arduino.app, move to /Applications
-    pip install ino
+Install prerequsites: Arduino 1.6 or later [Download](https://www.arduino.cc/en/Main/Software)
 
 To build and run tests
 
@@ -108,18 +104,15 @@ To build and run tests
 
 To flash your Arduino with the MicroFlo runtime, including an embedded graph:
 
-    make upload GRAPH=examples/blink.fbp MODEL=uno
-
-For a list of models, use
-
-    ino list-models
+    make upload GRAPH=examples/blink.fbp BOARD=arduino:avr:uno
 
 Now you can use Flowhub Chrome app to talk directly to MicroFlo over serial/USB
 or use:
 
     node microflo.js runtime
 
-Then connect to the runtime (by default at http://localhost:3569) using Flowhub. More details at the [getting started guide](http://flowhub.io/documentation/getting-started-microflo).
+Then connect to the runtime (by default at http://localhost:3569) using Flowhub.
+More details at the [getting started guide](http://flowhub.io/documentation/getting-started-microflo).
 
 To see existing or add new components, check the files
 

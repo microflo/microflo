@@ -1,10 +1,11 @@
 node_modules/
 .build
 build
-components/
+/components/
 *.user*
 *~
 *.autosave
 test/result.*
 test/*.js
 lib/*.js
+test.microflo

@@ -1,6 +1,6 @@
 {
   "name": "microflo",
-  "version": "0.3.43",
+  "version": "0.3.48",
   "description": "Flow-based programming runtime for microcontrollers",
   "keywords": [
     "fbp",
@@ -79,11 +79,8 @@
     "grunt-mocha-test": "^0.13.2",
     "grunt-noflo-browser": "^1.1.1",
     "grunt-zip": "^0.17.1",
-    "microflo-core": "^0.3.36",
-    "microflo-emscripten": "^0.3.38",
     "mocha": "^3.2.0",
     "mqtt": "^2.2.1",
-    "msgflo": "^0.9.0",
-    "phantomjs": "^2.1.7"
+    "msgflo": "^0.9.0"
   }
 }

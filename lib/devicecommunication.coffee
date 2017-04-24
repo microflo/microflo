@@ -95,6 +95,7 @@ class SendQueue extends EventEmitter
         throw new Error 'SendQueue.write must be implemented by consumer'
 
     push: (buffer, callback) ->
+        throw new Error "DeviceCommunication.push missing callback" if not callback
         console.log 'queuing buf', buffer, @queue.length, buffer.length, @sending if debug_comms
 
         @bytesPerSec += buffer.length
@@ -116,7 +117,7 @@ class SendQueue extends EventEmitter
 
         # console.log 'popping buff off queue'
         @current = @queue.shift()
-        chunkSize = commandstream.cmdFormat.commandSize
+        chunkSize = commandstream.cmdFormat.commandSize*5
 
         sendCmd = (dataBuf, index) =>
             chunk = dataBuf.slice index, index+chunkSize
@@ -126,16 +127,21 @@ class SendQueue extends EventEmitter
                 return
             @current.sent = Date.now()
             @write chunk, (err, len) =>
-                errored = err or len == -1
-                if not errored and chunk.length and index < dataBuf.length
-                    console.log 'MICROFLO SEND:', chunkSize, chunk, err, len, errored if debug_comms
-                    sendCmd dataBuf, index+=chunkSize
+                setTimeout =>
+                    errored = err or len == -1
+                    if not errored and chunk.length and index < dataBuf.length
+                        console.log 'MICROFLO SEND:', chunkSize, chunk, err, len, errored if debug_comms
+                        sendCmd dataBuf, index+=chunkSize
+                , 0
 
         sendCmd @current.data, 0 if @current?
 
-    onResponse: (type) ->
+    onResponse: (cmd) ->
         return if not @sending
-        return if type in ['IOCHANGE', 'DEBUG', 'UNKNOWN', 'SEND']
+        # FIXME check new type
+        type = keyFromId commandstream.cmdFormat.commands, cmd.readUInt8 0
+        return if not type
+        return if type in [ 'IoValueChange' , 'DebugMessage', 'PacketSent'] # not responses, self-initiated by runtime
 
         numberOfCommands = @current.data.length/commandstream.cmdFormat.commandSize
         @current.responses++
@@ -151,17 +157,13 @@ class SendQueue extends EventEmitter
             @next()
 
 
-# FIXME: probably need a open/connect and close/disconnect?
-
-# Mirrors the HostCommunication class found on the device side
-# Handles converting from JS objects to the FBCS commands and back
+# Send/receive data from the MicroFlo runtime on-device
+# Takes Buffers filled with with FBCS/commandstream commands and returns the same
+# Any parsing/interpretation of these commands must be done on a higher level
 class DeviceCommunication extends EventEmitter
 
-    # XXX: not liking the graph access that well
-    constructor: (transport, graph, componentLib) ->
-        @graph = graph
+    constructor: (transport) ->
         @transport = transport
-        @componentLib = componentLib
         @accumulator = new CommandAccumulator commandstream.cmdFormat.commandSize
 
         return if not @transport
@@ -194,29 +196,6 @@ class DeviceCommunication extends EventEmitter
         @sendCommands buffer, cb
     # pong
 
-
-    # Should maybe be separate, to allow batching up commmands into an object,
-    # then send all those commands (potentially just 1) as one batch/transaction?
-    addNode: (node, component, cb) ->
-    removeNode: (node, cb) ->
-    # nodeAdded, nodeRemoved
-
-    addEdge: (srcNode, srcPort, tgtNode, tgtPort, cb) ->
-    removeEdge: (srcNode, srcPort, tgtNode, tgtPort, cb) ->
-    # edgeAdded, edgeRemoved
-
-    addInitial: (tgtNode, tgtPort, data, cb) ->
-    removeInitial: (tgtNode, tgtPort, cb) ->
-    # iipAdded, iipRemoved
-
-    startNetwork: (cb) ->
-    stopNetwork: (cb) ->
-    # networkStarted, networkStopped
-
-    subscribePort: () ->
-    configureDebug: () ->
-    # portSubscribed, debugConfigured
-
     # Send batched
     sendCommands: (buffer, callback) ->
         @sender.push buffer, callback
@@ -224,25 +203,18 @@ class DeviceCommunication extends EventEmitter
     # Low-level
     _onCommandReceived: (buf) ->
         try
-            commandstream.parseReceivedCmd @componentLib, @graph, buf, () =>
-                console.log 'MICROFLO RECV:', buf.length, buf, Array.prototype.slice.call(arguments) if debug_comms
-                @_handleCommandReceived.apply this, arguments
+            console.log 'MICROFLO RECV:', buf.length, buf if debug_comms
+            @_handleCommandReceived null, buf
         catch err
-            out = 'ERROR'
-            console.log 'MICROFLO RECV ERROR:', buf.length, buf, out if debug_comms
-            @_handleCommandReceived out, err.message
+            console.log 'MICROFLO RECV ERROR:', buf.length, buf, err if debug_comms
+            @_handleCommandReceived err
 
-    _handleCommandReceived: (type) ->
-        @sender.onResponse type
-
-        # Just emit without change atm
-        @emit.apply this, arguments
-        args = new Array arguments.length
-        for i in [0...arguments.length]
-            args[i] = arguments[i]
-        args.unshift 'response'
-        @emit.apply this, args
-
+    _handleCommandReceived: (err, cmd) ->
+        if err
+            @emit 'error', err
+            return
+        @sender.onResponse cmd
+        @emit 'response', cmd
 
 keyFromId = (map, wantedId) ->
     for name, val of map
@@ -258,7 +230,10 @@ class RemoteIo extends EventEmitter
             digitalOutputs: []
             timeMs: 0
 
-        @comm.on 'IOCHANGE', (buf) => @onIoChange buf
+        @comm.on 'response', (buf) =>
+            type = keyFromId commandstream.cmdFormat.commands, buf.readUInt8 0
+            if type == 'IoValueChanged'
+                @onIoChange buf
 
     onIoChange: (buf) ->
         type = keyFromId commandstream.cmdFormat.ioTypes, buf.readUInt8 1

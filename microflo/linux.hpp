@@ -12,6 +12,56 @@
 #include <fstream>
 #include <time.h>
 
+#include <errno.h>
+#include <fcntl.h> 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <termios.h>
+#include <unistd.h>
+#include <pty.h>
+#include <poll.h>
+
+namespace linux_serial {
+
+static int
+set_interface_attribs(int fd, int speed)
+{
+    struct termios tty;
+
+    if (tcgetattr(fd, &tty) < 0) {
+        printf("Error from tcgetattr: %s\n", strerror(errno));
+        return -1;
+    }
+
+    cfsetospeed(&tty, (speed_t)speed);
+    cfsetispeed(&tty, (speed_t)speed);
+
+    tty.c_cflag |= (CLOCAL | CREAD);    /* ignore modem controls */
+    tty.c_cflag &= ~CSIZE;
+    tty.c_cflag |= CS8;         /* 8-bit characters */
+    tty.c_cflag &= ~PARENB;     /* no parity bit */
+    tty.c_cflag &= ~CSTOPB;     /* only need 1 stop bit */
+    tty.c_cflag &= ~CRTSCTS;    /* no hardware flowcontrol */
+
+    /* setup for non-canonical mode */
+    tty.c_iflag &= ~(IGNBRK | BRKINT | PARMRK | ISTRIP | INLCR | IGNCR | ICRNL | IXON);
+    tty.c_lflag &= ~(ECHO | ECHONL | ICANON | ISIG | IEXTEN);
+    tty.c_oflag &= ~OPOST;
+
+    /* fetch bytes as they become available */
+    tty.c_cc[VMIN] = 0;
+    tty.c_cc[VTIME] = 1;
+
+    if (tcsetattr(fd, TCSANOW, &tty) != 0) {
+        printf("Error from tcsetattr: %s\n", strerror(errno));
+        return -1;
+    }
+    return 0;
+}
+
+} //end namespace
+
 namespace {
     static const std::string SYS_GPIO_BASE = "/sys/class/gpio/";
 
@@ -55,6 +105,107 @@ namespace {
         }
         return temp;
     }
+
+    bool canRead(int fd, int timeoutUs) {
+        const int nfds = 1;
+        struct pollfd fds[nfds] = {
+            { fd, POLLIN, 0 }
+        };
+        struct timespec tv = { 0, 1000*timeoutUs };
+        const int ready = ppoll(&fds[0], nfds, &tv, NULL);
+        return ready > 0;
+    }
+}
+
+
+
+class LinuxSerialTransport : public HostTransport {
+public:
+    LinuxSerialTransport(std::string p)
+        : path(p)
+        , slave(-1)
+        , master(-1)
+        , io(NULL)
+        , controller(NULL)
+    {
+    }
+
+    // implements HostTransport
+    virtual void setup(IO *i, HostCommunication *c);
+    virtual void runTick();
+    virtual void sendCommand(const uint8_t *buf, uint8_t len);
+
+private:
+    std::string path;
+    int slave;
+    int master;
+    IO *io;
+    HostCommunication *controller;
+};
+
+void LinuxSerialTransport::setup(IO *i, HostCommunication *c) {
+    io = i;
+    controller = c;
+
+    const int ptyopened = openpty(&master, &slave, NULL, NULL, NULL);
+    if (ptyopened != 0) {
+        fprintf(stderr, "Failed to open PTY: %s\n", strerror(errno));
+        return;
+    }
+
+    // provide the slave end at @path
+    const char *linkname = path.c_str(); 
+    unlink(linkname);
+    const char *devname = ttyname(slave);
+    if (!devname) {
+        fprintf(stderr, "Failed to get PTY name\n");
+        return;
+    }
+    const int symlinked = symlink(devname, linkname);
+    if (symlinked < 0) {
+        fprintf(stderr, "Failed to create symlink for PTY: %s\n", strerror(errno));
+        return;
+    }
+
+    /* baudrate 115200, 8 bits, no parity, 1 stop bit */
+    if (master >= 0) {
+        linux_serial::set_interface_attribs(master, B115200);
+    } else {
+        fprintf(stderr, "PTY master filedescriptor is invalid\n");
+        return;
+    }
+}
+
+void LinuxSerialTransport::runTick() {
+
+    const bool ready = canRead(master, 10);
+    if (!ready) {
+        return;
+    }
+
+    const size_t cmdSize = MICROFLO_CMD_SIZE;
+    unsigned char buf[cmdSize];
+    const ssize_t bytesRead = read(master, buf, cmdSize);
+    if (bytesRead > 0) {
+        for (ssize_t i=0; i<bytesRead; i++) {
+            controller->parseByte(buf[i]);
+        }
+    }
+}
+
+void LinuxSerialTransport::sendCommand(const uint8_t *b, uint8_t len) {
+    // Make sure to pad to the cmd size
+    const size_t cmdSize = MICROFLO_CMD_SIZE;
+    char cmd[cmdSize];
+    for (uint8_t i=0; i<cmdSize; i++) {
+        cmd[i] = ((i < len) ?  b[i] : 0x00);
+    }
+
+    size_t written = write(master, cmd, cmdSize);
+    //if (written != cmdSize) {
+    //    printf("Error from write: %d, %d\n", wlen, errno);
+    //}
+    tcdrain(master); /* delay for output */
 }
 
 

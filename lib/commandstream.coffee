@@ -156,8 +156,14 @@ findPort = (componentLib, graph, nodeName, portName) ->
     port: port
   }
 
-# TODO: move all these down into "protocol", along with the inverse functions
-addNode = (payload, componentLib, buffer, index) ->
+# outgoing communication
+commands =
+  graph: {}
+  network: {}
+  runtime: {}
+  microflo: {}
+
+commands.graph.addnode = (payload, buffer, index, componentLib) ->
   nodeName = payload.id
   componentName = payload.component
   comp = componentLib.getComponent(componentName)
@@ -169,7 +175,15 @@ addNode = (payload, componentLib, buffer, index) ->
   index += writeCmd(buffer, index, cmdFormat.commands.CreateComponent.id, comp.id, parentId or 0)
   return index
 
-addEdge = (payload, componentLib, nodeMap, componentMap, buffer, index) ->
+commands.graph.removenode = (payload, buffer, index, componentLib, nodeMap) ->
+  nodeName = payload.id
+  nodeId = nodeMap[nodeName].id
+
+  # Add normal component
+  index += writeCmd(buffer, index, cmdFormat.commands.RemoveNode.id, nodeId)
+  return index
+
+commands.graph.addedge = (payload, buffer, index, componentLib, nodeMap, componentMap) ->
   srcNode = payload.src.node
   tgtNode = payload.tgt.node
   srcPort = undefined
@@ -189,7 +203,28 @@ addEdge = (payload, componentLib, nodeMap, componentMap, buffer, index) ->
   index += writeCmd(buffer, index, cmdFormat.commands.ConnectNodes.id, nodeMap[srcNode].id, nodeMap[tgtNode].id, srcPort, tgtPort)  
   return index
 
-addInitial = (payload, componentLib, nodeMap, componentMap, buffer, index) ->
+commands.graph.removeedge = (payload, buffer, index, componentLib, nodeMap, componentMap) ->
+  srcNode = payload.src.node
+  tgtNode = payload.tgt.node
+  srcPort = undefined
+  tgtPort = undefined
+  try
+    srcComponent = componentMap[srcNode]
+    tgtComponent = componentMap[tgtNode]
+    srcPort = componentLib.outputPort(srcComponent, payload.src.port).id
+    tgtPort = componentLib.inputPort(tgtComponent, payload.tgt.port).id
+  catch err
+    throw new Error "Could not disconnect: #{srcNode} #{payload.src.port} -> #{payload.tgt.port} #{tgtNode} : #{err}"
+  if not tgtPort?
+    throw new Error "Could not find target port #{tgtNode}(#{tgtComponent}) #{payload.tgt.port}"
+  if not srcPort?
+    throw new Error "Could not find source port #{srcNode}#{srcComponent} #{payload.src.port}"
+
+  index += writeCmd(buffer, index, cmdFormat.commands.DisconnectNodes.id, nodeMap[srcNode].id, nodeMap[tgtNode].id, srcPort, tgtPort)
+  return index
+
+# TODO: support graph.removeinitial
+commands.graph.addinitial = (payload, buffer, index, componentLib, nodeMap, componentMap) ->
   tgtNode = payload.tgt.node
   tgtPort = undefined
   data = payload.src.data
@@ -202,63 +237,272 @@ addInitial = (payload, componentLib, nodeMap, componentMap, buffer, index) ->
   index += writeCmd buffer, index, cmdBuf
   return index
 
-clearGraph = (payload, buffer, index) ->
+commands.graph.clear = (payload, buffer, index) ->
   # Clear existing graph
   index += writeCmd(buffer, index, cmdFormat.commands.Reset.id)
   return index
 
-startNetwork = (payload, buffer, index) ->
+commands.network.start = (payload, buffer, index) ->
   index += writeCmd(buffer, index, cmdFormat.commands.StartNetwork.id)
   return index
 
+commands.network.stop = (payload, buffer, index) ->
+  index += writeCmd(buffer, index, cmdFormat.commands.StopNetwork.id)
+  return index
+
 # The following are MicroFlo specific, not part of FBP runtime protocol
-configureDebug = (payload, buffer, index) ->
+commands.microflo.configuredebug = (payload, buffer, index) ->
   debugLevel = payload.level
   index += writeCmd(buffer, index, cmdFormat.commands.ConfigureDebug.id, cmdFormat.debugLevels[debugLevel].id)
   return index
 
-openCommunication = (payload, buffer, index) ->
+commands.microflo.opencommunication = (payload, buffer, index) ->
   index += writeString(buffer, index, cmdFormat.magicString)
   return index
 
-closeCommunication = (payload, buffer, index) ->
+commands.microflo.closecommunication = (payload, buffer, index) ->
   index += writeCmd(buffer, index, cmdFormat.commands.End.id)
   return index
 
-# TODO: implement the inverse, getting a FBP protocol message from CS
+# Note: inverse of fromCommand
 toCommandStreamBuffer = (message, componentLib, nodeMap, componentMap, buffer, index) ->
-  if message.protocol == 'graph'
-    # TODO: also support removenode/removeedge/removeinitial
-    if message.command == 'clear'
-      index = clearGraph message.payload, buffer, index
-    else if message.command == 'addnode'
-      index = addNode message.payload, componentLib, buffer, index
-    else if message.command == 'addedge'
-      index = addEdge message.payload, componentLib, nodeMap, componentMap, buffer, index
-    else if message.command == 'addinitial'
-      index = addInitial message.payload, componentLib, nodeMap, componentMap, buffer, index
-    else
-      throw new Error "Unknown FBP runtime graph command #{message.command}" 
 
-  else if message.protocol == 'network'
-    if message.command == 'start'
-      index = startNetwork message.payload, buffer, index
-    else
-      throw new Error "Unknown FBP runtime network command #{message.command}"
+  handlers = commands[message.protocol]
+  if not handlers?    
+    throw new Error "Unknown FBP runtime sub-protocol #{message.protocol}"
 
-  else if message.protocol == 'microflo'
-    if message.command == 'opencommunication'
-      index = openCommunication message.payload, buffer, index
-    else if message.command == 'closecommunication'
-      index = closeCommunication message.payload, buffer, index
-    else if message.command == 'configuredebug'
-      index = configureDebug message.payload, buffer, index
-    else
-      throw new Error "Unknown FBP runtime microflo command #{message.command}"
-  else    
-      throw new Error "Unknown FBP runtime sub-protocol #{message.protocol}"
+  handler = handlers[message.command] 
+  if not handler?
+    throw new Error "Unknown FBP runtime command #{message.command} for protocol #{message.protocol}"
+
+  index = handler message.payload, buffer, index, componentLib, nodeMap, componentMap
 
   return index
+
+responses = {}
+# Must be named the same as defined in the commands
+responses.NetworkStopped = () ->
+  m =
+      protocol: "network"
+      command: "stopped"
+      payload:
+          running: false
+          started: false
+  return m
+responses.NetworkStarted = () ->
+  m = 
+    protocol: "network"
+    command: "started"
+    payload:
+      running: true
+      started: true
+  return m
+responses.NetworkReset = () ->
+  m =
+    protocol: "graph"
+    command: "clear"
+    payload: {}
+  return m
+
+responses.NodeAdded = (componentLib, graph, cmdData) ->
+  component = componentLib.getComponentById(cmdData.readUInt8(1)).name
+  nodeName = nodeNameById(graph.nodeMap, cmdData.readUInt8(2))
+  m =
+    protocol: 'graph'
+    command: 'addnode'
+    payload:
+      id: nodeName
+      component: component
+  return m
+responses.NodeRemoved = (componentLib, graph, cmdData) ->
+  nodeName = nodeNameById(graph.nodeMap, cmdData.readUInt8(1))
+  m =
+    protocol: 'graph'
+    command: 'removenode'
+    payload:
+      id: nodeName
+  return m
+
+responses.NodesConnected = (componentLib, graph, cmdData) ->
+  # TODO: implement
+  m =
+    protocol: 'graph'
+    command: 'addedge'
+    payload:
+      src:
+        node: null
+        port: null
+      tgt:
+        node: null
+        port: null
+  return undefined
+responses.NodesDisconnected = (componentLib, graph, cmdData) ->
+  # TODO: implement
+  m =
+    protocol: 'graph'
+    command: 'removeedge'
+    payload:
+      src:
+        node: null
+        port: null
+      tgt:
+        node: null
+        port: null
+  return undefined
+
+responses.PacketSent = (componentLib, graph, cmdData) ->
+  srcNode = nodeNameById(graph.nodeMap, cmdData.readUInt8(1))
+  srcPort = componentLib.outputPortById(nodeLookup(graph, srcNode).component, cmdData.readUInt8(2)).name
+  targetNode = nodeNameById(graph.nodeMap, cmdData.readUInt8(3))
+  targetPort = componentLib.inputPortById(nodeLookup(graph, targetNode).component, cmdData.readUInt8(4)).name
+  dataOffset = 5
+  { data, type } = deserializeData cmdData, dataOffset
+
+  # Should be mapped to `network:send` on FBP runtime protocol 
+  if type is "Void"
+    data = "!"
+  m =
+    protocol: "microflo"
+    command: "packetsent"
+    payload:
+      src:
+        node: srcNode
+        port: srcPort
+      tgt:
+        node: targetNode
+        port: targetPort
+      data: data
+      type: type
+  return m
+
+responses.DebugChanged = (componentLib, graph, cmdData) ->
+  level = nodeNameById(cmdFormat.debugLevels, cmdData.readUInt8(1))
+  m =
+    protocol: 'microflo'
+    command: 'debugchanged'
+    payload:
+      level: level
+  return m
+
+responses.DebugMessage = (componentLib, graph, cmdData) ->
+  level = nodeNameById(cmdFormat.debugLevels, cmdData.readUInt8(1))
+  point = nodeNameById(cmdFormat.debugPoints, cmdData.readUInt8(2))
+  m =
+    protocol: 'microflo'
+    command: 'debugmessage'
+    payload:
+      level: level
+      point: point
+  return m
+
+responses.PortSubscriptionChanged = (componentLib, graph, cmdData) ->
+  node = nodeNameById(graph.nodeMap, cmdData.readUInt8(1))
+  port = componentLib.outputPortById(graph.processes[node].component, cmdData.readUInt8(2)).name
+  enable = if cmdData.readUInt8(3) then 'true' else 'false'
+  # should be mapped to changes in `network:edges` in FBP network protocol
+  m =
+    protocol: 'microflo'
+    command: 'subscribeedge'
+    payload:
+      node: node
+      port: port
+      enabled: enable
+  return m
+
+responses.SubgraphPortConnected = (componentLib, graph, cmdData) ->
+  direction = if cmdData.readUInt8(1) then 'output' else 'input'
+  portById = if direction == 'output' then componentLib.outputPortById else componentLib.inputPortById
+  subgraphNode = nodeNameById(graph.nodeMap, cmdData.readUInt8(2))
+  subgraphPort = portById(nodeLookup(graph, subgraphNode).component, cmdData.readUInt8(3)).name
+  childNode = nodeNameById(graph.nodeMap, cmdData.readUInt8(4))
+  childPort = portById(nodeLookup(graph, childNode).component, cmdData.readUInt8(5)).name
+  # should be mapped to `graph:addedge` in FBP network protocol  
+  m =
+    protocol: 'microflo'
+    command: 'subgraphportconnected'
+    payload:
+      parent:
+        node: subgraphNode
+        port: subgraphPort
+      child:
+        node: childNode
+        port: childPort
+      enabled: enable 
+  return m
+
+responses.CommunicationOpen = () ->
+  m =
+    protocol: 'microflo'
+    command: 'communicationopen'
+    payload: null
+  return m
+responses.Pong = () ->
+  m =
+    protocol: 'microflo'
+    command: 'pong'
+    payload: null
+  return m
+responses.TransmissionEnded = () ->
+  m =
+    protocol: 'microflo'
+    command: 'transmissionended'
+    payload: null
+  return m
+responses.IoValueChanged = () ->
+  m =
+    protocol: 'microflo'
+    command: 'iovaluechanged'
+    payload: null
+  return m
+responses.SetIoValueCompleted = () ->
+  m =
+    protocol: 'microflo'
+    command: 'setiovaluecompleted'
+    payload: null
+  return m
+responses.SendPacketDone = () ->
+  m =
+    protocol: 'microflo'
+    command: 'sendpacketdone'
+    payload: null
+  return m
+
+buildResponseMapping = () ->
+  mapping = {}
+  isResponse = (cmd) ->
+    return cmd.type == 'response' or cmd.id >= 100 and cmd.id < 255
+
+  for name, f of responses
+    c = cmdFormat.commands[name]
+    console.log 'Warning: Response handler defined for unknown command:', name if not c
+    console.log 'Warning: Response handler defined for non-response:', name if c and not isResponse c
+
+  for name, data of cmdFormat.commands
+    func = responses[name]
+    continue if not isResponse data
+    console.log "Warning: Response command not implemented:", name if not func
+    mapping[data.id] = func
+
+  return mapping
+
+responseFromCommandId = buildResponseMapping()
+
+# Return a list of FBP protocol messages
+fromCommand = (componentLib, graph, cmdData) ->
+
+  if !componentLib
+    throw new Error('Missing component library')
+  cmdType = cmdData.readUInt8(0)
+  responseParser = responseFromCommandId[cmdType]
+  if not responseParser
+    console.log 'Unknown/unsupported command received', cmdType
+
+  messages = responseParser componentLib, graph, cmdData
+  if not messages?
+    return []
+  if not messages.length
+    return [messages]
+  return messages
 
 # As a list of FBP runtime messages
 initialGraphMessages = (graph, graphName, debugLevel, openclose) ->
@@ -349,78 +593,6 @@ nodeLookup = (graph, nodeName) ->
   r = if parent != undefined then graph.processes[nodeNameById(graph.nodeMap, parent)].graph.processes else graph.processes
   r[nodeName]
 
-# TODO: move each parsing into individual function and merge logic deviceResponseToFbpProtocol
-# to return a FBP runtime message directly. Should then be the inverse of toCommandStreamBuffer/addNode/addInitial etc.
-parseReceivedCmd = (componentLib, graph, cmdData, handler) ->
-  `var targetPort`
-  `var targetNode`
-  `var srcPort`
-  `var srcNode`
-  if !componentLib
-    throw new Error('Missing component library')
-  cmd = cmdData.readUInt8(0)
-  if cmd == cmdFormat.commands.NetworkStopped.id
-    handler 'NETSTOP'
-  else if cmd == cmdFormat.commands.NetworkStarted.id
-    handler 'NETSTART'
-  else if cmd == cmdFormat.commands.NodeAdded.id
-    component = componentLib.getComponentById(cmdData.readUInt8(1)).name
-    nodeName = nodeNameById(graph.nodeMap, cmdData.readUInt8(2))
-    handler 'ADD', nodeName, '(', component, ')'
-  else if cmd == cmdFormat.commands.NodesConnected.id
-    srcNode = nodeNameById(graph.nodeMap, cmdData.readUInt8(1))
-    return if not srcNode # can happen for internal connection
-    srcComponent = nodeLookup(graph, srcNode).component
-    srcPort = componentLib.outputPortById(srcComponent, cmdData.readUInt8(2)).name
-    targetNode = nodeNameById(graph.nodeMap, cmdData.readUInt8(3))
-    return if not targetNode # can happen for internal connection
-    targetComponent = nodeLookup(graph, targetNode).component
-    targetPort = componentLib.inputPortById(targetComponent, cmdData.readUInt8(4)).name
-    handler 'CONNECT', srcNode, srcPort, '->', targetPort, targetNode
-  else if cmd == cmdFormat.commands.DebugChanged.id
-    level = nodeNameById(cmdFormat.debugLevels, cmdData.readUInt8(1))
-    handler 'DEBUGLEVEL', level
-  else if cmd == cmdFormat.commands.DebugMessage.id
-    lvl = cmdData.readUInt8(1)
-    point = nodeNameById(cmdFormat.debugPoints, cmdData.readUInt8(2))
-    handler 'DEBUG', lvl, point
-  else if cmd == cmdFormat.commands.PortSubscriptionChanged.id
-    node = nodeNameById(graph.nodeMap, cmdData.readUInt8(1))
-    port = componentLib.outputPortById(graph.processes[node].component, cmdData.readUInt8(2)).name
-    enable = if cmdData.readUInt8(3) then 'true' else 'false'
-    handler 'SUBSCRIBE', node, '->', port, enable
-  else if cmd == cmdFormat.commands.PacketSent.id
-    srcNode = nodeNameById(graph.nodeMap, cmdData.readUInt8(1))
-    srcPort = componentLib.outputPortById(nodeLookup(graph, srcNode).component, cmdData.readUInt8(2)).name
-    targetNode = nodeNameById(graph.nodeMap, cmdData.readUInt8(3))
-    targetPort = componentLib.inputPortById(nodeLookup(graph, targetNode).component, cmdData.readUInt8(4)).name
-    dataOffset = 5
-    { data, type } = deserializeData cmdData, dataOffset
-    handler 'SEND', srcNode, srcPort, type, data, targetNode, targetPort
-  else if cmd == cmdFormat.commands.SubgraphPortConnected.id
-    direction = if cmdData.readUInt8(1) then 'output' else 'input'
-    portById = if direction == 'output' then componentLib.outputPortById else componentLib.inputPortById
-    subgraphNode = nodeNameById(graph.nodeMap, cmdData.readUInt8(2))
-    subgraphPort = portById(nodeLookup(graph, subgraphNode).component, cmdData.readUInt8(3)).name
-    childNode = nodeNameById(graph.nodeMap, cmdData.readUInt8(4))
-    childPort = portById(nodeLookup(graph, childNode).component, cmdData.readUInt8(5)).name
-    handler 'SUBGRAPH-CONNECT', direction, subgraphNode, subgraphPort, childNode, childPort
-  else if cmd == cmdFormat.commands.CommunicationOpen.id
-    handler 'OPEN'
-  else if cmd == cmdFormat.commands.Pong.id
-    handler 'PONG', cmdData.slice(1, cmdFormat.commandSize)
-  else if cmd == cmdFormat.commands.TransmissionEnded.id
-    handler 'EOT'
-  else if cmd == cmdFormat.commands.IoValueChanged.id
-    handler 'IOCHANGE', cmdData.slice(0, cmdFormat.commandSize-1)
-  else if cmd == cmdFormat.commands.SetIoValueCompleted.id
-    handler 'IOACK', cmdData.slice(0, cmdFormat.commandSize-1)
-  else if cmd == cmdFormat.commands.SendPacketDone.id
-    handler 'SENDACK'
-  else
-    handler 'UNKNOWN' + cmd.toString(16), cmdData.slice(0, cmdFormat.commandSize-1)
-  return
-
 module.exports =
   cmdStreamFromGraph: cmdStreamFromGraph
   dataLiteralToCommand: dataLiteralToCommand
@@ -430,8 +602,8 @@ module.exports =
   writeString: writeString
   cmdFormat: cmdFormat
   format: cmdFormat
-  parseReceivedCmd: parseReceivedCmd
   Buffer: Buffer
   buildMappings: buildMappings
   initialGraphMessages: initialGraphMessages
   toCommandStreamBuffer: toCommandStreamBuffer
+  fromCommand: fromCommand

@@ -106,6 +106,7 @@ namespace MicroFlo {
 #else
     typedef int8_t PinId;
 #endif
+    typedef int8_t PointerType;
 
     // This must match the ID in "microflo/components.json"
     const ComponentId IdSubGraph = 100;
@@ -115,6 +116,11 @@ namespace Components {
     class SubGraph;
     class DummyComponent;
 }
+
+static MicroFlo::PointerType microfloPointerTypeLast = 0;
+
+// Assigns and returns a unique PointerType
+#define MICROFLO_DEFINE_POINTER_TYPE(name) (microfloPointerTypeLast++)
 
 // Packet
 // XXX: should setup & ticks really be IPs??
@@ -126,6 +132,8 @@ public:
     Packet(unsigned char by): msg(MsgByte) { data.byte = by; }
     Packet(long l): msg(MsgInteger) { data.lng = l; }
     Packet(float f): msg(MsgFloat) { data.flt = f; }
+    Packet(MicroFlo::PointerType type, void *ptr): msg((Msg)(MsgPointerFirst+type)) { data.ptr = ptr; }
+    Packet(Error error): msg(MsgError) { data.err = error; }
     Packet(Msg m): msg(m) {}
 
     Msg type() const { return msg; }
@@ -145,11 +153,14 @@ public:
     bool isInteger() const { return msg == MsgInteger; }
     bool isFloat() const { return msg == MsgFloat; }
     bool isNumber() const { return isInteger() || isFloat(); }
+    bool isError() const { return msg == MsgError; }
 
     bool asBool() const ;
     float asFloat() const ;
     long asInteger() const ;
     unsigned char asByte() const ;
+    void *asPointer(MicroFlo::PointerType type) const;
+    Error asError() const { return data.err; }
 
     bool operator==(const Packet& rhs) const;
 
@@ -162,6 +173,8 @@ private:
         unsigned char byte;
         long lng;
         float flt;
+        void *ptr;
+        Error err;
     } data;
     enum Msg msg;
 };
@@ -203,6 +216,7 @@ public:
     static const MicroFlo::NodeId firstNodeId = 1; // 0=reserved: no-parent-node
     enum State {
         Invalid = -1,
+        Reset,
         Stopped,
         Running
     };
@@ -210,13 +224,24 @@ public:
     Network(IO *io, MessageQueue *m);
 
     void reset();
+
     void start();
+    void stop();
 
     MicroFlo::NodeId addNode(Component *node, MicroFlo::NodeId parentId);
+    MicroFlo::NodeId removeNode(MicroFlo::NodeId nodeId);
+
+    // Connect an outport of one node, to the inport of another node
     void connect(Component *src, MicroFlo::PortId srcPort,
                  Component *target, MicroFlo::PortId targetPort);
     void connect(MicroFlo::NodeId srcId, MicroFlo::PortId srcPort,
                  MicroFlo::NodeId targetId, MicroFlo::PortId targetPort);
+    // Disconnect
+    void disconnect(Component *src, MicroFlo::PortId srcPort,
+                 Component *target, MicroFlo::PortId targetPort);
+    void disconnect(MicroFlo::NodeId srcId, MicroFlo::PortId srcPort,
+                 MicroFlo::NodeId targetId, MicroFlo::PortId targetPort);
+
     void connectSubgraph(bool isOutput,
                          MicroFlo::NodeId subgraphNode, MicroFlo::PortId subgraphPort,
                          MicroFlo::NodeId childNode, MicroFlo::PortId childPort);
@@ -257,8 +282,13 @@ public:
     virtual void packetSent(const Message &m, const Component *sender, MicroFlo::PortId senderPort) = 0;
 
     virtual void nodeAdded(Component *c, MicroFlo::NodeId parentId) = 0;
+    virtual void nodeRemoved(Component *c, MicroFlo::NodeId parentId) = 0;
+
     virtual void nodesConnected(Component *src, MicroFlo::PortId srcPort,
                                 Component *target, MicroFlo::PortId targetPort) = 0;
+    virtual void nodesDisconnected(Component *src, MicroFlo::PortId srcPort,
+                                Component *target, MicroFlo::PortId targetPort) = 0;
+
     virtual void networkStateChanged(Network::State s) = 0;
     virtual void subgraphConnected(bool isOutput,
                                    MicroFlo::NodeId subgraphNode, MicroFlo::PortId subgraphPort,
@@ -413,8 +443,11 @@ protected:
 protected:
     void send(Packet out, MicroFlo::PortId port=0); // send packet out
 private:
-    void connect(MicroFlo::PortId outPort, // Use Network.connect()
+    void connect(MicroFlo::PortId outPort, // Used by Network.connect()
                  Component *target, MicroFlo::PortId targetPort);
+    void disconnect(MicroFlo::PortId outPort, // Used by Network.disconnect()
+                 Component *target, MicroFlo::PortId targetPort);
+
     void setParent(int parentId) { parentNodeId = parentId; }
     void setNetwork(Network *net, int n, IO *io);
 private:
@@ -527,8 +560,13 @@ public:
     // Implements NetworkNotificationHandler
     virtual void packetSent(const Message &m, const Component *src, MicroFlo::PortId senderPort);
     virtual void nodeAdded(Component *c, MicroFlo::NodeId parentId);
+    virtual void nodeRemoved(Component *c, MicroFlo::NodeId parentId);
+
     virtual void nodesConnected(Component *src, MicroFlo::PortId srcPort,
                                 Component *target, MicroFlo::PortId targetPort);
+    virtual void nodesDisconnected(Component *src, MicroFlo::PortId srcPort,
+                                Component *target, MicroFlo::PortId targetPort);
+
     virtual void networkStateChanged(Network::State s);
     virtual void emitDebug(DebugLevel level, DebugId id);
     virtual void debugChanged(DebugLevel level);

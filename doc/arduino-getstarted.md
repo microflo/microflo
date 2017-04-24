@@ -63,7 +63,7 @@ Program with Flowhub
 ------------------
 
 You should now have everything needed for programming your Arduino with Flowhub,
-[continue there](http://flowhub.io/documentation/getting-started-microflo).
+[continue there](https://docs.flowhub.io/getting-started-microflo).
 
 
 Advanced topics

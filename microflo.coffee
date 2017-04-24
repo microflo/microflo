@@ -18,33 +18,38 @@ setupRuntimeCommand = (env) ->
     debugLevel = env.debug or "Error"
     ip = env.ip or "127.0.0.1"
     baud = parseInt(env.baudrate) or 9600
-    library = env.library or defaultLibrary
+    componentMap = env.componentmap
     if env.file
         file = path.resolve env.file
         microflo.runtime.setupSimulator file, baud, port, debugLevel, ip, (err, runtime) ->
             throw err if err
     else
-        microflo.runtime.setupRuntime serialPortToUse, baud, port, debugLevel, ip, library, (err, runtime) ->
+        microflo.runtime.setupRuntime serialPortToUse, baud, port, debugLevel, ip, componentMap, (err, runtime) ->
             throw err  if err
 
 
 uploadGraphCommand = (graphPath, env) ->
-    serialPortName = env.serial or "auto"
-    debugLevel = env.debug
-    baud = parseInt(env.baudrate) or 9600
-    microflo.runtime.uploadGraphFromFile graphPath, serialPortName, baud, debugLevel
+  microflo.runtime.uploadGraphFromFile graphPath, env, (err) ->
+    if err
+      console.error err
+      console.error err.stack if err.stack
+      process.exit 1
+    console.log 'Graph uploaded and running'
+    process.exit 0
 
-generateFwCommand = (inputFile, outputDir, env) ->
+generateFwCommand = (inputFile, output, env) ->
 
     target = env.target or "arduino"
-    outputFile = outputDir + "/main.cpp"
+    if output[output.length-1] == '/'
+      output += 'main.cpp'
+    outputDir = path.dirname output
     library = env.library or defaultLibrary
     componentLib = new microflo.componentlib.ComponentLibrary()
     componentLib.loadSetFile library, (err) ->
         throw err  if err
         componentLib.loadFile inputFile
         microflo.generate.updateComponentLibDefinitions componentLib, outputDir, "createComponent"
-        microflo.generate.generateOutput componentLib, inputFile, outputFile, target
+        microflo.generate.generateOutput componentLib, inputFile, output, target
 
 
 registerRuntimeCommand = (user, env) ->
@@ -61,19 +66,6 @@ registerRuntimeCommand = (user, env) ->
             process.exit 1
         else
             console.log "Runtime registered with id:", rt.runtime.id
-
-
-generateComponentLib = (componentlibJsonFile, componentlibOutputPath, factoryMethodName, env) ->
-    componentLibraryDefinition = undefined
-    componentLibrary = undefined
-
-    # load specified component library Json definition
-    componentLibraryDefinition = require(componentlibJsonFile)
-    componentLibrary = new microflo.componentlib.ComponentLibrary(componentLibraryDefinition, componentlibOutputPath)
-    componentLibrary.load()
-
-    # write component library definitions to external source or inside microflo project
-    microflo.generate.updateComponentLibDefinitions componentLibrary, componentlibOutputPath, factoryMethodName
 
 flashCommand = (file, env) ->
     upload = require("./lib/flash.coffee")
@@ -142,12 +134,10 @@ mainCommand = (inputFile, env) ->
 
 main = ->
     commander.version module.exports.version
-    commander.command("componentlib <JsonFile> <OutputPath> <FactoryMethodName>")
-        .description("Generate compilable sources of specified component library from .json definition")
-        .action generateComponentLib
     commander.command("update-defs")
         .description("Update internal generated definitions")
         .action updateDefsCommand
+
     commander.command("component <COMPONENT.hpp>")
         .description("Update generated definitions for component")
         .action componentDefsCommand
@@ -161,6 +151,7 @@ main = ->
         .option("-m, --mainfile <FILE.hpp>", "File to include for providing main()")
         .option("-o, --output <FILE>", "File to output to. Defaults to $graphname.cpp")
         .option("-l, --library <FILE.json>", "Component library file") # WARN: to be deprecated
+        .option("-d, --debug <level>", "Debug level to configure the runtime with. Default: Error")
         .option("--enable-maps", "Enable graph info maps")
         .action mainCommand
 
@@ -169,10 +160,11 @@ main = ->
         .option("-l, --library <FILE.json>", "Component library file")
         .option("-t, --target <platform>", "Target platform: arduino|linux|avr8")
         .action generateFwCommand
-    commander.command("upload")
-        .option("-s, --serial <PORT>", "which serial port to use")
-        .option("-b, --baudrate <RATE>", "baudrate for serialport")
-        .option("-d, --debug <LEVEL>", "set debug level")
+    commander.command("upload <GRAPH>")
+        .option("-s, --serial <PORT>", "which serial port to use", String, 'auto')
+        .option("-b, --baudrate <RATE>", "baudrate for serialport", Number, 9600)
+        .option("-d, --debug <LEVEL>", "set debug level", String, 'Error')
+        .option("-m, --componentmap <.json>", "Component mapping definition")
         .description("Upload a new graph to a device running MicroFlo firmware")
         .action uploadGraphCommand
     commander.command("runtime")
@@ -183,6 +175,7 @@ main = ->
         .option("-p, --port <PORT>", "which port to use for WebSocket")
         .option("-i, --ip <IP>", "which IP to use for WebSocket")
         .option("-f, --file <FILE>", "Firmware file to run (.js or binary)")
+        .option("-m, --componentmap <.json>", "Component mapping definition")
         .action setupRuntimeCommand
     commander.command("register [USER]")
         .description("Register the runtime with Flowhub registry")

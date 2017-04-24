@@ -49,6 +49,10 @@ class ComponentLibrary
         return callback null
 
     loadSetFile: (filePath, callback) ->
+        # FIXME: support loading non-module, relative to CWD
+        if filePath.indexOf('.') == 0
+          filePath = path.join process.cwd(), filePath
+
         content = require filePath
         modulePath = require.resolve filePath
 

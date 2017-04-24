@@ -11,9 +11,12 @@
         "SubscribeToPort": {"id": 16},
         "ConnectSubgraphPort": {"id": 17},
         "Ping": {"id": 18},
-        "CommunicationOpen": {"id": 19},
+        "CommunicationOpen": {"id": 19, "type": "response"},
         "StartNetwork": {"id": 20},
         "SetIoValue": {"id": 21},
+        "StopNetwork": {"id": 22},
+        "DisconnectNodes": {"id": 23},
+        "RemoveNode": {"id": 24},
 
         "NetworkStopped": {"id": 100},
         "NodeAdded": {"id": 101},
@@ -25,11 +28,14 @@
         "PortSubscriptionChanged": {"id": 107},
         "SubgraphPortConnected": {"id": 108},
         "Pong": {"id": 109},
-        "PacketDelivered": {"id": 110},
+
         "TransmissionEnded": {"id": 111},
         "SetIoValueCompleted":  {"id": 112},
         "IoValueChanged":  {"id": 113},
         "SendPacketDone":  {"id": 114},
+        "NetworkReset": {"id": 115},
+        "NodesDisconnected": {"id": 116},
+        "NodeRemoved": {"id": 117},
 
         "Invalid": { },
         "Max": { "id": 255 }
@@ -47,6 +53,10 @@
         "Float": { "id": 8 },
         "BracketStart": { "id": 9 },
         "BracketEnd": { "id": 10 },
+        "Error": { "id": 11 },
+
+        "PointerFirst": { "id": 12 },
+        "PointerMax": { "id": 100 },
 
         "MaxDefined": { },
         "Max": { "id": 255 }
@@ -89,6 +99,8 @@
         "IoInvalidValueSet": {"id": 33},
         "UnknownIoType": {"id": 34},
         "SubscribePortInvalidPort": {"id": 35},
+        "RemoveNodeInvalidInstance": {"id": 36},
+        "RemoveNodeInvalidParent": {"id": 37},
 
         "User1": {"id": 100},
         "User2": {"id": 101},
@@ -118,5 +130,14 @@
         "PinMode": {"id": 4},
 
         "Max": {"id": 255}
+    },
+    "errors": {
+        "Other": { "id": 0, "description": "An unspecified error occurred" },
+        "ComponentBug": { "id": 1, "description": "Component caused a bug", "kind": "component-error" },
+        "UnsupportedType": { "id": 2, "description": "Type is not supported", "kind": "usage-error" },
+        "UnsupportedValue": { "id": 3, "description": "Value is not supported", "kind": "usage-error" },
+        "InvalidInput": { "id": 4, "description": "The input or combination of inputs is invalid", "kind": "usage-error" },
+        "OperationFailed": { "id": 5, "description": "The operation failed", "kind": "external-error" },
+        "OperationTimeout": { "id": 6, "description": "The operation timed out", "kind": "external-error" }
     }
 }
