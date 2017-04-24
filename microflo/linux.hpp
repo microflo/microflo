@@ -19,6 +19,8 @@
 #include <string.h>
 #include <termios.h>
 #include <unistd.h>
+#include <pty.h>
+#include <poll.h>
 
 namespace linux_serial {
 
@@ -48,7 +50,7 @@ set_interface_attribs(int fd, int speed)
     tty.c_oflag &= ~OPOST;
 
     /* fetch bytes as they become available */
-    tty.c_cc[VMIN] = 1;
+    tty.c_cc[VMIN] = 0;
     tty.c_cc[VTIME] = 1;
 
     if (tcsetattr(fd, TCSANOW, &tty) != 0) {
@@ -103,14 +105,28 @@ namespace {
         }
         return temp;
     }
+
+    bool canRead(int fd, int timeoutUs) {
+        const int nfds = 1;
+        struct pollfd fds[nfds] = {
+            { fd, POLLIN, 0 }
+        };
+        struct timespec tv = { 0, 1000*timeoutUs };
+        const int ready = ppoll(&fds[0], nfds, &tv, NULL);
+        return ready > 0;
+    }
 }
 
 
 
 class LinuxSerialTransport : public HostTransport {
 public:
-    LinuxSerialTransport(const std::string &p)
+    LinuxSerialTransport(std::string p)
         : path(p)
+        , slave(-1)
+        , master(-1)
+        , io(NULL)
+        , controller(NULL)
     {
     }
 
@@ -120,32 +136,58 @@ public:
     virtual void sendCommand(const uint8_t *buf, uint8_t len);
 
 private:
+    std::string path;
+    int slave;
+    int master;
     IO *io;
     HostCommunication *controller;
-    int baudrate;
-    std::string path;
-    int fd;
 };
 
 void LinuxSerialTransport::setup(IO *i, HostCommunication *c) {
     io = i;
     controller = c;
 
-    fd = open(path.c_str(), O_RDWR | O_NOCTTY | O_SYNC);
-    /*baudrate 115200, 8 bits, no parity, 1 stop bit */
-    if (fd >= 0) {
-        linux_serial::set_interface_attribs(fd, B115200);
+    const int ptyopened = openpty(&master, &slave, NULL, NULL, NULL);
+    if (ptyopened != 0) {
+        fprintf(stderr, "Failed to open PTY: %s\n", strerror(errno));
+        return;
+    }
+
+    // provide the slave end at @path
+    const char *linkname = path.c_str(); 
+    unlink(linkname);
+    const char *devname = ttyname(slave);
+    if (!devname) {
+        fprintf(stderr, "Failed to get PTY name\n");
+        return;
+    }
+    const int symlinked = symlink(devname, linkname);
+    if (symlinked < 0) {
+        fprintf(stderr, "Failed to create symlink for PTY: %s\n", strerror(errno));
+        return;
+    }
+
+    /* baudrate 115200, 8 bits, no parity, 1 stop bit */
+    if (master >= 0) {
+        linux_serial::set_interface_attribs(master, B115200);
+    } else {
+        fprintf(stderr, "PTY master filedescriptor is invalid\n");
+        return;
     }
 }
 
 void LinuxSerialTransport::runTick() {
-   
-    // simple noncanonical input
+
+    const bool ready = canRead(master, 10);
+    if (!ready) {
+        return;
+    }
+
     const size_t cmdSize = MICROFLO_CMD_SIZE;
     unsigned char buf[cmdSize];
-    const size_t bytesRead = read(fd, buf, cmdSize);
+    const ssize_t bytesRead = read(master, buf, cmdSize);
     if (bytesRead > 0) {
-        for (size_t i=0; i<bytesRead; i++) {
+        for (ssize_t i=0; i<bytesRead; i++) {
             controller->parseByte(buf[i]);
         }
     }
@@ -159,11 +201,11 @@ void LinuxSerialTransport::sendCommand(const uint8_t *b, uint8_t len) {
         cmd[i] = ((i < len) ?  b[i] : 0x00);
     }
 
-    size_t written = write(fd, cmd, cmdSize);
+    size_t written = write(master, cmd, cmdSize);
     //if (written != cmdSize) {
     //    printf("Error from write: %d, %d\n", wlen, errno);
     //}
-    tcdrain(fd); /* delay for output */
+    tcdrain(master); /* delay for output */
 }
 
 

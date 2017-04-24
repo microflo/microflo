@@ -1,4 +1,4 @@
 fbpspec = require 'fbp-spec'
-rt = require './runtimes/simulator.json'
+rt = require './runtimes/linux.json'
 
-fbpspec.mocha.run(rt, './test', { starttimeout: 10*1000 });
+fbpspec.mocha.run(rt, './test', { starttimeout: 20*1000 });

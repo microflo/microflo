@@ -9,6 +9,7 @@ UPLOAD_DIR=/mnt
 BUILD_DIR=$(shell echo `pwd`/build)
 MICROFLO_SOURCE_DIR=$(shell echo `pwd`/microflo)
 MICROFLO=./microflo.js
+LIBRARY=./test/components/components.json
 
 # SERIALPORT=/dev/somecustom
 # ARDUINO=/home/user/Arduino-1.0.5
@@ -35,10 +36,6 @@ endif
 
 ifdef NO_SUBGRAPHS
 DEFINES+=-DMICROFLO_DISABLE_SUBGRAPHS
-endif
-
-ifdef LIBRARY
-LIBRARYOPTION=--library=$(LIBRARY)
 endif
 
 ESP_OPTS = ESPRESSIF_DIR=/home/jon/temp/Espressif ESPTOOL=/usr/bin/esptool.py V=1 ESPTOOL_CK=/home/jon/temp/Espressif/esptool-ck/esptool SDK_EXTRA_INCLUDES=$(MICROFLO_SOURCE_DIR) LD_SCRIPT="-T ./eagle.app.v6.ld"
@@ -103,11 +100,11 @@ build-arduino:
 	cd $(BUILD_DIR)/arduino/lib && test -e patched || patch -p0 < ../../../thirdparty/DallasTemperature.patch
 	cd $(BUILD_DIR)/arduino/lib && test -e patched || patch -p0 < ../../../thirdparty/OneWire.patch
 	touch $(BUILD_DIR)/arduino/lib/patched
-	$(MICROFLO) generate $(GRAPH) $(BUILD_DIR)/arduino/src/main.ino arduino
+	$(MICROFLO) generate $(GRAPH) $(BUILD_DIR)/arduino/src/main.ino arduino --library $(LIBRARY)
 	arduino-builder -compile $(BUILDER_OPTIONS) $(BUILD_DIR)/arduino/src/main.ino
 
 build-avr:
-	node microflo.js generate $(GRAPH) $(BUILD_DIR)/avr/ --target avr
+	node microflo.js generate $(GRAPH) $(BUILD_DIR)/avr/ --target avr --library $(LIBRARY)
 	cd $(BUILD_DIR)/avr && $(AVRGCC) -o firmware.elf main.cpp -DF_CPU=$(AVR_FCPU) -DAVR=1 $(COMMON_CFLAGS) -Werror -Wno-error=overflow -mmcu=$(AVRMODEL) -fno-exceptions -fno-rtti $(CPPFLAGS)
 	cd $(BUILD_DIR)/avr && $(AVROBJCOPY) -j .text -j .data -O ihex firmware.elf firmware.hex
 	$(AVRSIZE) -A $(BUILD_DIR)/avr/firmware.elf
@@ -115,7 +112,7 @@ build-avr:
 build-mbed:
 	cd thirdparty/mbed && python2 workspace_tools/build.py -t GCC_ARM -m LPC1768
 	rm -rf $(BUILD_DIR)/mbed
-	node microflo.js generate $(MBED_GRAPH) $(BUILD_DIR)/mbed/ --target mbed --library microflo-core/components/arm-standard.json
+	node microflo.js generate $(MBED_GRAPH) $(BUILD_DIR)/mbed/ --target mbed --library $(LIBRARY)
 	cp Makefile.mbed $(BUILD_DIR)/mbed/Makefile
 	cd $(BUILD_DIR)/mbed && make ROOT_DIR=./../../
 
@@ -130,28 +127,30 @@ build-stellaris:
 	# app
 	cp ./startup_gcc.c $(BUILD_DIR)/stellaris/
 	cp $(ENERGIA)/hardware/lm4f/cores/lm4f/lm4fcpp_blizzard.ld $(BUILD_DIR)/stellaris/gcc/standalone.ld
-	$(MICROFLO) generate $(STELLARIS_GRAPH) $(BUILD_DIR)/stellaris/ --target stellaris --library microflo-core/components/arm-standard.json
+	$(MICROFLO) generate $(STELLARIS_GRAPH) $(BUILD_DIR)/stellaris/ --target stellaris --library $(LIBRARY)
 	cp Makefile.stellaris.app $(BUILD_DIR)/stellaris/Makefile
 	cd $(BUILD_DIR)/stellaris && make ROOT=./ IPATH="$(ENERGIA)/hardware/lm4f/cores/lm4f $(ENERGIA)/hardware/lm4f/variants/stellarpad ../../microflo/"
 
 # Build firmware statically linked to microflo runtime as object file, $(BUILD_DIR)/lib/microflolib.o
 build-linux: build-linux-embedding
 	rm -rf $(BUILD_DIR)/linux
-	node microflo.js generate $(LINUX_GRAPH) $(BUILD_DIR)/linux/ --target linux --library microflo-core/components/linux-standard.json
-	g++ -o $(BUILD_DIR)/linux/firmware $(BUILD_DIR)/linux/main.cpp -std=c++0x -DLINUX -I$(BUILD_DIR)/lib $(COMMON_CFLAGS) -lrt
+	mkdir -p $(BUILD_DIR)/linux
+	node microflo.js generate $(LINUX_GRAPH) $(BUILD_DIR)/linux/ --target linux --library $(LIBRARY)
+	g++ -o $(BUILD_DIR)/linux/firmware $(BUILD_DIR)/linux/main.cpp -std=c++0x -DLINUX -I$(BUILD_DIR)/lib $(COMMON_CFLAGS) -lrt -lutil
 
 # TODO: move to separate repo
 build-linux-embedding:
 	rm -rf $(BUILD_DIR)/linux
-	node microflo.js generate examples/embedding.cpp $(BUILD_DIR)/linux/ --target linux --library microflo-core/components/linux-standard.json
-	cd $(BUILD_DIR)/linux && g++ -o firmware ../../examples/embedding.cpp -std=c++0x $(COMMON_CFLAGS) -DLINUX -Werror -lrt
+	mkdir -p $(BUILD_DIR)/linux
+	node microflo.js generate examples/embedding.cpp $(BUILD_DIR)/linux/ --target linux --library $(LIBRARY)
+	cd $(BUILD_DIR)/linux && g++ -o firmware ../../examples/embedding.cpp -std=c++0x $(COMMON_CFLAGS) -DLINUX -Werror -lrt -lutil
 
 build-linux-mqtt:
 	rm -rf $(BUILD_DIR)/linux-mqtt
-	node microflo.js generate examples/Repeat.fbp $(BUILD_DIR)/linux-mqtt/ --target linux-mqtt --library microflo-core/components/linux-standard.json
-	cd $(BUILD_DIR)/linux-mqtt/ && g++ -o repeat main.cpp -std=c++0x -lmosquitto $(COMMON_CFLAGS) -DLINUX -Werror -lrt
-	node microflo.js generate $(LINUX_GRAPH) $(BUILD_DIR)/linux-mqtt/ --target linux-mqtt --library microflo-core/components/linux-standard.json
-	cd $(BUILD_DIR)/linux-mqtt/ && g++ -o firmware main.cpp -std=c++0x -lmosquitto $(COMMON_CFLAGS) -DLINUX -Werror -lrt
+	node microflo.js generate examples/Repeat.fbp $(BUILD_DIR)/linux-mqtt/ --target linux-mqtt --library $(LIBRARY)
+	cd $(BUILD_DIR)/linux-mqtt/ && g++ -o repeat main.cpp -std=c++0x -lmosquitto $(COMMON_CFLAGS) -DLINUX -Werror -lrt -lutil
+	node microflo.js generate $(LINUX_GRAPH) $(BUILD_DIR)/linux-mqtt/ --target linux-mqtt --library $(LIBRARY)
+	cd $(BUILD_DIR)/linux-mqtt/ && g++ -o firmware main.cpp -std=c++0x -lmosquitto $(COMMON_CFLAGS) -DLINUX -Werror -lrt -lutil
 
 build-esp:
 	rm -rf $(BUILD_DIR)/esp
@@ -162,7 +161,7 @@ build-esp:
 	mkdir -p $(BUILD_DIR)/esp/{firmware,build}
 	rm $(BUILD_DIR)/esp/user/*.c || echo 'no C files'
 	rm $(BUILD_DIR)/esp/user/*.o || echo 'no .o files'
-	$(MICROFLO) generate $(GRAPH) $(BUILD_DIR)/esp/user/ --target esp8266 --library microflo-core/components/esp-minimal.json
+	$(MICROFLO) generate $(GRAPH) $(BUILD_DIR)/esp/user/ --target esp8266 --library $(LIBRARY)
 	cd $(BUILD_DIR)/esp && make $(ESP_OPTS)
 
 flash-esp: build-esp
@@ -220,7 +219,7 @@ release-esp: build-esp
 release-mbed: build-mbed
     # TODO: package into something usable with MBed tools
 
-release-linux: build-linux build-linux-embedding build-linux-mqtt
+release-linux: build-linux-embedding build-linux-mqtt
     # TODO: package?
 
 release-stellaris: build-stellaris
@@ -244,7 +243,7 @@ check-release: release
 runtime-tests: build-tests
 	$(BUILD_DIR)/tests/run
 
-check: runtime-tests build-linux-mqtt
+check: runtime-tests build-linux build-linux-mqtt
 	npm test
 
 .PHONY: all build update-defs clean release release-linux release-arduino check-release

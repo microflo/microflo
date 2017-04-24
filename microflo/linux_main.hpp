@@ -13,13 +13,16 @@ int main(int argc, char *argv[]) {
     Network network(&io, &queue);
     HostCommunication controller;
     HostTransport *transport;
+
+    NullHostTransport null;
+    LinuxSerialTransport serial("default.microflo");
+
     if (argc >= 1) {
-        const std::string port = argv[1];
-        LinuxSerialTransport serial(port);
+        const std::string path = argv[1];
+        serial = LinuxSerialTransport(path);
         transport = &serial;
     } else {
-        NullHostTransport t;
-        transport = &t;
+        transport = &null;
     }
 
     transport->setup(&io, &controller);
