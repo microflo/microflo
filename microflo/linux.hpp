@@ -121,7 +121,7 @@ namespace {
 
 class LinuxSerialTransport : public HostTransport {
 public:
-    LinuxSerialTransport(const std::string &p)
+    LinuxSerialTransport(std::string p)
         : path(p)
         , slave(-1)
         , master(-1)
@@ -154,15 +154,17 @@ void LinuxSerialTransport::setup(IO *i, HostCommunication *c) {
     }
 
     // provide the slave end at @path
-    unlink(path.c_str());
+    const char *linkname = path.c_str(); 
+    unlink(linkname);
     const char *devname = ttyname(slave);
     if (!devname) {
         fprintf(stderr, "Failed to get PTY name\n");
         return;
     }
-    const int symlinked = symlink(devname, path.c_str());
+    const int symlinked = symlink(devname, linkname);
     if (symlinked < 0) {
         fprintf(stderr, "Failed to create symlink for PTY: %s\n", strerror(errno));
+        return;
     }
 
     /* baudrate 115200, 8 bits, no parity, 1 stop bit */
@@ -170,6 +172,7 @@ void LinuxSerialTransport::setup(IO *i, HostCommunication *c) {
         linux_serial::set_interface_attribs(master, B115200);
     } else {
         fprintf(stderr, "PTY master filedescriptor is invalid\n");
+        return;
     }
 }
 
