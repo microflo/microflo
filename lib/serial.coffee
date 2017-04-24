@@ -21,8 +21,7 @@ guessSerialPort = (wantedPortName, callback) ->
       return
     else
       if ports.length == 0
-        callback 'No serial port found', undefined, undefined
-        return
+        return callback null, null, []
       p = undefined
       ports.forEach (port) ->
         if wantedPortName and wantedPortName != 'auto' and wantedPortName == port.comName
@@ -40,28 +39,29 @@ guessSerialPort = (wantedPortName, callback) ->
   return
 
 getSerial = (serialPortToUse, baudRate, cb) ->
-  `var serial`
+  if not cb
+    cb = (err) ->
+      console.error 'Warning: Missing callback for getSerial()'
+
   console.log 'Using serial baudrate with ' + serialPortToUse, baudRate
-  serial = undefined
+  serial = null
   guessSerialPort serialPortToUse, (err, portName, ports) ->
 
     if serialPortToUse.indexOf('.microflo') != -1
       portName = serialPortToUse
 
     if err
-      console.log 'No serial port found!: ', err
-      if cb
-        cb err, undefined
+      console.log 'Error detecting serial port: ', err
+      return cb err, null
     else
-      ports = ports.map((item) ->
-        item.comName
-      )
+      if not portName
+        return cb new Error "No serial port found" if err
+
+      ports = ports.map (item) -> item.comName
       console.log 'Available serial ports: ', ports
-      console.log 'Using serial port: ' + portName
+      console.log 'Using port: ' + portName
       serial = new SerialPort portName, { baudrate: baudRate }, (err) ->
-        if cb
-          cb err, serial
-        return
+          return cb err, serial
 
       serial.getTransportType = ->
         'Serial'
