@@ -138,6 +138,7 @@
         "UnsupportedValue": { "id": 3, "description": "Value is not supported", "kind": "usage-error" },
         "InvalidInput": { "id": 4, "description": "The input or combination of inputs is invalid", "kind": "usage-error" },
         "OperationFailed": { "id": 5, "description": "The operation failed", "kind": "external-error" },
-        "OperationTimeout": { "id": 6, "description": "The operation timed out", "kind": "external-error" }
+        "OperationTimeout": { "id": 6, "description": "The operation timed out", "kind": "external-error" },
+        "Unknown": { "id": 7, "description": "An unknown error ocurred" }
     }
 }

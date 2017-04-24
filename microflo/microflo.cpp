@@ -179,6 +179,8 @@ void HostCommunication::parseCmd() {
             p = Packet(buffer[4]);
         } else if (packetType == MsgBoolean) {
             p = Packet(!(buffer[4] == 0));
+        } else if (packetType == MsgError) {
+            p = Packet((Error)(buffer[4]));
         }
 
         if (p.isValid()) {
@@ -597,6 +599,8 @@ void HostCommunication::packetSent(const Message &m, const Component *src, Micro
             const int i = m.pkg.asInteger();
             cmd[6] = i>>0;
             cmd[7] = i>>8;
+        } else if (m.pkg.isError()) {
+            cmd[6] = (uint8_t)m.pkg.asError();
         } else if (m.pkg.isVoid()) {
             // Nothing needs doing
         } else {

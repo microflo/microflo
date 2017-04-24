@@ -44,6 +44,13 @@ writeNewCmd = () ->
   writeCmd.apply this, args
   return b
 
+serializeError = (obj) ->
+    info = cmdFormat.errors[obj.error] or cmdFormat.errors['Unknown']
+    b = new Buffer(cmdFormat.commandSize-4)
+    b.fill(0)
+    b.writeUInt8 info.id, 0
+    return { type: 'Error', data: b }
+
 serializeData = (literal) ->
   # Integer
   value = parseInt(literal)
@@ -76,16 +83,23 @@ deserializeData = (buf, offset) ->
       data = buf.readInt16LE(offset+1) # FIXME: not enough space in PacketSent
     else if type == 'Byte'
       data = buf.readUInt8(offset+1)
+    else if type == 'Error'
+      errno = buf.readUInt8(offset+1)
+      type = nodeNameById cmdFormat.errors, errno
+      info = cmdFormat.errors[type] or cmdFormat.errors['Unknown']
+      data = { error: type, message: info.description }
     else if type == 'BracketStart' or type == 'BracketEnd'
       data = type
     else
       console.log 'Unknown data type in PacketSent: ', type
     return { type: type, data: data }
 
+isError = (data) ->
+    return typeof data.error == 'string'
 
 dataToCommandDescriptions = (data) ->
     # XXX: wrong way around, literal should call this, not
-    if Array.isArray data
+    if Array.isArray(data) or isError(data)
         literal = JSON.stringify data
 #    else if typeof data == 'string'
 #        literal = "\"#{data}\""
@@ -115,6 +129,9 @@ dataLiteralToCommandDescriptions = (literal) ->
         commands = commands.concat subs
     commands.push { type: "BracketEnd" }
     return commands
+  else if isError value
+    p = serializeError value
+    return [ p ]
 
   throw 'Unknown IIP data type for literal \'' + literal + '\''
 

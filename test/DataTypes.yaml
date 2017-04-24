@@ -18,6 +18,29 @@ cases:
     out:
      equals: false
 -
+  name: 'UnsupportedType error'
+  assertion: 'should provide error message'
+  inputs:
+    in: { error: "UnsupportedType" }
+  expect:
+    out:
+      -
+        path: '$.error'
+        equals: "UnsupportedType"
+      -
+        path: '$.message'
+        contains: "Type is not supported"
+-
+  name: 'An error of unknown type'
+  assertion: 'should give Unknown error'
+  inputs:
+    in: { error: "this is not know type" }
+  expect:
+    out:
+      -
+        path: '$.error'
+        equals: "Unknown"
+-
   name: 'positive integer'
   assertion: 'should be identical'
   inputs:

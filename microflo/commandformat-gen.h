@@ -1154,7 +1154,8 @@ enum Error {
     ErrorUnsupportedValue = 3,
     ErrorInvalidInput = 4,
     ErrorOperationFailed = 5,
-    ErrorOperationTimeout = 6
+    ErrorOperationTimeout = 6,
+    ErrorUnknown = 7
 };
 
 static const char *Error_names[] = {
@@ -1164,7 +1165,8 @@ static const char *Error_names[] = {
     "UnsupportedValue",
     "InvalidInput",
     "OperationFailed",
-    "OperationTimeout"
+    "OperationTimeout",
+    "Unknown"
 };
 
 enum IoType {
