@@ -454,11 +454,14 @@ MicroFlo::NodeId Network::removeNode(MicroFlo::NodeId nodeId) {
     MICROFLO_RETURN_VAL_IF_FAIL(nodeId <= lastAddedNodeIndex, 0,
                                 notificationHandler, DebugLevelError, DebugRemoveNodeInvalidInstance);
     Component *node = nodes[nodeId];
+    MICROFLO_RETURN_VAL_IF_FAIL(node, 0,
+                                notificationHandler, DebugLevelError, DebugRemoveNodeInvalidInstance);
 
     if (notificationHandler) {
         notificationHandler->nodeRemoved(node, node->parentNodeId);
     }
     delete node; // after notification, so it can refer it
+    nodes[nodeId] = 0;
 
     return nodeId;
 }

@@ -122,14 +122,6 @@ sendPacket = (runtime, port, event, payload) ->
     runtime.device.sendCommands buffer, () ->
         # done
 
-sendPackets = (runtime, mapping, callback) ->
-    buffers = []
-    for port, val of mapping
-        buffers.push sendPacketCmd runtime, port, 'data', val
-    buffer = commandstream.Buffer.concat buffers
-    runtime.device.sendCommands buffer, callback
-
-
 handleRuntimeCommand = (command, payload, connection, runtime) ->
     if command is "getruntime"
         caps = [
@@ -150,7 +142,10 @@ handleRuntimeCommand = (command, payload, connection, runtime) ->
             payload: r
           sendExportedPorts connection, runtime       
     else if command is 'packet'
-        sendPacket runtime, payload.port, payload.event, payload.payload
+        if payload.event is 'data'
+            sendPacket runtime, payload.port, payload.event, payload.payload
+        else
+            console.log "Ignored non-data event on runtime:packet", payload.event
     else
         console.log "Unknown NoFlo UI command on 'runtime' protocol:", command, payload
     return

@@ -75,6 +75,14 @@ cases:
     out:
      equals: -10
 -
+  name: 'integer sent as string'
+  assertion: 'should be converted to number'
+  inputs:
+    in: '210'
+  expect:
+    out:
+     equals: 210
+-
   name: 'positive float'
   assertion: 'should be identical'
   skip: 'currently truncates'
