@@ -249,7 +249,7 @@ commands.graph.addinitial = (payload, buffer, index, componentLib, nodeMap, comp
     tgtComponent = componentMap[tgtNode]
     tgtPort = componentLib.inputPort(tgtComponent, payload.tgt.port).id
   catch err
-    throw new Error "Could not attach IIP: '#{data} -> #{tgtPort} #{tgtNode} : #{err}"
+    throw new Error "Could not attach IIP: '#{data} -> #{payload.tgt.port} #{tgtNode} : #{err}"
   cmdBuf = dataLiteralToCommand(data, nodeMap[tgtNode].id, tgtPort)
   index += writeCmd buffer, index, cmdBuf
   return index
