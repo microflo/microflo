@@ -26,10 +26,6 @@
 #include "mbed_main.hpp"
 #endif
 
-#ifdef STELLARIS
-#include "stellaris_main.hpp"
-#endif
-
 #ifdef __ets__
 #include "esp_main.hpp"
 #endif

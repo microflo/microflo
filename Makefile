@@ -4,7 +4,6 @@ BOARD=arduino:avr:uno
 AVRMODEL=at90usb1287
 MBED_GRAPH=examples/blink-mbed.fbp
 LINUX_GRAPH=examples/blink-rpi.fbp
-STELLARIS_GRAPH=examples/blink-stellaris.fbp
 UPLOAD_DIR=/mnt
 BUILD_DIR=$(shell echo `pwd`/build)
 MICROFLO_SOURCE_DIR=$(shell echo `pwd`/microflo)
@@ -13,7 +12,6 @@ LIBRARY=./test/components/components.json
 
 # SERIALPORT=/dev/somecustom
 # ARDUINO=/home/user/Arduino-1.0.5
-# ENERGIA=/opt/energia/
 
 AVRSIZE=avr-size
 AVRGCC=avr-g++
@@ -48,10 +46,6 @@ endif
 
 ifndef ARDUINO
 ARDUINO:=$(shell echo `pwd`/arduino-1.8.1)
-endif
-
-ifndef ENERGIA
-ENERGIA=/opt/energia/
 endif
 
 AVRDUDE_OPTIONS=-patmega328p -carduino -b115200 # uno
@@ -116,21 +110,6 @@ build-mbed:
 	cp Makefile.mbed $(BUILD_DIR)/mbed/Makefile
 	cd $(BUILD_DIR)/mbed && make ROOT_DIR=./../../
 
-build-stellaris:
-	rm -rf $(BUILD_DIR)/stellaris
-	mkdir -p $(BUILD_DIR)/stellaris/gcc
-	# driverlib
-	cp -r $(ENERGIA)/hardware/lm4f/cores/lm4f/driverlib $(BUILD_DIR)/stellaris/
-	cp Makefile.stellaris.driverlib $(BUILD_DIR)/stellaris/driverlib/
-	cp makedefs.stellaris $(BUILD_DIR)/stellaris/driverlib/makedefs
-	cd $(BUILD_DIR)/stellaris/driverlib && make -f Makefile.stellaris.driverlib IPATH=$(ENERGIA)/hardware/lm4f/cores/lm4f
-	# app
-	cp ./startup_gcc.c $(BUILD_DIR)/stellaris/
-	cp $(ENERGIA)/hardware/lm4f/cores/lm4f/lm4fcpp_blizzard.ld $(BUILD_DIR)/stellaris/gcc/standalone.ld
-	$(MICROFLO) generate $(STELLARIS_GRAPH) $(BUILD_DIR)/stellaris/ --target stellaris --library $(LIBRARY)
-	cp Makefile.stellaris.app $(BUILD_DIR)/stellaris/Makefile
-	cd $(BUILD_DIR)/stellaris && make ROOT=./ IPATH="$(ENERGIA)/hardware/lm4f/cores/lm4f $(ENERGIA)/hardware/lm4f/variants/stellarpad ../../microflo/"
-
 # Build firmware statically linked to microflo runtime as object file, $(BUILD_DIR)/lib/microflolib.o
 build-linux: build-linux-embedding
 	rm -rf $(BUILD_DIR)/linux
@@ -187,12 +166,6 @@ upload-dfu: build-avr
 upload-mbed: build-mbed
 	cd $(BUILD_DIR)/mbed && sudo cp firmware.bin $(UPLOAD_DIR)
 
-debug-stellaris:
-	arm-none-eabi-gdb $(BUILD_DIR)/stellaris/gcc/main.axf --command=./stellaris.load.gdb
-
-upload-stellaris: build-stellaris
-	sudo lm4flash $(BUILD_DIR)/stellaris/gcc/main.bin
-
 clean:
 	git clean -dfx --exclude=node_modules
 
@@ -222,10 +195,7 @@ release-mbed: build-mbed
 release-linux: build-linux-embedding build-linux-mqtt
     # TODO: package?
 
-release-stellaris: build-stellaris
-    # TODO: package?
-
-release: build release-linux release-mbed release-arduino release-stellaris
+release: build release-linux release-mbed release-arduino
 	rm -rf $(BUILD_DIR)/microflo-$(VERSION)
 	mkdir -p $(BUILD_DIR)/microflo-$(VERSION)
 	cp -r $(BUILD_DIR)/microflo-arduino.zip $(BUILD_DIR)/microflo-$(VERSION)/
