@@ -149,8 +149,6 @@ handleRuntimeCommand = (command, payload, connection, runtime) ->
     else if command is 'packet'
         if payload.event is 'data'
             sendPacket runtime, payload.port, payload.event, payload.payload
-        else
-            console.log "Ignored non-data event on runtime:packet", payload.event
     else
         console.log "Unknown NoFlo UI command on 'runtime' protocol:", command, payload
     return
