@@ -129,11 +129,16 @@ handleRuntimeCommand = (command, payload, connection, runtime) ->
             "protocol:network"
             "protocol:component"
             "protocol:runtime"
+            "component:getsource"
         ]
         r =
             type: "microflo"
             version: "0.4"
             capabilities: caps
+            namespace: runtime.namespace
+
+        if runtime.graph?.name
+          r.graph = runtime.namespace + '/' + runtime.graph.name
 
         runtime.device.open () ->
           connection.send
@@ -154,16 +159,38 @@ handleComponentCommand = (command, payload, connection, runtime) ->
     if command is "list"
         listComponents runtime, connection
     else if command is "getsource"
-        runtime.library.getComponentSource payload.name, (err, source) ->
-            r =
-                name: payload.name
-                language: "c++"
-                code: source
-            connection.send
-                protocol: "component"
-                command: "source"
-                payload: r
-            return
+        # Main graph, used in live mode
+        if payload.name == runtime.namespace + '/' + runtime.graph.name
+            graph =
+              properties:
+                name: runtime.graph.name
+                environment:
+                  type: 'microflo'
+              processes: runtime.graph.processes
+              connections: runtime.graph.connections
+              inports: []
+              outports: []
+            resp =
+              code: JSON.stringify graph
+              name: runtime.graph.name
+              library: runtime.namespace
+              language: 'json'
+            connection.send { protocol: 'component', command: 'source', payload: resp }
+        else
+            runtime.library.getComponentSource payload.name, (err, source) ->
+                if err
+                  #connection.send { protocol: 'component', command: 'error', payload: { message: err.message } }
+                  source = err.message
+
+                r =
+                    name: payload.name
+                    language: "c++"
+                    code: source
+                connection.send
+                    protocol: "component"
+                    command: "source"
+                    payload: r
+                return
     else
         console.log "Unknown NoFlo UI command on 'component' protocol:", command, payload
     return
@@ -557,7 +584,7 @@ setupSimulator = (file, baudRate, port, debugLevel, ip, callback) ->
 
 
 uploadGraphFromFile = (graphPath, options, callback) ->
-  console.log 'o', graphPath
+
   serial.openTransport options.serial, options.baudrate, (err, transport) ->
     return callback err if err
     runtime = new Runtime transport, { debug: options.debug }
@@ -585,6 +612,7 @@ class Runtime extends EventEmitter
         @collector = new BracketDataCollector()
         @exportedEdges = []
         @edgesForInspection = []
+        @namespace = 'default'
 
         # Needed because the runtime on microcontroller only has numerical identifiers
         @graph.nodeMap = {} # "nodeName" -> { id: numericNodeId }
@@ -609,6 +637,7 @@ class Runtime extends EventEmitter
 
     uploadGraph: (graph, callback) ->
         @graph = graph
+        @graph.name = graph.properties.name if not @graph.name
 
         checkUploadDone = (m) =>
             if m.protocol == 'network' and m.command == 'started'

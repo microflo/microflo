@@ -19,14 +19,34 @@ setupRuntimeCommand = (env) ->
     ip = env.ip or "127.0.0.1"
     baud = parseInt(env.baudrate) or 9600
     componentMap = env.componentmap
-    if env.file
-        file = path.resolve env.file
-        microflo.runtime.setupSimulator file, baud, port, debugLevel, ip, (err, runtime) ->
-            throw err if err
-    else
-        microflo.runtime.setupRuntime serialPortToUse, baud, port, debugLevel, ip, componentMap, (err, runtime) ->
-            throw err  if err
 
+    setupRuntime = (callback) ->
+        if env.file
+            file = path.resolve env.file
+            microflo.runtime.setupSimulator file, baud, port, debugLevel, ip, (err, runtime) ->
+                return callback err, runtime
+        else
+            microflo.runtime.setupRuntime serialPortToUse, baud, port, debugLevel, ip, componentMap, (err, runtime) ->
+                return callback err, runtime
+
+    sendGraph = (runtime, callback) ->
+        if not env.graph
+            return callback null
+        microflo.definition.loadFile env.graph, (err, graph) ->
+            return callback err if err
+            return runtime.uploadGraph graph, callback
+
+    callback = (err) ->
+        if err
+            console.error err
+            process.exit 2
+        else
+            console.log 'setup done' # FIXME: write out live URL
+    setupRuntime (err, runtime) ->
+        return callback err if err
+        sendGraph runtime, (err) ->
+            return callback err if err
+            return callback err
 
 uploadGraphCommand = (graphPath, env) ->
   microflo.runtime.uploadGraphFromFile graphPath, env, (err) ->
@@ -175,6 +195,7 @@ main = ->
         .option("-p, --port <PORT>", "which port to use for WebSocket")
         .option("-i, --ip <IP>", "which IP to use for WebSocket")
         .option("-f, --file <FILE>", "Firmware file to run (.js or binary)")
+        .option("-g, --graph <initial.fbp|json>", "Initial graph to load")
         .option("-m, --componentmap <.json>", "Component mapping definition")
         .action setupRuntimeCommand
     commander.command("register [USER]")

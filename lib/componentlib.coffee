@@ -74,7 +74,9 @@ class ComponentLibrary
         return components
 
     getComponent: (componentName) ->
-        @definition.components[componentName]
+        throw new Error "getComponent(): component name not specified" if not componentName
+        c = @definition.components[componentName]
+        return c
 
     getComponentById: (componentId) ->
         for name of @getComponents()
@@ -85,6 +87,8 @@ class ComponentLibrary
         return null
 
     getComponentSource: (componentName, callback) ->
+        return callback new Error "Getting component source not implemented"
+
         componentFile = path.join @baseDirectory, "components.cpp"
         startLine = 0
         endLine = 0
@@ -107,9 +111,13 @@ class ComponentLibrary
             return callback new Error 'Could not find component source'
 
     outputPortsFor: (componentName) ->
-        @getComponent(componentName).outPorts
+        c = @getComponent(componentName)
+        throw new Error "Could not find outports for #{componentName}" if not c
+        return c.outPorts
     inputPortsFor: (componentName) ->
-        @getComponent(componentName).inPorts
+        c = @getComponent(componentName)
+        throw new Error "Could not find outports for #{componentName}" if not c
+        return c.inPorts
     inputPort: (componentName, portName) ->
         @inputPortsFor(componentName)[portName]
     outputPort: (componentName, portName) ->
