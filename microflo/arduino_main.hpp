@@ -22,14 +22,6 @@ void loadFromProgMem(HostCommunication *controller) {
 }
 #endif
 
-extern "C"
-{
-    void *__dso_handle = NULL;
-    void __cxa_atexit() {
-        ;
-    }
-}
-
 // I/O backend to use
 ArduinoIO io;
 const int serialPort = 0;
