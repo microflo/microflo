@@ -135,6 +135,9 @@ handleRuntimeCommand = (command, payload, connection, runtime) ->
             version: "0.4"
             capabilities: caps
 
+        if runtime.graph?.name
+          r.graph = runtime.graph.name
+
         runtime.device.open () ->
           connection.send
             protocol: "runtime"
