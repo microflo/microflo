@@ -580,7 +580,7 @@ setupSimulator = (file, baudRate, port, debugLevel, ip, callback) ->
 
 
 uploadGraphFromFile = (graphPath, options, callback) ->
-  console.log 'o', graphPath
+
   serial.openTransport options.serial, options.baudrate, (err, transport) ->
     return callback err if err
     runtime = new Runtime transport, { debug: options.debug }
@@ -633,6 +633,7 @@ class Runtime extends EventEmitter
 
     uploadGraph: (graph, callback) ->
         @graph = graph
+        @graph.name = graph.properties.name if not @graph.name
 
         checkUploadDone = (m) =>
             if m.protocol == 'network' and m.command == 'started'
