@@ -178,6 +178,10 @@ handleComponentCommand = (command, payload, connection, runtime) ->
             connection.send { protocol: 'component', command: 'source', payload: resp }
         else
             runtime.library.getComponentSource payload.name, (err, source) ->
+                if err
+                  #connection.send { protocol: 'component', command: 'error', payload: { message: err.message } }
+                  source = err.message
+
                 r =
                     name: payload.name
                     language: "c++"

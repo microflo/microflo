@@ -87,6 +87,8 @@ class ComponentLibrary
         return null
 
     getComponentSource: (componentName, callback) ->
+        return callback new Error "Getting component source not implemented"
+
         componentFile = path.join @baseDirectory, "components.cpp"
         startLine = 0
         endLine = 0
