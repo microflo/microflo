@@ -511,8 +511,9 @@ fromCommand = (componentLib, graph, cmdData) ->
     throw new Error('Missing component library')
   cmdType = cmdData.readUInt8(0)
   responseParser = responseFromCommandId[cmdType]
-  if not responseParser
-    console.log 'Unknown/unsupported command received', cmdType
+  if typeof responseParser != 'function'
+    console.log 'Unknown/unsupported command received', cmdType, typeof responseParser
+    return
 
   messages = responseParser componentLib, graph, cmdData
   if not messages?
