@@ -5,6 +5,10 @@
 
 #include "arduino.hpp"
 
+#ifndef MICROFLO_ARDUINO_BAUDRATE
+#define MICROFLO_ARDUINO_BAUDRATE 9600
+#endif
+
 #ifdef AVR
 #include <avr/pgmspace.h>
 void loadFromProgMem(HostCommunication *controller) {
@@ -25,7 +29,7 @@ void loadFromProgMem(HostCommunication *controller) {
 // I/O backend to use
 ArduinoIO io;
 const int serialPort = 0;
-const int serialBaudrate = 9600;
+const int serialBaudrate = MICROFLO_ARDUINO_BAUDRATE;
 FixedMessageQueue queue;
 Network network(&io, &queue);
 HostCommunication controller;
