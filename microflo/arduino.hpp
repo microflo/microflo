@@ -107,6 +107,9 @@ public:
     }
 
     // Timer
+    virtual long TimerCurrentMicros() {
+        return micros();
+    }
     virtual long TimerCurrentMs() {
         return millis();
     }
