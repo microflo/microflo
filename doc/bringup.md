@@ -23,8 +23,8 @@ Supported
 ----------------
 
 * [Arduino](./arduino-getstarted.md) + Atmel AVR8
-* [ARM Cortex M0-M4](./arm-getstarted.md)
 * [Embedded Linux](./linux-getstarted.md)
+* ARM Cortex M0-M4
 * Simulator ([no UI yet](https://github.com/jonnor/microflo/issues/9))
 Running on node.js and browser, compiled to JavaScript using Emscripten.
 
