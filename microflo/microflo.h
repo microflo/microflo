@@ -101,11 +101,7 @@ namespace MicroFlo {
     typedef uint8_t NodeId;
     typedef int8_t PortId;
     typedef uint8_t ComponentId;
-#ifdef STELLARIS
-    typedef long PinId;
-#else
     typedef int8_t PinId;
-#endif
     typedef int8_t PointerType;
 
     // This must match the ID in "microflo/components.json"

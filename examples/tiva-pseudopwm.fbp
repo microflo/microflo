@@ -1,3 +1,0 @@
-'220' -> PERIOD led(PseudoPwmWrite)
-'200' -> ONTIME led
-board(TivaC) PF4 -> PIN led()
