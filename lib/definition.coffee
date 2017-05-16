@@ -1,12 +1,10 @@
 
 util = require './util'
 fbp = require 'fbp'
-if util.isBrowser()
-    #
-else
-    fs = require 'fs'
-    path = require 'path'
-    declarec = require 'declarec' # FIXME: implement browser
+
+fs = require 'fs'
+path = require 'path'
+declarec = require 'declarec'
 
 trim = (str) -> str.replace /^\s+|\s+$/g, ""
 

@@ -4,9 +4,8 @@
 #
 
 util = require "./util"
-unless util.isBrowser()
-    path = require "path"
-    fs = require "fs"
+path = require "path"
+fs = require "fs"
 
 findHighestId = (components) ->
   highest = 0

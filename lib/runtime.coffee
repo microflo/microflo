@@ -3,17 +3,14 @@
 # * MicroFlo may be freely distributed under the MIT license
 # 
 util = require("./util")
-if util.isBrowser()
-    http = window.http
-    uuid = window.uuid
-else
-    http = require("http")
-    https = require("https")
-    websocket = require("websocket")
-    url = require("url")
-    uuid = require "uuid"
-    fs = require 'fs'
-    querystring = require 'querystring'
+
+http = require("http")
+https = require("https")
+websocket = require("websocket")
+url = require("url")
+uuid = require "uuid"
+fs = require 'fs'
+querystring = require 'querystring'
 
 EventEmitter = util.EventEmitter
 

@@ -6,10 +6,10 @@ util = require("./util")
 cmdFormat = require("./commandformat")
 commandstream = require("./commandstream")
 definition = require("./definition")
-unless util.isBrowser()
-  fs = require("fs")
-  path = require("path")
-  declarec = require("declarec") # FIXME: make work in browser
+
+fs = require("fs")
+path = require("path")
+declarec = require("declarec")
 
 cmdStreamToCDefinition = (cmdStream, target) ->
   out = ""
