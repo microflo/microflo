@@ -172,7 +172,7 @@ clean:
 # FIXME: run on Travis CI
 release-esp: build-esp
 
-check-release: build build-linux-embedding build-arduino build-avr build-mbed 
+check-release: check build-linux-embedding build-arduino build-avr build-mbed
 
 runtime-tests: build-tests
 	$(BUILD_DIR)/tests/run
