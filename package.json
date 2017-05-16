@@ -51,7 +51,6 @@
     "commander": "^2.9.0",
     "declarec": "^0.0.4",
     "fbp": "^1.5.0",
-    "flowhub-registry": "~0.0.4",
     "js-yaml": "^3.2.7",
     "uuid": "^3.0.1",
     "pkginfo": "^0.4.0",

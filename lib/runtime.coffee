@@ -8,6 +8,7 @@ if util.isBrowser()
     uuid = window.uuid
 else
     http = require("http")
+    https = require("https")
     websocket = require("websocket")
     url = require("url")
     uuid = require "uuid"
@@ -15,10 +16,6 @@ else
     querystring = require 'querystring'
 
 EventEmitter = util.EventEmitter
-try
-  flowhub = require("flowhub-registry")
-catch e
-  #
 
 commandstream = require("./commandstream")
 generate = require("./generate")
@@ -476,44 +473,18 @@ class BracketDataCollector
       @bracketed = null
       return out
 
-createFlowhubRuntime = (user, ip, port, label, id, apihost) ->
-    return null if not flowhub
-
-    # Unique identifier of the runtime instance
-    id = id or uuid.v4()
-    label = label or "MicroFlo"
-    rtinfo =
-        label: label
-        id: id
-        user: user
-        protocol: "websocket"
-        type: "microflo"
-        # Secret string for simple auth
-        secret: "19osdf3034s"
-    if ip isnt "auto"
-        rtinfo.address = "ws://" + ip + ":" + port
-    else
-        rtinfo.address = "auto"
-    regoptions = {}
-    regoptions.host = apihost if typeof apihost isnt "undefined"
-    rt = new flowhub.Runtime(rtinfo, regoptions)
-    return rt
-
-setupFlowhubRuntimePing = (rt) ->
-    return if not rt
-
-    # TODO: handle more sanely
-    rtPingInterval = setInterval(->
-        rt.ping (err) ->
-            console.log "Warning: failed to ping Flowhub registry"    if err
-    , 5 * 60 * 1000)
-    return rtPingInterval
-
-registerFlowhubRuntime = (rt, callback) ->
-    return if not rt
-
-    rt.register callback
-    return
+pingUrl = (address, method, callback) ->
+  u = url.parse address
+  u.port = 80 if u.protocol == 'http' and not u.port
+  u.method = method
+  u.timeout = 10*1000
+  req = https.request u, (res) ->
+    status = res.statusCode
+    return callback new Error "Ping #{method} #{address} failed with #{status}" if status != 200
+    return callback null
+  req.on 'error', (err) ->
+    return callback err
+  req.end()
 
 liveUrl = (options) ->
   address = 'ws://' + options.host + ':' + options.port
@@ -546,11 +517,18 @@ setupWebsocket = (runtime, options, callback) ->
                 console.log "WS parser error: ", e
             runtime.handleMessage contents
 
+    alivePing = () =>
+      return if not options.pingInterval
+      realUrl = options.pingUrl.replace '$RUNTIME_ID', options.id
+      pingUrl realUrl, options.pingMethod, (err) ->
+        console.error "Failed to ping:", err if err
+    runtime.alivePingInterval = setInterval alivePing, options.pingInterval*1000
+    alivePing()
+
     httpServer.listen options.port, options.host, (err) ->
         return callback err, null if err
         return callback null, httpServer
 
-# FIXME: specify most of these things through a `options` object
 setupRuntime = (serialPortToUse, baudRate, componentMap, options, callback) ->
 
     serial.openTransport serialPortToUse, baudRate, (err, transport) ->
@@ -565,7 +543,6 @@ setupRuntime = (serialPortToUse, baudRate, componentMap, options, callback) ->
                 console.log 'WARN: could not load component mapping', e
 
         setupWebsocket runtime, options, (err, server) ->
-            # FIXME: ping Flowhub
             return callback null, runtime
 
 setupSimulator = (file, baudRate, port, debugLevel, ip, callback) ->
@@ -590,7 +567,6 @@ setupSimulator = (file, baudRate, port, debugLevel, ip, callback) ->
     # Runtime expects device communication to already be open
     runtime.device.open (err) ->
         setupWebsocket runtime, ip, port, (err, server) ->
-            # FIXME: ping Flowhub
             return callback null, runtime
 
 
@@ -671,6 +647,4 @@ module.exports =
     setupSimulator: setupSimulator
     Runtime: Runtime
     uploadGraphFromFile: uploadGraphFromFile
-    createFlowhubRuntime: createFlowhubRuntime
-    registerFlowhubRuntime: registerFlowhubRuntime
 
