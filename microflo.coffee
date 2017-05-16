@@ -9,6 +9,7 @@ cmdFormat = require("./microflo/commandformat.json")
 microflo = require("./lib/microflo")
 commander = require("commander")
 pkginfo = require("pkginfo")(module)
+uuid = require('uuid')
 
 defaultLibrary = 'microflo-core/components/arduino-standard.json'
 
@@ -19,6 +20,9 @@ setupRuntimeCommand = (env) ->
     ip = env.ip or "127.0.0.1"
     baud = parseInt(env.baudrate) or 9600
     componentMap = env.componentmap
+    if not env.id
+      env.id = uuid.v4()
+      console.log 'INFO: No runtime id set, generated one:', env.id
 
     setupRuntime = (callback) ->
         if env.file
@@ -26,7 +30,9 @@ setupRuntimeCommand = (env) ->
             microflo.runtime.setupSimulator file, baud, port, debugLevel, ip, (err, runtime) ->
                 return callback err, runtime
         else
-            microflo.runtime.setupRuntime serialPortToUse, baud, port, debugLevel, ip, componentMap, (err, runtime) ->
+            options = env
+            options.host = env.ip
+            microflo.runtime.setupRuntime serialPortToUse, baud, componentMap, options, (err, runtime) ->
                 return callback err, runtime
 
     sendGraph = (runtime, callback) ->
@@ -36,17 +42,18 @@ setupRuntimeCommand = (env) ->
             return callback err if err
             return runtime.uploadGraph graph, callback
 
-    callback = (err) ->
+    callback = (err, runtime) ->
         if err
             console.error err
             process.exit 2
         else
-            console.log 'setup done' # FIXME: write out live URL
+            console.log 'Open in Flowhub:\n', runtime.liveUrl()
     setupRuntime (err, runtime) ->
         return callback err if err
+        console.log "MicroFlo runtime listening at", ip + ":" + port
         sendGraph runtime, (err) ->
             return callback err if err
-            return callback err
+            return callback err, runtime
 
 uploadGraphCommand = (graphPath, env) ->
   microflo.runtime.uploadGraphFromFile graphPath, env, (err) ->
@@ -71,21 +78,6 @@ generateFwCommand = (inputFile, output, env) ->
         microflo.generate.updateComponentLibDefinitions componentLib, outputDir, "createComponent"
         microflo.generate.generateOutput componentLib, inputFile, output, target
 
-
-registerRuntimeCommand = (user, env) ->
-    ip = env.ip or "auto"
-    port = parseInt(env.port) or 3569
-    label = env.label or "MicroFlo"
-    id = env.id or process.env["MICROFLO_RUNTIME_ID"]
-    user = process.env["FLOWHUB_USER_ID"]  unless user
-    rt = microflo.runtime.createFlowhubRuntime(user, ip, port, label)
-    unless id
-        microflo.runtime.registerFlowhubRuntime rt, (err, ok) ->
-        if err
-            console.log "Could not register runtime with Flowhub", err
-            process.exit 1
-        else
-            console.log "Runtime registered with id:", rt.runtime.id
 
 flashCommand = (file, env) ->
     upload = require("./lib/flash.coffee")
@@ -197,14 +189,13 @@ main = ->
         .option("-f, --file <FILE>", "Firmware file to run (.js or binary)")
         .option("-g, --graph <initial.fbp|json>", "Initial graph to load")
         .option("-m, --componentmap <.json>", "Component mapping definition")
+        .option("--ide <URL>", "FBP IDE which can open live url", String, "http://app.flowhub.io")
+        .option("--id <RUNTIME-ID>", "UUID for the runtime", String, process.env["MICROFLO_RUNTIME_ID"])
+        .option('--ping-url <URL>', 'An URL that will be pinged periodically',
+                String, 'https://api.flowhub.io/runtimes/$RUNTIME_ID')
+        .option('--ping-method <GET|POST>', 'HTTP method to hit ping URL with', String, 'POST')
+        .option('--ping-interval <seconds>', 'How often to hit the ping URL, 0=never', Number, 0)
         .action setupRuntimeCommand
-    commander.command("register [USER]")
-        .description("Register the runtime with Flowhub registry")
-        .option("-p, --port <PORT>", "WebSocket port")
-        .option("-i, --ip <IP>", "WebSocket IP")
-        .option("-l, --label <PORT>", "Label to show in UI for this runtime")
-        .option("-r, --id <RUNTIME-ID>", "UUID for the runtime")
-        .action registerRuntimeCommand
     commander.command("flash <FILE.hex>")
         .description("Flash runtime onto device")
         .option("-s, --serial <PORT>", "which serial port to use")
