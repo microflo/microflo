@@ -12,6 +12,7 @@ else
     url = require("url")
     uuid = require "uuid"
     fs = require 'fs'
+    querystring = require 'querystring'
 
 EventEmitter = util.EventEmitter
 try
@@ -514,12 +515,20 @@ registerFlowhubRuntime = (rt, callback) ->
     rt.register callback
     return
 
-setupWebsocket = (runtime, ip, port, callback) ->
+liveUrl = (options) ->
+  address = 'ws://' + options.host + ':' + options.port
+  params = 'protocol=websocket&address=' + address
+  params += '&id=' + options.id if options.id
+  params += '&secret=' + options.secret if options.secret
+  u = options.ide + '#runtime/endpoint?' + querystring.escape(params)
+  return u
+
+setupWebsocket = (runtime, options, callback) ->
     httpServer = http.createServer (request, response) ->
         path = url.parse(request.url).pathname
         if path is "/"
             response.writeHead 200, "Content-Type": "text/plain"
-            response.write "NoFlo UI WebSocket API at: " + "ws://" + request.headers.host
+            response.write "Open in Flowhub: " + liveUrl options
         else
             response.writeHead 404
         response.end()
@@ -537,17 +546,16 @@ setupWebsocket = (runtime, ip, port, callback) ->
                 console.log "WS parser error: ", e
             runtime.handleMessage contents
 
-    httpServer.listen port, ip, (err) ->
+    httpServer.listen options.port, options.host, (err) ->
         return callback err, null if err
-        console.log "MicroFlo runtime listening at", ip + ":" + port
         return callback null, httpServer
 
 # FIXME: specify most of these things through a `options` object
-setupRuntime = (serialPortToUse, baudRate, port, debugLevel, ip, componentMap, callback) ->
+setupRuntime = (serialPortToUse, baudRate, componentMap, options, callback) ->
 
     serial.openTransport serialPortToUse, baudRate, (err, transport) ->
         return callback err, null if err
-        runtime = new Runtime transport
+        runtime = new Runtime transport, options
 
         # TODO: support automatically looking up in runtime
         if componentMap
@@ -556,7 +564,7 @@ setupRuntime = (serialPortToUse, baudRate, port, debugLevel, ip, componentMap, c
             catch e
                 console.log 'WARN: could not load component mapping', e
 
-        setupWebsocket runtime, ip, port, (err, server) ->
+        setupWebsocket runtime, options, (err, server) ->
             # FIXME: ping Flowhub
             return callback null, runtime
 
@@ -564,7 +572,12 @@ setupSimulator = (file, baudRate, port, debugLevel, ip, callback) ->
     simulator = require './simulator'
 
     build = require file
-    runtime = new simulator.RuntimeSimulator build
+    options =
+      debug: debugLevel
+      host: ip
+      port: port
+
+    runtime = new simulator.RuntimeSimulator build, options
     runtime.start 1.0
 
     # HACK: library should come from runtime itself!
@@ -611,6 +624,7 @@ class Runtime extends EventEmitter
         @exportedEdges = []
         @edgesForInspection = []
         @namespace = 'default'
+        @options = options
 
         # Needed because the runtime on microcontroller only has numerical identifiers
         @graph.nodeMap = {} # "nodeName" -> { id: numericNodeId }
@@ -628,6 +642,9 @@ class Runtime extends EventEmitter
                 converted = mapMessage @graph, @collector, m
                 for c in converted
                     @conn.send c
+
+    liveUrl: () ->
+        return liveUrl @options
 
     handleMessage: (msg) ->
         console.log 'FBP MICROFLO RECV:', msg if util.debug_protocol

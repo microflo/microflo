@@ -26,7 +26,12 @@ setupRuntimeCommand = (env) ->
             microflo.runtime.setupSimulator file, baud, port, debugLevel, ip, (err, runtime) ->
                 return callback err, runtime
         else
-            microflo.runtime.setupRuntime serialPortToUse, baud, port, debugLevel, ip, componentMap, (err, runtime) ->
+            options =
+                host: ip
+                port: port
+                ide: env.ide
+                debug: debugLevel
+            microflo.runtime.setupRuntime serialPortToUse, baud, componentMap, options, (err, runtime) ->
                 return callback err, runtime
 
     sendGraph = (runtime, callback) ->
@@ -36,17 +41,18 @@ setupRuntimeCommand = (env) ->
             return callback err if err
             return runtime.uploadGraph graph, callback
 
-    callback = (err) ->
+    callback = (err, runtime) ->
         if err
             console.error err
             process.exit 2
         else
-            console.log 'setup done' # FIXME: write out live URL
+            console.log 'Open in Flowhub:\n', runtime.liveUrl()
     setupRuntime (err, runtime) ->
         return callback err if err
+        console.log "MicroFlo runtime listening at", ip + ":" + port
         sendGraph runtime, (err) ->
             return callback err if err
-            return callback err
+            return callback err, runtime
 
 uploadGraphCommand = (graphPath, env) ->
   microflo.runtime.uploadGraphFromFile graphPath, env, (err) ->
@@ -197,6 +203,7 @@ main = ->
         .option("-f, --file <FILE>", "Firmware file to run (.js or binary)")
         .option("-g, --graph <initial.fbp|json>", "Initial graph to load")
         .option("-m, --componentmap <.json>", "Component mapping definition")
+        .option("--ide <URL>", "FBP IDE which can open live url", String, "http://app.flowhub.io")
         .action setupRuntimeCommand
     commander.command("register [USER]")
         .description("Register the runtime with Flowhub registry")

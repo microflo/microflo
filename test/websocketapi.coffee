@@ -17,7 +17,7 @@ describe 'WebSocket API', ->
     runtime.library.loadSetFile library, (err) ->
       if err
         throw err
-      microflo.runtime.setupWebsocket runtime, 'localhost', 3888, ->
+      microflo.runtime.setupWebsocket runtime, { host: 'localhost', port: 3888 }, ->
         done()
   after ->
     # FIXME: allow teardown
