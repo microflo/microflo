@@ -47,14 +47,15 @@
     "node": ">=0.10.0"
   },
   "dependencies": {
+    "bluebird": "^3.5.0",
     "coffee-script": "^1.7.1",
     "commander": "^2.9.0",
     "declarec": "~0.1.1",
     "fbp": "^1.5.0",
     "js-yaml": "^3.2.7",
-    "uuid": "^3.0.1",
     "pkginfo": "^0.4.0",
     "serialport": "^4.0.7",
+    "uuid": "^3.0.1",
     "websocket": "~1.0.8"
   },
   "devDependencies": {
