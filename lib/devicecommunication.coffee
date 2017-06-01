@@ -5,6 +5,7 @@
 commandstream = require './commandstream'
 util = require './util'
 EventEmitter = util.EventEmitter;
+bluebird = require 'bluebird'
 
 contains = (str, substr) ->  return str? and str.indexOf(substr) != -1
 
@@ -198,7 +199,14 @@ class DeviceCommunication extends EventEmitter
 
     # Send batched
     sendCommands: (buffer, callback) ->
-        @sender.push buffer, callback
+        timeout = 1000
+        new bluebird.Promise (resolve, reject) =>
+          @sender.push buffer, (err, res) ->
+            return reject err if err
+            return resolve res
+        .timeout timeout, "Device did not respond within #{timeout}ms"
+        .asCallback callback
+        return null
 
     # Low-level
     _onCommandReceived: (buf) ->

@@ -138,7 +138,11 @@ handleRuntimeCommand = (command, payload, connection, runtime) ->
         if runtime.graph?.name
           r.graph = runtime.namespace + '/' + runtime.graph.name
 
-        runtime.device.open () ->
+        runtime.device.ping (err) ->
+          if err
+            console.error 'getruntime ping failed', err
+            connection.send { protocol: 'runtime', command: 'error', payload: { message: err.message } }
+            return
           connection.send
             protocol: "runtime"
             command: "runtime"
@@ -350,7 +354,7 @@ mapMessage = (graph, collector, message)->
         
 
 # non-live programming way of uploading
-resetAndUploadGraph = (runtime, connection, debugLevel) ->
+resetAndUploadGraph = (runtime, connection, debugLevel, callback) ->
     # FIXME: also do error handling, and send that across
     # https://github.com/noflo/noflo-runtime-websocket/blob/master/runtime/network.js
     graph = runtime.graph
@@ -360,17 +364,24 @@ resetAndUploadGraph = (runtime, connection, debugLevel) ->
         return
     runtime.uploadInProgress = true
 
-    data = commandstream.cmdStreamFromGraph runtime.library, graph, debugLevel
-    send = () ->
+    try
+        data = commandstream.cmdStreamFromGraph runtime.library, graph, debugLevel
+    catch e
+        return callback e
+    sendGraph = (cb) ->
         runtime.device.sendCommands data, (err) ->
+            return cb err if err
             # Subscribe to change notifications
             # TODO: use a dedicated mechanism for this based on subgraphs
             edges = runtime.exportedEdges.concat runtime.edgesForInspection
             handleNetworkEdges runtime, connection, edges, (err) ->
                 runtime.uploadInProgress = false
+                return cb err
     setTimeout () ->
-        runtime.device.open () ->
-            send()
+        runtime.device.open (err) ->
+            return callback err if err
+            sendGraph (err) ->
+                return callback err
     , 1000 # HACK: wait for Arduino reset
 
 subscribeEdges = (runtime, edges, callback) ->
@@ -542,8 +553,10 @@ setupRuntime = (serialPortToUse, baudRate, componentMap, options, callback) ->
             catch e
                 console.log 'WARN: could not load component mapping', e
 
-        setupWebsocket runtime, options, (err, server) ->
-            return callback null, runtime
+        runtime.device.open (err) ->
+            return callback err if err
+            setupWebsocket runtime, options, (err, server) ->
+                return callback null, runtime
 
 setupSimulator = (file, baudRate, port, debugLevel, ip, callback) ->
     simulator = require './simulator'
@@ -566,6 +579,7 @@ setupSimulator = (file, baudRate, port, debugLevel, ip, callback) ->
 
     # Runtime expects device communication to already be open
     runtime.device.open (err) ->
+        return callback err if err
         setupWebsocket runtime, ip, port, (err, server) ->
             return callback null, runtime
 
@@ -636,10 +650,8 @@ class Runtime extends EventEmitter
                 return callback()
 
         @on 'message', checkUploadDone
-        try
-            resetAndUploadGraph this, @conn, @debugLevel
-        catch e
-            return callback e
+        resetAndUploadGraph this, @conn, @debugLevel, (err) ->
+            return callback err if err
 
 module.exports =
     setupRuntime: setupRuntime

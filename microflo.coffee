@@ -31,7 +31,7 @@ setupRuntimeCommand = (env) ->
                 return callback err, runtime
         else
             options = env
-            options.host = env.ip
+            options.host = ip
             microflo.runtime.setupRuntime serialPortToUse, baud, componentMap, options, (err, runtime) ->
                 return callback err, runtime
 
@@ -181,11 +181,11 @@ main = ->
         .action uploadGraphCommand
     commander.command("runtime")
         .description("Run as a server, for use with the NoFlo UI.")
-        .option("-s, --serial <PORT>", "which serial port to use")
-        .option("-b, --baudrate <RATE>", "baudrate for serialport")
-        .option("-d, --debug <LEVEL>", "set debug level")
-        .option("-p, --port <PORT>", "which port to use for WebSocket")
-        .option("-i, --ip <IP>", "which IP to use for WebSocket")
+        .option("-s, --serial <PORT>", "which serial port to use", String, '')
+        .option("-b, --baudrate <RATE>", "baudrate for serialport", Number, 9600)
+        .option("-d, --debug <LEVEL>", "set debug level", String, 'Error')
+        .option("-p, --port <PORT>", "which port to use for WebSocket", Number, 3569)
+        .option("-i, --ip <IP>", "which IP to use for WebSocket", String, 'localhost')
         .option("-f, --file <FILE>", "Firmware file to run (.js or binary)")
         .option("-g, --graph <initial.fbp|json>", "Initial graph to load")
         .option("-m, --componentmap <.json>", "Component mapping definition")
