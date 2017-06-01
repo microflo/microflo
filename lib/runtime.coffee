@@ -138,7 +138,11 @@ handleRuntimeCommand = (command, payload, connection, runtime) ->
         if runtime.graph?.name
           r.graph = runtime.namespace + '/' + runtime.graph.name
 
-        runtime.device.open (err) ->
+        runtime.device.ping (err) ->
+          if err
+            console.error 'getruntime ping failed', err
+            connection.send { protocol: 'runtime', command: 'error', payload: { message: err.message } }
+            return
           connection.send
             protocol: "runtime"
             command: "runtime"
@@ -549,8 +553,10 @@ setupRuntime = (serialPortToUse, baudRate, componentMap, options, callback) ->
             catch e
                 console.log 'WARN: could not load component mapping', e
 
-        setupWebsocket runtime, options, (err, server) ->
-            return callback null, runtime
+        runtime.device.open (err) ->
+            return callback err if err
+            setupWebsocket runtime, options, (err, server) ->
+                return callback null, runtime
 
 setupSimulator = (file, baudRate, port, debugLevel, ip, callback) ->
     simulator = require './simulator'
