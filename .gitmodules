@@ -1,18 +1,9 @@
 [submodule "thirdparty/mbed"]
 	path = thirdparty/mbed
 	url = https://github.com/mbedmicro/mbed.git
-[submodule "thirdparty/Adafruit_NeoPixel"]
-	path = thirdparty/Adafruit_NeoPixel
-	url = https://github.com/jonnor/Adafruit_NeoPixel.git
-[submodule "thirdparty/Adafruit_WS2801"]
-	path = thirdparty/Adafruit_WS2801
-	url = https://github.com/adafruit/Adafruit-WS2801-Library.git
 [submodule "thirdparty/esp8266"]
 	path = thirdparty/esp8266
 	url = https://github.com/jonnor/ESP8266.git
-[submodule "thirdparty/NewPing"]
-	path = thirdparty/NewPing
-	url = https://github.com/jonnor/NewPing.git
 [submodule "thirdparty/MIDI"]
 	path = thirdparty/MIDI
 	url = https://github.com/FortySevenEffects/arduino_midi_library.git

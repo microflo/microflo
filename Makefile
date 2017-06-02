@@ -68,19 +68,9 @@ update-defs:
 
 build-arduino:
 	rm -rf $(BUILD_DIR)/arduino || echo 'WARN: failure to clean Arduino build'
-	mkdir -p $(BUILD_DIR)/arduino/lib
 	mkdir -p $(BUILD_DIR)/arduino/builder
-	cp -r $(MICROFLO_SOURCE_DIR) $(BUILD_DIR)/arduino/lib/
-	unzip -q -n ./thirdparty/OneWire.zip -d $(BUILD_DIR)/arduino/lib/
-	unzip -q -n ./thirdparty/DallasTemperature.zip -d $(BUILD_DIR)/arduino/lib/
-	cd thirdparty/Adafruit_NeoPixel && git checkout-index -f -a --prefix=$(BUILD_DIR)/arduino/lib/Adafruit_NeoPixel/
-	cd thirdparty/Adafruit_WS2801 && git checkout-index -f -a --prefix=$(BUILD_DIR)/arduino/lib/Adafruit_WS2801/
-	cd thirdparty/NewPing && git checkout-index -f -a --prefix=$(BUILD_DIR)/arduino/lib/NewPing/
-	cd $(BUILD_DIR)/arduino/lib && test -e patched || patch -p0 < ../../../thirdparty/DallasTemperature.patch
-	cd $(BUILD_DIR)/arduino/lib && test -e patched || patch -p0 < ../../../thirdparty/OneWire.patch
-	touch $(BUILD_DIR)/arduino/lib/patched
-	$(MICROFLO) generate $(GRAPH) $(BUILD_DIR)/arduino/src/main.ino arduino --library $(LIBRARY)
-	arduino-builder -compile $(BUILDER_OPTIONS) $(BUILD_DIR)/arduino/src/main.ino
+	$(MICROFLO) generate $(GRAPH) $(BUILD_DIR)/arduino/main.ino arduino --library $(LIBRARY)
+	arduino-builder -compile $(BUILDER_OPTIONS) $(BUILD_DIR)/arduino/main.ino
 
 build-avr:
 	node microflo.js generate $(GRAPH) $(BUILD_DIR)/avr/ --target avr --library $(LIBRARY)
