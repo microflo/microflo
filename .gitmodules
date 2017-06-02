@@ -4,6 +4,3 @@
 [submodule "thirdparty/esp8266"]
 	path = thirdparty/esp8266
 	url = https://github.com/jonnor/ESP8266.git
-[submodule "thirdparty/MIDI"]
-	path = thirdparty/MIDI
-	url = https://github.com/FortySevenEffects/arduino_midi_library.git
