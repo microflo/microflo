@@ -78,14 +78,6 @@ generateFwCommand = (inputFile, output, env) ->
         microflo.generate.updateComponentLibDefinitions componentLib, outputDir, "createComponent"
         microflo.generate.generateOutput componentLib, inputFile, output, target
 
-
-flashCommand = (file, env) ->
-    upload = require("./lib/flash.coffee")
-    tty = env.serial
-    baud = parseInt(env.baudrate) or 115200
-    upload.avrUploadHexFile file, tty, baud, (err, written) ->
-        console.log err, written
-
 updateDefsCommand = (directory) ->
     microflo.generate.updateDefinitions directory
 
@@ -196,11 +188,6 @@ main = ->
         .option('--ping-method <GET|POST>', 'HTTP method to hit ping URL with', String, 'POST')
         .option('--ping-interval <seconds>', 'How often to hit the ping URL, 0=never', Number, 0)
         .action setupRuntimeCommand
-    commander.command("flash <FILE.hex>")
-        .description("Flash runtime onto device")
-        .option("-s, --serial <PORT>", "which serial port to use")
-        .option("-b, --baudrate <RATE>", "baudrate for serialport")
-        .action flashCommand
     commander.parse process.argv
     commander.help()  if process.argv.length <= 2
 
