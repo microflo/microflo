@@ -36,10 +36,7 @@ ifdef NO_SUBGRAPHS
 DEFINES+=-DMICROFLO_DISABLE_SUBGRAPHS
 endif
 
-ESP_OPTS = ESPRESSIF_DIR=/home/jon/temp/Espressif ESPTOOL=/usr/bin/esptool.py V=1 ESPTOOL_CK=/home/jon/temp/Espressif/esptool-ck/esptool SDK_EXTRA_INCLUDES=$(MICROFLO_SOURCE_DIR) LD_SCRIPT="-T ./eagle.app.v6.ld"
-
 ifdef SERIALPORT
-ESP_OPTS+=ESPPORT=$(SERIALPORT)
 else
 SERIALPORT=/dev/ttyACM0
 endif
@@ -106,21 +103,6 @@ build-linux-mqtt:
 	node microflo.js generate $(LINUX_GRAPH) $(BUILD_DIR)/linux-mqtt/ --target linux-mqtt --library $(LIBRARY)
 	cd $(BUILD_DIR)/linux-mqtt/ && g++ -o firmware main.cpp -std=c++0x -lmosquitto $(COMMON_CFLAGS) -DLINUX -Werror -lrt -lutil
 
-build-esp:
-	rm -rf $(BUILD_DIR)/esp
-	mkdir -p $(BUILD_DIR)/esp
-	cp -r thirdparty/esp8266/esphttpd/include $(BUILD_DIR)/esp/
-	cp -r thirdparty/esp8266/ESP8266-EVB-blinkLED/* $(BUILD_DIR)/esp/
-	rm -rf $(BUILD_DIR)/esp/{firmware,build}
-	mkdir -p $(BUILD_DIR)/esp/{firmware,build}
-	rm $(BUILD_DIR)/esp/user/*.c || echo 'no C files'
-	rm $(BUILD_DIR)/esp/user/*.o || echo 'no .o files'
-	$(MICROFLO) generate $(GRAPH) $(BUILD_DIR)/esp/user/ --target esp8266 --library $(LIBRARY)
-	cd $(BUILD_DIR)/esp && make $(ESP_OPTS)
-
-flash-esp: build-esp
-	cd $(BUILD_DIR)/esp && make flash $(ESP_OPTS)
-
 build-tests:
 	rm -rf $(BUILD_DIR)/tests
 	mkdir -p $(BUILD_DIR)/tests
@@ -143,9 +125,6 @@ upload-mbed: build-mbed
 
 clean:
 	git clean -dfx --exclude=node_modules
-
-# FIXME: run on Travis CI
-release-esp: build-esp
 
 check-release: check build-linux-embedding build-arduino build-avr build-mbed
 

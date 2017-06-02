@@ -84,8 +84,6 @@ lib/util.coffee
 lib/util.coffee
 microflo.coffee
 lib/commandformat.coffee
-microflo/esp_main.hpp
-microflo/esp.hpp
 examples/mqtt.cpp
 microflo/mqtt.hpp
 microflo/linux_mqtt_main.hpp
