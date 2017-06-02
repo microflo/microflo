@@ -60,21 +60,6 @@ BUILDER_OPTIONS=-hardware $(ARDUINO)/hardware -tools $(ARDUINO)/tools-builder -t
 
 COMMON_CFLAGS:=-I. -I${MICROFLO_SOURCE_DIR} -Wall -Wno-error=unused-variable
 
-# Platform specifics
-ifeq ($(OS),Windows_NT)
-	# TODO, test and fix
-else
-    UNAME_S := $(shell uname -s)
-    ifeq ($(UNAME_S),Darwin)
-        AVRSIZE=$(OSX_ARDUINO_APP)/Contents/Resources/Java/hardware/tools/avr/bin/avr-size
-	AVRGCC=$(OSX_ARDUINO_APP)/Contents/Resources/Java/hardware/tools/avr/bin/avr-g++
-	AVROBJCOPY=$(OSX_ARDUINO_APP)/Contents/Resources/Java/hardware/tools/avr/bin/avr-objcopy
-    endif
-    ifeq ($(UNAME_S),Linux)
-        # Nothing needed :D
-    endif
-endif
-
 # Rules
 all: build
 
