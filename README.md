@@ -13,13 +13,13 @@ and supports automated testing.
 
 One can program with MicroFlo either:
 
-* Visually, using [Flowhub](https://flowhub.io)/[NoFlo UI](https://github.com/noflo/noflo-ui)
+* Visually, using [Flowhub](https://flowhub.io)
 * Textually, using the declarative [.fbp DSL](http://noflojs.org/documentation/fbp)
 or [.json definition](http://noflojs.org/documentation/json)
 * Programatically, by embedding it and building a graph using the C++ API
 
 MicroFlo is designed to integrate with other FBP runtimes,
-like [NoFlo](http://noflojs.org/) and [msgflo](https://github.com)
+like [NoFlo](http://noflojs.org/) and [msgflo](https://msgflo.org)
 
 Using
 -----------------
