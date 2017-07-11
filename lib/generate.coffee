@@ -13,7 +13,7 @@ unless util.isBrowser()
 
 cmdStreamToCDefinition = (cmdStream, target) ->
   out = ""
-  if target is "arduino" or target is "avr"
+  if target is "arduino:avr" or target is "avr"
     out += "#include <avr/pgmspace.h>\n"
     out += cmdStreamToC(cmdStream, "PROGMEM")
   else
