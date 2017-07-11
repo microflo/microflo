@@ -1,5 +1,10 @@
-# git master
-Released: N/A
+# MicroFlo 0.4.0
+Released: 11.07.2017
+
+Documentation
+
+* New Arduino tutorial available at [microflo-example-arduino](https://github.com/microflo/microflo-example-arduino#microflo-example-arduino)
+* Updated README and CHANGES to reflect progress in 2015-2016
 
 Platform support
 
