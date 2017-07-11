@@ -67,7 +67,7 @@
     "grunt-contrib-uglify": "~3.0.0",
     "grunt-mocha-phantomjs": "^4.0.0",
     "grunt-mocha-test": "^0.13.2",
-    "grunt-webpack": "^2.0.1",
+    "grunt-webpack": "^3.0.1",
     "grunt-zip": "^0.17.1",
     "mocha": "^3.2.0",
     "mqtt": "^2.2.1",
