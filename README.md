@@ -7,7 +7,7 @@ for microcontrollers and embedded devices.
 MicroFlo supports multiple targets, including [Arduino](http://arduino.cc), Atmel AVR,
 ARM Cortex M devices (mbed, TI Tiva/Stellaris), ESP8266 and Embedded Linux.
 
-Unlike most other visually programmable systems, MicroFlo programs runs _standalone_,
+Unlike most other visually programmable systems, MicroFlo programs runs _standalone_ on the microcontroller,
 does not make use of code generation, can be introspected and reconfigured at runtime,
 and supports automated testing.
 
@@ -23,10 +23,11 @@ like [NoFlo](http://noflojs.org/) and [msgflo](https://github.com)
 
 Status
 -------
-**Minimally useful**. Simple programs work, components exists for most I/O on standard Arduino devices.
-Minimal support for automated testing.
-Suitable for those curious to play with alternative microcontroller programming models.
-Probably a bit early to use it for general tasks.
+**Minimally useful**.
+
+* Simple programs work
+* Components exists for most standard I/O on Arduino devices
+* Minimal support for automated testing
 
 MicroFlo in the wild:
 
@@ -54,8 +55,7 @@ Milestones
 
 Future roadmap
 
-* [0.4.0](https://github.com/microflo/microflo/issues?milestone=4), "Runtime persistable, Introspectable":
-Uploaded graphs can be persisted to EEPROM, be monitored at runtime, and be composed of sub-graphs
+* [0.4.0](https://github.com/microflo/microflo/issues?milestone=4)
 * 0.5.0, "Simulated":
 One can program and test MicroFlo programs in a simulator, before putting it on device
 * 0.?.0, "Generally useful":
@@ -67,15 +67,11 @@ An open source hardware, free software electronics product based on MicroFlo wit
 allowing and encouraging the user to customize the code has been shipped.
 
 
-TODO
------
-    git grep -E 'TODO|FIXME|XXX|IDEA|PERF'
-
-
 Using
 -----------------
-For visual programming your Arduino, follow the [MicroFlo for Arduino tutorial](./doc/arduino-getstarted.md).
-If interested in extending MicroFlo, using it for other microcontrollers, see the next section.
+For visual programming your Arduino, follow the [microflo-example-arduino](https://github.com/microflo/microflo-example-arduino).
+
+If interested in extending MicroFlo to support other microcontrollers, see the next section.
 
 
 Developing/Hacking
