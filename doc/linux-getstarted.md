@@ -35,7 +35,6 @@ It is assumed that you have common build tools such as 'make', 'git'
 
     microflo generate embedding.cpp build/ --target linux
     g++ -o build/main embedding.cpp -std=c++11 -I./build -I./node_modules/microflo/microflo
-    # TODO: add a way to get include flags from MicroFlo executable
 
 4. Run
 
