@@ -541,6 +541,7 @@ setupWebsocket = (runtime, options, callback) ->
         return callback null, httpServer
 
 setupRuntime = (serialPortToUse, baudRate, componentMap, options, callback) ->
+    options.waitConnect = options.waitConnect or 0
 
     serial.openTransport serialPortToUse, baudRate, (err, transport) ->
         return callback err, null if err
@@ -553,10 +554,12 @@ setupRuntime = (serialPortToUse, baudRate, componentMap, options, callback) ->
             catch e
                 console.log 'WARN: could not load component mapping', e
 
-        runtime.device.open (err) ->
-            return callback err if err
-            setupWebsocket runtime, options, (err, server) ->
-                return callback null, runtime
+        setTimeout () ->
+            runtime.device.open (err) ->
+                return callback err if err
+                setupWebsocket runtime, options, (err, server) ->
+                    return callback null, runtime
+        , options.waitConnect*1000
 
 setupSimulator = (file, baudRate, port, debugLevel, ip, callback) ->
     simulator = require './simulator'

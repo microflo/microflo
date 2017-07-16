@@ -187,6 +187,7 @@ main = ->
                 String, 'https://api.flowhub.io/runtimes/$RUNTIME_ID')
         .option('--ping-method <GET|POST>', 'HTTP method to hit ping URL with', String, 'POST')
         .option('--ping-interval <seconds>', 'How often to hit the ping URL, 0=never', Number, 0)
+        .option('--wait-connect <seconds>', 'How long to wait before connecting to serial. Useful for Arduino Uno', Number, 0)
         .action setupRuntimeCommand
     commander.parse process.argv
     commander.help()  if process.argv.length <= 2
