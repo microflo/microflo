@@ -16,6 +16,8 @@ else
     querystring = require 'querystring'
 
 EventEmitter = util.EventEmitter
+bluebird = require 'bluebird'
+Promise = bluebird.Promise
 
 commandstream = require("./commandstream")
 generate = require("./generate")
@@ -25,6 +27,19 @@ serial = require("./serial")
 devicecommunication = require("./devicecommunication")
 definition = require './definition'
 protocol = require './protocol'
+
+# Based on http://stackoverflow.com/a/38225011/1967571
+rejectDelayer = (delay) ->
+  f = (reason) ->
+    return new Promise (resolve, reject) ->
+      setTimeout(reject.bind(null, reason), delay)
+  return f
+
+retryUntil = (attempt, test, delay=500, max=5) ->
+  p = Promise.reject(new Error 'retry starter')
+  for i in [0..max]
+    p = p.catch(attempt).then(test).catch(rejectDelayer(delay))
+  return p
 
 # TODO: allow port types to be declared in component metadata,
 # and send the appropriate types instead of just "all"
@@ -552,8 +567,19 @@ setupRuntime = (serialPortToUse, baudRate, componentMap, options, callback) ->
                 runtime.library.definition = JSON.parse(fs.readFileSync(componentMap, 'utf-8'))
             catch e
                 console.log 'WARN: could not load component mapping', e
+        console.log 'setup'
 
-        runtime.device.open (err) ->
+        # On some devices, communication does not succeed immediately
+        # Especially on those that restart on serial open, like Arduino Uno
+        tryOpen = () ->
+            console.log 'tryopen'
+            return bluebird.promisify(runtime.device.open, {context: runtime.device})()
+        checkIsOpen = (v, b) ->
+            console.log 'isopen', v, b
+            return v
+
+        retryUntil tryOpen, checkIsOpen, 500, 20
+        .asCallback (err) ->
             return callback err if err
             setupWebsocket runtime, options, (err, server) ->
                 return callback null, runtime
