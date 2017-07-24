@@ -1,3 +1,15 @@
+# MicroFlo 0.4.1
+Released: 24.07.207
+
+Bugfixes
+
+* Support `--wait-connect 3` option for `microflo runtime`,
+needed devices like Arduino Uno that reset upon serial connection.
+
+Internal changes
+
+* Bumped most NPM dependencies to latest version
+
 # MicroFlo 0.4.0
 Released: 11.07.2017
 
