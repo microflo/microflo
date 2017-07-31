@@ -392,8 +392,9 @@ subscribeEdges = (runtime, edges, callback) ->
 
     # Loop over all edges, unsubscribe
     graph.connections.forEach (conn) ->
-        if conn.src
-            srcId = graph.nodeMap[conn.src.process].id
+        node = graph.nodeMap[conn?.src?.process]
+        if conn.src and node
+            srcId = node.id
             srcComp = graph.processes[conn.src.process].component
             srcPort = runtime.library.outputPort(srcComp, conn.src.port).id
             offset += commandstream.writeCmd buffer, offset,
