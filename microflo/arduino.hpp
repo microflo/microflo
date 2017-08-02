@@ -9,6 +9,13 @@
 
 #include <Arduino.h>
 
+#ifdef ARDUINO_ARCH_ESP32
+// Currently unsupported, ref https://github.com/espressif/arduino-esp32/issues/4
+#else
+#define MICROFLO_HAVE_ANALOG_WRITE
+#endif
+
+
 static const int MAX_EXTERNAL_INTERRUPTS = 3;
 
 struct InterruptHandler {
@@ -103,7 +110,11 @@ public:
         return analogRead(pin);
     }
     virtual void PwmWrite(MicroFlo::PinId pin, long dutyPercent) {
+#ifdef MICROFLO_HAVE_ANALOG_WRITE
         analogWrite(pin, (dutyPercent*255)/100); // normalize to [0..255]
+#else
+        return;
+#endif
     }
 
     // Timer
