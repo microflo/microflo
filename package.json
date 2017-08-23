@@ -52,7 +52,7 @@
   },
   "devDependencies": {
     "chai": "^4.0.1",
-    "coffee-loader": "^0.7.3",
+    "coffee-loader": "^0.8.0",
     "coffeelint": "^1.9.2",
     "fbp-spec": "^0.2.1",
     "grunt": "~1.0.1",
