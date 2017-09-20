@@ -29,7 +29,7 @@ Support
 ---------
 [![Flowhub logo](./doc/images/flowhub-banner-black.png)](https://flowhub.io)
 
-MicroFlo is a part of [Flowhub](https://flowhub.io), a platform for building robust [IoT systems](https://flowhub.io/iot) and web sevices.
+MicroFlo is a part of [Flowhub](https://flowhub.io), a platform for building robust [IoT systems](https://flowhub.io/iot) and web sevices.<br>
 We offer an [Integrated Development Environment](https://app.flowhub.io) and [consulting services](https://flowhub.io/consulting).
 
 Status
