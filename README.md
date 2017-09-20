@@ -48,8 +48,10 @@ Contact
 When you find issues: [file bugs](https://github.com/microflo/microflo/issues)
 and/or submit [pull requests](https://github.com/microflo/microflo/pulls)!
 
-You can also use the Google Group [Flow Based Programming](https://groups.google.com/forum/#!forum/flow-based-programming),
-make sure to mark your email with `Microflo`.
+[![Flowhub logo](./doc/images/flowhub-banner-black.png)](https://flowhub.io)
+
+MicroFlo is a part of Flowhub, a platform for building robust [IoT systems](https://flowhub.io/iot) and web sevices.
+We offer an [Integrated Development Environment](https://app.flowhub.io) and [consulting services](https://flowhub.io/consulting).
 
 Changelog
 -----------
