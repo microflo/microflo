@@ -155,6 +155,13 @@ Packet decodePacket(const std::string &str) {
         return Packet(MsgInvalid);
     }
 }
+
+#ifdef ARDUINO
+#define MICROFLO_TO_STRING(v) std::string(String(v).c_str())
+#else
+#define MICROFLO_TO_STRING(v) std::to_string(v)
+#endif
+
 std::string encodePacket(const Packet &pkg) {
     switch (pkg.type()) {
     case MsgVoid:
@@ -162,11 +169,11 @@ std::string encodePacket(const Packet &pkg) {
     case MsgBoolean:
         return pkg.asBool() ? "true" : "false";
     case MsgInteger:
-        return std::to_string(pkg.asInteger());
+        return MICROFLO_TO_STRING(pkg.asInteger());
     case MsgByte:
-        return std::to_string(pkg.asByte());
+        return MICROFLO_TO_STRING(pkg.asByte());
     case MsgFloat:
-        return std::to_string(pkg.asFloat());
+        return MICROFLO_TO_STRING(pkg.asFloat());
     case MsgError:
         if (Error_names[pkg.asError()]) {
             return std::string("Error: ") + Error_names[pkg.asError()];
@@ -186,7 +193,7 @@ std::string encodePacket(const Packet &pkg) {
     case MsgSetup:
     case MsgTick:
     case MsgInvalid:
-        return "";
+        return "Invalid MicroFlo::Packet";
     default:
         return "Error: Unknown MicroFlo::Packet type";
     }
