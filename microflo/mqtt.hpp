@@ -133,10 +133,8 @@ findPortByEdge(const std::vector<Port> &ports, MicroFlo::NodeId node, MicroFlo::
 // C++ version of the logic in commandstream dataLiteralToCommand etc
 Packet decodePacket(const std::string &str) {
     // TODO: handle floats
-    // TODO: handle brackets
     // MAYBE: handle hex and octal integers?
-    // TODO: handle byte streams
-    // TODO: handle brackets
+    // TODO: handle (byte) streams sent as a single string
     const long int10 = strtol(str.c_str(), NULL, 10);
     if (str == "null") {
         return Packet(); // void
@@ -148,6 +146,11 @@ Packet decodePacket(const std::string &str) {
         return Packet((long)0); // bad strtol error value..
     } else if (int10 != 0) {
         return Packet(int10);
+    } else if (str == "[") {
+        return Packet(MsgBracketStart);
+    } else if (str == "]") {
+        return Packet(MsgBracketEnd);
+
     } else {
         return Packet(MsgInvalid);
     }
@@ -171,9 +174,11 @@ std::string encodePacket(const Packet &pkg) {
             return "Error: Invalid error";
         }
 
-    case MsgBracketStart: // TOOD: handle brackets
-    case MsgBracketEnd: // TOOD: handle brackets
-        return "";
+    // TOOD: handle brackets properly
+    case MsgBracketStart:
+        return "[";
+    case MsgBracketEnd:
+        return "]";
 
     // internal types
     case MsgMax:
