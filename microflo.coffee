@@ -76,7 +76,7 @@ generateFwCommand = (inputFile, output, env) ->
         throw err  if err
         componentLib.loadFile inputFile
         microflo.generate.updateComponentLibDefinitions componentLib, outputDir, "createComponent"
-        microflo.generate.generateOutput componentLib, inputFile, output, target
+        microflo.generate.generateOutput componentLib, inputFile, output, target, env.mainfile
 
 updateDefsCommand = (directory) ->
     microflo.generate.updateDefinitions directory
@@ -161,6 +161,7 @@ main = ->
 
     commander.command("generate <INPUT> <OUTPUT>")
         .description("Generate MicroFlo firmware code, with embedded graph.")
+        .option("-m, --mainfile <FILE.hpp>", "File to include for providing main()")
         .option("-l, --library <FILE.json>", "Component library file")
         .option("-t, --target <platform>", "Target platform: arduino|linux|avr8")
         .action generateFwCommand
