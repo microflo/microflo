@@ -126,7 +126,7 @@ upload-mbed: build-mbed
 clean:
 	git clean -dfx --exclude=node_modules
 
-check-release: check build-linux-embedding build-arduino build-avr build-mbed
+check-release: check build-linux-embedding build-linux-mqtt build-arduino build-avr build-mbed
 
 runtime-tests: build-tests
 	$(BUILD_DIR)/tests/run
