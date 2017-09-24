@@ -98,9 +98,9 @@ build-linux-embedding:
 
 build-linux-mqtt:
 	rm -rf $(BUILD_DIR)/linux-mqtt
-	node microflo.js generate examples/Repeat.fbp $(BUILD_DIR)/linux-mqtt/ --target linux-mqtt --library $(LIBRARY)
+	node microflo.js generate examples/Repeat.fbp $(BUILD_DIR)/linux-mqtt/ --enable-maps --target linux-mqtt --library $(LIBRARY)
 	cd $(BUILD_DIR)/linux-mqtt/ && g++ -o repeat main.cpp -std=c++0x -lmosquitto $(COMMON_CFLAGS) -DLINUX -Werror -lrt -lutil
-	node microflo.js generate $(LINUX_GRAPH) $(BUILD_DIR)/linux-mqtt/ --target linux-mqtt --library $(LIBRARY)
+	node microflo.js generate $(LINUX_GRAPH) $(BUILD_DIR)/linux-mqtt/ --enable-maps --target linux-mqtt --library $(LIBRARY)
 	cd $(BUILD_DIR)/linux-mqtt/ && g++ -o firmware main.cpp -std=c++0x -lmosquitto $(COMMON_CFLAGS) -DLINUX -Werror -lrt -lutil
 
 build-tests:

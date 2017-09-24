@@ -8,7 +8,6 @@
 #include "microflo.h"
 #include "linux_mqtt.hpp"
 
-#include "main_maps.h" // generated graph metadata
 #include "microflo.hpp"
 #include "linux.hpp"
 
