@@ -50,7 +50,7 @@ Here is an annotated example. The first byte specifies which command it is.
     };
     #define MICROFLO_EMBED_GRAPH
     #include "microflo.h"
-    #include "main.hpp"
+    #include "microflo/arduino_main.hpp" // or a custom file which provides entrypoint
 
 
 When the program starts, the MicroFlo engine will parse the command-stream,
