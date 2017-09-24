@@ -76,7 +76,7 @@ generateFwCommand = (inputFile, output, env) ->
         throw err  if err
         componentLib.loadFile inputFile
         microflo.generate.updateComponentLibDefinitions componentLib, outputDir, "createComponent"
-        microflo.generate.generateOutput componentLib, inputFile, output, target, env.mainfile
+        microflo.generate.generateOutput componentLib, inputFile, output, target, env.mainfile, env.enableMaps
 
 updateDefsCommand = (directory) ->
     microflo.generate.updateDefinitions directory
@@ -164,6 +164,7 @@ main = ->
         .option("-m, --mainfile <FILE.hpp>", "File to include for providing main()")
         .option("-l, --library <FILE.json>", "Component library file")
         .option("-t, --target <platform>", "Target platform: arduino|linux|avr8")
+        .option("--enable-maps", "Enable graph info maps")
         .action generateFwCommand
     commander.command("upload <GRAPH>")
         .option("-s, --serial <PORT>", "which serial port to use", String, 'auto')
