@@ -2,7 +2,7 @@
 # Copyright (c) 2013 Jon Nordby <jononor@gmail.com>
 # MicroFlo may be freely distributed under the MIT license
 
-require "coffee-script/register"
+require "coffeescript/register"
 fs = require("fs")
 path = require("path")
 cmdFormat = require("./microflo/commandformat.json")
