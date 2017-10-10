@@ -1,5 +1,5 @@
-# MicroFlo 0.4.2
-Released: 24.07.207
+# MicroFlo 0.4.3
+Released: 10.10.207
 
 Bugfixes
 
@@ -15,6 +15,17 @@ Platform support
 
 * ESP8266: Experimental support for MQTT/Msgflo,
 by automatically exposing exported in/outports of the graph 
+
+# MicroFlo 0.4.2
+Released: 02.08.207
+
+Bugfixes
+
+* Fix exception after removing node/edge
+
+Platform support
+
+* ESP32: Avoid using unimplemented `analogWrite` in Arduino backend on ESP32 devices
 
 # MicroFlo 0.4.1
 Released: 24.07.207
