@@ -98,9 +98,9 @@ build-linux-embedding:
 
 build-linux-mqtt:
 	rm -rf $(BUILD_DIR)/linux-mqtt
-	node microflo.js generate examples/Repeat.fbp $(BUILD_DIR)/linux-mqtt/ --target linux-mqtt --library $(LIBRARY)
+	node microflo.js generate examples/Repeat.fbp $(BUILD_DIR)/linux-mqtt/ --enable-maps --target linux-mqtt --library $(LIBRARY)
 	cd $(BUILD_DIR)/linux-mqtt/ && g++ -o repeat main.cpp -std=c++0x -lmosquitto $(COMMON_CFLAGS) -DLINUX -Werror -lrt -lutil
-	node microflo.js generate $(LINUX_GRAPH) $(BUILD_DIR)/linux-mqtt/ --target linux-mqtt --library $(LIBRARY)
+	node microflo.js generate $(LINUX_GRAPH) $(BUILD_DIR)/linux-mqtt/ --enable-maps --target linux-mqtt --library $(LIBRARY)
 	cd $(BUILD_DIR)/linux-mqtt/ && g++ -o firmware main.cpp -std=c++0x -lmosquitto $(COMMON_CFLAGS) -DLINUX -Werror -lrt -lutil
 
 build-tests:
@@ -126,13 +126,13 @@ upload-mbed: build-mbed
 clean:
 	git clean -dfx --exclude=node_modules
 
-check-release: check build-linux-embedding build-arduino build-avr build-mbed
+check-release: check build-linux-embedding build-linux-mqtt build-arduino build-avr build-mbed
 
 runtime-tests: build-tests
 	$(BUILD_DIR)/tests/run
 
 check: runtime-tests build-linux build-linux-mqtt
-	npm test
+	grunt test
 
 .PHONY: all build update-defs clean check-release
 

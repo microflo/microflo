@@ -1,3 +1,32 @@
+# MicroFlo 0.4.3
+Released: 10.10.207
+
+Bugfixes
+
+* Avoid exception and crash if on protocol errors
+
+Added
+
+* microflo generate `--mainfile file.hpp`, allows chosing which file to include to the firmware entrypoint (`main()` or similar).
+Defaults value is based on the existing `--target ` option.
+* microflo generate `--enable-maps` option, allows enabling arrays used with component/node/port/command name strings.
+
+Platform support
+
+* ESP8266: Experimental support for MQTT/Msgflo,
+by automatically exposing exported in/outports of the graph 
+
+# MicroFlo 0.4.2
+Released: 02.08.207
+
+Bugfixes
+
+* Fix exception after removing node/edge
+
+Platform support
+
+* ESP32: Avoid using unimplemented `analogWrite` in Arduino backend on ESP32 devices
+
 # MicroFlo 0.4.1
 Released: 24.07.207
 

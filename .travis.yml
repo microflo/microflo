@@ -1,4 +1,6 @@
 language: node_js
+sudo: true
+dist: precise
 node_js:
 - '6'
 before_install:
@@ -9,13 +11,9 @@ before_install:
 - sudo apt-get install -qq -y gcc-arm-none-eabi --force-yes
 - sudo apt-get install -qq -y gcc-avr binutils-avr avr-libc avrdude
 - sudo apt-get install -qq -y mosquitto libmosquitto-dev
-- git submodule update --init --recursive
 - wget -O arduino.tgz https://downloads.arduino.cc/arduino-1.8.1-linux64.tar.xz
 - tar -xf arduino.tgz
-script:
-- make check-release
-env:
-- PATH=`pwd`/arduino-1.8.1/:$PATH
+- export PATH=`pwd`/arduino-1.8.1/:$PATH
 deploy:
 -
   provider: npm

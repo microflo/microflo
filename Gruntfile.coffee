@@ -32,17 +32,6 @@ module.exports = ->
           'fs': 'empty'
           'child_process': 'empty'
 
-    # JavaScript minification for the browser
-    uglify:
-      options:
-        banner: '/* MicroFlo <%= pkg.version %> -
-                 Flow-Based Programming runtime for microcontrollers.
-                 See http://microflo.org for more information. */'
-        report: 'min'
-      microflo:
-        files:
-          './build/browser/microflo.min.js': ['./build/browser/microflo.js']
-
     # CoffeeScript build
     coffee:
       lib:
@@ -111,7 +100,6 @@ module.exports = ->
   # Grunt plugins used for building
   @loadNpmTasks 'grunt-zip'
   @loadNpmTasks 'grunt-contrib-coffee'
-  @loadNpmTasks 'grunt-contrib-uglify'
   @loadNpmTasks 'grunt-contrib-copy'
   @loadNpmTasks 'grunt-contrib-compress'
   @loadNpmTasks 'grunt-contrib-clean'

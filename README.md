@@ -25,6 +25,13 @@ Using
 -----------------
 For visual programming your Arduino, follow the [microflo-example-arduino](https://github.com/microflo/microflo-example-arduino).
 
+Support
+---------
+[![Flowhub logo](./doc/images/flowhub-banner-github.png)](https://flowhub.io)
+
+MicroFlo is a part of [Flowhub](https://flowhub.io), a platform for building robust [IoT systems](https://flowhub.io/iot) and web sevices.<br>
+We offer an [Integrated Development Environment](https://app.flowhub.io) and [consulting services](https://flowhub.io/consulting).
+
 Status
 -------
 **Minimally useful**.
@@ -47,9 +54,6 @@ Contact
 ----------
 When you find issues: [file bugs](https://github.com/microflo/microflo/issues)
 and/or submit [pull requests](https://github.com/microflo/microflo/pulls)!
-
-You can also use the Google Group [Flow Based Programming](https://groups.google.com/forum/#!forum/flow-based-programming),
-make sure to mark your email with `Microflo`.
 
 Changelog
 -----------

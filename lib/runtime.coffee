@@ -425,7 +425,7 @@ sendMessage = (runtime, message) ->
   index = commandstream.toCommandStreamBuffer message, runtime.library, g.nodeMap, g.componentMap, temp, 0
   data = temp.slice(0, index)
   runtime.device.sendCommands data, (err) ->
-    console.og 'sendMessage error', err if err
+    console.log 'sendMessage error', err if err
 
 handleNetworkCommand = (command, payload, connection, runtime, transport, debugLevel) ->
     if command is "start"
