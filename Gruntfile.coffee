@@ -17,6 +17,7 @@ module.exports = ->
           filename: 'microflo.js'
         plugins: [
           new webpack.IgnorePlugin(/\/coffee-script\//)
+          new webpack.IgnorePlugin(/\/coffeescript\//)
           new webpack.IgnorePlugin(/declarec.coffee/)
         ]
         module:
@@ -78,7 +79,7 @@ module.exports = ->
         src: ['test/*.coffee']
         options:
           reporter: 'spec'
-          require: 'coffee-script/register'
+          require: 'coffeescript/register'
           grep: process.env.TESTS
 
     # FBP protocol tests
