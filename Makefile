@@ -132,7 +132,7 @@ runtime-tests: build-tests
 	$(BUILD_DIR)/tests/run
 
 check: runtime-tests build-linux build-linux-mqtt
-	npm test
+	grunt test
 
 .PHONY: all build update-defs clean check-release
 

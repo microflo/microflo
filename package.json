@@ -33,7 +33,7 @@
   ],
   "scripts": {
     "start": "node microflo.js runtime",
-    "test": "grunt test"
+    "test": "make check-release"
   },
   "engines": {
     "node": ">=0.10.0"
