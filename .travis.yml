@@ -1,6 +1,6 @@
 language: node_js
 sudo: true
-dist: precise
+dist: trusty
 node_js:
 - '6'
 before_install:
