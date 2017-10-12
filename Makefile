@@ -13,13 +13,7 @@ LIBRARY=./test/components/components.json
 # SERIALPORT=/dev/somecustom
 # ARDUINO=/home/user/Arduino-1.0.5
 
-AVRSIZE=avr-size
-AVRGCC=avr-g++
-AVROBJCOPY=avr-objcopy
-DFUPROGRAMMER=dfu-programmer
 VERSION=$(shell git describe --tags --always)
-OSX_ARDUINO_APP=/Applications/Arduino.app
-AVR_FCPU=1000000UL
 
 # Not normally customized
 CPPFLAGS=-ffunction-sections -fshort-enums -fdata-sections -Os -w
@@ -69,12 +63,6 @@ build-arduino:
 	$(MICROFLO) generate $(GRAPH) $(BUILD_DIR)/arduino/main.ino arduino --library $(LIBRARY)
 	arduino-builder -compile $(BUILDER_OPTIONS) $(BUILD_DIR)/arduino/main.ino
 
-build-avr:
-	node microflo.js generate $(GRAPH) $(BUILD_DIR)/avr/ --target avr --library $(LIBRARY)
-	cd $(BUILD_DIR)/avr && $(AVRGCC) -o firmware.elf main.cpp -DF_CPU=$(AVR_FCPU) -DAVR=1 $(COMMON_CFLAGS) -Werror -Wno-error=overflow -mmcu=$(AVRMODEL) -fno-exceptions -fno-rtti $(CPPFLAGS)
-	cd $(BUILD_DIR)/avr && $(AVROBJCOPY) -j .text -j .data -O ihex firmware.elf firmware.hex
-	$(AVRSIZE) -A $(BUILD_DIR)/avr/firmware.elf
-
 build-mbed:
 	cd thirdparty/mbed && python2 workspace_tools/build.py -t GCC_ARM -m LPC1768
 	rm -rf $(BUILD_DIR)/mbed
@@ -114,19 +102,13 @@ upload: build-arduino
 	$(ARDUINO_RESET_CMD)
 	avrdude -C$(ARDUINO)/hardware/tools/avr/etc/avrdude.conf -v -P$(SERIALPORT) $(AVRDUDE_OPTIONS) -D -Uflash:w:$(BUILD_DIR)/arduino/builder/main.ino.hex:i
 
-upload-dfu: build-avr
-	cd $(BUILD_DIR)/avr && sudo $(DFUPROGRAMMER) $(AVRMODEL) erase
-	sleep 1
-	cd $(BUILD_DIR)/avr && sudo $(DFUPROGRAMMER) $(AVRMODEL) flash firmware.hex || sudo $(DFUPROGRAMMER) $(AVRMODEL) flash firmware.hex || sudo $(DFUPROGRAMMER) $(AVRMODEL) flash firmware.hex || sudo $(DFUPROGRAMMER) $(AVRMODEL) flash firmware.hex || sudo $(DFUPROGRAMMER) $(AVRMODEL) flash firmware.hex
-	sudo $(DFUPROGRAMMER) $(AVRMODEL) start
-
 upload-mbed: build-mbed
 	cd $(BUILD_DIR)/mbed && sudo cp firmware.bin $(UPLOAD_DIR)
 
 clean:
 	git clean -dfx --exclude=node_modules
 
-check-release: check build-linux-embedding build-linux-mqtt build-arduino build-avr build-mbed
+check-release: check build-linux-embedding build-linux-mqtt build-arduino build-mbed
 
 runtime-tests: build-tests
 	$(BUILD_DIR)/tests/run

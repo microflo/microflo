@@ -33,8 +33,7 @@ The command stream is embedded into the firmware image itself, as static data in
 Here is an annotated example. The first byte specifies which command it is.
 
     // build/avr/firmware.cpp 
-    #include <avr/pgmspace.h>
-    const unsigned char graph[] PROGMEM = {
+    const unsigned char graph[] = {
     0x75,0x43,0x2f,0x46,0x6c,0x6f,0x30,0x31, // magic string, opens communication
     0xa,0x0,0x0,0x0,0x0,0x0,0x0,0x0, // stop network, clear old graph
     0xf,0x1,0x0,0x0,0x0,0x0,0x0,0x0, // configure debug level etc

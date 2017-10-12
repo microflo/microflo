@@ -147,11 +147,11 @@ main = ->
         .action componentDefsCommand
     commander.command("graph <COMPONENT.hpp>")
         .description("Update generated definitions for component")
-        .option("-t, --target <platform>", "Target platform: arduino|linux|avr8")
+        .option("-t, --target <platform>", "Target platform (arduino|linux|etc)")
         .action graphCommand
     commander.command("main <GRAPH>")
         .description("Generate an entrypoint file")
-        .option("-t, --target <platform>", "Target platform: arduino|linux|avr8")
+        .option("-t, --target <platform>", "Target platform (arduino|linux|etc)")
         .option("-m, --mainfile <FILE.hpp>", "File to include for providing main()")
         .option("-o, --output <FILE>", "File to output to. Defaults to $graphname.cpp")
         .option("-l, --library <FILE.json>", "Component library file") # WARN: to be deprecated
@@ -163,7 +163,7 @@ main = ->
         .description("Generate MicroFlo firmware code, with embedded graph.")
         .option("-m, --mainfile <FILE.hpp>", "File to include for providing main()")
         .option("-l, --library <FILE.json>", "Component library file")
-        .option("-t, --target <platform>", "Target platform: arduino|linux|avr8")
+        .option("-t, --target <platform>", "Target platform: (arduino|linux|etc)")
         .option("--enable-maps", "Enable graph info maps")
         .action generateFwCommand
     commander.command("upload <GRAPH>")
