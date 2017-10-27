@@ -39,7 +39,7 @@
   },
   "dependencies": {
     "bluebird": "^3.5.0",
-    "coffeescript": "^1.12.1",
+    "coffeescript": "^2.0.2",
     "commander": "^2.9.0",
     "declarec": "~0.1.3",
     "fbp": "^1.5.0",
