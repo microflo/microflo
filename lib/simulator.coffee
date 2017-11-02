@@ -12,7 +12,10 @@ runtime = require('./runtime')
 ComponentLibrary = require('./componentlib').ComponentLibrary
 
 class Transport extends EventEmitter
-    constructor: (@runtime, @emscripten) ->
+    constructor: (runtime, emscripten) ->
+        super()
+        @runtime = runtime
+        @emscripten = emscripten
         @outbound_queue = []
 
         @pullFuncPtr = @emscripten.Runtime.addFunction (vars...) => @onPull vars...
@@ -53,9 +56,9 @@ class Transport extends EventEmitter
 
 class RuntimeSimulator extends runtime.Runtime
     constructor: (@emscripten, options) ->
+        super transport, options
         @runtime = @emscripten['_emscripten_runtime_new']()
         transport = new Transport @runtime, @emscripten
-        super transport, options
 
     # Blocking iteration
     runTick: (tickIntervalMs) ->

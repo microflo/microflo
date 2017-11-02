@@ -34,6 +34,7 @@ class DeviceTransport extends EventEmitter
 
 class CommandAccumulator extends EventEmitter
     constructor: (commandSize) ->
+        super()
         @commandSize = commandSize
         @buffer = new commandstream.Buffer(commandstream.cmdFormat.commandSize*100)
         @offset = 0
@@ -62,6 +63,7 @@ class CommandAccumulator extends EventEmitter
 # TODO: Limits should be based on: baudrate + expected receive buffer size
 class SendQueue extends EventEmitter
     constructor: (commandSize, options) ->
+        super()
         @commandSize = commandSize
         @queue = []
         @current = null
@@ -164,6 +166,7 @@ class SendQueue extends EventEmitter
 class DeviceCommunication extends EventEmitter
 
     constructor: (transport) ->
+        super()
         @transport = transport
         @accumulator = new CommandAccumulator commandstream.cmdFormat.commandSize
 
@@ -233,6 +236,7 @@ keyFromId = (map, wantedId) ->
 # Handles host part of I/O mocking/control/introspection. Mostly used for testing
 class RemoteIo extends EventEmitter
     constructor: (comm) ->
+        super()
         @comm = comm
         @latestState =
             digitalOutputs: []
