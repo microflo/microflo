@@ -607,6 +607,7 @@ uploadGraphFromFile = (graphPath, options, callback) ->
 
 class Runtime extends EventEmitter
     constructor: (transport, options) ->
+        super()
         # FIXME: should support multiple graphs+networks
         @graph = {}
         @transport = transport
