@@ -1,5 +1,22 @@
+# MicroFlo 0.5.0
+Released: 08.11.2017
+
+Breaking changes
+
+* Requires ES6 support, meaning Node.js 6+ or a modern browser.
+Older environments are not supported. 
+* AVR: Remove dedicated backend. Users should either use Arduino, or ship their own backend.
+
+Platform support
+
+* Linux-MQTT: Send Msgflo discovery messages periodically
+
+Internal changes
+
+* Now uses CoffeeScript 2
+
 # MicroFlo 0.4.4
-Released: 12.10.207
+Released: 12.10.2017
 
 Bugfixes
 
