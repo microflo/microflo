@@ -60,12 +60,7 @@ public:
                 return false;
             }
 
-            const float sendInterval = mount->options.discoveryInterval/2.5f;
-            const float secondsSinceLast = difftime(time(NULL), mount->discoveryMessageSent); 
-            if (secondsSinceLast >= sendInterval) {
-                mount->discoveryMessageSent = time(NULL);
-                mount->sendDiscovery();
-            }
+            mount->checkSendDiscovery();
         }
         return true;
     }
@@ -107,8 +102,7 @@ public:
         const bool connected = status == 0;
         if (connected) {
             subscribePorts();
-            sendDiscovery();
-            discoveryMessageSent = time(NULL);
+            checkSendDiscovery();
         }
     }
 
@@ -180,6 +174,15 @@ private:
             const Port &port = *it;
             network->subscribeToPort(port.node, port.port, true);
             LOG("setup outport to MQTT topic: %s\n", port.topic.c_str());
+        }
+    }
+
+    void checkSendDiscovery() {
+        const float sendInterval = options.discoveryInterval/2.5f;
+        const float secondsSinceLast = difftime(time(NULL), discoveryMessageSent); 
+        if (secondsSinceLast >= sendInterval) {
+            discoveryMessageSent = time(NULL);
+            sendDiscovery();
         }
     }
 
