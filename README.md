@@ -61,7 +61,7 @@ Changelog
 
 
 ## Extending
-For porting MicroFlo to other microcontrollers, see [how-microflo-works](,/doc/how-it-works.md) and [target bringup](./doc/bringup.md).
+For porting MicroFlo to other microcontrollers, see [how-microflo-works](./doc/how-it-works.md) and [target bringup](./doc/bringup.md).
 
 
 License
