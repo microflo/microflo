@@ -174,7 +174,7 @@ main = ->
         .description("Upload a new graph to a device running MicroFlo firmware")
         .action uploadGraphCommand
     commander.command("runtime")
-        .description("Run as a server, for use with the NoFlo UI.")
+        .description("Run as a server supporting FBP runtime protocl, for use Flowhub etc")
         .option("-s, --serial <PORT>", "which serial port to use", String, '')
         .option("-b, --baudrate <RATE>", "baudrate for serialport", Number, 9600)
         .option("-d, --debug <LEVEL>", "set debug level", String, 'Error')

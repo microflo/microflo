@@ -19,7 +19,7 @@ or [.json definition](http://noflojs.org/documentation/json)
 * Programatically, by embedding it and building a graph using the C++ API
 
 MicroFlo is designed to integrate with other FBP runtimes,
-like [NoFlo](http://noflojs.org/) and [msgflo](https://msgflo.org)
+including building distributed systems (IoT) with [msgflo](https://msgflo.org)
 
 Using
 -----------------

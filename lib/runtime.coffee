@@ -149,7 +149,7 @@ handleRuntimeCommand = (command, payload, connection, runtime) ->
         if payload.event is 'data'
             sendPacket runtime, payload.port, payload.event, payload.payload
     else
-        console.log "Unknown NoFlo UI command on 'runtime' protocol:", command, payload
+        console.log "Unknown FBP runtime command on 'runtime' protocol:", command, payload
     return
 
 handleComponentCommand = (command, payload, connection, runtime) ->
@@ -189,7 +189,7 @@ handleComponentCommand = (command, payload, connection, runtime) ->
                     payload: r
                 return
     else
-        console.log "Unknown NoFlo UI command on 'component' protocol:", command, payload
+        console.log "Unknown FBP runtime command on 'component' protocol:", command, payload
     return
 
 sendAck = (connection, msg) ->
@@ -275,7 +275,7 @@ handleGraphCommand = (command, payload, connection, runtime) ->
         sendExportedPorts connection, runtime
         sendAck connection, { protocol: 'graph', command: command, payload: payload }
     else
-        console.log "Unknown NoFlo UI command on protocol 'graph':", command, payload
+        console.log "Unknown FBP runtime command on protocol 'graph':", command, payload
     return
 
 packetSent = (graph, collector, payload) ->
@@ -440,7 +440,7 @@ handleNetworkCommand = (command, payload, connection, runtime, transport, debugL
             return sendAck connection, { protocol: 'network', command: 'error', payload: { message: err.message } }
           sendAck connection, { protocol: 'network', command: command, payload: payload }
     else
-        console.log "Unknown NoFlo UI command on protocol 'network':", command, payload
+        console.log "Unknown FBP runtime command on protocol 'network':", command, payload
     return
 
 handleMessage = (runtime, contents) ->
@@ -455,7 +455,7 @@ handleMessage = (runtime, contents) ->
     else if contents.protocol is "network"
         handleNetworkCommand contents.command, contents.payload, connection, runtime
     else
-        console.log "Unknown NoFlo UI protocol:", contents
+        console.log "Unknown FBP runtime protocol:", contents
     return
 
 class BracketDataCollector
