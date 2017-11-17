@@ -284,11 +284,11 @@ packetSent = (graph, collector, payload) ->
     payload.graph = graph.name
     payload.id = "dummy"
 
-    data = collector.pushData payload
-    if data?
-        payload.data = data
-    else
+    [send, data] = collector.pushData payload
+    if not send
         return [] # in the middle of bracketed data, will send when gets to the end
+
+    payload.data = data
 
     # Check if exported outport
     if graph.outports
@@ -470,17 +470,17 @@ class BracketDataCollector
     {data, type} = payload
     if not @bracketed? and type != 'BracketStart'
       # return original
-      return data
+      return [true, data]
     if @bracketed? and type != 'BracketEnd'
       @bracketed.push data
-      return null
+      return [false, null]
     if type == 'BracketStart'
       @bracketed = []
-      return null
+      return [false, null]
     if type == 'BracketEnd'
       out = @bracketed.slice() 
       @bracketed = null
-      return out
+      return [true, out]
 
 pingUrl = (address, method, callback) ->
   u = url.parse address

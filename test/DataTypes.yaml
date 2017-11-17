@@ -103,7 +103,6 @@ cases:
 -
   name: 'bang (null)'
   assertion: 'should be identical'
-  skip: 'currently failing'
   inputs:
     in: null
   expect:
