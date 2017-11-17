@@ -52,6 +52,11 @@ serializeError = (obj) ->
     return { type: 'Error', data: b }
 
 serializeData = (literal) ->
+  # Null (bang)
+  if not literal? or literal == 'null'
+    b = new Buffer(cmdFormat.commandSize-4)
+    b.fill(0)
+    return { type: 'Void', data: b }
   # Integer
   value = parseInt(literal)
   if typeof value == 'number' and value % 1 == 0
@@ -95,7 +100,7 @@ deserializeData = (buf, offset) ->
     return { type: type, data: data }
 
 isError = (data) ->
-    return typeof data.error == 'string'
+    return data? and typeof data.error == 'string'
 
 dataToCommandDescriptions = (data) ->
     # XXX: wrong way around, literal should call this, not
@@ -376,8 +381,6 @@ responses.PacketSent = (componentLib, graph, cmdData) ->
   { data, type } = deserializeData cmdData, dataOffset
 
   # Should be mapped to `network:send` on FBP runtime protocol 
-  if type is "Void"
-    data = "!"
   m =
     protocol: "microflo"
     command: "packetsent"
