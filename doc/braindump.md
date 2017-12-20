@@ -30,17 +30,34 @@ Physical computing: uController as I/O expansion for computer
 ----------------------------
 Components: Firmata
 
+Human interface devices
+-------------
+* Piezo drums
+
+Components: AnalogRead,filters
+
 Data aquisition/sensor logging: position logger?
 -----------------------------------------------
 Components: SD-card, NMEA parsing, Accelerometer/Gyro
 
 
+IoT
+-----
+* Door system. API for unlocking, local logic door/openers
+
+Process regulation
+----
+* Water mixer for shower, temp/flow control
+* Solar water heating. Pump control, temp reporting.
+* 3d-printer filament extruder. Width measurements, motor control
+
 Robotics: ?
 ---------------
 * Line-follower
-* Autonomous N-copters
+* Wheel balancer
+* Sumorobot, Folkrace
 
-Components: Servo,
+Components: Servo, UltrasonicDistance
 
 Interactive art: ?
 ------------------
@@ -54,6 +71,7 @@ Ideally it would be possible to also program video/audio using FBP/NoFlo(UI), an
 Distributed systems: ?
 --------------------
 Multiple microcontroller collaboration, co-processors.
+Dedicated kinematic unit for robotics, communication/planning/actions on another
 
 
 Thoughts on best practices and code style
@@ -62,7 +80,7 @@ Thoughts on best practices and code style
 Components must have a single, well defined, task.
 The input and output data (interface) must be minimal.
 It is 'preferable' that the component has minimal internal state, and low internal complexity.
-Design the component for black-box testing.
+Design the component for black-box testing: effects and state changes must be observable.
 
 A programmer may chose to make one "fat" component in C++, or compose the same ''logical''
 function as a graph of many small/"thin" MicroFlo components. The latter may result in larger reusability.
@@ -212,7 +230,7 @@ Advancements
 * Breadboard diagrams for easy HW layout, compared to schematics+PCB (Fritzing)
 
 Lacks
-* User has to learn to read and write C/C++
+* User must learn to read and write C/C++
 * Few best practices for organizing and architecting non-trivial programs
 * No device simulator or emulator widely available
 * Very few practices around structured and automated testing
@@ -471,19 +489,6 @@ In the press
 * [LWN.net - A bit of visual programming with MicroFlo](http://lwn.net/Articles/575524)
 * [Makezine.com - Maker Faire Oslo: Maker Tech](http://makezine.com/2014/01/21/maker-faire-oslo-maker-tech)
 
-Network
-========
-People that have expressed an interest in using MicroFlo
-
-* Jens Dyvik, Jens Brynhildsen, Alex. Bitraf, Oslo
-* Wolfgang Spahn. Artist+Educator, Berlin.
-* Elisabeth Nesheim. University of Bergen.
-* Eirik Blekesaune. Verdensteateret/NOTAM, Oslo.
-
-Other contacts
-* Henri Bergius, creator of NoFlo. TheGrid, Berlin
-* Brendan Howell. Artist+Educator, Berlin.
-* Jørgen Lien. Høyskolen i Vestfold.
 
 
 Finite State Machines & Flow-based programming
@@ -524,19 +529,6 @@ Challenges:
 
 See [Finito](http://github.com/jonnor/finito) project
 
-
-Arduino versus RPi
-===================
-
-Criteria            Arduino             RPi
-Cost (USD)          < 10                >25
-HW customization    Easy                Impossible if not partner
-Realtime            Hard, ~1uS          Soft, ~1mS
-Power               mW                  ~2 Watt
-SW toolchain        C++/Arduino         C++, Python, JS
-I/O                 Digital,PWM,ADC     Digital GPIO
-                    i2c,SPI,USART       i2c,SPI,USART
-                    USB device          USB host, Ethernet, HDMI, audio out
 
 
 Beautiful documentation
@@ -743,23 +735,25 @@ https://github.com/gnuarmeclipse/qemu contains lots more.
 Aspects
 
 * Reliability
-Best practices: Automated testing, static analysis, model-driven development, simulation of extreme cases, safe-subset languages, formal verification
+Best practices: Automated testing, static analysis, model-driven development, simulation of extreme cases, safe-subset languages, formal verification, property-based testing
 * Robustness
 Best practices: FMEA, graceful degradation, watchdogs
 * In-field upgrades
-Best practices: ?
+Best practices: image-based update, builtin self-test, separating system from application (see ParticleIO)
 * Hardware dependencies pushing software development back.
-Best practices: Simulation
+Best practices: Simulation, early definition of protocols
 * Slow & unreliable network connectivity
 Best practices: acknowledgement required, on-edge-temporary storage
 * Large data volumes
 Best practices: Compression, on-edge processing
 * Low latency, real-time requirements
-Best practices: Worst-case analysis, bounded loops, lockfree. 
+Best practices: Compile-time definitions, worst-case analysis, bounded loops, lockfree. 
 * Power requirements, battery-only
 Best practices: Radio shutoff, processor sleep w/periodic wakeups.
 * Distributed systems
+Best practices: Message passing
 * Heterogenous nodes
+Best practices: Well-defined protocols
 
 Usecases
 
@@ -774,39 +768,9 @@ Related
 
 ## Network connectivity
 
-Radio technology
-
-* WiFi. ~100 meters. Internet-path usually included.
-* BLE. Bluetooth 4.0 Low Energy. ~10 meters. Internet path usually not included, until BT+IPv6 becomes widespread.
-* Cellular. 3/4G. Extremely widely deployed. Internet path nearly always.
-Sevice providers: https://hologram.io
-* LoRa. 1000-5000 meters. Still needs custom gateway deployment, some standarization on transport protocol happening.
-Internet may be included.
-
-Application protocols
-
-* CoAP
-* MQTT
-
-Authentication
-
-* Transport-level encryption: TLS
-* Message-level encryption
-
-Stacks
-
-LoRa to MQTT
-
-* LoRa to MQTT. [lora-gateway-bridge](https://github.com/brocaar/lora-gateway-bridge).
-[node.js script](http://blog.telenor.io/2015/10/15/lora-aws.html)
-* [The Things Network](https://www.thethingsnetwork.org/) (TTN).
-[Introduction](http://ktorz.github.io/2016/03/24/so_you_want_to_build_a_distributed_network_for_iot/)
-Uses end-to-end encryption between LoRa `nodes`, and application `handlers`.
-Provisioning mechanisms for encryption keys is provided.
-All compliant gateway participates in propagating messages from/to nodes,
-regardless of which application they belong to. A MQTT handler is provided.
-* LoRa gateways available from DIY approaches with RPi at <100 EUR, to commercial units ranging 500EUR+
-
+Recommented solution: MQTT, possibly via [msgflo.org](https://msgflo.org).
+Can be done directly on Ethernet,WiFi and cellular. For LoRa,NB-IoT can use standardized bridging?
+For non-Internet protocol, might want to have tools to bridge. Serial/USB/Bluetooth.
 
 # Persistent message queues
 
@@ -1108,3 +1072,35 @@ Visions on programming
 * http://www.lighttable.com/2014/05/16/pain-we-forgot/
 
 
+## Protocol improvements
+
+* Fix truncating 32bit values
+* Get build ID. For looking up componentmap
+
+Subgraph support
+* ?
+
+Dynamic exports
+* Get exported port ids
+* Get exported port name
+* Update export port name
+* Export/unexport port
+
+Persist programmable
+* Get current graph/stream
+* Support persist commandsteam
+* Get node name
+* Update node name
+
+Component info
+* List available components (ids)
+* Get component name, num ports
+* Get component port type
+* Get component port name
+* Get component port description
+
+Direct connect
+* Implement FBP protocol directly, or trivial 1-1 mapping
+
+Complex types
+* De/serialize composite datatypes
