@@ -1104,3 +1104,184 @@ Direct connect
 
 Complex types
 * De/serialize composite datatypes
+
+## Execution model
+Two aspects: packet delivery and component triggering
+
+As of MicroFlo 0.5, packet delivery is breadth-first:
+Packets generated from one iteration are delivered to all targets.
+Outputs are stored temporarily, then delivered in the next iteration (in order).
+Each iteration yields back to the main loop, which keeps the time blocked.
+This is desirable when used together with other pieces of code.
+
+Component triggering is up to each component. There exists some special convenience functions,
+like `SingleOutputComponent` and `PureFunctionComponent2`.
+Pure2 has problems with double-triggering, and SingleOutput is not that convenient.
+
+### Generate port sizes/length
+For input/outports. Can then be used to hold outports, which makes SingleOutputComponent no longer needed. 
+
+### Mark triggering ports
+
+Should have FBP protocol support for annotating component port as 'triggering' > meaning will produce output.
+That would allow Flowhub IDE to visually mark these as distinct from non-triggering ports
+(sometimes called 'parameter' / param ports). Also applies to NoFlo
+
+### Dataflow-style triggering
+As implemented in PureData and similar.
+
+When packet is sent to non-triggering port:
+Store the data as the current value for that port
+
+When packet is sent to triggering port:
+If type is bang/void, the computation is triggered with current port-values.
+For other packet types, the new value is stored, then computation triggered. 
+
+Typically a single triggering port exists, all other are non-triggering.
+
+To trigger updates on a non-triggering port, a Bang node is used in-between.
+It takes an input, sends it out on one output, and on another output sends a bang/void to triggering port.
+
+Primary advantages are:
+* Prevents unecessary triggering.
+May cause intermittent invalid/wrong data, or extraneous data (multiple output values for what should have been one)
+* Lets graph author control triggering
+* Predictable/consistent component behavior
+* Quite simple
+* Known from other dataflow systems
+* Close mapping to functional programming
+
+Disadvantages:
+* Order of packet receiption is significant
+* Connections cannot have capacity (>1)?
+No way to implement backpressure in
+
+What about errors on non-triggering ports?
+Would have to defer checking to when triggering, since failures will produce error packets.
+Problem then is that multiple errors will mask eachother?
+And might get disconnected in time, since triggering might happens way later.
+
+But the 'activation' set of input packets that is associated with an output message.
+can be recontructed from the packet stream (last values sent).
+One could also dump it explicitly along with component state for deeper debugging.
+
+
+### Convention and convenience
+Is it too much work to implement this pattern in each component?
+It means a higher likelihood of a component deviating or being buggy.
+
+Allowing deviation can be useful, allows to have edge cases find independent solutions.
+However, if deviation is too common then consistency/predictability suffers.
+
+Can be addressed instead with tooling. Easy tests checking/demonstrating component behavior.
+
+
+### Default component skeleton
+
+```
+// Prefer to use pure functions for most of the logic, call from component
+Packet doSomething(int a, Packet b, bool c) {
+    return Packet(1337);
+}
+
+class SomeComponent : public Component {
+private:
+    Packet portData[InPortsLength];
+    Connection outPorts[OutPortsLength];
+
+public:
+    SomeComponent()
+        : Component(outPorts, OutPortsLength)
+    {}
+
+    void process(MicroFlo::Packet pkg, MicroFlo::PortId port) {
+
+        // Note: room for optimization memory usage a bit, by using more specific types
+        MICROFLO_ERROR_UNLESS(port < PortsLength, ErrorUnsupportedPort);
+
+        // Store input data
+        if (pkg.isData() && !pkg.isVoid()) {
+            portData[port] = pkg;
+        }
+
+        // triggering port
+        if (port == Ports::in) {
+            // check preconditions
+            const bool correctTypes = (portData[0].type == MsgInteger
+                    && portData[1].type == MsgInteger
+                    && portData[2].type == MsgBoolean);
+            MICROFLO_ERROR_UNLESS(correctTypes, ErrorUnsupportedType);
+            // do the work
+            const auto out = doSomething(portData[0], portData[1], portData[2]);
+            // send output(s)
+            // check postconditions
+            MICROFLO_ERROR_UNLESS(out.type == MsgError, ErrorComponentBug);
+            send(Ports::out, out);
+         }
+    }
+
+};
+```
+
+### Error checking macro
+Helper for use in components
+
+```
+MICROFLO_ERROR_UNLESS(expr, errorKind)
+  if (!expr) {
+    return send(OutPorts::error, errorKind)
+  }
+```
+
+### Avoiding many (triggering) inports
+I/O type components like DigitalWrite, LedChainWS have a 'multi-stage' use.
+First all data to initialize the hardware correctly must be provided,
+and then initialization/setup happens.
+Then the data to send/set on the hardware.
+
+### Generators??
+These are 'self-triggering', which doesn't really fit in?
+`Timer` is a prime example. Another is interrupts. 
+
+### Timers and sleeping
+
+Timer should really have an alternative which puts microcontroller to sleep.
+This could be done by having a shared `Scheduler` instance,
+which keeps track of next event (for a set of timers).
+Should then attempt to sleep until that time, possibly corrected by a drift factor.
+Will run for a long time, so must handle overflows in time gracefully.
+Could use a priority queue, but for small number of timers an array is just fine.
+Can possibly be a regular Arduino library? Should also have implementation for Linux.
+Should dispatch be a callback? Or should it be poll-based in mainloop?
+Less threading/control issues with the latter, easy to call a function/callback from there (but not v.v).
+
+### Function -> component transformation
+Can we do the component boilerplate automatically, from a C++ function?
+
+```
+int myfunction(int triggeringValue, int paramA, int paramB = 10)
+```
+
+Can it trigger when no paramA has been received?
+Could mark the port as `required`. Ports with defaults cannot be required, default value should then be used.
+
+How to represent errors in such a function? Exceptions are not suitable on embedded targets.
+Could require function to return Packet in that case, which may contain Error type/value.
+
+```
+Packet maybeerrors(int triggering);
+```
+
+### Subgraph optimizations
+
+Would an opinionated approach allow to automatically compile down a subgraph of nodes to a function?
+This would be desirable optimization for enabling especially large and performance sensitive programs.
+A challenge is the storage needed for 'temporaries' in the packet delivery. For breadth-first
+
+### Network execution time
+
+Aside, it could be useful for debugging to keep track of network execution 'time'.
+monotonic integer, either increasing with each tick/iteration - or each packet emitted.
+Note: Tracking packet emissions/delivery are relevant for started/stopped semantics also.
+On the Network, and possibly stamped onto packets (w/time).
+
