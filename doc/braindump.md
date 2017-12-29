@@ -197,11 +197,6 @@ Are there formalisms which can be provably correct that are suited for component
 * Boolean algebra/logic
 * Mathematical expression
 
-Simulators
------------
-AVR8
-* https://gitorious.org/simavr
-* http://www.nongnu.org/simulavr/download.html
 
 Work by others
 -------
@@ -586,7 +581,7 @@ http://upverter.com or http://circuits.io or one of the FOSS EDA tools (KiCad,Ge
 * A way to define component behavior as software for mock/simulation
 * Produce a PCB
 
-https://github.com/zupolgec/circuit-simulator
+[PSpice simulator in JavaScript](https://github.com/zupolgec/circuit-simulator)
 
 
 
@@ -723,12 +718,25 @@ https://www.infoq.com/articles/simulation-based-embedded-agile-development
 * Simulation highlights areas of low performance, guiding what to focus on
 * Simulation-first requires system architecture and requirements to be fleshed out earlier, uncovering unknowns.
 
-## Tools
+## Simulation tools
 
-Open source
+AVR8
+* https://github.com/buserror/simavr
+* http://www.nongnu.org/simulavr/download.html
 
-* QEMU for processor emulation. Upstream includes basic ARM Cortex devices.
-https://github.com/gnuarmeclipse/qemu contains lots more. 
+ARM Cortex-M
+* Upstream includes basic ARM Cortex devices.
+https://github.com/gnuarmeclipse/qemu contains lots more.
+
+Arduino
+
+* [simuino](https://github.com/bsaxen/simuino). Open-source, 
+* [Arduinosim](https://sourceforge.net/projects/arduinosim/). Open-source, Python-based
+* CodeBlocks for Arduino.
+* Virtronics Simulator for Arduino. Proprietary
+* 123d.circuits.io. Proprietary, web-based. Includes simple circuit sim, digital/analog. Seems mature
+* Virtual Breadboard. Proprietary, Windows-only
+
 
 # Embedded systems and Internet of Things challenges
 
