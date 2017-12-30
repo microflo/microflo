@@ -382,13 +382,6 @@ void Network::distributePacket(const Packet &packet, MicroFlo::PortId port) {
     }
 }
 
-void Network::runSetup() {
-    if (state != Running) {
-        return;
-    }
-    distributePacket(Packet(MsgSetup), -1);
-}
-
 void Network::runTick() {
     if (state != Running) {
         return;
@@ -488,8 +481,6 @@ void Network::start() {
     if (notificationHandler) {
         notificationHandler->networkStateChanged(state);
     }
-
-    runSetup();
 }
 
 void Network::stop() {
