@@ -167,7 +167,7 @@ componentLibDefinitions = (componentLib, factoryMethodName) ->
     all: all
   return r
 
-updateDefinitions = (baseDir) ->
+getDefinitions = (baseDir) ->
   contents = "// !! WARNING: This file is generated from commandformat.json !!" +
         "\n" + generateEnum("GraphCmd", "GraphCmd", cmdFormat.commands) +
         "\n" + declarec.generateStringMap('GraphCmd_names', cmdFormat.commands, extractId) +
@@ -181,7 +181,7 @@ updateDefinitions = (baseDir) ->
         "\n" + declarec.generateStringMap('Error_names', cmdFormat.errors, extractId) +
         "\n" + generateEnum("IoType", "IoType", cmdFormat.ioTypes) +
         "\n" + declarec.generateStringMap('IoType_names', cmdFormat.ioTypes, extractId)
-  fs.writeFileSync baseDir + "/commandformat-gen.h", contents
+  return contents
 
 declareSize = (name, value) ->
     return "const size_t #{name} = #{value};"
@@ -314,7 +314,7 @@ generateOutput = (componentLib, inputFile, outputFile, target, mainFile, enableM
       throw err if err
 
 module.exports =
-  updateDefinitions: updateDefinitions
+  getDefinitions: getDefinitions
   cmdStreamToCDefinition: cmdStreamToCDefinition
   generateEnum: generateEnum
   generateOutput: generateOutput

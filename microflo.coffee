@@ -78,8 +78,8 @@ generateFwCommand = (inputFile, output, env) ->
         microflo.generate.generateOutput componentLib, inputFile, output, target, env.mainfile, env.enableMaps
 
 updateDefsCommand = (directory) ->
-    microflo.generate.updateDefinitions directory
-
+    contents = microflo.generate.getDefinitions()
+    fs.writeFileSync directory + "/commandformat-gen.h", contents
 
 main = ->
     commander.version module.exports.version
