@@ -43,7 +43,7 @@ struct PrintInteger : public SingleOutputComponent {
 microflo_graph */
 
 #include "microflo.hpp"
-#include "componentlib-source.hpp"
+#include "componentlib.hpp"
 #include "main.h" // generated graph definition
 
 int main(void) {
