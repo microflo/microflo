@@ -261,7 +261,7 @@ commands.graph.addinitial = (payload, buffer, index, componentLib, nodeMap, comp
 
 commands.graph.clear = (payload, buffer, index) ->
   # Clear existing graph
-  index += writeCmd(buffer, index, cmdFormat.commands.Reset.id)
+  index += writeCmd(buffer, index, cmdFormat.commands.ClearNodes.id)
   return index
 
 commands.network.start = (payload, buffer, index) ->
@@ -270,6 +270,10 @@ commands.network.start = (payload, buffer, index) ->
 
 commands.network.stop = (payload, buffer, index) ->
   index += writeCmd(buffer, index, cmdFormat.commands.StopNetwork.id)
+  return index
+
+commands.network.getstatus = (payload, buffer, index) ->
+  index += writeCmd(buffer, index, cmdFormat.commands.GetNetworkStatus.id)
   return index
 
 # The following are MicroFlo specific, not part of FBP runtime protocol
@@ -319,11 +323,20 @@ responses.NetworkStarted = () ->
       running: true
       started: true
   return m
-responses.NetworkReset = () ->
+responses.NodesCleared = () ->
   m =
     protocol: "graph"
     command: "clear"
     payload: {}
+  return m
+responses.NetworkStatus = (componentLib, graph, cmdData) ->
+  running = cmdData.readUInt8(0) == 1
+  m =
+    protocol: 'network'
+    command: 'status'
+    payload:
+      started: true
+      running: running
   return m
 
 responses.NodeAdded = (componentLib, graph, cmdData) ->
@@ -535,6 +548,13 @@ initialGraphMessages = (graph, graphName, debugLevel, openclose) ->
       protocol: 'microflo'
       command: 'opencommunication'
       payload: null
+
+  # Stop network execution
+  messages.push
+    protocol: 'network'
+    command: 'stop'
+    payload:
+      graph: graphName
 
   # Clear graph
   messages.push

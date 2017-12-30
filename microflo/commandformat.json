@@ -2,7 +2,7 @@
     "magicString": "uC/Flo01",
     "commandSize": 8,
     "commands": {
-        "Reset": {"id": 10},
+        "ClearNodes": {"id": 10},
         "CreateComponent": {"id": 11},
         "ConnectNodes": {"id": 12},
         "SendPacket": {"id": 13},
@@ -17,6 +17,7 @@
         "StopNetwork": {"id": 22},
         "DisconnectNodes": {"id": 23},
         "RemoveNode": {"id": 24},
+        "GetNetworkStatus": {"id": 25},
 
         "NetworkStopped": {"id": 100},
         "NodeAdded": {"id": 101},
@@ -33,9 +34,10 @@
         "SetIoValueCompleted":  {"id": 112},
         "IoValueChanged":  {"id": 113},
         "SendPacketDone":  {"id": 114},
-        "NetworkReset": {"id": 115},
+        "NodesCleared": {"id": 115},
         "NodesDisconnected": {"id": 116},
         "NodeRemoved": {"id": 117},
+        "NetworkStatus": {"id": 118},
 
         "Invalid": { },
         "Max": { "id": 255 }

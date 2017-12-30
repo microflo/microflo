@@ -124,6 +124,10 @@ handleRuntimeCommand = (command, payload, connection, runtime) ->
             "protocol:network"
             "protocol:component"
             "protocol:runtime"
+            'graph:readonly'
+            'network:control'
+            'network:status'
+            'network:data'
             "component:getsource"
         ]
         r =
@@ -134,6 +138,8 @@ handleRuntimeCommand = (command, payload, connection, runtime) ->
 
         if runtime.graph?.name
           r.graph = runtime.namespace + '/' + runtime.graph.name
+        if runtime.options.id?
+          r.id = runtime.options.id
 
         runtime.device.ping (err) ->
           if err
@@ -425,12 +431,12 @@ sendMessage = (runtime, message) ->
     console.log 'sendMessage error', err if err
 
 handleNetworkCommand = (command, payload, connection, runtime, transport, debugLevel) ->
-    if command is "start"
+    if command in ['start', 'stop', 'getstatus'] 
         m = { protocol: 'network', command: command, payload: payload }
         sendMessage runtime, m
-    else if command is "stop"
-        m = { protocol: 'network', command: command, payload: payload }
-        sendMessage runtime, m
+    else if command in ['debug']
+        # does nothing relevant, response not expected
+        return
     else if command is "edges"
         # TODO: merge with those of exported outports
         runtime.edgesForInspection = payload.edges
