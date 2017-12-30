@@ -436,6 +436,9 @@ handleNetworkCommand = (command, payload, connection, runtime, transport, debugL
     if command in ['start', 'stop', 'getstatus'] 
         m = { protocol: 'network', command: command, payload: payload }
         sendMessage runtime, m
+    else if command in ['debug']
+        # does nothing relevant, response not expected
+        return
     else if command is "edges"
         # TODO: merge with those of exported outports
         runtime.edgesForInspection = payload.edges
