@@ -214,6 +214,8 @@ handleGraphCommand = (command, payload, connection, runtime) ->
         runtime.edgesForInspection = []
 
         sendMessage runtime, { protocol: 'graph', command: command, payload: payload }
+        # make sure. XXX: should maybe be done by splitting out ClearGraph from Reset 
+        sendMessage runtime, { protocol: 'network', command: 'start', payload: {} }
     else if command is "addnode"
         graph.processes[payload.id] = payload
         graph.nodeMap[payload.id] = { id: graph.currentNodeId++ }
