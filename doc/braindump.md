@@ -1293,3 +1293,47 @@ monotonic integer, either increasing with each tick/iteration - or each packet e
 Note: Tracking packet emissions/delivery are relevant for started/stopped semantics also.
 On the Network, and possibly stamped onto packets (w/time).
 
+
+
+## Demo v0.5
+MicroFlo - visual live-coding for microcontrollers 
+"Powered by Flowhub IDE"
+version 0.5
+Get started: microflo.org
+
+Setup:
+
+Start with git repo
+Show inital graph .FBP
+Run generate command
+Open Arduino IDE, plug in Arduino, flash
+Start runtime, open in Flowhub
+
+Live-coding:
+
+Default: Blinking LED
+Changing blink rate in SW
+Adding an LED on different pin, switching the pin over
+Adding a button. Attaching this to turn LED on/off. Invert LED control. Keep the original LED blinking
+Add a potmeter. Use to control LED on/off rate.
+Change to analogWrite for PWM control. Use potmeter to control brightness.
+Reset -> back to scratch
+
+XXX: end up with an OK example in the end? Some interactive LED animated thing?
+
+Make it persistent:
+
+Save JSON in Flowhub, put into folder
+Change filenames
+Generate anew
+Flash in Arduino IDE
+Reset -> still works like before
+
+
+Maybe:
+
+Add a wire+1mohm resistor. Use capacitive touch. Threshold to boolean control, touch, or distance sense
+Add a ultrasonic distance sensor
+
+the-graph: Make command for rendering SVG/PNG from .fbp/.json.
+Use to generate docs. Use wiring diagrams from Arduino docs, link them
