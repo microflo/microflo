@@ -16,20 +16,6 @@ LIBRARY=./test/components/components.json
 VERSION=$(shell git describe --tags --always)
 
 # Not normally customized
-CPPFLAGS=-ffunction-sections -fshort-enums -fdata-sections -Os -w
-DEFINES=
-ifeq ($(LIBRARY),arduino-standard)
-DEFINES+=-DHAVE_DALLAS_TEMPERATURE -DHAVE_ADAFRUIT_NEOPIXEL -DHAVE_ADAFRUIT_WS2801
-endif
-
-ifdef NO_DEBUG
-DEFINES+=-DMICROFLO_DISABLE_DEBUG
-endif
-
-ifdef NO_SUBGRAPHS
-DEFINES+=-DMICROFLO_DISABLE_SUBGRAPHS
-endif
-
 ifdef SERIALPORT
 else
 SERIALPORT=/dev/ttyACM0
