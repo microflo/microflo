@@ -3,25 +3,28 @@ name: Timer
 description: "Emit a packet every @interval milliseconds"
 inports:
   interval:
-    type: all
+    type: integer
     description: ""
+    default: 1000
   reset:
-    type: all
+    type: bang
     description: ""
 outports:
   out:
     type: all
     description: ""
+    generating: true
 microflo_component */
 class Timer : public SingleOutputComponent {
 public:
+    Timer()
+        : previousMillis(0)
+        , interval(1000)
+    {}
+
     virtual void process(Packet in, MicroFlo::PortId port) {
         using namespace TimerPorts;
-        if (in.isSetup()) {
-            // defaults
-            previousMillis = 0;
-            interval = 1000;
-        } else if (in.isTick()) {
+        if (in.isTick()) {
             unsigned long currentMillis = io->TimerCurrentMs();
             if (currentMillis - previousMillis >= interval) {
                 previousMillis = currentMillis;

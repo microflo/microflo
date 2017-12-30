@@ -190,7 +190,6 @@ std::string encodePacket(const Packet &pkg) {
     // internal types
     case MsgMax:
     case MsgMaxDefined:
-    case MsgSetup:
     case MsgTick:
     case MsgInvalid:
         return "Invalid MicroFlo::Packet";

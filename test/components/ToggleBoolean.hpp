@@ -1,13 +1,15 @@
 /* microflo_component yaml
 name: ToggleBoolean
-description: Invert output packet everytime an input packet arrives. Output defaults to false
+description: Invert output packet everytime an input packet arrives. First output will be false
 inports:
   in:
-    type: all
+    type: bang
     description: ""
+    triggering: true
   reset:
-    type: all
+    type: bang
     description: ""
+    triggering: true
 outports:
   out:
     type: all
@@ -15,11 +17,14 @@ outports:
 microflo_component */
 class ToggleBoolean : public SingleOutputComponent {
 public:
+    ToggleBoolean()
+        : currentState(true)
+    {}
+
     virtual void process(Packet in, MicroFlo::PortId port) {
         using namespace ToggleBooleanPorts;
-        if (in.isSetup()) {
-            currentState = false;
-        } else if (port == InPorts::in && in.isData()) {
+
+        if (port == InPorts::in) {
             currentState = !currentState;
             send(Packet(currentState));
         } else if (port == InPorts::reset) {

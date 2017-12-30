@@ -135,9 +135,8 @@ public:
     Msg type() const { return msg; }
     bool isValid() const { return msg > MsgInvalid && msg < MsgMaxDefined; }
 
-    bool isSetup() const { return msg == MsgSetup; }
     bool isTick() const { return msg == MsgTick; }
-    bool isSpecial() const { return isSetup() || isTick(); }
+    bool isSpecial() const { return isTick(); }
 
     bool isVoid() const { return msg == MsgVoid; }
     bool isStartBracket() const { return msg == MsgBracketStart; }
@@ -256,7 +255,6 @@ public:
     void setIoValue(const uint8_t *buf, uint8_t len);
 
 private:
-    void runSetup();
     void distributePacket(const Packet &packet, MicroFlo::PortId port);
     void processMessages();
 
