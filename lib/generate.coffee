@@ -15,6 +15,7 @@ cmdStreamToCDefinition = (cmdStream, target) ->
   out = ""
   if target is "arduino:avr" or target is "avr"
     out += "#include <avr/pgmspace.h>\n"
+    out += '#define MICROFLO_GRAPH_PROGMEM'
     out += cmdStreamToC(cmdStream, "PROGMEM")
   else
     out += cmdStreamToC(cmdStream)

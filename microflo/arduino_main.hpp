@@ -9,7 +9,7 @@
 #define MICROFLO_ARDUINO_BAUDRATE 9600
 #endif
 
-#ifdef AVR
+#ifdef MICROFLO_GRAPH_PROGMEM
 #include <avr/pgmspace.h>
 void loadFromProgMem(HostCommunication *controller) {
     for (unsigned int i=0; i<sizeof(graph); i++) {
