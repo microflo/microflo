@@ -144,8 +144,10 @@ void HostCommunication::parseCmd() {
         const uint8_t cmd[] = { GraphCmdTransmissionEnded };
         transport->sendCommand(cmd, sizeof(cmd));
         state = LookForHeader;
-    } else if (cmd == GraphCmdReset) {
-        network->reset();
+    } else if (cmd == GraphCmdClearNodes) {
+        network->clearNodes();
+        const uint8_t cmd[] = { GraphCmdNodesCleared };
+        transport->sendCommand(cmd, sizeof(cmd));
     } else if (cmd == GraphCmdStopNetwork) {
         network->stop();
     } else if (cmd == GraphCmdStartNetwork) {
@@ -469,8 +471,8 @@ MicroFlo::NodeId Network::removeNode(MicroFlo::NodeId nodeId) {
     return nodeId;
 }
 
-void Network::reset() {
-    state = Reset;
+void Network::clearNodes() {
+
     for (int i=0; i<MICROFLO_MAX_NODES; i++) {
         if (nodes[i]) {
             delete nodes[i];
@@ -479,9 +481,6 @@ void Network::reset() {
     }
     lastAddedNodeIndex = Network::firstNodeId;
     messageQueue->clear();
-    if (notificationHandler) {
-        notificationHandler->networkStateChanged(state);
-    }
 }
 
 void Network::start() {
@@ -583,8 +582,6 @@ void HostCommunication::networkStateChanged(Network::State s) {
         cmd = GraphCmdNetworkStarted;
     } else if (s == Network::Stopped) {
         cmd = GraphCmdNetworkStopped;
-    } else if (s == Network::Reset) {
-        cmd = GraphCmdNetworkReset;
     }
     transport->sendCommand((uint8_t *)&cmd, 1);
 }

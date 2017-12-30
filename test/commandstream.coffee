@@ -35,6 +35,7 @@ describe 'Commandstream generation', ->
     input = 'in(SerialIn) OUT -> IN f(Forward) OUT -> IN out(SerialOut)'
     expect = commandstream.Buffer([
                        10,0,0,0,0,0,0,0,
+                       22,0,0,0,0,0,0,0,
                        15,1,0,0,0,0,0,0,
                        11,1,0,0,0,0,0,0,
                        11,2,0,0,0,0,0,0, 11,3,0,0,0,0,0,0,

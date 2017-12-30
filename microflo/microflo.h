@@ -219,7 +219,7 @@ public:
 public:
     Network(IO *io, MessageQueue *m);
 
-    void reset();
+    void clearNodes();
 
     void start();
     void stop();

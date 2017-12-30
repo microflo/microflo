@@ -261,7 +261,7 @@ commands.graph.addinitial = (payload, buffer, index, componentLib, nodeMap, comp
 
 commands.graph.clear = (payload, buffer, index) ->
   # Clear existing graph
-  index += writeCmd(buffer, index, cmdFormat.commands.Reset.id)
+  index += writeCmd(buffer, index, cmdFormat.commands.ClearNodes.id)
   return index
 
 commands.network.start = (payload, buffer, index) ->
@@ -323,7 +323,7 @@ responses.NetworkStarted = () ->
       running: true
       started: true
   return m
-responses.NetworkReset = () ->
+responses.NodesCleared = () ->
   m =
     protocol: "graph"
     command: "clear"
@@ -548,6 +548,13 @@ initialGraphMessages = (graph, graphName, debugLevel, openclose) ->
       protocol: 'microflo'
       command: 'opencommunication'
       payload: null
+
+  # Stop network execution
+  messages.push
+    protocol: 'network'
+    command: 'stop'
+    payload:
+      graph: graphName
 
   # Clear graph
   messages.push
