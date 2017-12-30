@@ -124,6 +124,10 @@ handleRuntimeCommand = (command, payload, connection, runtime) ->
             "protocol:network"
             "protocol:component"
             "protocol:runtime"
+            'graph:readonly'
+            'network:control'
+            'network:status'
+            'network:data'
             "component:getsource"
         ]
         r =
