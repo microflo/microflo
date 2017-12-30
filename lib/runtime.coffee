@@ -134,6 +134,8 @@ handleRuntimeCommand = (command, payload, connection, runtime) ->
 
         if runtime.graph?.name
           r.graph = runtime.namespace + '/' + runtime.graph.name
+        if runtime.options.id?
+          r.id = runtime.options.id
 
         runtime.device.ping (err) ->
           if err
