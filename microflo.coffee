@@ -3,6 +3,7 @@
 # MicroFlo may be freely distributed under the MIT license
 
 require "coffeescript/register"
+
 fs = require("fs")
 path = require("path")
 cmdFormat = require("./microflo/commandformat.json")
@@ -10,6 +11,7 @@ microflo = require("./lib/microflo")
 commander = require("commander")
 pkginfo = require("pkginfo")(module)
 uuid = require('uuid')
+bluebird = require('bluebird')
 
 defaultLibrary = 'microflo-core/components/arduino-standard.json'
 
@@ -64,7 +66,18 @@ uploadGraphCommand = (graphPath, env) ->
     console.log 'Graph uploaded and running'
     process.exit 0
 
+
+writeFile = (path, data) ->
+  return new Promise((resolve, reject) ->
+    fs.writeFile path, data, (err) ->
+      return reject if err
+      return resolve()
+  )
+
 generateFwCommand = (inputFile, output, env) ->
+
+    callback = (err) ->
+        throw err if err
 
     target = env.target or "arduino"
     if output[output.length-1] == '/'
@@ -73,9 +86,17 @@ generateFwCommand = (inputFile, output, env) ->
     library = env.library or defaultLibrary
     componentLib = new microflo.componentlib.ComponentLibrary()
     componentLib.loadSetFile library, (err) ->
-        throw err  if err
+        return callback err if err
+
         componentLib.loadFile inputFile
-        microflo.generate.generateOutput componentLib, inputFile, output, target, env.mainfile, env.enableMaps
+        microflo.definition.loadFile inputFile, (err, graph) ->
+            return callback err if err
+
+            gen = microflo.generate.generateOutput componentLib, graph, output, target, env.mainfile, env.enableMaps
+            fs.mkdirSync gen.directory unless fs.existsSync(gen.directory)
+
+            bluebird.map(Object.keys(gen.files), (path) -> writeFile(path, gen.files[path]))
+            .asCallback(callback)
 
 updateDefsCommand = (directory) ->
     contents = microflo.generate.getDefinitions()

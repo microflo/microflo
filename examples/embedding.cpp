@@ -3,7 +3,6 @@
 #include "linux.hpp"
 #include <unistd.h>
 
-#include "componentlib-ids.h"
 #include "componentlib-ports.h"
 
 /* microflo_component yaml
