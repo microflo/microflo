@@ -150,7 +150,10 @@ void HostCommunication::parseCmd() {
         network->stop();
     } else if (cmd == GraphCmdStartNetwork) {
         network->start();
-
+    } else if (cmd == GraphCmdGetNetworkStatus) {
+        const uint8_t running = network->currentState() == Network::Running ? 1 : 0;
+        const uint8_t cmd[] = { GraphCmdNetworkStatus, running };
+        transport->sendCommand(cmd, sizeof(cmd));
     } else if (cmd == GraphCmdCreateComponent) {
         MICROFLO_DEBUG(this, DebugLevelDetailed, DebugComponentCreateStart);
         Component *c = createComponent((MicroFlo::ComponentId)buffer[1]);

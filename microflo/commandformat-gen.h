@@ -15,6 +15,7 @@ enum GraphCmd {
     GraphCmdStopNetwork = 22,
     GraphCmdDisconnectNodes = 23,
     GraphCmdRemoveNode = 24,
+    GraphCmdGetNetworkStatus = 25,
     GraphCmdNetworkStopped = 100,
     GraphCmdNodeAdded = 101,
     GraphCmdNodesConnected = 102,
@@ -32,6 +33,7 @@ enum GraphCmd {
     GraphCmdNetworkReset = 115,
     GraphCmdNodesDisconnected = 116,
     GraphCmdNodeRemoved = 117,
+    GraphCmdNetworkStatus = 118,
     GraphCmdInvalid,
     GraphCmdMax = 255
 };
@@ -62,7 +64,7 @@ static const char *GraphCmd_names[] = {
     "StopNetwork",
     "DisconnectNodes",
     "RemoveNode",
-    0,
+    "GetNetworkStatus",
     0,
     0,
     0,
@@ -155,7 +157,7 @@ static const char *GraphCmd_names[] = {
     "NetworkReset",
     "NodesDisconnected",
     "NodeRemoved",
-    0,
+    "NetworkStatus",
     0,
     0,
     0,

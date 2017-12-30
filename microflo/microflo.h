@@ -223,6 +223,7 @@ public:
 
     void start();
     void stop();
+    State currentState() { return state; }
 
     MicroFlo::NodeId addNode(Component *node, MicroFlo::NodeId parentId);
     MicroFlo::NodeId removeNode(MicroFlo::NodeId nodeId);

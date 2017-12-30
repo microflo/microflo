@@ -425,10 +425,7 @@ sendMessage = (runtime, message) ->
     console.log 'sendMessage error', err if err
 
 handleNetworkCommand = (command, payload, connection, runtime, transport, debugLevel) ->
-    if command is "start"
-        m = { protocol: 'network', command: command, payload: payload }
-        sendMessage runtime, m
-    else if command is "stop"
+    if command in ['start', 'stop', 'getstatus'] 
         m = { protocol: 'network', command: command, payload: payload }
         sendMessage runtime, m
     else if command is "edges"

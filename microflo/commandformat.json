@@ -17,6 +17,7 @@
         "StopNetwork": {"id": 22},
         "DisconnectNodes": {"id": 23},
         "RemoveNode": {"id": 24},
+        "GetNetworkStatus": {"id": 25},
 
         "NetworkStopped": {"id": 100},
         "NodeAdded": {"id": 101},
@@ -36,6 +37,7 @@
         "NetworkReset": {"id": 115},
         "NodesDisconnected": {"id": 116},
         "NodeRemoved": {"id": 117},
+        "NetworkStatus": {"id": 118},
 
         "Invalid": { },
         "Max": { "id": 255 }
