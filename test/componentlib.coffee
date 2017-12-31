@@ -62,30 +62,23 @@ describe 'ComponentLibrary', ->
         chai.expect(c).to.not.include.members ['Split', 'ToggleBoolean']
         return done()
 
-describe 'ComponentLibrary.loadSetFile', ->
+  describe 'listing internal components', ->
+    
+    normal = []
+    all = []
+    skipped = []
+    defs = {}
 
-  normal = []
-  all = []
-  skipped = []
+    before (done) ->
+      paths = ['./test/components/']
+      componentLib.loadPaths paths, {}, (err) ->
+        chai.expect(err).to.be.a 'null'
+        normal = componentLib.listComponents(false, true)
+        all = componentLib.listComponents(true, true)
+        skipped = all.filter (n) -> normal.indexOf(n) == -1
+        defs = componentLib.getComponents true
+        done()
 
-  componentLib = new componentlib.ComponentLibrary
-
-  before (done) ->
-    library = './test/components/components.json'
-
-    componentLib.loadSetFile library, (err) ->
-      chai.expect(err).to.be.a 'null'
-      normal = componentLib.listComponents(false, true)
-      all = componentLib.listComponents(true, true)
-      skipped = all.filter (n) -> normal.indexOf(n) == -1
-      done()
-  after (done) ->
-    done()
-
-  describe 'listing all components', ->
-
-    it 'should give above 5 components', ->
-      chai.expect(normal.length).to.be.above 4
     it 'Max,Invalid should be skipped', ->
       chai.expect(normal).to.not.contain '_Max'
       chai.expect(normal).to.not.contain 'Invalid'
@@ -94,8 +87,8 @@ describe 'ComponentLibrary.loadSetFile', ->
       chai.expect(normal).to.contain 'Forward'
       chai.expect(skipped).to.not.contain 'Split'
       chai.expect(skipped).to.not.contain 'Forward'
+
     it 'no components have same id', ->
-      defs = componentLib.getComponents true
       i = 0
       while i < all.length
         j = 0

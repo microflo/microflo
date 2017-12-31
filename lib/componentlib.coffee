@@ -85,18 +85,6 @@ class ComponentLibrary
 
         return null # avoid returning promise
 
-    loadSetFile: (filePath, callback) ->
-        # FIXME: support loading non-module, relative to CWD
-        if filePath.indexOf('.') == 0
-          filePath = path.join process.cwd(), filePath
-
-        content = require filePath
-        modulePath = require.resolve filePath
-
-        content = content.microflo if typeof content.microflo isnt "undefined" # for package/fbp.json
-        content.base = path.dirname modulePath # resolve path relative to file
-        @loadSet content, callback
-
     listComponents: (includingSkipped, includingVirtual) ->
         Object.keys @getComponents includingSkipped, includingVirtual
 

@@ -7,14 +7,12 @@ assert = require('assert')
 microflo = require('../lib/microflo')
 websocket = require('websocket')
 
-library = './test/components/components.json'
-
 describe 'WebSocket API', ->
   runtime = null
 
   before (done) ->
     runtime = new (microflo.runtime.Runtime)(null)
-    runtime.library.loadSetFile library, (err) ->
+    runtime.library.loadPaths ['./test/components'], {}, (err) ->
       if err
         throw err
       microflo.runtime.setupWebsocket runtime, { host: 'localhost', port: 3888 }, ->
