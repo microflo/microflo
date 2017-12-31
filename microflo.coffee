@@ -57,15 +57,6 @@ setupRuntimeCommand = (env) ->
             return callback err if err
             return callback err, runtime
 
-uploadGraphCommand = (graphPath, env) ->
-  microflo.runtime.uploadGraphFromFile graphPath, env, (err) ->
-    if err
-      console.error err
-      console.error err.stack if err.stack
-      process.exit 1
-    console.log 'Graph uploaded and running'
-    process.exit 0
-
 
 writeFile = (path, data) ->
   return new Promise((resolve, reject) ->
@@ -115,13 +106,7 @@ main = ->
         .option("-t, --target <platform>", "Target platform: (arduino|linux|etc)")
         .option("--enable-maps", "Enable graph info maps")
         .action generateFwCommand
-    commander.command("upload <GRAPH>")
-        .option("-s, --serial <PORT>", "which serial port to use", String, 'auto')
-        .option("-b, --baudrate <RATE>", "baudrate for serialport", Number, 9600)
-        .option("-d, --debug <LEVEL>", "set debug level", String, 'Error')
-        .option("-m, --componentmap <.json>", "Component mapping definition")
-        .description("Upload a new graph to a device running MicroFlo firmware")
-        .action uploadGraphCommand
+
     commander.command("runtime")
         .description("Run as a server supporting FBP runtime protocl, for use Flowhub etc")
         .option("-s, --serial <PORT>", "which serial port to use", String, '')

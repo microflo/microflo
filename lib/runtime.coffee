@@ -591,23 +591,6 @@ setupSimulator = (file, baudRate, port, debugLevel, ip, callback) ->
             return callback null, runtime
 
 
-uploadGraphFromFile = (graphPath, options, callback) ->
-
-  serial.openTransport options.serial, options.baudrate, (err, transport) ->
-    return callback err if err
-    runtime = new Runtime transport, { debug: options.debug }
-    # TODO: support automatically looking up in runtime
-    if options.componentmap
-      try
-        runtime.library.definition = JSON.parse(fs.readFileSync(options.componentmap, 'utf-8'))
-      catch e
-        return callback e
-    definition.loadFile graphPath, (err, graph) ->
-      return callback err if err
-      runtime.uploadGraph graph, (err) ->
-        return callback err if err
-        return callback null, err
-
 class Runtime extends EventEmitter
     constructor: (transport, options) ->
         super()
@@ -666,5 +649,4 @@ module.exports =
     setupWebsocket: setupWebsocket
     setupSimulator: setupSimulator
     Runtime: Runtime
-    uploadGraphFromFile: uploadGraphFromFile
 
