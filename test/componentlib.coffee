@@ -10,16 +10,69 @@ if isBrowser()
   componentlib = require '../lib/componentlib'
 else
   componentlib = require 'microflo/lib/componentlib'
-componentLib = new componentlib.ComponentLibrary
-
-library = './test/components/components.json'
 
 describe 'ComponentLibrary', ->
+  componentLib = null
+
+  beforeEach ->
+    componentLib = new componentlib.ComponentLibrary
+
+  testComponents = ['DigitalWrite', 'Forward', 'Split', 'Timer', 'ToggleBoolean' ]
+
+  describe 'passing directory', ->
+
+    it 'loads all components in directory', (done) ->
+      paths = ['test/components']
+      componentLib.loadPaths paths, {}, (err) ->
+        return done err if err
+        c = componentLib.listComponents()
+        chai.expect(c).to.include.members testComponents
+        chai.expect(c).to.have.length testComponents.length
+        return done()
+
+  describe 'passing non-existent directory', ->
+    it 'should error', (done) ->
+      paths = ['test/components/bogus22', 'examples/embedding.cpp']
+      componentLib.loadPaths paths, {}, (err) ->
+        chai.expect(err).to.exist
+        chai.expect(err.message).to.include 'ENOENT'
+        chai.expect(err.message).to.include 'bogus22'
+        return done()
+
+  describe 'passing dir and files', ->
+    it 'loads both', (done) ->
+      paths = ['test/components', 'examples/embedding.cpp']
+      componentLib.loadPaths paths, {}, (err) ->
+        return done err if err
+        c = componentLib.listComponents()
+        chai.expect(c).to.include.members testComponents
+        chai.expect(c).to.include.members ['PlusOne', 'PrintInteger']
+        return done()
+
+  describe 'passing ignoreFiles and ignoreComponents', ->
+    it 'loads everything but listed', (done) ->
+      paths = ['test/components', 'examples/embedding.cpp']
+      options =
+        ignoreFiles: ['test/components/Split.hpp']
+        ignoreComponents: ['ToggleBoolean']
+      componentLib.loadPaths paths, options, (err) ->
+        return done err if err
+        c = componentLib.listComponents()
+        chai.expect(c).to.include.members ['PlusOne', 'Forward']
+        chai.expect(c).to.not.include.members ['Split', 'ToggleBoolean']
+        return done()
+
+describe 'ComponentLibrary.loadSetFile', ->
+
   normal = []
   all = []
   skipped = []
 
+  componentLib = new componentlib.ComponentLibrary
+
   before (done) ->
+    library = './test/components/components.json'
+
     componentLib.loadSetFile library, (err) ->
       chai.expect(err).to.be.a 'null'
       normal = componentLib.listComponents(false, true)
