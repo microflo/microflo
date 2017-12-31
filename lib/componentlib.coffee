@@ -80,7 +80,7 @@ class ComponentLibrary
         bluebird.map(paths, expandDirectory).then (expanded) =>
             files = [].concat.apply([], expanded) # flatten
             for p in files.filter isComponentFile
-                @loadFile p, options
+                @loadFile path.resolve(p), options
         .asCallback(callback)
 
         return null # avoid returning promise
