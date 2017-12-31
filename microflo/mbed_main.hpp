@@ -9,6 +9,10 @@
 #include <stddef.h>
 #include <stdlib.h>
 
+#ifndef MICROFLO_ARDUINO_BAUDRATE
+#define MICROFLO_ARDUINO_BAUDRATE 115200
+#endif
+
 void *operator new(size_t n)
 {
   void * const p = malloc(n);
@@ -36,7 +40,7 @@ extern "C"
 
 MbedIO io;
 const int serialPort = 0;
-const int serialBaudrate = 9600;
+const int serialBaudrate = MICROFLO_ARDUINO_BAUDRATE;
 FixedMessageQueue queue;
 Network network(&io, &queue);
 HostCommunication controller;

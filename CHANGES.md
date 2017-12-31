@@ -9,6 +9,8 @@ Uses of `microflo runtime --componentmap ` should now be `OUTPUT.component.map.j
 Build system that only use the main.cpp/ino file should not need to change.
 Code embedding MicroFlo and including the intermediate outputs *must change*, see `examples/embedding.cpp` for details.
 * "Setup" packets are no longer sent on network start. All components must wait for a regular packet/IIP before sending outputs.
+* Default baudrate is now `115200` instead of `9600`.
+Code that relies on the old default should specify `--baudrate` and/or define `MICROFLO_ARDUINO_BAUDRATE` accordingly.
 
 Removals
 

@@ -103,6 +103,7 @@ sendExportedPorts = (connection, runtime) ->
 
 sendPacketCmd = (runtime, port, event, payload) ->
     return console.log "WARN: sendPacket, unknown event #{event}" if event is not 'data'
+    return console.log 'WARN: ignoring sendPacket during graph upload' if runtime.uploadInProgress
 
     internal = runtime.graph.inports[port]
     componentName = runtime.graph.processes[internal.process].component
@@ -355,6 +356,37 @@ mapMessage = (graph, collector, message)->
         return [ message ]
         
 
+# non-live programming way of uploading
+resetAndUploadGraph = (runtime, connection, debugLevel, callback) ->
+    # FIXME: also do error handling, and send that across
+    # https://github.com/noflo/noflo-runtime-websocket/blob/master/runtime/network.js
+    graph = runtime.graph
+
+    if runtime.uploadInProgress
+        console.log 'Ignoring multiple attempts of graph upload'
+        return
+    runtime.uploadInProgress = true
+
+    try
+        data = commandstream.cmdStreamFromGraph runtime.library, graph, debugLevel
+    catch e
+        return callback e
+    sendGraph = (cb) ->
+        runtime.device.sendCommands data, (err) ->
+            return cb err if err
+            # Subscribe to change notifications
+            # TODO: use a dedicated mechanism for this based on subgraphs
+            edges = runtime.exportedEdges.concat runtime.edgesForInspection
+            handleNetworkEdges runtime, connection, edges, (err) ->
+                runtime.uploadInProgress = false
+                return cb err
+    setTimeout () ->
+        runtime.device.open (err) ->
+            return callback err if err
+            sendGraph (err) ->
+                return callback err
+    , 1000 # HACK: wait for Arduino reset
+
 subscribeEdges = (runtime, edges, callback) ->
     graph = runtime.graph
     maxCommands = graph.connections.length+edges.length
@@ -598,6 +630,19 @@ class Runtime extends EventEmitter
     handleMessage: (msg) ->
         console.log 'FBP MICROFLO RECV:', msg if util.debug_protocol
         handleMessage @, msg
+
+    uploadGraph: (graph, callback) ->
+        @graph = graph
+        @graph.name = graph.properties.name if not @graph.name
+
+        checkUploadDone = (m) =>
+            if m.protocol == 'network' and m.command == 'started'
+                @removeListener 'message', checkUploadDone
+                return callback()
+
+        @on 'message', checkUploadDone
+        resetAndUploadGraph this, @conn, @debugLevel, (err) ->
+            return callback err if err
 
 module.exports =
     setupRuntime: setupRuntime
