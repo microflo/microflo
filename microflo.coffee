@@ -20,7 +20,7 @@ setupRuntimeCommand = (env) ->
     port = env.port or 3569
     debugLevel = env.debug or "Error"
     ip = env.ip or "127.0.0.1"
-    baud = parseInt(env.baudrate) or 9600
+    baud = parseInt(env.baudrate) or 115200
     componentMap = env.componentmap
     if not env.id
       env.id = uuid.v4()
@@ -110,7 +110,7 @@ main = ->
     commander.command("runtime")
         .description("Run as a server supporting FBP runtime protocl, for use Flowhub etc")
         .option("-s, --serial <PORT>", "which serial port to use", String, '')
-        .option("-b, --baudrate <RATE>", "baudrate for serialport", Number, 9600)
+        .option("-b, --baudrate <RATE>", "baudrate for serialport", Number, 115200)
         .option("-d, --debug <LEVEL>", "set debug level", String, 'Error')
         .option("-p, --port <PORT>", "which port to use for WebSocket", Number, 3569)
         .option("-i, --ip <IP>", "which IP to use for WebSocket", String, 'localhost')
