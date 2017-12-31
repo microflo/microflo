@@ -44,7 +44,7 @@
     },
     "packetTypes": {
         "Invalid": { "id": 0 },
-        "Setup": { "id": 1 },
+        "_Setup_Removed": { "id": 1 },
         "Tick": { "id": 2 },
 
         "Void": { "id": 3,

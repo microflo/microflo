@@ -1,3 +1,46 @@
+# MicroFlo 0.6.0
+Released: N/A
+
+Breaking changes
+
+* Filenames output by `microflo generate graph.fbp OUTPUT` has changed.
+All output files now have the prefix `OUTPUT`, for instance `OUTPUT.graph.h` or `OUTPUT.component.ports.h`.
+Uses of `microflo runtime --componentmap ` should now be `OUTPUT.component.map.json`.
+Build system that only use the main.cpp/ino file should not need to change.
+Code embedding MicroFlo and including the intermediate outputs *must change*, see `examples/embedding.cpp` for details.
+* "Setup" packets are no longer sent on network start. All components must wait for a regular packet/IIP before sending outputs.
+
+Removals
+
+* Removed `microflo main`, `microflo component`, `microflo graph` subcommands from the CLI.
+These were experimental possible replacements for `generate`, that did not quite work out.
+Instead `microflo generate` has been improved, for instance via the `--mainfile` option. 
+* Removed `microflo upload` subcommand from the CLI. Should instead use `microflo runtime` and
+* Removed `MsgSetup` and `Packet::isSetup()`
+
+Bugfixes
+
+* Fixed initial graph not loading on AVR-based Arduinos when using `--target arduino` instead of `--target arduino:avr`
+* Network no longer stops executing when Flowhub goes from live mode to edit/project mode.
+* microflo-core 0.6.0: Components no longer resets state on network:start (thanks to removal of Setup messages).
+Affected components included `Timer`,`DigitalWrite`, `AnalogWrite` etc
+
+Internal changes
+
+* `generate` output uses `#include` to gather together the different parts, instead of inlining
+* The `Reset` FBCS message has been renamed to `ClearNodes`, and no longer affects network state.
+The response `NetworkReset` is now `NodesCleared`.
+
+
+# MicroFlo 0.5.1 / 0.5.2
+Released: 30.12.2017
+
+Bugfixes
+
+* Fix `microflo runtime` crashing when sending/receiving 'bang' packets (`null`)
+
+Was supposed to be released on 17.11.2017, but the NPM package was never published.
+
 # MicroFlo 0.5.0
 Released: 08.11.2017
 

@@ -13,8 +13,9 @@ One can program with MicroFlo either:
 or [.json definition](http://noflojs.org/documentation/json)
 * Programatically, by embedding it and building a graph using the C++ API
 
-MicroFlo is portable C++99 and includes support for multiple platforms,
-including [Arduino](http://arduino.cc) and Embedded Linux. It has been used on many different devices,
+MicroFlo is very portable, written in C++03 without exceptions and stdlib.
+It comes with support for multiple platforms,including [Arduino](http://arduino.cc) and Embedded Linux.
+It has been used on many different devices,
 from Atmel AVR8 to ARM Cortex M0/M1/M3/M4 devices (LPC mbed, TI Tiva/Stellaris), ESP8266 and Raspberry PI.
 
 MicroFlo is designed to integrate with other data-driven programming tools, including
