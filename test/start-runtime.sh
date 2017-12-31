@@ -7,4 +7,4 @@ trap 'kill $(jobs -p)' EXIT
 
 ./build/linux/firmware $SERIALFILE &
 sleep 2
-./microflo.js runtime $OPTIONS --componentmap build/linux/componentlib-map.json
+./microflo.js runtime $OPTIONS --componentmap build/linux/main.component.map.json
