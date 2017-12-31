@@ -50,76 +50,6 @@ cmdStreamToC = (cmdStream, annotation) ->
   cCode = "const unsigned char " + variableName + "[] " + annotation + " = {\n" + prettyValues + "\n};"
   cCode
 
-toSymbolicCommandStr = (message, componentLib, mapping) -> 
-  nodeId = (name) ->
-    return mapping.nodes[name].id
-  componentId = (name) ->
-    return "#{name}::id"
-  portId = (node, port, out) ->
-    component = mapping.components[node]
-    ports = if out then "OutPorts" else "InPorts"
-    return "#{component}::#{component}Ports::#{ports}::#{port}"
-
-  # Overrides
-  if message.protocol == 'graph' and message.command == 'addnode'
-    id = componentId message.payload.component 
-    cmd = ["GraphCmdCreateComponent", id, "0x00", "0x00", "0x00", "0x00", "0x00", "0x00" ]
-    return cmd.join ', '
-  else if message.protocol == 'graph' and message.command == 'addedge'
-    p = message.payload
-    srcPort = portId p.src.node, p.src.port, true
-    tgtPort = portId p.tgt.node, p.tgt.port, false
-    cmd = ["GraphCmdConnectNodes", nodeId(p.src.node), nodeId(p.tgt.node), srcPort, tgtPort, "0x00", "0x00" ]
-    return cmd.join ', '
-  else if message.protocol == 'graph' and message.command == 'addinitial'
-    p = message.payload
-    commands = commandstream.dataLiteralToCommandDescriptions p.src.data
-    tgtPort = portId p.tgt.node, p.tgt.port, false
-    cmd = []
-    for command in commands
-        type = "Msg#{command.type}"
-        cmd = cmd.concat ["GraphCmdSendPacket", nodeId(p.tgt.node), tgtPort, type]
-        data = command.data
-        if data
-            d = []
-            for i in [0...data.length]
-                d[i] = "0x" + data.readUInt8(i).toString(16)
-            data = d
-        else
-            data = ['0x00', '0x00', '0x00', '0x00'] if not data
-        cmd = cmd.concat data
-
-    return cmd.join ', '
-
-  else
-    buffer = new Buffer(1024)
-    start = 0
-    index = commandstream.toCommandStreamBuffer message, componentLib, mapping.nodes, mapping.components, buffer, start
-    buffer = buffer.slice start, index
-    pretty = cmdStreamValuesToC buffer
-    return pretty
-
-initialCmdStreamSymbolic = (componentLib, graph, debugLevel) ->
-  debugLevel = debugLevel or 'Error'
-  buffer = new Buffer(10*1024) # FIXME: unhardcode
-  graphName = 'default'
-  openclose = true
-
-  strings = []
-  messages = commandstream.initialGraphMessages graph, graphName, debugLevel, openclose
-  mapping = commandstream.buildMappings messages
-  for message in messages
-    strings.push toSymbolicCommandStr message, componentLib, mapping
-
-  graph.nodeMap = mapping.nodes # HACK
-  variableName = 'graph'
-  annotation = ''
-  lines = strings.join ',\n'
-  cCode = "const unsigned char " + variableName + "[] " + annotation + " = {\n" + lines + "\n};"
-
-  return cCode
-
-
 generateConstInt = (prefix, iconsts) ->
   return ""  if Object.keys(iconsts).length is 0
   indent = "\n const MicroFlo::ComponentId "
@@ -216,22 +146,16 @@ guardTail = (filename) ->
 extractId = (map, key) ->
   map[key].id
 
-updateComponentLibDefinitions = (componentLib, baseDir, factoryMethodName) ->
-  sourceOutput = ""
-  fs.mkdirSync baseDir unless fs.existsSync(baseDir)
-  ids = generateConstInt("Id", componentLib.getComponents(true, true))
-  ports = generateComponentPortDefinitions(componentLib)
-  fs.writeFileSync baseDir + "/componentlib-ids.h", ids
-  fs.writeFileSync baseDir + "/componentlib-ports.h", ports
-  sourceOutput += generateComponentIncludes(componentLib)
-  sourceOutput += "\n\n"
-  sourceOutput += generateComponentFactory(componentLib, factoryMethodName)
-  fs.writeFileSync baseDir + "/componentlib-source.hpp", sourceOutput
-  all = ids + ports + sourceOutput
-  fs.writeFileSync baseDir + "/componentlib.hpp", all
-  fs.writeFileSync baseDir + "/componentlib-map.json", generateComponentMap componentLib
+componentLibDefinitions = (componentLib, factoryMethodName) ->
+  r =
+    ids: generateConstInt("Id", componentLib.getComponents(true, true))
+    ports: generateComponentPortDefinitions(componentLib)
+    components: generateComponentIncludes(componentLib)
+    factory: generateComponentFactory(componentLib, factoryMethodName)
+    map: generateComponentMap componentLib
+  return r
 
-updateDefinitions = (baseDir) ->
+getDefinitions = (baseDir) ->
   contents = "// !! WARNING: This file is generated from commandformat.json !!" +
         "\n" + generateEnum("GraphCmd", "GraphCmd", cmdFormat.commands) +
         "\n" + declarec.generateStringMap('GraphCmd_names', cmdFormat.commands, extractId) +
@@ -245,7 +169,7 @@ updateDefinitions = (baseDir) ->
         "\n" + declarec.generateStringMap('Error_names', cmdFormat.errors, extractId) +
         "\n" + generateEnum("IoType", "IoType", cmdFormat.ioTypes) +
         "\n" + declarec.generateStringMap('IoType_names', cmdFormat.ioTypes, extractId)
-  fs.writeFileSync baseDir + "/commandformat-gen.h", contents
+  return contents
 
 declareSize = (name, value) ->
     return "const size_t #{name} = #{value};"
@@ -293,16 +217,6 @@ exportGraphName = (variable, graph) ->
   graphName = graph.properties.name or "unknown"
   return "static const char *const #{variable} = \"#{graphName}\";"
 
-generateComponentIncludesNew = (componentLib) ->
-  lines = []
-  componentNames = componentLib.listComponents()
-  for name in componentNames
-    data = componentLib.getComponent name
-    #console.log 'n', name, data
-    componentFile = path.basename(data.filename).replace('.hpp', '.component')
-    lines.push "#include \"#{componentFile}\"" 
-
-  return lines
 
 include = (file) ->
   return "#include \"#{file}\""
@@ -321,51 +235,10 @@ generateGraphMaps = (componentLib, def) ->
       '\n'
   return maps
 
-generateMain = (componentLib, inputFile, options) ->
-  options.target = 'arduino' if not options.target
-  options.mainfile = options.target.replace('-', '_')+'_main.hpp' if not options.mainfile
-  preferredExtension = extension options.target
-  if not options.output
-    options.output = inputFile.replace(path.extname(inputFile), preferredExtension)
-  if not path.extname options.output
-    options.output += preferredExtension
-  options.enableMaps = false if not options.enableMaps?
 
-  outputDir = path.dirname options.output
-  fs.mkdirSync outputDir unless fs.existsSync outputDir
-
-  # XXX: some duplicaion with 'graph' command here
-  definition.loadFile inputFile, (err, graph) ->
-    throw err if err
-
-    graphStream = initialCmdStreamSymbolic componentLib, graph, options.debug
-    components = generateComponentIncludesNew componentLib
-    maps = generateGraphMaps componentLib, graph
-
-    lines = []
-    lines.push "// !!! generated by: microflo main #{inputFile}"
-    lines.push define 'MICROFLO_EMBED_GRAPH', '1' # FIXME: should be able to be after .h include
-    lines.push include "microflo.h"
-
-    lines.push "\n// Components"
-    lines = lines.concat components
-
-    lines.push "\n// Graph"
-    lines.push graphStream
-
-    if options.enableMaps
-      lines.push "\n// Graph mapping"
-      lines.push maps
-
-    lines.push "\n// Main"
-    lines.push include options.mainfile
-
-    out = lines.join '\n'
-    fs.writeFileSync options.output, out
-
-generateOutput = (componentLib, inputFile, outputFile, target, mainFile, enableMaps) ->
-  outputBase = undefined
-  outputDir = undefined
+generateOutput = (componentLib, graph, outputFile, target, mainFile, enableMaps) ->
+  if not path.extname(outputFile)
+    outputFile += extension target
   outputBase = outputFile.replace(path.extname(outputFile), "")
   outputDir = path.dirname outputBase
 
@@ -377,46 +250,52 @@ generateOutput = (componentLib, inputFile, outputFile, target, mainFile, enableM
     # default to file included with MicroFlo
     mainFile = path.join microfloDir, "#{target.replace('-', '_')}_main.hpp"
 
-  fs.mkdirSync outputDir  unless fs.existsSync(outputDir)
-  definition.loadFile inputFile, (err, def) ->
-    data = undefined
-    throw err  if err
-    fs.writeFile outputBase + ".json", JSON.stringify(def), (err) ->
-      throw err  if err
+  componentGen = componentLibDefinitions componentLib, 'createComponent'
+  files = {}
+  files[outputBase + ".component.ports.h"] = componentGen.ports
+  files[outputBase + ".component.ids.h"] = componentGen.ids
+  files[outputBase + ".component.factory.hpp"] = componentGen.factory
+  files[outputBase + ".component.map.json"] = componentGen.map
 
-    data = commandstream.cmdStreamFromGraph(componentLib, def, null, true)
-    fs.writeFile outputBase + ".fbcs", data, (err) ->
-      throw err  if err
+  lib = componentGen.components + '\n' + componentGen.ids + componentGen.factory 
+  files[outputBase + ".component.lib.hpp"] = lib
 
-    fs.writeFile outputBase + ".h", cmdStreamToCDefinition(data, target), (err) ->
-      throw err  if err
+  graphData = commandstream.cmdStreamFromGraph(componentLib, graph, null, true)
+  graphMaps = generateGraphMaps componentLib, graph
 
-    maps = generateGraphMaps componentLib, def
-    fs.writeFile outputBase + "_maps.h", maps, (err) ->
-      throw err  if err
+  files[outputBase + ".graph.json"] = JSON.stringify graph
+  files[outputBase + ".graph.fbcs"] = graphData
+  files[outputBase + ".graph.h"] = cmdStreamToCDefinition(graphData, target)
+  files[outputBase + ".graph.maps.h"] = graphMaps
 
-    includes = "// !!! generated by: microflo generate\n"
-    includes += cmdStreamToCDefinition(data, target) + '\n'
-    includes += "#define MICROFLO_EMBED_GRAPH 1" + '\n'
+  includes = "// !!! generated by: microflo generate\n"
+  includes += "// Graph definition \n" 
+  includes += include(outputBase + ".graph.h") + '\n'
+  includes += "#define MICROFLO_EMBED_GRAPH 1" + '\n'
 
-    includes += include(path.join(microfloDir, 'microflo.h')) + '\n'
+  includes += include(path.join(microfloDir, 'microflo.h')) + '\n'
 
-    if enableMaps
-      includes += "// Graph metadata\n" 
-      includes += maps + "\n"
+  if enableMaps
+    includes += "// Graph metadata\n" 
+    includes += include(outputBase + ".graph.maps.h") + "\n"
 
-    includes += include(mainFile) + '\n'
-    includes += include('./componentlib.hpp') + '\n'
+  includes += include(mainFile) + '\n'
 
-    fs.writeFile outputFile, includes, (err) ->
-      throw err if err
+  includes += '// Components \n'
+  includes += include(outputBase + '.component.ports.h') + '\n'
+  includes += componentGen.components
+
+  includes += '// Component factory \n'
+  includes += include(outputBase + '.component.ids.h') + '\n'
+  includes += include(outputBase + '.component.factory.hpp') + '\n'
+
+  files[outputFile] = includes
+
+  return { directory: outputDir, files: files }
 
 module.exports =
-  updateDefinitions: updateDefinitions
-  updateComponentLibDefinitions: updateComponentLibDefinitions
+  getDefinitions: getDefinitions
   cmdStreamToCDefinition: cmdStreamToCDefinition
   generateEnum: generateEnum
   generateOutput: generateOutput
-  componentPorts: componentPortDefinition
-  initialCmdStream: initialCmdStreamSymbolic
-  generateMain: generateMain
+

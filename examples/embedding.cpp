@@ -3,8 +3,7 @@
 #include "linux.hpp"
 #include <unistd.h>
 
-#include "componentlib-ids.h"
-#include "componentlib-ports.h"
+#include "embedding.component.ports.h"
 
 /* microflo_component yaml
     name: PlusOne
@@ -43,8 +42,8 @@ struct PrintInteger : public SingleOutputComponent {
 microflo_graph */
 
 #include "microflo.hpp"
-#include "componentlib-source.hpp"
-#include "main.h" // generated graph definition
+#include "embedding.component.lib.hpp"
+#include "embedding.graph.h" // generated graph definition
 
 int main(void) {
     LinuxIO io;

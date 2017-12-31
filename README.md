@@ -1,15 +1,10 @@
-MicroFlo: flow-based programming for microcontrollers
+MicroFlo: Live dataflow programming for microcontrollers
 ========================================================
 [![Build Status](https://travis-ci.org/microflo/microflo.png?branch=master)](https://travis-ci.org/microflo/microflo)
 
-Implementation of [Flow-based programming](http://en.wikipedia.org/wiki/Flow-based_programming)
-for microcontrollers and embedded devices.
-MicroFlo supports multiple targets, including [Arduino](http://arduino.cc), Atmel AVR,
-ARM Cortex M devices (mbed, TI Tiva/Stellaris), ESP8266 and Embedded Linux.
-
-Unlike most other visually programmable systems, MicroFlo programs runs _standalone_ on the microcontroller,
-does not make use of code generation, can be introspected and reconfigured at runtime,
-and supports automated testing.
+Unlike most other [dataflow](https://en.wikipedia.org/wiki/Dataflow_programming) runtimes for constrained devices,
+MicroFlo run _standalone_ on the microcontroller, can be introspected and reconfigured at runtime,
+and has built-in support for automated testing.
 
 One can program with MicroFlo either:
 
@@ -18,8 +13,12 @@ One can program with MicroFlo either:
 or [.json definition](http://noflojs.org/documentation/json)
 * Programatically, by embedding it and building a graph using the C++ API
 
-MicroFlo is designed to integrate with other FBP runtimes,
-including building distributed systems (IoT) with [msgflo](https://msgflo.org)
+MicroFlo is portable C++99 and includes support for multiple platforms,
+including [Arduino](http://arduino.cc) and Embedded Linux. It has been used on many different devices,
+from Atmel AVR8 to ARM Cortex M0/M1/M3/M4 devices (LPC mbed, TI Tiva/Stellaris), ESP8266 and Raspberry PI.
+
+MicroFlo is designed to integrate with other data-driven programming tools, including
+[msgflo](https://msgflo.org) for easy building of distributed systems (IoT).
 
 Using
 -----------------
