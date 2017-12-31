@@ -299,7 +299,7 @@ static const char *GraphCmd_names[] = {
 
 enum Msg {
     MsgInvalid = 0,
-    MsgSetup = 1,
+    Msg_Setup_Removed = 1,
     MsgTick = 2,
     MsgVoid = 3,
     MsgByte = 4,
@@ -317,7 +317,7 @@ enum Msg {
 
 static const char *Msg_names[] = {
     "Invalid",
-    "Setup",
+    "_Setup_Removed",
     "Tick",
     "Void",
     "Byte",
