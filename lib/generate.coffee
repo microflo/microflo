@@ -240,6 +240,7 @@ generateOutput = (componentLib, graph, outputFile, target, mainFile, enableMaps)
   if not path.extname(outputFile)
     outputFile += extension target
   outputBase = outputFile.replace(path.extname(outputFile), "")
+  outputBase = path.resolve outputBase
   outputDir = path.dirname outputBase
 
   enableMaps = false if not enableMaps?

@@ -4,8 +4,11 @@
 #
 
 util = require "./util"
+
 path = require "path"
 fs = require "fs"
+
+bluebird = require 'bluebird'
 
 findHighestId = (components) ->
   highest = 0
@@ -14,7 +17,10 @@ findHighestId = (components) ->
     highest = comp.id  if not comp[".skip"] and comp.id > highest
   return highest
 
-extractComponents = (componentLib, inputFile) ->
+extractComponents = (componentLib, inputFile, options) ->
+    options = {} if not options?
+    options.ignoreComponents = [] if not options.ignoreComponents
+
     declarec = require "declarec"
     yaml = require "js-yaml"
 
@@ -28,7 +34,8 @@ extractComponents = (componentLib, inputFile) ->
         if def.format is "yaml"
             def.content = "---\n" + def.content + "\n"  if needsFix def.content
             d = yaml.safeLoad(def.content)
-            componentLib.addComponent d.name, d, inputFile
+            if d.name not in options.ignoreComponents
+                componentLib.addComponent d.name, d, inputFile
 
 class ComponentLibrary
     constructor: () ->
@@ -36,8 +43,8 @@ class ComponentLibrary
     reset: ->
         @definition = components: {}
 
-    loadFile: (filePath) ->
-        extractComponents this, filePath
+    loadFile: (filePath, options={}) ->
+        extractComponents this, filePath, options
 
     loadSet: (set, callback) ->
         try
@@ -47,17 +54,36 @@ class ComponentLibrary
             return callback(e)
         return callback null
 
-    loadSetFile: (filePath, callback) ->
-        # FIXME: support loading non-module, relative to CWD
-        if filePath.indexOf('.') == 0
-          filePath = path.join process.cwd(), filePath
+    loadPaths: (paths, options, callback) ->
+        options = {} if not options?
+        options.extensions = ['.hpp', '.cpp'] if not options.extensions
+        options.ignoreFiles = [] if not options.ignoreFiles
+        options.ignoreComponents = [] if not options.ignoreComponents
 
-        content = require filePath
-        modulePath = require.resolve filePath
+        fsStat = bluebird.promisify(fs.stat)
+        fsReadDir = bluebird.promisify(fs.readdir)
 
-        content = content.microflo if typeof content.microflo isnt "undefined" # for package/fbp.json
-        content.base = path.dirname modulePath # resolve path relative to file
-        @loadSet content, callback
+        expandDirectory = (p) ->
+            fsStat(p).then (stats) ->
+                if stats.isDirectory()
+                    fsReadDir(p).then (files) ->
+                        return files.map((f) -> path.join(p, f))
+                else
+                    return [ p ]
+
+        isComponentFile = (p) ->
+            ext = path.extname p
+            validType = ext in options.extensions
+            notIgnored = not (p in options.ignoreFiles)
+            return validType and notIgnored
+
+        bluebird.map(paths, expandDirectory).then (expanded) =>
+            files = [].concat.apply([], expanded) # flatten
+            for p in files.filter isComponentFile
+                @loadFile path.resolve(p), options
+        .asCallback(callback)
+
+        return null # avoid returning promise
 
     listComponents: (includingSkipped, includingVirtual) ->
         Object.keys @getComponents includingSkipped, includingVirtual

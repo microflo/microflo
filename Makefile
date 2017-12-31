@@ -8,7 +8,7 @@ UPLOAD_DIR=/mnt
 BUILD_DIR=$(shell echo `pwd`/build)
 MICROFLO_SOURCE_DIR=$(shell echo `pwd`/microflo)
 MICROFLO=./microflo.js
-LIBRARY=./test/components/components.json
+COMPONENTS=./test/components/
 
 # SERIALPORT=/dev/somecustom
 # ARDUINO=/home/user/Arduino-1.0.5
@@ -46,33 +46,33 @@ update-defs:
 build-arduino:
 	rm -rf $(BUILD_DIR)/arduino || echo 'WARN: failure to clean Arduino build'
 	mkdir -p $(BUILD_DIR)/arduino/builder
-	$(MICROFLO) generate $(GRAPH) $(BUILD_DIR)/arduino/main.ino arduino --library $(LIBRARY)
+	$(MICROFLO) generate $(GRAPH) $(BUILD_DIR)/arduino/main.ino arduino --components $(COMPONENTS)
 	arduino-builder -compile $(BUILDER_OPTIONS) $(BUILD_DIR)/arduino/main.ino
 
 build-mbed:
 	cd thirdparty/mbed && python2 workspace_tools/build.py -t GCC_ARM -m LPC1768
 	rm -rf $(BUILD_DIR)/mbed
-	node microflo.js generate $(MBED_GRAPH) $(BUILD_DIR)/mbed/ --target mbed --library $(LIBRARY)
+	node microflo.js generate $(MBED_GRAPH) $(BUILD_DIR)/mbed/ --target mbed --components $(COMPONENTS)
 	cp Makefile.mbed $(BUILD_DIR)/mbed/Makefile
 	cd $(BUILD_DIR)/mbed && make ROOT_DIR=./../../
 
 build-linux: build-linux-embedding
 	rm -rf $(BUILD_DIR)/linux
 	mkdir -p $(BUILD_DIR)/linux
-	node microflo.js generate $(LINUX_GRAPH) $(BUILD_DIR)/linux/ --target linux --library $(LIBRARY)
+	node microflo.js generate $(LINUX_GRAPH) $(BUILD_DIR)/linux/ --target linux --components $(COMPONENTS)
 	g++ -o $(BUILD_DIR)/linux/firmware $(BUILD_DIR)/linux/main.cpp -std=c++0x -DLINUX -I$(BUILD_DIR)/lib $(COMMON_CFLAGS) -lrt -lutil
 
 build-linux-embedding:
 	rm -rf $(BUILD_DIR)/linux
 	mkdir -p $(BUILD_DIR)/linux
-	node microflo.js generate examples/embedding.cpp $(BUILD_DIR)/linux/embedding --target linux --library $(LIBRARY)
+	node microflo.js generate examples/embedding.cpp $(BUILD_DIR)/linux/embedding --target linux --components $(COMPONENTS)
 	cd $(BUILD_DIR)/linux && g++ -o firmware ../../examples/embedding.cpp -std=c++0x $(COMMON_CFLAGS) -DLINUX -Werror -lrt -lutil
 
 build-linux-mqtt:
 	rm -rf $(BUILD_DIR)/linux-mqtt
-	node microflo.js generate examples/Repeat.fbp $(BUILD_DIR)/linux-mqtt/repeat --enable-maps --target linux-mqtt --library $(LIBRARY)
+	node microflo.js generate examples/Repeat.fbp $(BUILD_DIR)/linux-mqtt/repeat --enable-maps --target linux-mqtt --components $(COMPONENTS)
 	cd $(BUILD_DIR)/linux-mqtt/ && g++ -o repeat repeat.cpp -std=c++0x -lmosquitto $(COMMON_CFLAGS) -DLINUX -Werror -lrt -lutil
-	node microflo.js generate $(LINUX_GRAPH) $(BUILD_DIR)/linux-mqtt/main --enable-maps --target linux-mqtt --library $(LIBRARY)
+	node microflo.js generate $(LINUX_GRAPH) $(BUILD_DIR)/linux-mqtt/main --enable-maps --target linux-mqtt --components $(COMPONENTS)
 	cd $(BUILD_DIR)/linux-mqtt/ && g++ -o firmware main.cpp -std=c++0x -lmosquitto $(COMMON_CFLAGS) -DLINUX -Werror -lrt -lutil
 
 build-tests:

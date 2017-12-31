@@ -13,8 +13,6 @@ pkginfo = require("pkginfo")(module)
 uuid = require('uuid')
 bluebird = require('bluebird')
 
-defaultLibrary = 'microflo-core/components/arduino-standard.json'
-
 setupRuntimeCommand = (env) ->
     serialPortToUse = env.serial or "auto"
     port = env.port or 3569
@@ -73,13 +71,19 @@ generateFwCommand = (inputFile, output, env) ->
     target = env.target or "arduino"
     if output[output.length-1] == '/'
       output += 'main.cpp'
-    outputDir = path.dirname output
-    library = env.library or defaultLibrary
-    componentLib = new microflo.componentlib.ComponentLibrary()
-    componentLib.loadSetFile library, (err) ->
+
+    if env.library
+        console.error('REMOVED. --library has been removed. Use --components SOMEDIR --components ANOTHER instead')
+
+    componentLib = new microflo.componentlib.ComponentLibrary()    
+    options =
+        ignoreComponents: env.ignoreComponent
+        ignoreFiles: env.ignoreComponentFile
+    componentLib.loadPaths env.components, options, (err) ->
         return callback err if err
 
-        componentLib.loadFile inputFile
+        componentLib.loadFile inputFile # might have components inline
+
         microflo.definition.loadFile inputFile, (err, graph) ->
             return callback err if err
 
@@ -93,6 +97,9 @@ updateDefsCommand = (directory) ->
     contents = microflo.generate.getDefinitions()
     fs.writeFileSync directory + "/commandformat-gen.h", contents
 
+collectMultiple = (n, old) ->
+    return old.concat([n])
+
 main = ->
     commander.version module.exports.version
     commander.command("update-defs")
@@ -102,9 +109,12 @@ main = ->
     commander.command("generate <INPUT> <OUTPUT>")
         .description("Generate MicroFlo firmware code, with embedded graph.")
         .option("-m, --mainfile <FILE.hpp>", "File to include for providing main()")
-        .option("-l, --library <FILE.json>", "Component library file")
+        .option("-l, --library <FILE.json>", "DEPRECATED, use --components instead") # TODO: remove
         .option("-t, --target <platform>", "Target platform: (arduino|linux|etc)")
         .option("--enable-maps", "Enable graph info maps")
+        .option("--components <FILE|DIR>", "Add this to component search path", collectMultiple, ['components'])
+        .option("--ignore-component <NAME>", "Ignore component with name", collectMultiple, [])
+        .option("--ignore-component-file <FILE>", "Ignore component file", collectMultiple, [])
         .action generateFwCommand
 
     commander.command("runtime")
