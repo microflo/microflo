@@ -3,22 +3,27 @@ sudo: true
 dist: trusty
 node_js:
 - '6'
+addons:
+  apt:
+    packages:
+    - pkg-config
+    - cmake
+    - openssl
+    - libc-ares-dev
 before_install:
 - sudo add-apt-repository -y ppa:terry.guo/gcc-arm-embedded
-- sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
 - sudo apt-get update -qq
 - sudo apt-get install -qq -y gcc-arm-none-eabi --force-yes
 - wget -O arduino.tgz https://downloads.arduino.cc/arduino-1.8.1-linux64.tar.xz
 - tar -xf arduino.tgz
-- sudo apt-get install pkg-config cmake openssl libc-ares-dev
 - wget http://mosquitto.org/files/source/mosquitto-1.3.1.tar.gz
 - tar xzf mosquitto-1.3.1.tar.gz
 - cd mosquitto-1.3.1
-- cmake .
-- sudo make install
+- cmake . -DCMAKE_INSTALL_PREFIX=../mosquitto
+- make install
 - cd -
 before_script:
-- mosquitto -d
+- ./mosquitto/sbin/mosquitto -d
 - export PATH=`pwd`/arduino-1.8.1/:$PATH
 after_script:
 - killall mosquitto
