@@ -1,5 +1,5 @@
 # MicroFlo 0.6.0
-Released: N/A
+Released: 31.12.2017
 
 Breaking changes
 
@@ -11,6 +11,11 @@ Code embedding MicroFlo and including the intermediate outputs *must change*, se
 * "Setup" packets are no longer sent on network start. All components must wait for a regular packet/IIP before sending outputs.
 * Default baudrate is now `115200` instead of `9600`.
 Code that relies on the old default should specify `--baudrate` and/or define `MICROFLO_ARDUINO_BAUDRATE` accordingly.
+* The `--library ` option for `microflo generate` has been replaced with `--components`, which specify
+directories/files to search for components. Users must update to the new method.
+Also provided are `--ignore-component` and `--ignore-component-file`, to exclude components.
+All these options can be specified multiple times.
+Default is to automatically include components under `./components`.
 
 Removals
 
