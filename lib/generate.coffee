@@ -279,6 +279,8 @@ generateOutput = (componentLib, graph, outputFile, target, mainFile, enableMaps)
     includes += "// Graph metadata\n" 
     includes += include(outputBase + ".graph.maps.h") + "\n"
 
+  includes += include(mainFile) + '\n'
+
   includes += '// Components \n'
   includes += include(outputBase + '.component.ports.h') + '\n'
   includes += componentGen.components
@@ -286,8 +288,6 @@ generateOutput = (componentLib, graph, outputFile, target, mainFile, enableMaps)
   includes += '// Component factory \n'
   includes += include(outputBase + '.component.ids.h') + '\n'
   includes += include(outputBase + '.component.factory.hpp') + '\n'
-
-  includes += include(mainFile) + '\n'
 
   files[outputFile] = includes
 
