@@ -13,7 +13,7 @@ addons:
 before_install:
 - wget -O gcc-arm.tar.bz2 https://armkeil.blob.core.windows.net/developer/Files/downloads/gnu-rm/7-2017q4/gcc-arm-none-eabi-7-2017-q4-major-linux.tar.bz2
 - tar -xaf gcc-arm.tar.bz2
-- export PATH=gcc-arm-none-eabi-7-2017-q4-major/bin:$PATH
+- export PATH=`pwd`/gcc-arm-none-eabi-7-2017-q4-major/bin:$PATH
 - which arm-none-eabi-gcc
 - wget -O arduino.tgz https://downloads.arduino.cc/arduino-1.8.1-linux64.tar.xz
 - tar -xf arduino.tgz
