@@ -37,6 +37,8 @@ BUILDER_OPTIONS=-hardware $(ARDUINO)/hardware -tools $(ARDUINO)/tools-builder -t
 
 COMMON_CFLAGS:=-I. -I${MICROFLO_SOURCE_DIR} -Wall -Wno-error=unused-variable
 
+MOSQUITTO_CFLAGS:=-L${MICROFLO_SOURCE_DIR}/../mosquitto/lib -lmosquitto -I${MICROFLO_SOURCE_DIR}/../mosquitto/include/
+
 # Rules
 all: build
 
@@ -66,14 +68,14 @@ build-linux-embedding:
 	rm -rf $(BUILD_DIR)/linux
 	mkdir -p $(BUILD_DIR)/linux
 	node microflo.js generate examples/embedding.cpp $(BUILD_DIR)/linux/embedding --target linux --components $(COMPONENTS)
-	cd $(BUILD_DIR)/linux && g++ -o firmware ../../examples/embedding.cpp -std=c++0x $(COMMON_CFLAGS) -DLINUX -Werror -lrt -lutil
+	cd $(BUILD_DIR)/linux && g++ -o firmware ../../examples/embedding.cpp -std=c++0x $(COMMON_CFLAGS) -Werror -lrt -lutil
 
 build-linux-mqtt:
 	rm -rf $(BUILD_DIR)/linux-mqtt
 	node microflo.js generate examples/Repeat.fbp $(BUILD_DIR)/linux-mqtt/repeat --enable-maps --target linux-mqtt --components $(COMPONENTS)
-	cd $(BUILD_DIR)/linux-mqtt/ && g++ -o repeat repeat.cpp -std=c++0x -lmosquitto $(COMMON_CFLAGS) -DLINUX -Werror -lrt -lutil
+	cd $(BUILD_DIR)/linux-mqtt/ && g++ -o repeat repeat.cpp -std=c++0x $(MOSQUITTO_CFLAGS) $(COMMON_CFLAGS) -Werror -lrt -lutil
 	node microflo.js generate $(LINUX_GRAPH) $(BUILD_DIR)/linux-mqtt/main --enable-maps --target linux-mqtt --components $(COMPONENTS)
-	cd $(BUILD_DIR)/linux-mqtt/ && g++ -o firmware main.cpp -std=c++0x -lmosquitto $(COMMON_CFLAGS) -DLINUX -Werror -lrt -lutil
+	cd $(BUILD_DIR)/linux-mqtt/ && g++ -o firmware main.cpp -std=c++0x $(MOSQUITTO_CFLAGS) $(COMMON_CFLAGS) -Werror -lrt -lutil
 
 build-tests:
 	rm -rf $(BUILD_DIR)/tests
