@@ -62,7 +62,7 @@ build-linux: build-linux-embedding
 	rm -rf $(BUILD_DIR)/linux
 	mkdir -p $(BUILD_DIR)/linux
 	node microflo.js generate $(LINUX_GRAPH) $(BUILD_DIR)/linux/ --target linux --components $(COMPONENTS)
-	g++ -o $(BUILD_DIR)/linux/firmware $(BUILD_DIR)/linux/main.cpp -std=c++0x -DLINUX -I$(BUILD_DIR)/lib $(COMMON_CFLAGS) -lrt -lutil
+	g++ -o $(BUILD_DIR)/linux/firmware $(BUILD_DIR)/linux/main.cpp -std=c++0x -I$(BUILD_DIR)/lib $(COMMON_CFLAGS) -lrt -lutil
 
 build-linux-embedding:
 	rm -rf $(BUILD_DIR)/linux
