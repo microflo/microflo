@@ -1,6 +1,13 @@
 # MicroFlo 0.6.0
 Released: 31.12.2017
 
+There is now basic support for components coming from multiple sources, including libraries.
+Components provided by MicroFlo project are now split into 3:
+
+* microflo-core: Generally useful, non-platform-specific components
+* microflo-arduino: Ardunio-specific components
+* microflo-contrib: Everything else
+
 Breaking changes
 
 * Filenames output by `microflo generate graph.fbp OUTPUT` has changed.
