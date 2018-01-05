@@ -1,3 +1,11 @@
+# MicroFlo 0.6.1
+Released: 05.01.2018
+
+Additions
+
+* `--prepend-file FILE` option for `microflo generate`, includes contents of FILE in generated output.
+Useful for configuration data, like Arduino library includes, defines for MicroFlo settings etc.
+
 # MicroFlo 0.6.0
 Released: 31.12.2017
 
@@ -7,6 +15,7 @@ Components provided by MicroFlo project are now split into 3:
 * microflo-core: Generally useful, non-platform-specific components
 * microflo-arduino: Ardunio-specific components
 * microflo-contrib: Everything else
+* ./components: Application-specific components
 
 Breaking changes
 
