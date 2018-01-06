@@ -87,7 +87,7 @@ generateFwCommand = (inputFile, output, env) ->
         microflo.definition.loadFile inputFile, (err, graph) ->
             return callback err if err
 
-            prepend = fs.readFileSync env.prependFile
+            prepend = fs.readFileSync env.prependFile if env.prependFile
             gen = microflo.generate.generateOutput componentLib, graph, output, target, env.mainfile, env.enableMaps, prepend
             fs.mkdirSync gen.directory unless fs.existsSync(gen.directory)
 
