@@ -1,4 +1,4 @@
-# MicroFlo 0.6.1
+# MicroFlo 0.6.2
 Released: 05.01.2018
 
 Additions
