@@ -130,6 +130,8 @@ class SendQueue extends EventEmitter
                 return
             @current.sent = Date.now()
             @write chunk, (err, len) =>
+                console.error('Send error:', err) if err
+
                 setTimeout =>
                     errored = err or len == -1
                     if not errored and chunk.length and index < dataBuf.length
@@ -170,11 +172,15 @@ class DeviceCommunication extends EventEmitter
         @transport = transport
         @accumulator = new CommandAccumulator commandstream.cmdFormat.commandSize
 
+        @closed = true
+
         return if not @transport
         @sender = new SendQueue commandstream.cmdFormat.commandSize,
           type: @transport.getTransportType()
 
         @transport.on 'data', (buf) =>
+            console.log('comms closed, ignoring received data', buf)
+            return if @closed
             @accumulator.onData buf
         @accumulator.on 'command', (buf) =>
             @_onCommandReceived buf
@@ -186,11 +192,19 @@ class DeviceCommunication extends EventEmitter
         # FIXME: move these details into commandstream
         buffer = commandstream.Buffer commandstream.cmdFormat.commandSize
         commandstream.writeString(buffer, 0, commandstream.cmdFormat.magicString);
-        @sendCommands buffer, cb
+        @closed = false
+        @sendCommands buffer, (err) =>
+            if err
+                @closed = true
+                return cb err 
+            return cb err
+
     close: (cb) ->
         buffer = commandstream.Buffer commandstream.cmdFormat.commandSize
         commandstream.writeCmd buffer, 0, commandstream.cmdFormat.commands.End.id
-        @sendCommands buffer, cb
+        @sendCommands buffer, (err) =>
+            @closed = true
+            return cb err
 
     # High-level API
     ping: (cb) ->
@@ -202,7 +216,7 @@ class DeviceCommunication extends EventEmitter
 
     # Send batched
     sendCommands: (buffer, callback) ->
-        timeout = 1000
+        timeout = 3000
         new bluebird.Promise (resolve, reject) =>
           @sender.push buffer, (err, res) ->
             return reject err if err
