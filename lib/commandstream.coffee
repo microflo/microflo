@@ -648,3 +648,4 @@ module.exports =
   initialGraphMessages: initialGraphMessages
   toCommandStreamBuffer: toCommandStreamBuffer
   fromCommand: fromCommand
+  commands: commands
