@@ -20,8 +20,7 @@ class MqttTransport extends EventEmitter
   connect: (callback) -> 
     @client  = mqtt.connect @brokerUrl
 
-    @client.on 'message', (topic, message) => 
-      console.log('got', message)
+    @client.on 'message', (topic, message) =>
       @emit 'data', message
 
     @client.on 'connect', () =>
