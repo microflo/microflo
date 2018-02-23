@@ -3,8 +3,6 @@
  * MicroFlo may be freely distributed under the MIT license
  */
 
-#define DEBUG 1
-
 #include "microflo.h"
 #include "linux_mqtt.hpp"
 
@@ -44,15 +42,11 @@ bool findPorts(ParticipantInfo *info) {
 
 int main(int argc, char **argv) {
     LinuxIO io;
-    NullHostTransport transport;
+    LinuxMqttHostTransport transport;
     FixedMessageQueue queue;
     Network network(&io, &queue);
-    HostCommunication controller;
     MqttOptions options;
-    //transport.setup(&io, &controller);
-    controller.setup(&network, &transport);
-
-    MICROFLO_LOAD_STATIC_GRAPH((&controller), graph);
+    
 
     const bool parsed = mqttParseOptions(&options, argc, argv);
     if (!parsed) {
@@ -62,6 +56,12 @@ int main(int argc, char **argv) {
     findPorts(&options.info);
 
     MqttMount mount(&network, options);
+
+    transport.setup(&io, &mount);
+    mount.setup(&network, &transport);
+
+    MICROFLO_LOAD_STATIC_GRAPH((&mount), graph);
+
     const bool connected = mount.connect();
     if (connected) {
         printf("Connected to %s:%d\n", options.brokerHostname, options.brokerPort);

@@ -1,0 +1,10 @@
+{
+  "label": "MicroFlo on Linux",
+  "description": "",
+  "type": "microflo",
+  "protocol": "websocket",
+  "address": "ws://localhost:3335",
+  "secret": "microflo32",
+  "id": "2ef763ff-1f28-49b8-b58f-5c6a5c23af99",
+  "command": "sh test/start-runtime-mqtt.sh"
+}

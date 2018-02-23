@@ -1107,11 +1107,115 @@ Component info
 * Get component port name
 * Get component port description
 
-Direct connect
-* Implement FBP protocol directly, or trivial 1-1 mapping
-
 Complex types
 * De/serialize composite datatypes
+
+### FBP direct
+* Implement FBP protocol directly, or trivial 1-1 mapping
+
+
+
+Authenticatin is done once, not per message
+Client can enforce limit on string lengths.
+Low progmem requirements.
+  
+Low RAM requirements.
+  Parseable as a stream
+  Sendable as a stream
+  
+Can also represent program data
+  Maybe as a structured two-way mapping of JSON
+  Or just
+
+{ "protocol": "graph", "command": "addnode", "payload": { "graph" } } -> INT messageType 
+
+messageType,requestNo,componentName,graphName,nodeName
+ENUM/INT,   INT      ,(LENGTH,UTF8),(LENGTH,UTF8),(LENGTH,UTF8)
+1,          32,      ,(8,foo/Baar) ,()           ,(4,myFoo)
+
+responseType,responseTo(requestNo)
+ENUM/INT    ,INT
+
+However need to know when message ends... In MsgPack, using a map for entire message would give both that and
+Would probably require keys to be integers, and that key,values come in ascending order.
+
+graph:addnode schema/transformation
+{ 'messageType': 0, 'request': 1, 'componentName': 2, 'graphName': 3, 'nodeName': 4, '__newthing': 5 }
+
+{ 0:1,          1:32,      2:(8,foo/Baar) 3:(5,mygraph)           ,(4,myFoo)
+
+Prototype implementation on microcontroller. Initially separately from MicroFlo.
+Check memory/program usage etc
+
+https://github.com/clwi/CWPack has nice API features: incremental reading. But 
+https://github.com/ludocode/mpack . Maybe nice error handling. Only need to check for errors once when finalizing a read
+Question: Does it work with streams?
+
+### Code sketch device side
+
+```
+struct PackItem {
+    enum PackStatus status;
+    enum PackType type;
+    uint8_t *data; // start of data
+    size_t *length;
+}
+
+#define PACK_ASSERT_OK(item) 
+    if (item.status != PACK_OK) {
+        return item.status;
+    }
+
+
+// Parsing general
+const size_t NAME_SIZE = 20;
+const size_t BUFFER_SIZE = NAME_SIZE * 2;
+char buffer[BUFFER_SIZE];
+
+Pack packer(buffer, BUFFER_SIZE);
+
+//
+char *nodeName[NAME_SIZE];
+char *componentName[NAME_SIZE];
+char *graphName[NAME_SIZE];
+int32_t request;
+int8_t keyNumber = -1;
+
+// on incoming data
+    size_t datalength = 
+    uint8_t data[] = ...
+    PackItem item = packer.next(data, datalength);
+
+    PackStatus decoded;
+    switch (keyNumber) {
+        case AddNodeRequestId:
+            decoded = pack_decode_int32(item, &req);
+            PACK_ASSERT_OK(decoded);
+        case AddNodeNodeName:
+            decoded = pack_decode_str(item, &nodeName, NAME_SIZE);
+            PACK_ASSERT_OK(decoded);
+        case AddNodeGraphName:
+            decoded = pack_decode_str(item, &graphName, NAME_SIZE);
+            PACK_ASSERT_OK(decoded);
+        case AddNodeComponentName:
+            decoded = pack_decode_str(item, &componentName, NAME_SIZE);
+            PACK_ASSERT_OK(decoded);
+        case AllDataReceived:
+            if (graphName != currentGraph) {
+                // error: UnknownGraph
+            }
+            if (nodeMap.has(nodeName)) {
+                // error: DuplicateNode
+            }
+            if (!componentMap.has(componentName)) {
+                // error: UnknownComponent
+            }
+            // yay, ready to do the thing
+            network.addNode(nodeMap.get(nodeName), componentLib.get(componentName) )
+    }
+```
+
+
 
 ## Execution model
 Two aspects: packet delivery and component triggering

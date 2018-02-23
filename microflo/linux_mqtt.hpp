@@ -21,7 +21,7 @@
 #include <assert.h>
 #include <err.h>
 
-#ifdef DEBUG
+#ifdef MICROFLO_LINUX_DEBUG
 #define LOG(...) do { printf(__VA_ARGS__); } while (0)
 #else
 #define LOG(...)
@@ -39,8 +39,9 @@ struct MqttOptions {
 
 class MqttMount;
 
+
 // FIXME: write automated test
-class MqttMount : public NetworkNotificationHandler {
+class MqttMount : public HostCommunication {
 
 public:
     static bool runForever(MqttMount *mount) {
@@ -67,12 +68,15 @@ public:
 
 public:
     MqttMount(Network *net, const MqttOptions &o)
-        : network(net)
+        : HostCommunication()
+        , network(net)
         , options(o)
         , connection(NULL)
         , discoveryMessageSent(0)
     {
         network->setNotificationHandler(this);
+        microfloReceiveTopic = options.info.role + "/microflo/receive";
+        microfloSendTopic = options.info.role + "/microflo/send";
     }
 
     ~MqttMount() {
@@ -102,6 +106,7 @@ public:
         const bool connected = status == 0;
         if (connected) {
             subscribePorts();
+            subscribeHostTransport();
             checkSendDiscovery();
         }
     }
@@ -109,39 +114,31 @@ public:
     void onMessage(const struct mosquitto_message *msg) {
         char *payloadStr = strndup((const char *)msg->payload, msg->payloadlen);
         const Packet pkg = decodePacket(std::string(payloadStr));
-        LOG("got MQTT message on topic %s: %s", msg->topic, payloadStr);
+        LOG("got MQTT message on topic %s: %s\n", msg->topic, payloadStr);
         free(payloadStr);
+
+        if (msg->topic == microfloReceiveTopic) {
+            // XXX: does not go via Transport
+            const char * payload = (const char *)msg->payload;
+            for (int i=0; i<msg->payloadlen; i++) {
+                this->parseByte(payload[i]);
+            }
+            return;
+        }
 
         const Port *port = findPortByTopic(options.info.inports, msg->topic);
         if (port) {
             LOG("sending to %d %d \n", port->node, port->port);
             network->sendMessageTo(port->node, port->port, pkg);
         } else {
-            LOG("Failed to find port for MQTT topic: %s", msg->topic);
+            LOG("Failed to find port for MQTT topic: %s\n", msg->topic);
         }
     }
 
     // implements NetworkNotificationHandler
-    virtual void nodeAdded(Component *c, MicroFlo::NodeId parentId) {}
-    virtual void nodeRemoved(Component *c, MicroFlo::NodeId parentId) {}
-
-    virtual void nodesConnected(Component *src, MicroFlo::PortId srcPort,
-                                Component *target, MicroFlo::PortId targetPort) {}
-    virtual void nodesDisconnected(Component *src, MicroFlo::PortId srcPort,
-                                Component *target, MicroFlo::PortId targetPort) {}
-
-    virtual void networkStateChanged(Network::State s) {}
-    virtual void emitDebug(DebugLevel level, DebugId id) {
-        const char *levelStr = DebugLevel_names[level];
-        const char *message = DebugId_names[id];
-        LOG("%s: %s\n", levelStr, message);
-    }
-    virtual void debugChanged(DebugLevel level) { }
-    virtual void portSubscriptionChanged(MicroFlo::NodeId nodeId, MicroFlo::PortId portId, bool enable) {}
-    virtual void subgraphConnected(bool isOutput, MicroFlo::NodeId subgraphNode,
-                                   MicroFlo::PortId subgraphPort, MicroFlo::NodeId childNode, MicroFlo::PortId childPort) {}
-
     virtual void packetSent(const Message &m, const Component *sender, MicroFlo::PortId senderPort) {
+        HostCommunication::packetSent(m, sender, senderPort);
+
         const MicroFlo::NodeId senderId = sender->id();
         //LOG("packet sent %d\n", senderId);
 
@@ -162,6 +159,18 @@ public:
         }
     }
 
+    void sendToHost(const uint8_t *buf, uint8_t len) {
+        if (!this->connection) {
+            return;
+        }
+        const int res = mosquitto_publish(this->connection, NULL,
+                            microfloSendTopic.c_str(), len, buf, 0, false);
+        
+        if (res != MOSQ_ERR_SUCCESS) {
+            LOG("failed to send microflo command on MQTT\n"); 
+        }
+    }
+
 private:
     void subscribePorts() {
         for (std::vector<Port>::iterator it = options.info.inports.begin() ; it != options.info.inports.end(); ++it) {
@@ -175,6 +184,12 @@ private:
             network->subscribeToPort(port.node, port.port, true);
             LOG("setup outport to MQTT topic: %s\n", port.topic.c_str());
         }
+    }
+
+    void subscribeHostTransport() {
+        const char *pattern = microfloReceiveTopic.c_str();
+        mosquitto_subscribe(this->connection, NULL, pattern, 0);
+        LOG("subscribed host to MQTT topic: %s\n", pattern);
     }
 
     void checkSendDiscovery() {
@@ -230,6 +245,8 @@ private:
     MqttOptions options;
     struct mosquitto *connection;
     time_t discoveryMessageSent;
+    std::string microfloReceiveTopic;
+    std::string microfloSendTopic;
 };
 
 bool parse_brokerurl(MqttOptions *options, const char *url) {
@@ -269,3 +286,30 @@ bool mqttParseOptions(MqttOptions *options, int argc, char **argv) {
     char* broker = getenv("MSGFLO_BROKER");
     return parse_brokerurl(options, broker);
 }
+
+class LinuxMqttHostTransport : public HostTransport {
+public:
+    LinuxMqttHostTransport() {
+        
+    }
+
+    // implements HostTransport
+    virtual void setup(IO *i, HostCommunication *c) {
+        mount = dynamic_cast<MqttMount *>(c);
+    }
+    virtual void runTick() {
+        // no-op, everything happens event-oriented
+    }
+    virtual void sendCommand(const uint8_t *buf, uint8_t len) {
+        // Pad to a whole command
+        uint8_t cmd[MICROFLO_CMD_SIZE];
+        for (uint8_t i=0; i<MICROFLO_CMD_SIZE; i++) {
+            cmd[i] = (i < len) ?  buf[i] : 0x00;
+        }
+
+        mount->sendToHost(cmd, MICROFLO_CMD_SIZE);
+    }
+
+private:
+    MqttMount *mount;
+};

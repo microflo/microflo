@@ -22,6 +22,7 @@ serial = require("./serial")
 devicecommunication = require("./devicecommunication")
 definition = require './definition'
 protocol = require './protocol'
+mqtt = require './mqtt'
 
 # TODO: allow port types to be declared in component metadata,
 # and send the appropriate types instead of just "all"
@@ -46,16 +47,6 @@ connectionsWithoutEdge = (connections, findConn) ->
         else
             newList.push conn
     return newList
-
-printReceived = ->
-    args = []
-    i = 0
-
-    while i < arguments.length
-        args.push arguments[i]
-        i++
-    console.log args.join(", ")
-    return
 
 listComponents = (runtime, connection) ->
     componentLib = runtime.library
@@ -547,7 +538,14 @@ setupWebsocket = (runtime, options, callback) ->
 setupRuntime = (serialPortToUse, baudRate, componentMap, options, callback) ->
     options.waitConnect = options.waitConnect or 0
 
-    serial.openTransport serialPortToUse, baudRate, (err, transport) ->
+    openTransport = (cb) ->
+        return serial.openTransport serialPortToUse, baudRate, cb
+    useMqtt = serialPortToUse.indexOf('mqtt://') == 0
+    if useMqtt
+        openTransport = (cb) ->
+            return mqtt.openTransport serialPortToUse, cb
+
+    openTransport (err, transport) ->
         return callback err, null if err
         runtime = new Runtime transport, options
 
