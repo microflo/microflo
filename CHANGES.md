@@ -1,3 +1,13 @@
+# git master
+Released: N/A
+
+New features
+
+* `microflo runtime` can connect to device via MQTT instead of USB/serial,
+useful in Internet-of-Things scenarios. 
+Pass option `--serial mqtt://mqtt.example.net/prefix/mything/microflo/`
+* `linux-mqtt` target supports MQTT host transport. Run with `MSGFLO_BROKER=mqtt://mqtt.example.net ./thing prefix/mything`
+
 # MicroFlo 0.6.2
 Released: 05.01.2018
 
