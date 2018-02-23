@@ -48,16 +48,6 @@ connectionsWithoutEdge = (connections, findConn) ->
             newList.push conn
     return newList
 
-printReceived = ->
-    args = []
-    i = 0
-
-    while i < arguments.length
-        args.push arguments[i]
-        i++
-    console.log args.join(", ")
-    return
-
 listComponents = (runtime, connection) ->
     componentLib = runtime.library
     components = componentLib.getComponents()
