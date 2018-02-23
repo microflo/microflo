@@ -21,7 +21,7 @@
 #include <assert.h>
 #include <err.h>
 
-#ifdef DEBUG
+#ifdef MICROFLO_LINUX_DEBUG
 #define LOG(...) do { printf(__VA_ARGS__); } while (0)
 #else
 #define LOG(...)

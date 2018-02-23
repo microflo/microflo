@@ -3,8 +3,6 @@
  * MicroFlo may be freely distributed under the MIT license
  */
 
-#define DEBUG 1
-
 #include "microflo.h"
 #include "linux_mqtt.hpp"
 
