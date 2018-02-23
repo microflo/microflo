@@ -114,7 +114,7 @@ public:
     void onMessage(const struct mosquitto_message *msg) {
         char *payloadStr = strndup((const char *)msg->payload, msg->payloadlen);
         const Packet pkg = decodePacket(std::string(payloadStr));
-        LOG("got MQTT message on topic %s: %s", msg->topic, payloadStr);
+        LOG("got MQTT message on topic %s: %s\n", msg->topic, payloadStr);
         free(payloadStr);
 
         if (msg->topic == microfloReceiveTopic) {
@@ -131,7 +131,7 @@ public:
             LOG("sending to %d %d \n", port->node, port->port);
             network->sendMessageTo(port->node, port->port, pkg);
         } else {
-            LOG("Failed to find port for MQTT topic: %s", msg->topic);
+            LOG("Failed to find port for MQTT topic: %s\n", msg->topic);
         }
     }
 
@@ -187,7 +187,9 @@ private:
     }
 
     void subscribeHostTransport() {
-        mosquitto_subscribe(this->connection, NULL, microfloReceiveTopic.c_str(), 0);
+        const char *pattern = microfloReceiveTopic.c_str();
+        mosquitto_subscribe(this->connection, NULL, pattern, 0);
+        LOG("subscribed host to MQTT topic: %s\n", pattern);
     }
 
     void checkSendDiscovery() {
