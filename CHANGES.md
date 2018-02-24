@@ -1,5 +1,5 @@
-# git master
-Released: N/A
+# MicroFlo 0.6.3
+Released: 24.02.2018
 
 New features
 
