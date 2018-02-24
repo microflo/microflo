@@ -176,8 +176,8 @@ declareSize = (name, value) ->
 
 declareArray = (name, type, array) ->
     str = "const #{type} #{name}[] = {\n"
-    for v in array
-        str += "    #{v}\n"
+    values = array.map((v) -> "    #{v}")
+    str += values.join(',\n')+'\n'
     str += "};\n"
     return str
 
