@@ -87,8 +87,8 @@ generateFwCommand = (inputFile, output, env) ->
         microflo.definition.loadFile inputFile, (err, graph) ->
             return callback err if err
 
-            prepend = fs.readFileSync env.prependFile if env.prependFile
-            gen = microflo.generate.generateOutput componentLib, graph, output, target, env.mainfile, env.enableMaps, prepend
+            prepends = env.prependFile.map (p) -> return [p, fs.readFileSync(p)]
+            gen = microflo.generate.generateOutput componentLib, graph, output, target, env.mainfile, env.enableMaps, prepends
             fs.mkdirSync gen.directory unless fs.existsSync(gen.directory)
 
             bluebird.map(Object.keys(gen.files), (path) -> writeFile(path, gen.files[path]))
@@ -116,7 +116,7 @@ main = ->
         .option("--components <FILE|DIR>", "Add this to component search path", collectMultiple, ['components'])
         .option("--ignore-component <NAME>", "Ignore component with name", collectMultiple, [])
         .option("--ignore-component-file <FILE>", "Ignore component file", collectMultiple, [])
-        .option("--prepend-file <FILE>", "Prepend contents of file to generated output", String)
+        .option("--prepend-file <FILE>", "Prepend contents of file to generated output", collectMultiple, [])
         .action generateFwCommand
 
     commander.command("runtime")
