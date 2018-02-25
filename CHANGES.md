@@ -1,3 +1,11 @@
+# MicroFlo 0.6.4
+Released: 25.02.2018
+
+Additions
+
+* Support multiple `--prepend-file` for `microflo generate`.
+Can be useful to separate config from secrets, or common config from device-specific.
+
 # MicroFlo 0.6.3
 Released: 24.02.2018
 
@@ -7,6 +15,10 @@ New features
 useful in Internet-of-Things scenarios. 
 Pass option `--serial mqtt://mqtt.example.net/prefix/mything/microflo/`
 * `linux-mqtt` target supports MQTT host transport. Run with `MSGFLO_BROKER=mqtt://mqtt.example.net ./thing prefix/mything`
+
+Bugfixes
+
+* Fixed invalid exported port declarations if using `--enable-maps` and having multiple exported ports
 
 # MicroFlo 0.6.2
 Released: 05.01.2018
