@@ -1156,60 +1156,96 @@ struct PackItem {
     size_t *length;
 }
 
-#define PACK_ASSERT_OK(item) 
+#define MSG_ASSERT(expr, error) {
+    if (!(expr)) {
+        return MessageReply(MsgError, error)
+    }
+}
+
+#define MSG_ASSERT_DECODED(item, req) 
     if (item.status != PACK_OK) {
-        return item.status;
+        return MessageReply(MsgError, DecodeError)
     }
 
 
 // Parsing general
 const size_t NAME_SIZE = 20;
-const size_t BUFFER_SIZE = NAME_SIZE * 2;
+const size_t BUFFER_SIZE = 128;
 char buffer[BUFFER_SIZE];
 
-Pack packer(buffer, BUFFER_SIZE);
+const int8_t ITEMS_SIZE = 10;
+PackItems items[ITEMS_SIZE];
 
-//
-char *nodeName[NAME_SIZE];
-char *componentName[NAME_SIZE];
-char *graphName[NAME_SIZE];
-int32_t request;
-int8_t keyNumber = -1;
+Pack packer(items, ITEMS_SIZE, buffer, BUFFER_SIZE);
 
-// on incoming data
+void on_incoming_data() {
+
     size_t datalength = 
     uint8_t data[] = ...
-    PackItem item = packer.next(data, datalength);
+    PackStatus item = packer.push(data, datalength);
 
-    PackStatus decoded;
-    switch (keyNumber) {
-        case AddNodeRequestId:
-            decoded = pack_decode_int32(item, &req);
-            PACK_ASSERT_OK(decoded);
-        case AddNodeNodeName:
-            decoded = pack_decode_str(item, &nodeName, NAME_SIZE);
-            PACK_ASSERT_OK(decoded);
-        case AddNodeGraphName:
-            decoded = pack_decode_str(item, &graphName, NAME_SIZE);
-            PACK_ASSERT_OK(decoded);
-        case AddNodeComponentName:
-            decoded = pack_decode_str(item, &componentName, NAME_SIZE);
-            PACK_ASSERT_OK(decoded);
-        case AllDataReceived:
-            if (graphName != currentGraph) {
-                // error: UnknownGraph
-            }
-            if (nodeMap.has(nodeName)) {
-                // error: DuplicateNode
-            }
-            if (!componentMap.has(componentName)) {
-                // error: UnknownComponent
-            }
-            // yay, ready to do the thing
-            network.addNode(nodeMap.get(nodeName), componentLib.get(componentName) )
+    if (item == MessageEnd) {
+        MsgReply response = on_message_received(items, ITEMS_SIZE);
+
+        if (response.error) {
+            // TODO: clear rest
+            items[0] = MessageType::ErrorReply;
+            items[1] = request;
+            items[2] = response.error;
+        } else {
+            // ACK, sending
+        }
+        
+        const char *reply = packer.serialize();
+        send(reply);
     }
-```
+}
 
+MsgReply on_message_received(PackItems *items) {
+        // Common message things
+        int32_t msg = -1;
+        int32_t request = -1;
+
+        MSG_ASSERT_DECODED(pack_decode_int32(items[0], &msg));
+        MSG_ASSERT_DECODED(pack_decode_int32(items[1], &request));
+
+        // Dispatch the concrete message handler
+        const MessageType message_type = msg;
+        MessageReply response(UnknownMessage);
+
+        switch (message_type) {
+            case MessageType::addNode:
+                response = add_node(items); break;
+            case
+            ....
+        }
+
+        response.request = request;
+
+        return response;
+}
+
+static inline MessageReply
+add_node(PackItems *items) {
+    char *nodeName = null;
+    char *componentName = null;
+    char *graphName = null;
+
+    MSG_ASSERT_DECODED(pack_decode_str(items[2], &nodeName, NAME_SIZE));
+    MSG_ASSERT_DECODED(pack_decode_str(items[3], &graphName, NAME_SIZE));
+    MSG_ASSERT_DECODED(pack_decode_str(items[4], &componentName, NAME_SIZE));
+
+    MSG_ASSERT(graphName == currentGraph, UnknownGraph);
+    MSG_ASSERT(!nodeMap.has(nodeName), DuplicateNode);
+    MSG_ASSERT(componentMap.has(componentName), UnknownComponent);
+
+    // yay, ready to do the thing
+    const auto status = network.addNode(nodeMap.get(nodeName), componentLib.get(componentName));
+    MSG_ASSERT(status == MICROFLO_OK, req);
+    return MSG_ACK();
+}
+
+```
 
 
 ## Execution model
