@@ -36,11 +36,6 @@ Human interface devices
 
 Components: AnalogRead,filters
 
-Data aquisition/sensor logging: position logger?
------------------------------------------------
-Components: SD-card, NMEA parsing, Accelerometer/Gyro
-
-
 IoT
 -----
 * Door system. API for unlocking, local logic door/openers
@@ -1433,7 +1428,6 @@ Generate anew
 Flash in Arduino IDE
 Reset -> still works like before
 
-
 Maybe:
 
 Add a wire+1mohm resistor. Use capacitive touch. Threshold to boolean control, touch, or distance sense
@@ -1441,3 +1435,77 @@ Add a ultrasonic distance sensor
 
 the-graph: Make command for rendering SVG/PNG from .fbp/.json.
 Use to generate docs. Use wiring diagrams from Arduino docs, link them
+
+
+
+## Flowhub IoT demo kit
+MicroFlo + MsgFlo
+
+### Nodes
+
+Base
+* Wemos D1 mini
+[1x](https://www.banggood.com/WeMos-D1-Mini-V2-NodeMcu-4M-Bytes-Lua-WIFI-Internet-Of-Things-Development-Board-Based-ESP8266-p-1115398.html)
+* Wemos Battery base
+[5x](https://www.banggood.com/5Pcs-WeMos-D1-Mini-Single-Lithium-Battery-Charging-And-Battery-Boost-Shield-p-1123520.html)
+* LiPo battery
+
+Shields 
+* OLED
+* Protoboard
+[3x](https://www.banggood.com/3Pcs-WeMos-ProtoBoard-Shield-For-WeMos-D1-Mini-Double-Sided-Perf-Board-Compatible-p-1185111.html) 
+
+Missing shields?
+* Microphone / soundlevel
+* Accelerometer
+* PIR motion detect
+
+UI modules
+* Button + RGB LED.
+* 2x Button+Red+Green LEDs
+* Rotary encoder + LED array
+
+I/O modules
+* 3out+3in+analog, 5-24V range.
+
+### Gateway
+
+* MQTT broker
+* MsgFlo coordinator
+* FBP runtime protocol
+* Serve minimal Flowhub
+* Allows connect from full Flowhub
+* Support/default WiFi station mode, allows to switch to client
+* Bridge to other transports and Internet. Ethernet, Bluetooth
+* Timeseries database
+* Forwards communication to/from nodes
+* Can serve custom webUIs/dashboards
+* Device/node monitoring support, alerting
+* Push updates to nodes
+
+Probably some Linux box, with ARM multicore.
+Different pieces running as Docker containers?
+Should have solid storage solution. RPi not good...
+https://www.olimex.com/Products/OLinuXino/A20/A20-OLinuXino-LIME2/open-source-hardware
+https://www.olimex.com/Products/OLinuXino/BOXES/BOX-LIME/
+
+Or fuck all this and put it as a VM up in the cloud?
+Use standard networking gear to establish connectivity up there.
+
+
+### Ideas
+
+Replicate WiFi credentials from master -> node.
+Ie over serialport. Should be simple plugin/tap/connect, impossible to do wrong
+
+
+## Dream IoT
+Device running -> automatically discovered, connectable
+No/minimal fucking with connectivity/credentials
+Local only fully supported, Internet connectivity optional
+
+Connections happen using visual UI.
+Can reprogram individual devices from same UI, in same way.
+Also "upload" ready-made on-edge functionality
+! need to know hardware capabilities of device, incl peripherals
+
