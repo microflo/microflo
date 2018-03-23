@@ -59,6 +59,7 @@ listComponents = (runtime, connection) ->
             command: "component"
             payload:
                 name: name
+                subgraph: false
                 description: comp.description or ""
                 inPorts: portDefAsArray(componentLib.inputPortsFor(name))
                 outPorts: portDefAsArray(componentLib.outputPortsFor(name))
@@ -75,6 +76,8 @@ sendExportedPorts = (connection, runtime) ->
     ports =
         inPorts: []
         outPorts: []
+        graph: runtime.graph.name
+
     for pub, port of runtime.graph.inports
         ports.inPorts.push
             id: pub
