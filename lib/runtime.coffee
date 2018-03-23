@@ -59,6 +59,7 @@ listComponents = (runtime, connection) ->
             command: "component"
             payload:
                 name: name
+                subgraph: false
                 description: comp.description or ""
                 inPorts: portDefAsArray(componentLib.inputPortsFor(name))
                 outPorts: portDefAsArray(componentLib.outputPortsFor(name))
@@ -75,6 +76,8 @@ sendExportedPorts = (connection, runtime) ->
     ports =
         inPorts: []
         outPorts: []
+        graph: runtime.graph.name
+
     for pub, port of runtime.graph.inports
         ports.inPorts.push
             id: pub
@@ -123,7 +126,7 @@ handleRuntimeCommand = (command, payload, connection, runtime) ->
         ]
         r =
             type: "microflo"
-            version: "0.4"
+            version: '0.7'
             capabilities: caps
             namespace: runtime.namespace
 
@@ -285,7 +288,7 @@ packetSent = (graph, collector, payload) ->
     if not send
         return [] # in the middle of bracketed data, will send when gets to the end
 
-    payload.data = data
+    delete payload.type # XXX
 
     # Check if exported outport
     if graph.outports
@@ -299,8 +302,10 @@ packetSent = (graph, collector, payload) ->
             payload:
                 port: found
                 event: 'data'
+                type: 'any'
+                #schema: ''
+                graph: graph.name
                 payload: data
-                index: null
         messages.push m
 
     # Sent network:data for edge introspection
@@ -321,7 +326,7 @@ mapMessage = (graph, collector, message)->
             return messages
         else if message.command in ['subscribeedge'] # TODO: make network:edges
           return []
-        else if message.command in ['debugchanged','communicationopen', 'sendpacketdone', 'iovaluechanged']
+        else if message.command in ['debugchanged','communicationopen', 'iovaluechanged']
           console.log 'FBP MICROFLO RESPONSE IGNORED:', message.command if util.debug_protocol
           # ignore
           return []
@@ -609,6 +614,7 @@ class Runtime extends EventEmitter
         @graph.nodeMap = {} # "nodeName" -> { id: numericNodeId }
         @graph.componentMap = {} # "nodeName" -> "componentName"
         @graph.currentNodeId = 1
+        @graph.name = 'default/empty'
 
         @conn =
             send: (response) =>
