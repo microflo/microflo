@@ -614,6 +614,7 @@ class Runtime extends EventEmitter
         @graph.nodeMap = {} # "nodeName" -> { id: numericNodeId }
         @graph.componentMap = {} # "nodeName" -> "componentName"
         @graph.currentNodeId = 1
+        @graph.name = 'default/empty'
 
         @conn =
             send: (response) =>
