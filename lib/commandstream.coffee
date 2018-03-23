@@ -500,11 +500,16 @@ responses.SetIoValueCompleted = () ->
     command: 'setiovaluecompleted'
     payload: null
   return m
-responses.SendPacketDone = () ->
+responses.SendPacketDone = (componentLib, graph) ->
   m =
     protocol: 'runtime'
     command: 'packetsent'
-    payload: null
+    payload:
+      #port: 'sssss' # FIXME
+      event: 'data'
+      type: 'any'
+      graph: graph.name
+      payload: {} # FIXME
   return m
 
 buildResponseMapping = () ->
