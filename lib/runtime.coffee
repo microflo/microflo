@@ -288,6 +288,8 @@ packetSent = (graph, collector, payload) ->
     if not send
         return [] # in the middle of bracketed data, will send when gets to the end
 
+    delete payload.type # XXX
+
     # Check if exported outport
     if graph.outports
         found = null
@@ -300,8 +302,10 @@ packetSent = (graph, collector, payload) ->
             payload:
                 port: found
                 event: 'data'
+                type: 'any'
+                #schema: ''
+                graph: graph.name
                 payload: data
-                index: null
         messages.push m
 
     # Sent network:data for edge introspection
