@@ -307,27 +307,30 @@ toCommandStreamBuffer = (message, componentLib, nodeMap, componentMap, buffer, i
 
 responses = {}
 # Must be named the same as defined in the commands
-responses.NetworkStopped = () ->
+responses.NetworkStopped = (componentLib, graph) ->
   m =
       protocol: "network"
       command: "stopped"
       payload:
+          graph: graph.name
           running: false
           started: false
   return m
-responses.NetworkStarted = () ->
+responses.NetworkStarted = (componentLib, graph) ->
   m = 
     protocol: "network"
     command: "started"
     payload:
+      graph: graph.name
       running: true
       started: true
   return m
-responses.NodesCleared = () ->
+responses.NodesCleared = (componentLib, graph) ->
   m =
     protocol: "graph"
     command: "clear"
-    payload: {}
+    payload:
+      id: graph.name
   return m
 responses.NetworkStatus = (componentLib, graph, cmdData) ->
   running = cmdData.readUInt8(0) == 1
@@ -348,6 +351,7 @@ responses.NodeAdded = (componentLib, graph, cmdData) ->
     payload:
       id: nodeName
       component: component
+      graph: graph.name
   return m
 responses.NodeRemoved = (componentLib, graph, cmdData) ->
   nodeName = nodeNameById(graph.nodeMap, cmdData.readUInt8(1))
@@ -356,6 +360,7 @@ responses.NodeRemoved = (componentLib, graph, cmdData) ->
     command: 'removenode'
     payload:
       id: nodeName
+      graph: graph.name
   return m
 
 responses.NodesConnected = (componentLib, graph, cmdData) ->
@@ -364,6 +369,7 @@ responses.NodesConnected = (componentLib, graph, cmdData) ->
     protocol: 'graph'
     command: 'addedge'
     payload:
+      graph: graph.name
       src:
         node: null
         port: null
@@ -377,6 +383,7 @@ responses.NodesDisconnected = (componentLib, graph, cmdData) ->
     protocol: 'graph'
     command: 'removeedge'
     payload:
+      graph: graph.name
       src:
         node: null
         port: null
