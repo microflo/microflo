@@ -505,7 +505,7 @@ responses.SendPacketDone = (componentLib, graph) ->
     protocol: 'runtime'
     command: 'packetsent'
     payload:
-      #port: 'sssss' # FIXME
+      port: 'sssss' # FIXME
       event: 'data'
       type: 'any'
       graph: graph.name
