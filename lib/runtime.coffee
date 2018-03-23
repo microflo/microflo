@@ -126,7 +126,7 @@ handleRuntimeCommand = (command, payload, connection, runtime) ->
         ]
         r =
             type: "microflo"
-            version: "0.4"
+            version: '0.7'
             capabilities: caps
             namespace: runtime.namespace
 
