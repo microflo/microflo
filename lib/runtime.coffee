@@ -288,8 +288,6 @@ packetSent = (graph, collector, payload) ->
     if not send
         return [] # in the middle of bracketed data, will send when gets to the end
 
-    payload.data = data
-
     # Check if exported outport
     if graph.outports
         found = null
