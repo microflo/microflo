@@ -321,7 +321,7 @@ mapMessage = (graph, collector, message)->
             return messages
         else if message.command in ['subscribeedge'] # TODO: make network:edges
           return []
-        else if message.command in ['debugchanged','communicationopen', 'sendpacketdone', 'iovaluechanged']
+        else if message.command in ['debugchanged','communicationopen', 'iovaluechanged']
           console.log 'FBP MICROFLO RESPONSE IGNORED:', message.command if util.debug_protocol
           # ignore
           return []

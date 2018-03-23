@@ -502,8 +502,8 @@ responses.SetIoValueCompleted = () ->
   return m
 responses.SendPacketDone = () ->
   m =
-    protocol: 'microflo'
-    command: 'sendpacketdone'
+    protocol: 'runtime'
+    command: 'packetsent'
     payload: null
   return m
 
