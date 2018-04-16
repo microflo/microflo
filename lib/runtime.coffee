@@ -453,16 +453,19 @@ handleNetworkCommand = (command, payload, connection, runtime, transport, debugL
 handleMessage = (runtime, contents) ->
     connection = runtime.conn
 
-    if contents.protocol is "component"
-        handleComponentCommand contents.command, contents.payload, connection, runtime
-    else if contents.protocol is "graph"
-        handleGraphCommand contents.command, contents.payload, connection, runtime
-    else if contents.protocol is "runtime"
-        handleRuntimeCommand contents.command, contents.payload, connection, runtime
-    else if contents.protocol is "network"
-        handleNetworkCommand contents.command, contents.payload, connection, runtime
-    else
-        console.log "Unknown FBP runtime protocol:", contents
+    try
+        if contents.protocol is "component"
+            handleComponentCommand contents.command, contents.payload, connection, runtime
+        else if contents.protocol is "graph"
+            handleGraphCommand contents.command, contents.payload, connection, runtime
+        else if contents.protocol is "runtime"
+            handleRuntimeCommand contents.command, contents.payload, connection, runtime
+        else if contents.protocol is "network"
+            handleNetworkCommand contents.command, contents.payload, connection, runtime
+        else
+            throw Error("Unknown FBP runtime protocol: #{contents.protocol}")
+    catch e
+        connection.send { protocol: contents.protocol, command: 'error', payload: { message: e } }
     return
 
 class BracketDataCollector
