@@ -500,6 +500,7 @@ pingUrl = (address, method, callback) ->
 liveUrl = (options) ->
   address = 'ws://' + options.host + ':' + options.port
   params = 'protocol=websocket&address=' + address
+  params += '&type=microflo'
   params += '&id=' + options.id if options.id
   params += '&secret=' + options.secret if options.secret
   u = options.ide + '#runtime/endpoint?' + querystring.escape(params)
