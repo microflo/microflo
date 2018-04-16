@@ -193,6 +193,7 @@ handleComponentCommand = (command, payload, connection, runtime) ->
     return
 
 sendAck = (connection, msg) ->
+    delete msg.payload.secret
     connection.send msg
 
 handleGraphCommand = (command, payload, connection, runtime) ->
@@ -232,9 +233,13 @@ handleGraphCommand = (command, payload, connection, runtime) ->
     else if command is "removeedge"
         graph.connections = connectionsWithoutEdge(graph.connections, protocol.wsConnectionFormatToFbp(payload))
         sendMessage runtime, { protocol: 'graph', command: command, payload: payload }
+    else if command is "changeedge"
+        # FIXME: ignored
+        sendAck connection, { protocol: 'graph', command: command, payload: payload }
     else if command is "addinitial"
         graph.connections.push protocol.wsConnectionFormatToFbp(payload)
         sendMessage runtime, { protocol: 'graph', command: command, payload: payload }
+        sendAck connection, { protocol: 'graph', command: command, payload: payload } # TODO: receive from RT
     else if command is "removeinitial"
         # TODO: send to runtime side, wait for response
         graph.connections = connectionsWithoutEdge(graph.connections, protocol.wsConnectionFormatToFbp(payload))
@@ -448,16 +453,19 @@ handleNetworkCommand = (command, payload, connection, runtime, transport, debugL
 handleMessage = (runtime, contents) ->
     connection = runtime.conn
 
-    if contents.protocol is "component"
-        handleComponentCommand contents.command, contents.payload, connection, runtime
-    else if contents.protocol is "graph"
-        handleGraphCommand contents.command, contents.payload, connection, runtime
-    else if contents.protocol is "runtime"
-        handleRuntimeCommand contents.command, contents.payload, connection, runtime
-    else if contents.protocol is "network"
-        handleNetworkCommand contents.command, contents.payload, connection, runtime
-    else
-        console.log "Unknown FBP runtime protocol:", contents
+    try
+        if contents.protocol is "component"
+            handleComponentCommand contents.command, contents.payload, connection, runtime
+        else if contents.protocol is "graph"
+            handleGraphCommand contents.command, contents.payload, connection, runtime
+        else if contents.protocol is "runtime"
+            handleRuntimeCommand contents.command, contents.payload, connection, runtime
+        else if contents.protocol is "network"
+            handleNetworkCommand contents.command, contents.payload, connection, runtime
+        else
+            throw Error("Unknown FBP runtime protocol: #{contents.protocol}")
+    catch e
+        connection.send { protocol: contents.protocol, command: 'error', payload: { message: e } }
     return
 
 class BracketDataCollector
@@ -500,6 +508,7 @@ pingUrl = (address, method, callback) ->
 liveUrl = (options) ->
   address = 'ws://' + options.host + ':' + options.port
   params = 'protocol=websocket&address=' + address
+  params += '&type=microflo'
   params += '&id=' + options.id if options.id
   params += '&secret=' + options.secret if options.secret
   u = options.ide + '#runtime/endpoint?' + querystring.escape(params)
@@ -623,6 +632,8 @@ class Runtime extends EventEmitter
 
         @device.on 'response', (cmd) =>
             messages = commandstream.fromCommand @library, @graph, cmd
+            if messages.length == 0
+               console.log 'Warning: No FBP mapping for device response', cmd
             for m in messages
                 converted = mapMessage @graph, @collector, m
                 for c in converted

@@ -37,7 +37,7 @@ fbpConnectionFormatToWs = (fbp) ->
 # Get a list of FBP runtime messages for building given graph
 graphToFbpMessages = (graph, graphName) ->
   messages = []
-  secret = null
+  secret = 'fake'
 
   # Instantiate components
   for nodeName, process of graph.processes
