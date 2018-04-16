@@ -233,9 +233,13 @@ handleGraphCommand = (command, payload, connection, runtime) ->
     else if command is "removeedge"
         graph.connections = connectionsWithoutEdge(graph.connections, protocol.wsConnectionFormatToFbp(payload))
         sendMessage runtime, { protocol: 'graph', command: command, payload: payload }
+    else if command is "changeedge"
+        # FIXME: ignored
+        sendAck connection, { protocol: 'graph', command: command, payload: payload }
     else if command is "addinitial"
         graph.connections.push protocol.wsConnectionFormatToFbp(payload)
         sendMessage runtime, { protocol: 'graph', command: command, payload: payload }
+        sendAck connection, { protocol: 'graph', command: command, payload: payload } # TODO: receive from RT
     else if command is "removeinitial"
         # TODO: send to runtime side, wait for response
         graph.connections = connectionsWithoutEdge(graph.connections, protocol.wsConnectionFormatToFbp(payload))
