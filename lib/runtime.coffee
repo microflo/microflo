@@ -629,6 +629,8 @@ class Runtime extends EventEmitter
 
         @device.on 'response', (cmd) =>
             messages = commandstream.fromCommand @library, @graph, cmd
+            if messages.length == 0
+               console.log 'Warning: No FBP mapping for device response', cmd
             for m in messages
                 converted = mapMessage @graph, @collector, m
                 for c in converted

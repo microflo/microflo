@@ -364,33 +364,40 @@ responses.NodeRemoved = (componentLib, graph, cmdData) ->
   return m
 
 responses.NodesConnected = (componentLib, graph, cmdData) ->
-  # TODO: implement
+  srcNode = nodeNameById(graph.nodeMap, cmdData.readUInt8(1))
+  srcPort = componentLib.outputPortById(nodeLookup(graph, srcNode).component, cmdData.readUInt8(2)).name
+  targetNode = nodeNameById(graph.nodeMap, cmdData.readUInt8(3))
+  targetPort = componentLib.inputPortById(nodeLookup(graph, targetNode).component, cmdData.readUInt8(4)).name
   m =
     protocol: 'graph'
     command: 'addedge'
     payload:
       graph: graph.name
       src:
-        node: null
-        port: null
+        node: srcNode
+        port: srcPort
       tgt:
-        node: null
-        port: null
-  return undefined
+        node: targetNode
+        port: targetPort
+  return m
+
 responses.NodesDisconnected = (componentLib, graph, cmdData) ->
-  # TODO: implement
+  srcNode = nodeNameById(graph.nodeMap, cmdData.readUInt8(1))
+  srcPort = componentLib.outputPortById(nodeLookup(graph, srcNode).component, cmdData.readUInt8(2)).name
+  targetNode = nodeNameById(graph.nodeMap, cmdData.readUInt8(3))
+  targetPort = componentLib.inputPortById(nodeLookup(graph, targetNode).component, cmdData.readUInt8(4)).name
   m =
     protocol: 'graph'
     command: 'removeedge'
     payload:
       graph: graph.name
       src:
-        node: null
-        port: null
+        node: srcNode
+        port: srcPort
       tgt:
-        node: null
-        port: null
-  return undefined
+        node: targetNode
+        port: targetPort
+  return m
 
 responses.PacketSent = (componentLib, graph, cmdData) ->
   srcNode = nodeNameById(graph.nodeMap, cmdData.readUInt8(1))
