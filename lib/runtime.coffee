@@ -193,6 +193,7 @@ handleComponentCommand = (command, payload, connection, runtime) ->
     return
 
 sendAck = (connection, msg) ->
+    delete msg.payload.secret
     connection.send msg
 
 handleGraphCommand = (command, payload, connection, runtime) ->
