@@ -58,8 +58,8 @@ getSerial = (serialPortToUse, baudRate, cb) ->
         return cb new Error "No serial port found" if err
 
       ports = ports.map (item) -> item.comName
-      console.log 'Available serial ports: ', ports
       console.log 'Using port: ' + portName
+      console.log 'Available serial ports: ', JSON.stringify(ports, null, null)
       serial = new SerialPort portName, { baudrate: baudRate }, (err) ->
           return cb err, serial
 
