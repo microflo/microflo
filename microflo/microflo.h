@@ -37,7 +37,6 @@ const int MICROFLO_MAX_MESSAGES = 50;
 #define MICROFLO_ENABLE_DEBUG
 #endif
 
-
 #ifdef MICROFLO_ENABLE_DEBUG
 
 #define MICROFLO_DEBUG(handler, level, code) \
@@ -49,22 +48,7 @@ do { \
 do { \
     if (!(assertion)) { \
         microflo_debug(handler, level, code); \
-    } \
-} while(0)
-
-#define MICROFLO_RETURN_IF_FAIL(assertion, handler, level, code) \
-do { \
-    if (!(assertion)) { \
-        microflo_debug(handler, level, code); \
         return; \
-    } \
-} while(0)
-
-#define MICROFLO_RETURN_VAL_IF_FAIL(assertion, retval, handler, level, code) \
-do { \
-    if (!(assertion)) { \
-        microflo_debug(handler, level, code); \
-        return retval; \
     } \
 } while(0)
 
@@ -72,10 +56,6 @@ do { \
 #define MICROFLO_DEBUG(handler, level, code) \
 
 #define MICROFLO_ASSERT(assertion, handler, level, code) \
-
-#define MICROFLO_RETURN_IF_FAIL(assertion, handler, level, code) \
-
-#define MICROFLO_RETURN_VAL_IF_FAIL(assertion, retval, handler, level, code) \
 
 #endif
 
@@ -97,12 +77,20 @@ do { \
 #endif
 
 
+#define MICROFLO_RETURN_VAL_IF_FAIL(assertion, retval) \
+do { \
+    if (!(assertion)) { \
+        return retval; \
+    } \
+} while(0)
+
 namespace MicroFlo {
     typedef uint8_t NodeId;
     typedef int8_t PortId;
     typedef uint8_t ComponentId;
     typedef int8_t PinId;
     typedef int8_t PointerType;
+    typedef int8_t Error;
 
     // This must match the ID in "microflo/components.json"
     const ComponentId IdSubGraph = 100;
@@ -194,7 +182,6 @@ class MessageQueue;
 class DebugHandler {
 public:
     virtual void emitDebug(DebugLevel level, DebugId id) = 0;
-    virtual void debugChanged(DebugLevel level) = 0;
 };
 
 
@@ -218,41 +205,41 @@ public:
 public:
     Network(IO *io, MessageQueue *m);
 
-    void clearNodes();
+    MicroFlo::Error clearNodes();
 
-    void start();
-    void stop();
+    MicroFlo::Error start();
+    MicroFlo::Error stop();
     State currentState() { return state; }
 
     MicroFlo::NodeId addNode(Component *node, MicroFlo::NodeId parentId);
     MicroFlo::NodeId removeNode(MicroFlo::NodeId nodeId);
 
     // Connect an outport of one node, to the inport of another node
-    void connect(Component *src, MicroFlo::PortId srcPort,
+    MicroFlo::Error connect(Component *src, MicroFlo::PortId srcPort,
                  Component *target, MicroFlo::PortId targetPort);
-    void connect(MicroFlo::NodeId srcId, MicroFlo::PortId srcPort,
+    MicroFlo::Error connect(MicroFlo::NodeId srcId, MicroFlo::PortId srcPort,
                  MicroFlo::NodeId targetId, MicroFlo::PortId targetPort);
     // Disconnect
-    void disconnect(Component *src, MicroFlo::PortId srcPort,
+    MicroFlo::Error disconnect(Component *src, MicroFlo::PortId srcPort,
                  Component *target, MicroFlo::PortId targetPort);
-    void disconnect(MicroFlo::NodeId srcId, MicroFlo::PortId srcPort,
+    MicroFlo::Error disconnect(MicroFlo::NodeId srcId, MicroFlo::PortId srcPort,
                  MicroFlo::NodeId targetId, MicroFlo::PortId targetPort);
 
-    void connectSubgraph(bool isOutput,
+    MicroFlo::Error connectSubgraph(bool isOutput,
                          MicroFlo::NodeId subgraphNode, MicroFlo::PortId subgraphPort,
                          MicroFlo::NodeId childNode, MicroFlo::PortId childPort);
 
-    void sendMessageFrom(Component *sender, MicroFlo::PortId senderPort, const Packet &pkg);
-    void sendMessageTo(MicroFlo::NodeId targetId, MicroFlo::PortId targetPort, const Packet &pkg);
+    MicroFlo::Error sendMessageFrom(Component *sender, MicroFlo::PortId senderPort, const Packet &pkg);
+    MicroFlo::Error sendMessageTo(MicroFlo::NodeId targetId, MicroFlo::PortId targetPort, const Packet &pkg);
 
-    void subscribeToPort(MicroFlo::NodeId nodeId, MicroFlo::PortId portId, bool enable);
+    MicroFlo::Error subscribeToPort(MicroFlo::NodeId nodeId, MicroFlo::PortId portId, bool enable);
+
+    MicroFlo::Error setIoValue(const uint8_t *buf, uint8_t len);
+
 
     void setNotificationHandler(NetworkNotificationHandler *handler);
 
     void runTick();
-
-    void setDebugLevel(DebugLevel level);
-    void setIoValue(const uint8_t *buf, uint8_t len);
 
 private:
     void distributePacket(const Packet &packet, MicroFlo::PortId port);
@@ -275,21 +262,6 @@ private:
 class NetworkNotificationHandler : public DebugHandler {
 public:
     virtual void packetSent(const Message &m, const Component *sender, MicroFlo::PortId senderPort) = 0;
-
-    virtual void nodeAdded(Component *c, MicroFlo::NodeId parentId) = 0;
-    virtual void nodeRemoved(Component *c, MicroFlo::NodeId parentId) = 0;
-
-    virtual void nodesConnected(Component *src, MicroFlo::PortId srcPort,
-                                Component *target, MicroFlo::PortId targetPort) = 0;
-    virtual void nodesDisconnected(Component *src, MicroFlo::PortId srcPort,
-                                Component *target, MicroFlo::PortId targetPort) = 0;
-
-    virtual void networkStateChanged(Network::State s) = 0;
-    virtual void subgraphConnected(bool isOutput,
-                                   MicroFlo::NodeId subgraphNode, MicroFlo::PortId subgraphPort,
-                                   MicroFlo::NodeId childNode, MicroFlo::PortId childPort) = 0;
-
-    virtual void portSubscriptionChanged(MicroFlo::NodeId nodeId, MicroFlo::PortId portId, bool enable) = 0;
 };
 
 #ifdef MICROFLO_ENABLE_DEBUG
@@ -555,23 +527,14 @@ public:
 
     // Implements NetworkNotificationHandler
     virtual void packetSent(const Message &m, const Component *src, MicroFlo::PortId senderPort);
-    virtual void nodeAdded(Component *c, MicroFlo::NodeId parentId);
-    virtual void nodeRemoved(Component *c, MicroFlo::NodeId parentId);
 
-    virtual void nodesConnected(Component *src, MicroFlo::PortId srcPort,
-                                Component *target, MicroFlo::PortId targetPort);
-    virtual void nodesDisconnected(Component *src, MicroFlo::PortId srcPort,
-                                Component *target, MicroFlo::PortId targetPort);
-
-    virtual void networkStateChanged(Network::State s);
+    // Implements DebugHandler
     virtual void emitDebug(DebugLevel level, DebugId id);
-    virtual void debugChanged(DebugLevel level);
-    virtual void portSubscriptionChanged(MicroFlo::NodeId nodeId, MicroFlo::PortId portId, bool enable);
-    virtual void subgraphConnected(bool isOutput, MicroFlo::NodeId subgraphNode,
-                                   MicroFlo::PortId subgraphPort, MicroFlo::NodeId childNode, MicroFlo::PortId childPort);
 
 private:
     void parseCmd();
+    void respondStartStop();
+
 private:
     enum State {
         Invalid = -1,
