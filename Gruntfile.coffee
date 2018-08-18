@@ -98,11 +98,8 @@ module.exports = ->
 
 
   # Grunt plugins used for building
-  @loadNpmTasks 'grunt-zip'
   @loadNpmTasks 'grunt-contrib-coffee'
   @loadNpmTasks 'grunt-contrib-copy'
-  @loadNpmTasks 'grunt-contrib-compress'
-  @loadNpmTasks 'grunt-contrib-clean'
   @loadNpmTasks 'grunt-webpack'
 
   # Grunt plugins used for testing
