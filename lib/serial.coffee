@@ -60,7 +60,7 @@ getSerial = (serialPortToUse, baudRate, cb) ->
       ports = ports.map (item) -> item.comName
       console.log 'Using port: ' + portName
       console.log 'Available serial ports: ', JSON.stringify(ports, null, null)
-      serial = new SerialPort portName, { baudrate: baudRate }, (err) ->
+      serial = new SerialPort portName, { baudRate: baudRate }, (err) ->
           return cb err, serial
 
       serial.getTransportType = ->
