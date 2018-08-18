@@ -9,6 +9,7 @@
 // XXX: Hack, generated component factory is currently needed
 Component *
 createComponent(unsigned char) {
+    return NULL;
 }
 
 int
