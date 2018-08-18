@@ -19,7 +19,6 @@
 #endif
 
 
-static const char MICROFLO_GRAPH_MAGIC[] = { 'u','C','/','F','l','o', '0', '1' };
 
 bool Packet::asBool() const {
     if (msg == MsgVoid) {

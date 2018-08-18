@@ -15,15 +15,17 @@ else
   microflo = require('microflo/lib/microflo')
 fbp = require('fbp')
 
+commandSize = 10
+
 assertStreamsEqual = (actual, expected) ->
   chai.expect(actual.length).to.equal expected.length
-  chai.expect(actual.length % 8).to.equal 0
+  chai.expect(actual.length % commandSize).to.equal 0
   i = 0
   while i < actual.length
-    a = actual.slice(i, i + 8).toJSON().toString()
-    e = expected.slice(i, i + 8).toJSON().toString()
-    chai.expect(a).to.equal e, 'Command ' + i / 8 + ' : ' + a + ' != ' + e
-    i += 8
+    a = actual.slice(i, i + commandSize).toJSON().toString()
+    e = expected.slice(i, i + commandSize).toJSON().toString()
+    chai.expect(a).to.equal e, 'Command ' + i / commandSize + ' : ' + a + ' != ' + e
+    i += commandSize
   return
 
 describe 'Commandstream generation', ->
@@ -34,13 +36,16 @@ describe 'Commandstream generation', ->
     componentLib.addComponent 'SerialOut', {}, 'Components.hpp'
     input = 'in(SerialIn) OUT -> IN f(Forward) OUT -> IN out(SerialOut)'
     expect = commandstream.Buffer([
-                       10,0,0,0,0,0,0,0,
-                       22,0,0,0,0,0,0,0,
-                       15,1,0,0,0,0,0,0,
-                       11,1,0,0,0,0,0,0,
-                       11,2,0,0,0,0,0,0, 11,3,0,0,0,0,0,0,
-                       12,1,2,0,0,0,0,0, 12,2,3,0,0,0,0,0,
-                       20,0,0,0,0,0,0,0 ])
+                       10,0,0,0,0,0,0,0,0,0,
+                       22,0,0,0,0,0,0,0,0,0,
+                       15,1,0,0,0,0,0,0,0,0,
+                       11,1,0,0,0,0,0,0,0,0,
+                       11,2,0,0,0,0,0,0,0,0,
+                       11,3,0,0,0,0,0,0,0,0,
+                       12,1,2,0,0,0,0,0,0,0,
+                       12,2,3,0,0,0,0,0,0,0,
+                       20,0,0,0,0,0,0,0,0,0,
+    ])
     it 'parsing should give known valid output', ->
       out = commandstream.cmdStreamFromGraph(componentLib, fbp.parse(input))
       assertStreamsEqual out, expect

@@ -1,6 +1,6 @@
 {
-    "magicString": "uC/Flo01",
-    "commandSize": 8,
+    "magicString": "microflo01",
+    "commandSize": 10,
     "commands": {
         "ClearNodes": {"id": 10},
         "CreateComponent": {"id": 11},

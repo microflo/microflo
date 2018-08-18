@@ -541,7 +541,8 @@ private:
 // Graph format
 #include <stddef.h>
 
-const size_t MICROFLO_CMD_SIZE = 1 + 7; // cmd + payload
+const size_t MICROFLO_CMD_SIZE = 10;
+static const char MICROFLO_GRAPH_MAGIC[MICROFLO_CMD_SIZE] = {'m','i','c','r','o','f', 'l', 'o', '0', '1' };
 
 class HostTransport;
 
