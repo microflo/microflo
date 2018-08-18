@@ -518,6 +518,16 @@ responses.SendPacketDone = (componentLib, graph) ->
       graph: graph.name
       payload: {} # FIXME
   return m
+responses.Error = (componentLib, graph, cmdData) ->
+  errorCode = cmdData.readUInt8(1)
+  m =
+    protocol: 'microflo'
+    command: 'error'
+    payload:
+      error: errorCode
+      message: 'error' #FIXME: lookup error message
+
+  return m
 
 buildResponseMapping = () ->
   mapping = {}

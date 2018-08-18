@@ -29,6 +29,7 @@
         "PortSubscriptionChanged": {"id": 107},
         "SubgraphPortConnected": {"id": 108},
         "Pong": {"id": 109},
+        "Error": {"id": 110},
 
         "TransmissionEnded": {"id": 111},
         "SetIoValueCompleted":  {"id": 112},
