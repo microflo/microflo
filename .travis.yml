@@ -2,7 +2,7 @@ language: node_js
 sudo: false
 dist: trusty
 node_js:
-- '6'
+- 'lts/*'
 addons:
   apt:
     packages:
