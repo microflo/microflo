@@ -218,13 +218,13 @@ void HostCommunication::parseCmd() {
         Component *c = createComponent(componentId);
         MICROFLO_DEBUG(this, DebugLevelDetailed, DebugComponentCreateEnd);
 
-        network->addNode(c, parentId);
+        CHECK_ERROR(network->addNode(c, parentId, NULL));
         const uint8_t cmd[] = { GraphCmdNodeAdded, c->component(), c->id(), parentId };
         transport->sendCommand(cmd, sizeof(cmd));
 
     } else if (cmd == GraphCmdRemoveNode) {
         const MicroFlo::NodeId nodeId = buffer[1];
-        network->removeNode(nodeId);
+        CHECK_ERROR(network->removeNode(nodeId));
         const uint8_t cmd[] = { GraphCmdNodeRemoved, nodeId };
         transport->sendCommand(cmd, sizeof(cmd));
 
@@ -506,10 +506,9 @@ MicroFlo::Error Network::disconnect(Component *src, MicroFlo::PortId srcPort,
     return 0;
 }
 
-MicroFlo::NodeId Network::addNode(Component *node, MicroFlo::NodeId parentId) {
-    MICROFLO_RETURN_VAL_IF_FAIL(node, 0); // DebugAddNodeInvalidInstance
-
-    MICROFLO_RETURN_VAL_IF_FAIL(parentId <= lastAddedNodeIndex, 0); // DebugAddNodeInvalidParent
+MicroFlo::Error Network::addNode(Component *node, MicroFlo::NodeId parentId, MicroFlo::NodeId *out_id) {
+    MICROFLO_RETURN_VAL_IF_FAIL(node, DebugAddNodeInvalidInstance);
+    MICROFLO_RETURN_VAL_IF_FAIL(parentId <= lastAddedNodeIndex, DebugAddNodeInvalidParent);
 
     const int nodeId = lastAddedNodeIndex;
     nodes[nodeId] = node;
@@ -519,18 +518,21 @@ MicroFlo::NodeId Network::addNode(Component *node, MicroFlo::NodeId parentId) {
     }
 
     lastAddedNodeIndex++;
-    return nodeId;
+    if (out_id) {
+        *out_id = nodeId;
+    }
+    return MICROFLO_OK;
 }
 
-MicroFlo::NodeId Network::removeNode(MicroFlo::NodeId nodeId) {
-    MICROFLO_RETURN_VAL_IF_FAIL(nodeId <= lastAddedNodeIndex, 0); // DebugRemoveNodeInvalidInstance
+MicroFlo::Error Network::removeNode(MicroFlo::NodeId nodeId) {
+    MICROFLO_RETURN_VAL_IF_FAIL(nodeId <= lastAddedNodeIndex, DebugRemoveNodeInvalidInstance);
     Component *node = nodes[nodeId];
-    MICROFLO_RETURN_VAL_IF_FAIL(node, 0); // DebugRemoveNodeInvalidInstance
+    MICROFLO_RETURN_VAL_IF_FAIL(node, DebugRemoveNodeInvalidInstance);
 
-    delete node; // after notification, so it can refer it
+    delete node;
     nodes[nodeId] = 0;
 
-    return nodeId;
+    return MICROFLO_OK;
 }
 
 MicroFlo::Error Network::clearNodes() {

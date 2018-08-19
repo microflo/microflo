@@ -96,6 +96,8 @@ namespace MicroFlo {
     const ComponentId IdSubGraph = 100;
 }
 
+static const MicroFlo::Error MICROFLO_OK = 0;
+
 namespace Components {
     class SubGraph;
     class DummyComponent;
@@ -205,14 +207,13 @@ public:
 public:
     Network(IO *io, MessageQueue *m);
 
-    MicroFlo::Error clearNodes();
-
+    State currentState() { return state; }
     MicroFlo::Error start();
     MicroFlo::Error stop();
-    State currentState() { return state; }
 
-    MicroFlo::NodeId addNode(Component *node, MicroFlo::NodeId parentId);
-    MicroFlo::NodeId removeNode(MicroFlo::NodeId nodeId);
+    MicroFlo::Error clearNodes();
+    MicroFlo::Error addNode(Component *node, MicroFlo::NodeId parentId, MicroFlo::NodeId *out_id);
+    MicroFlo::Error removeNode(MicroFlo::NodeId nodeId);
 
     // Connect an outport of one node, to the inport of another node
     MicroFlo::Error connect(Component *src, MicroFlo::PortId srcPort,
