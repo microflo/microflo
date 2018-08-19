@@ -515,7 +515,7 @@ private:
 #include <stddef.h>
 
 const size_t MICROFLO_CMD_SIZE = 10;
-static const char MICROFLO_GRAPH_MAGIC[MICROFLO_CMD_SIZE] = {'m','i','c','r','o','f', 'l', 'o', '0', '1' };
+static const char MICROFLO_GRAPH_MAGIC[MICROFLO_CMD_SIZE-1] = {'m','i','c','r','o','f', 'l', 'o', '1' };
 
 class HostTransport;
 
@@ -534,7 +534,8 @@ public:
 
 private:
     void parseCmd();
-    void respondStartStop();
+void respondStartStop(uint8_t requestId);
+    bool checkRespondMagic();
 
 private:
     enum State {

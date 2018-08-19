@@ -79,6 +79,17 @@ void HostCommunication::setup(Network *net, HostTransport *t) {
     network->setNotificationHandler(this);
 }
 
+bool HostCommunication::checkRespondMagic() {
+
+    const bool matches = memcmp(buffer, MICROFLO_GRAPH_MAGIC, sizeof(MICROFLO_GRAPH_MAGIC)) == 0;
+    const uint8_t requestId = buffer[MICROFLO_CMD_SIZE-1];
+    if (matches) {
+        MICROFLO_DEBUG(this, DebugLevelDetailed, DebugMagicMatched);
+        const uint8_t cmd[] = { requestId, GraphCmdCommunicationOpen };
+        transport->sendCommand(cmd, sizeof(cmd));
+    }
+    return matches;
+}
 
 void HostCommunication::parseByte(char b) {
 
@@ -86,12 +97,8 @@ void HostCommunication::parseByte(char b) {
 
     if (state == ParseHeader) {
         MICROFLO_DEBUG(this, DebugLevelVeryDetailed, DebugParseHeader);
-        if (currentByte == sizeof(MICROFLO_GRAPH_MAGIC)) {
-
-            if (memcmp(buffer, MICROFLO_GRAPH_MAGIC, sizeof(MICROFLO_GRAPH_MAGIC)) == 0) {
-                MICROFLO_DEBUG(this, DebugLevelDetailed, DebugMagicMatched);
-                const uint8_t cmd[] = { GraphCmdCommunicationOpen };
-                transport->sendCommand(cmd, sizeof(cmd));
+        if (currentByte == MICROFLO_CMD_SIZE) {
+            if (checkRespondMagic()) {
                 state = ParseCmd;
             } else {
                 MICROFLO_DEBUG(this, DebugLevelError, DebugMagicMismatch);
@@ -102,10 +109,7 @@ void HostCommunication::parseByte(char b) {
     } else if (state == ParseCmd) {
         MICROFLO_DEBUG(this, DebugLevelVeryDetailed, DebugParseCommand);
         if (currentByte == MICROFLO_CMD_SIZE) {
-            if (memcmp(buffer, MICROFLO_GRAPH_MAGIC, sizeof(MICROFLO_GRAPH_MAGIC)) == 0) {
-                MICROFLO_DEBUG(this, DebugLevelDetailed, DebugMagicMatched);
-                const uint8_t cmd[] = { GraphCmdCommunicationOpen };
-                transport->sendCommand(cmd, sizeof(cmd));
+            if (checkRespondMagic()) {
                 // already in ParseCmd state
             } else {
                 parseCmd();
@@ -135,37 +139,38 @@ void HostCommunication::parseByte(char b) {
     }
 }
 
-void HostCommunication::respondStartStop() {
+void HostCommunication::respondStartStop(uint8_t requestId) {
     const Network::State state = network->currentState();
-    uint8_t cmd;
+    uint8_t status;
     if (state == Network::Running) {
-        cmd = GraphCmdNetworkStarted;
+        status = GraphCmdNetworkStarted;
     } else if (state == Network::Stopped) {
-        cmd = GraphCmdNetworkStopped;
+        status = GraphCmdNetworkStopped;
     }
-    transport->sendCommand((uint8_t *)&cmd, 1);
+    uint8_t cmd[] = { requestId, status };
+    transport->sendCommand(cmd, sizeof(cmd));
 }
 
 
-Packet parsePacket(uint8_t *buffer) {
-    // XXX: buffer must be a full command
+int32_t readInt32(const uint8_t data[4]) {
+    // FIXME: take endianness into account
+    return data[0] + ((int32_t)(data[1])<<8) + ((int32_t)(data[2])<<16) + ((int32_t)(data[3])<<24);
+}
 
+Packet parsePacket(const uint8_t *data) {
     Packet p;
-    const Msg packetType = (Msg)buffer[3];
+    const Msg packetType = (Msg)data[0];
 
-    if (packetType == MsgBracketStart || packetType == MsgBracketEnd
-            || packetType == MsgVoid) {
+    if (packetType == MsgBracketStart || packetType == MsgBracketEnd || packetType == MsgVoid) {
         p = Packet(packetType);
     } else if (packetType == MsgInteger) {
-        // TODO: move into readInt32 function, take endianness into account
-        const long val = buffer[4] + ((long)(buffer[5])<<8) + ((long)(buffer[6])<<16) + ((long)(buffer[7])<<24);
-        p = Packet(val);
+        p = Packet((long)readInt32(data+1));
     } else if (packetType == MsgByte) {
-        p = Packet(buffer[4]);
+        p = Packet(data[1]);
     } else if (packetType == MsgBoolean) {
-        p = Packet(!(buffer[4] == 0));
+        p = Packet(!(data[1] == 0));
     } else if (packetType == MsgError) {
-        p = Packet((Error)(buffer[4]));
+        p = Packet((Error)(data[1]));
     }
     return p;
 }
@@ -174,7 +179,7 @@ Packet parsePacket(uint8_t *buffer) {
 do { \
     const MicroFlo::Error e = (expr);\
     if (e != 0) { \
-        const uint8_t err[] = { GraphCmdError, (uint8_t)e }; \
+        const uint8_t err[] = { requestId, GraphCmdError, (uint8_t)e }; \
         transport->sendCommand(err, sizeof(err)); \
         return; \
     } \
@@ -182,114 +187,117 @@ do { \
 
 void HostCommunication::parseCmd() {
 
-    // TODO: support requestId,responseTo
-    // FIXME: check errors
+    const uint8_t requestId = buffer[0];
+    const GraphCmd cmd = (GraphCmd)buffer[1];
+    const unsigned char *args = buffer+2;
 
-    GraphCmd cmd = (GraphCmd)buffer[0];
     if (cmd == GraphCmdEnd) {
         MICROFLO_DEBUG(this, DebugLevelDetailed, DebugEndOfTransmission);
-        const uint8_t cmd[] = { GraphCmdTransmissionEnded };
-        transport->sendCommand(cmd, sizeof(cmd));
+        const uint8_t response[] = { requestId, GraphCmdTransmissionEnded };
+        transport->sendCommand(response, sizeof(response));
         state = LookForHeader;
 
     } else if (cmd == GraphCmdClearNodes) {
         CHECK_ERROR(network->clearNodes());
-        const uint8_t cmd[] = { GraphCmdNodesCleared };
-        transport->sendCommand(cmd, sizeof(cmd));
+        const uint8_t response[] = { requestId, GraphCmdNodesCleared };
+        transport->sendCommand(response, sizeof(response));
 
     } else if (cmd == GraphCmdStopNetwork) {
         CHECK_ERROR(network->stop());
-        respondStartStop();
+        respondStartStop(requestId);
 
     } else if (cmd == GraphCmdStartNetwork) {
         CHECK_ERROR(network->start());
-        respondStartStop();
+        respondStartStop(requestId);
 
     } else if (cmd == GraphCmdGetNetworkStatus) {
         const uint8_t running = network->currentState() == Network::Running ? 1 : 0;
-        const uint8_t cmd[] = { GraphCmdNetworkStatus, running };
-        transport->sendCommand(cmd, sizeof(cmd));
+        const uint8_t response[] = { requestId, GraphCmdNetworkStatus, running };
+        transport->sendCommand(response, sizeof(response));
 
     } else if (cmd == GraphCmdCreateComponent) {
-        const MicroFlo::ComponentId componentId = (MicroFlo::ComponentId)buffer[1];
-        const MicroFlo::NodeId parentId = buffer[2];
+        const MicroFlo::ComponentId componentId = (MicroFlo::ComponentId)args[0];
+        const MicroFlo::NodeId parentId = args[1];
 
         MICROFLO_DEBUG(this, DebugLevelDetailed, DebugComponentCreateStart);
         Component *c = createComponent(componentId);
         MICROFLO_DEBUG(this, DebugLevelDetailed, DebugComponentCreateEnd);
 
         CHECK_ERROR(network->addNode(c, parentId, NULL));
-        const uint8_t cmd[] = { GraphCmdNodeAdded, c->component(), c->id(), parentId };
-        transport->sendCommand(cmd, sizeof(cmd));
+        const uint8_t response[] = { requestId, GraphCmdNodeAdded, c->component(), c->id(), parentId };
+        transport->sendCommand(response, sizeof(response));
 
     } else if (cmd == GraphCmdRemoveNode) {
-        const MicroFlo::NodeId nodeId = buffer[1];
+        const MicroFlo::NodeId nodeId = args[0];
         CHECK_ERROR(network->removeNode(nodeId));
-        const uint8_t cmd[] = { GraphCmdNodeRemoved, nodeId };
-        transport->sendCommand(cmd, sizeof(cmd));
+        const uint8_t response[] = { requestId, GraphCmdNodeRemoved, nodeId };
+        transport->sendCommand(response, sizeof(response));
 
     } else if (cmd == GraphCmdConnectNodes) {
-        const MicroFlo::NodeId srcId = buffer[1];
-        const MicroFlo::NodeId targetId = buffer[2];
-        const MicroFlo::PortId srcPort = buffer[3];
-        const MicroFlo::PortId targetPort = buffer[4];
+        const MicroFlo::NodeId srcId = args[0];
+        const MicroFlo::NodeId targetId = args[1];
+        const MicroFlo::PortId srcPort = args[2];
+        const MicroFlo::PortId targetPort = args[3];
         MICROFLO_DEBUG(this, DebugLevelDetailed, DebugConnectNodesStart);
         CHECK_ERROR(network->connect(srcId, srcPort, targetId, targetPort));
-        const uint8_t cmd[] = { GraphCmdNodesConnected, srcId, (uint8_t)srcPort, targetId, (uint8_t)targetPort };
-        transport->sendCommand(cmd, sizeof(cmd));
+        const uint8_t response[] = { requestId, GraphCmdNodesConnected,
+                                     srcId, (uint8_t)srcPort, targetId, (uint8_t)targetPort };
+        transport->sendCommand(response, sizeof(response));
 
     } else if (cmd == GraphCmdDisconnectNodes) {
-        const MicroFlo::NodeId srcId = buffer[1];
-        const MicroFlo::NodeId targetId = buffer[2];
-        const MicroFlo::PortId srcPort = buffer[3];
-        const MicroFlo::PortId targetPort = buffer[4];
+        const MicroFlo::NodeId srcId = args[0];
+        const MicroFlo::NodeId targetId = args[1];
+        const MicroFlo::PortId srcPort = args[2];
+        const MicroFlo::PortId targetPort = args[3];
         CHECK_ERROR(network->disconnect(srcId, srcPort, targetId, targetPort));
-        const uint8_t cmd[] = { GraphCmdNodesDisconnected, srcId, (uint8_t)srcPort,
-                            targetId, (uint8_t)targetPort };
-        transport->sendCommand(cmd, sizeof(cmd));
+        const uint8_t response[] = { requestId, GraphCmdNodesDisconnected,
+                                    srcId, (uint8_t)srcPort, targetId, (uint8_t)targetPort };
+        transport->sendCommand(response, sizeof(response));
 
     } else if (cmd == GraphCmdSendPacket) {
-        const Packet pkg = parsePacket(buffer);
-        CHECK_ERROR(network->sendMessageTo(buffer[1], buffer[2], pkg));
-
-        const uint8_t cmd[] = { GraphCmdSendPacketDone, buffer[1], buffer[2], (uint8_t)pkg.type() };
-        transport->sendCommand(cmd, sizeof(cmd));
+        const MicroFlo::NodeId node = args[0];
+        const MicroFlo::PortId port = args[1];
+        const Packet pkg = parsePacket(args+2);
+        CHECK_ERROR(network->sendMessageTo(node, port, pkg));
+        const uint8_t response[] = { requestId, GraphCmdSendPacketDone, node, (uint8_t)port, (uint8_t)pkg.type() };
+        transport->sendCommand(response, sizeof(response));
 
     } else if (cmd == GraphCmdConfigureDebug) {
-        debugLevel = (DebugLevel)buffer[1];
-        const uint8_t cmd[] = { GraphCmdDebugChanged, (uint8_t)debugLevel};
-        transport->sendCommand(cmd, sizeof(cmd));
+        debugLevel = (DebugLevel)args[0];
+        const uint8_t response[] = { requestId, GraphCmdDebugChanged, (uint8_t)debugLevel};
+        transport->sendCommand(response, sizeof(response));
 
     } else if (cmd == GraphCmdSubscribeToPort) {
-        const MicroFlo::NodeId nodeId = buffer[1];
-        const MicroFlo::PortId portId = buffer[2];
-        const bool enable = (bool)buffer[3];
+        const MicroFlo::NodeId nodeId = args[0];
+        const MicroFlo::PortId portId = args[1];
+        const bool enable = (bool)args[2];
         CHECK_ERROR(network->subscribeToPort(nodeId, portId, enable));
-        const uint8_t cmd[] = { GraphCmdPortSubscriptionChanged, nodeId, (uint8_t)portId, enable};
-        transport->sendCommand(cmd, sizeof(cmd));
+        const uint8_t response[] = { requestId, GraphCmdPortSubscriptionChanged, nodeId, (uint8_t)portId, enable};
+        transport->sendCommand(response, sizeof(response));
 
     } else if (cmd == GraphCmdConnectSubgraphPort) {
 #ifdef MICROFLO_ENABLE_SUBGRAPHS
         // FIXME: validate
-        const bool isOutput = (unsigned int)buffer[1];
-        const MicroFlo::NodeId subgraphNode = (unsigned int)buffer[2];
-        const MicroFlo::PortId subgraphPort = (unsigned int)buffer[3];
-        const MicroFlo::NodeId childNode = (unsigned int)buffer[4];
-        const MicroFlo:: PortId childPort = (unsigned int)buffer[5];
+        const bool isOutput = (unsigned int)args[0];
+        const MicroFlo::NodeId subgraphNode = (unsigned int)args[1];
+        const MicroFlo::PortId subgraphPort = (unsigned int)args[2];
+        const MicroFlo::NodeId childNode = (unsigned int)args[3];
+        const MicroFlo:: PortId childPort = (unsigned int)args[4];
         CHECK_ERROR(network->connectSubgraph(isOutput, subgraphNode, subgraphPort, childNode, childPort));
-        const uint8_t cmd[] = { GraphCmdSubgraphPortConnected, isOutput,
-                                subgraphNode, (uint8_t)subgraphPort, childNode, (uint8_t)childPort };
-        transport->sendCommand(cmd, sizeof(cmd));
+        const uint8_t response[] = { requestId, GraphCmdSubgraphPortConnected,
+                isOutput, subgraphNode, (uint8_t)subgraphPort, childNode, (uint8_t)childPort };
+        transport->sendCommand(response, sizeof(response));
 #else
         MICROFLO_DEBUG(this, DebugLevelError, DebugNotSupported);
 #endif
 
     } else if (cmd == GraphCmdPing) {
-        const uint8_t cmd[] = { GraphCmdPong, cmd[1], cmd[2], cmd[3], cmd[4], cmd[5], cmd[6], cmd[7] };
-        transport->sendCommand(cmd, sizeof(cmd));
+        const uint8_t response[] = { requestId, GraphCmdPong,
+                    args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7] };
+        transport->sendCommand(response, sizeof(response));
 
     } else if (cmd == GraphCmdSetIoValue) {
-        network->setIoValue(buffer, MICROFLO_CMD_SIZE);
+        network->setIoValue(args, MICROFLO_CMD_SIZE-2);
 
     } else if (cmd >= GraphCmdInvalid) {
         MICROFLO_ASSERT(memcmp(buffer, MICROFLO_GRAPH_MAGIC, sizeof(MICROFLO_GRAPH_MAGIC)) == 0,
@@ -558,8 +566,8 @@ MicroFlo::Error Network::stop() {
     return MICROFLO_OK;
 }
 
-MicroFlo::Error Network::setIoValue(const uint8_t *buf, uint8_t len) {
-    io->setIoValue(buf, len);
+MicroFlo::Error Network::setIoValue(const uint8_t *args, uint8_t len) {
+    io->setIoValue(args, len);
     return MICROFLO_OK;
 }
 
@@ -607,22 +615,27 @@ void HostCommunication::packetSent(const Message &m, const Component *src, Micro
         return;
     }
 
-    uint8_t cmd[MICROFLO_CMD_SIZE] = { GraphCmdPacketSent, src->id(), (uint8_t)srcPort,
-                                       m.node, (uint8_t)m.port,
-                                       (uint8_t)m.pkg.type(), 0, 0 };
+    uint8_t cmd[MICROFLO_CMD_SIZE] = {
+        0, GraphCmdPacketSent,
+        src->id(), (uint8_t)srcPort, (uint8_t)(m.targetReferred ? 1 : 0),
+        (uint8_t)m.pkg.type(),
+        0, 0, 0, 0 // data, 4 bytes
+    };
+    uint8_t *data = cmd + 6;
 
     if (m.pkg.isData()) {
         if (m.pkg.isBool()) {
-            cmd[6] = m.pkg.asBool();
+            data[0] = m.pkg.asBool();
         } else if (m.pkg.isNumber()){
-            // FIXME: truncates
             // TODO: move into writeInt32 function, take endianness into account
             const int i = m.pkg.asInteger();
-            cmd[6] = i>>0;
-            cmd[7] = i>>8;
+            data[0] = i>>0;
+            data[1] = i>>8;
+            data[2] = i>>16;
+            data[3] = i>>24;
         } else if (m.pkg.isError()) {
-            cmd[6] = (uint8_t)m.pkg.asError();
-        } else if (m.pkg.isVoid()) {
+            data[0] = (uint8_t)m.pkg.asError();
+        } else if (m.pkg.isVoid() || m.pkg.isStartBracket() || m.pkg.isEndBracket()) {
             // Nothing needs doing
         } else {
             // FIXME: support all types
@@ -635,7 +648,7 @@ void HostCommunication::packetSent(const Message &m, const Component *src, Micro
 void HostCommunication::emitDebug(DebugLevel level, DebugId id) {
 #ifdef MICROFLO_ENABLE_DEBUG
     if (level <= debugLevel) {
-        const uint8_t cmd[] = { GraphCmdDebugMessage, (uint8_t)level, (uint8_t)id };
+        const uint8_t cmd[] = { 0, GraphCmdDebugMessage, (uint8_t)level, (uint8_t)id };
         transport->sendCommand(cmd, sizeof(cmd));
     }
 #endif

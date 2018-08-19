@@ -1,6 +1,7 @@
 
 #include "./pointertypes.cpp"
 #include "./errors.cpp"
+#include "./hostcommunication.cpp"
 
 #include <microflo.cpp>
 
@@ -30,6 +31,16 @@ main(int argc, char *argv[]) {
 
     if (test_errors_fails != 0) {
         fprintf(stderr, "\tfailed at %d\n", test_errors_fails);
+        return 1;
+    } else {
+        fprintf(stderr, "\tPASS\n");
+    }
+
+    fprintf(stderr, "test_host_communication():\n");
+    const int test_host_fails = test_host_communication();
+
+    if (test_host_fails != 0) {
+        fprintf(stderr, "\tfailed at %d\n", test_host_fails);
         return 1;
     } else {
         fprintf(stderr, "\tPASS\n");

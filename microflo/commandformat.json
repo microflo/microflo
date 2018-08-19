@@ -1,5 +1,5 @@
 {
-    "magicString": "microflo01",
+    "magicString": "microflo1",
     "commandSize": 10,
     "commands": {
         "ClearNodes": {"id": 10},

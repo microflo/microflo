@@ -56,176 +56,149 @@ class CommandAccumulator extends EventEmitter
         @offset = slush
 
 
-# Rate-limited writing
-# XXX: for some reason when writing without this delay,
-# the first bytes ends up corrupted on microcontroller side
-# FIXME: replace with batching up to N commands, and then wait
-# TODO: Limits should be based on: baudrate + expected receive buffer size
-class SendQueue extends EventEmitter
-    constructor: (commandSize, options) ->
-        super()
-        @commandSize = commandSize
-        @queue = []
-        @current = null
-        @sending = false
-
-        @bytesPerSec = 0
-        @speedo = setInterval =>
-          do @checkBytes
-        , 1000
-        @previousRun = Date.now()
-        @roundTrips = 0
-        @latestRoundTrip = null
-        @roundTripTotal = 0
-
-        @options = options || {}
-        @options.wait = 0 if not @options.wait
-
-    checkBytes: ->
-        unless @bytesPerSec
-          @previousRun = Date.now()
-          return
-        elapsed = (Date.now() - @previousRun) / 1000
-        return unless elapsed
-        perSec = Math.ceil @bytesPerSec / elapsed
-        console.log "MICROFLO #{@options.type}: buffered #{@bytesPerSec} at #{perSec}/sec. Time elapsed: #{Math.ceil(elapsed)}s. #{@queue.length} commands in buffer" if debug_send
-        @bytesPerSec = 0
-        @previousRun = Date.now()
-        return unless @roundTrips
-        console.log "MICROFLO #{@options.type}: made #{@roundTrips} round-trips at average #{Math.ceil(@roundTripTotal / @roundTrips)}ms each. Latest took #{Math.ceil(@latestRoundTrip)}ms" if debug_send
-
-    write: (chunk, callback) ->
-        throw new Error 'SendQueue.write must be implemented by consumer'
-
-    push: (buffer, callback) ->
-        throw new Error "DeviceCommunication.push missing callback" if not callback
-        console.log 'queuing buf', buffer, @queue.length, buffer.length, @sending if debug_comms
-
-        @bytesPerSec += buffer.length
-
-        @queue.push
-            data: buffer
-            callback: callback
-            responses: 0
-        return if @sending
-
-        @sending = true
-        @next()
-
-    next: () ->
-        # console.log 'checking queue for next item', @queue.length
-        if not @queue.length
-            @sending = false
-            return
-
-        # console.log 'popping buff off queue'
-        @current = @queue.shift()
-        chunkSize = commandstream.cmdFormat.commandSize*5
-
-        sendCmd = (dataBuf, index) =>
-            chunk = dataBuf.slice index, index+chunkSize
-            if not chunk.length
-                # Done sending, now waiting for response
-                # FIXME: error if waiting ofr response times out
-                return
-            @current.sent = Date.now()
-            @write chunk, (err, len) =>
-                setTimeout =>
-                    errored = err or len == -1
-                    if not errored and chunk.length and index < dataBuf.length
-                        console.log 'MICROFLO SEND:', chunkSize, chunk, err, len, errored if debug_comms
-                        sendCmd dataBuf, index+=chunkSize
-                , 0
-
-        sendCmd @current.data, 0 if @current?
-
-    onResponse: (cmd) ->
-        return if not @sending
-        # FIXME check new type
-        type = keyFromId commandstream.cmdFormat.commands, cmd.readUInt8 0
-        return if not type
-        return if type in [ 'IoValueChange' , 'DebugMessage', 'PacketSent'] # not responses, self-initiated by runtime
-
-        numberOfCommands = @current.data.length/commandstream.cmdFormat.commandSize
-        @current.responses++
-        # console.log 'checking if enough responses have been made', @current.responses, numberOfCommands
-        if @current.responses == numberOfCommands
-            # console.log 'running sendCommand callback'
-            @current.callback null
-            elapsed = Date.now() - @current.sent
-            @roundTrips++
-            @roundTripTotal += elapsed
-            @latestRoundTrip = elapsed
-            @current = null
-            @next()
-
-
 # Send/receive data from the MicroFlo runtime on-device
 # Takes Buffers filled with with FBCS/commandstream commands and returns the same
 # Any parsing/interpretation of these commands must be done on a higher level
 class DeviceCommunication extends EventEmitter
 
-    constructor: (transport) ->
+    constructor: (@transport, @options={}) ->
         super()
-        @transport = transport
         @accumulator = new CommandAccumulator commandstream.cmdFormat.commandSize
+        @options.timeout = 500 if not @options.timeout? 
 
-        return if not @transport
-        @sender = new SendQueue commandstream.cmdFormat.commandSize,
-          type: @transport.getTransportType()
+        @requestNo = 1 
+        @requests = [] # queue
+        @current = null # in-flight
 
         @transport.on 'data', (buf) =>
             @accumulator.onData buf
         @accumulator.on 'command', (buf) =>
-            @_onCommandReceived buf
-
-        @sender.write = (chunk, cb) =>
-            @transport.write chunk, cb
+            try
+                @_onCommandReceived buf
+            catch e
+                console.error 'MICROFLO RECV ERROR', e
 
     open: (cb) ->
-        # FIXME: move these details into commandstream
         buffer = commandstream.Buffer commandstream.cmdFormat.commandSize
         commandstream.writeString(buffer, 0, commandstream.cmdFormat.magicString);
-        @sendCommands buffer, cb
-    close: (cb) ->
-        buffer = commandstream.Buffer commandstream.cmdFormat.commandSize
-        commandstream.writeCmd buffer, 0, commandstream.cmdFormat.commands.End.id
-        @sendCommands buffer, cb
+        # requestId is at the end in this message
+        requestId = @_makeRequestId()
+        buffer.writeUInt8 requestId, commandstream.cmdFormat.commandSize-1
+        @_sendRequest buffer, requestId, cb
 
     # High-level API
-    ping: (cb) ->
-        # FIXME: move these details into commandstream
+    ping: () ->
         buffer = commandstream.Buffer commandstream.cmdFormat.commandSize
-        commandstream.writeCmd buffer, 0, commandstream.cmdFormat.commands.Ping.id
-        @sendCommands buffer, cb
-    # pong
+        commandstream.commands.microflo.ping {}, buffer, 0
+        return @request buffer
+
+    _makeRequestId: () ->
+        # Issue new ID
+        if @requestNo > 100
+            @requestNo = 1
+        requestId = @requestNo++
+
+        # It should not happen that this requestId still has operations pending
+        # but check just in case
+        old = @requests.findIndex (r) -> r.id == requestId
+        if old >= 0
+            request = @requests.remove old
+            request.finish new Error("Not completed before new request")
+
+        return requestId
+
+    _sendNextRequest: () ->
+        if @current
+            throw new Error("Cannot send next request, @current still pending")
+        if @requests.length == 0
+            return
+
+        @current = @requests.shift()
+        requestId = @current.command.readUInt8 0
+        requestType = @current.command.readUInt8 1
+        console.log 'MICROFLO SEND:', requestId, requestType, @current.command if debug_comms
+        @transport.write @current.command, (err) ->
+            if err
+                @current.finish err
+
+    request: (command, callback) ->
+        # Stamp the command with the requestId
+        requestId = @_makeRequestId()
+        command.writeUInt8 requestId, 0
+        return new Promise (resolve, reject) =>
+            @_sendRequest command, requestId, (err, res) ->
+                return reject err if err
+                return resolve res
+
+    _sendRequest: (command, requestId, callback) ->
+        if command.length != commandstream.cmdFormat.commandSize
+            return callback new Error "request was not a single command. Length: #{command.length}"
+
+        # Complete request
+        callbackAndNext = (err, res) =>
+            return if callback == null # already returned once
+            @current = null
+            @_sendNextRequest()
+            setTimeout () ->
+                return if callback == null # already returned once
+                callback err, res
+                callback = null
+            , 0
+
+        # Handle timeout
+        timeout = @options.timeout
+        setTimeout () ->
+            callbackAndNext new Error("Device did not respond within #{timeout}ms")
+        , timeout
+
+        @requests.push
+            id: requestId
+            command: command
+            finish: callbackAndNext
+        @_sendNextRequest() if not @current
 
     # Send batched
     sendCommands: (buffer, callback) ->
-        timeout = 1000
-        new bluebird.Promise (resolve, reject) =>
-          @sender.push buffer, (err, res) ->
-            return reject err if err
-            return resolve res
-        .timeout timeout, "Device did not respond within #{timeout}ms"
-        .asCallback callback
-        return null
+        @sendMany(buffer).then ((r) -> callback(null, r)), callback
+        return undefined
+
+    sendMany: (buffer, callback) ->
+        cmdSize = commandstream.cmdFormat.commandSize
+        nCommands = Math.floor(buffer.length / cmdSize)
+
+        requests = []
+        for i in [0...nCommands]
+            command = Buffer.from buffer.slice(i*cmdSize, (i+1)*cmdSize)
+            requests.push @request(command)
+        
+        return Promise.all(requests)
 
     # Low-level
-    _onCommandReceived: (buf) ->
-        try
-            console.log 'MICROFLO RECV:', buf.length, buf if debug_comms
-            @_handleCommandReceived null, buf
-        catch err
-            console.log 'MICROFLO RECV ERROR:', buf.length, buf, err if debug_comms
-            @_handleCommandReceived err
+    _onCommandReceived: (cmd) ->
+        responseTo = cmd.readUInt8 0
+        type = keyFromId commandstream.cmdFormat.commands, cmd.readUInt8 1
 
-    _handleCommandReceived: (err, cmd) ->
-        if err
-            @emit 'error', err
+        console.log 'MICROFLO RECV:', responseTo, type, cmd.length, cmd if debug_comms
+
+        # Events are commands that are initiated by the runtime
+        eventTypes = [ 'IoValueChange' , 'DebugMessage', 'PacketSent']
+        isEvent = responseTo == 0
+        if isEvent and type not in eventTypes
+            throw new Error("Event of unexpected type #{type}: #{cmd}" )
+
+        if isEvent
+            @emit 'event', cmd
             return
-        @sender.onResponse cmd
-        @emit 'response', cmd
+
+        # Else it is a response, to a request sent by client
+        if @current.id != responseTo
+            throw new Error("responseId #{responseTo} does not match current request #{@current.id}")
+
+        @current.finish null, cmd
+
+        # Make sure to emit after finish current request
+        @emit 'response', cmd # XXX: should go away, each request handler should take care of own response
+
 
 keyFromId = (map, wantedId) ->
     for name, val of map
@@ -261,7 +234,7 @@ class RemoteIo extends EventEmitter
         c = commandstream.cmdFormat
         buffer = commandstream.Buffer c.commandSize
         # FIXME: effective time change dependent on latency
-        commandstream.writeCmd buffer, 0, c.commands.SetIoValue.id, c.ioTypes.TimeMs.id
+        commandstream.writeCmd buffer, 0, 0, c.commands.SetIoValue.id, c.ioTypes.TimeMs.id
         newTime = @latestState.timeMs+increment
         buffer.writeInt32LE newTime, 2
         # FIXME: assumtes it was set correctly
