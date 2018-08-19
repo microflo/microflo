@@ -438,7 +438,7 @@ MicroFlo::Error Network::sendMessageFrom(Component *sender, MicroFlo::PortId sen
     msg.port = senderPort;
     messageQueue->push(msg);
 
-    return 0;
+    return MICROFLO_OK;
 }
 
 MicroFlo::Error Network::sendMessageTo(MicroFlo::NodeId targetId, MicroFlo::PortId targetPort, const Packet &pkg) {
@@ -452,7 +452,7 @@ MicroFlo::Error Network::sendMessageTo(MicroFlo::NodeId targetId, MicroFlo::Port
     msg.port = targetPort;
     messageQueue->push(msg);
 
-    return 0;
+    return MICROFLO_OK;
 }
 
 void Network::distributePacket(const Packet &packet, MicroFlo::PortId port) {
@@ -489,7 +489,7 @@ MicroFlo::Error Network::connect(MicroFlo::NodeId srcId, MicroFlo::PortId srcPor
 MicroFlo::Error Network::connect(Component *src, MicroFlo::PortId srcPort,
                       Component *target, MicroFlo::PortId targetPort) {
     src->connect(srcPort, target, targetPort);
-    return 0;
+    return MICROFLO_OK;
 }
 
 MicroFlo::Error Network::disconnect(MicroFlo::NodeId srcId, MicroFlo::PortId srcPort,
@@ -503,7 +503,7 @@ MicroFlo::Error Network::disconnect(MicroFlo::NodeId srcId, MicroFlo::PortId src
 MicroFlo::Error Network::disconnect(Component *src, MicroFlo::PortId srcPort,
                       Component *target, MicroFlo::PortId targetPort) {
     src->disconnect(srcPort, target, targetPort);
-    return 0;
+    return MICROFLO_OK;
 }
 
 MicroFlo::Error Network::addNode(Component *node, MicroFlo::NodeId parentId, MicroFlo::NodeId *out_id) {
@@ -545,22 +545,22 @@ MicroFlo::Error Network::clearNodes() {
     }
     lastAddedNodeIndex = Network::firstNodeId;
     messageQueue->clear();
-    return 0;
+    return MICROFLO_OK;
 }
 
 MicroFlo::Error Network::start() {
     state = Running;
-    return 0;
+    return MICROFLO_OK;
 }
 
 MicroFlo::Error Network::stop() {
     state = Stopped;
-    return 0;
+    return MICROFLO_OK;
 }
 
 MicroFlo::Error Network::setIoValue(const uint8_t *buf, uint8_t len) {
     io->setIoValue(buf, len);
-    return 0;
+    return MICROFLO_OK;
 }
 
 MicroFlo::Error Network::subscribeToPort(MicroFlo::NodeId nodeId, MicroFlo::PortId portId, bool enable) {
@@ -573,7 +573,7 @@ MicroFlo::Error Network::subscribeToPort(MicroFlo::NodeId nodeId, MicroFlo::Port
                             DebugSubscribePortInvalidPort);
 
     c->connections[portId].subscribed = enable;
-    return 0;
+    return MICROFLO_OK;
 }
 
 MicroFlo::Error Network::connectSubgraph(bool isOutput,
@@ -598,7 +598,7 @@ MicroFlo::Error Network::connectSubgraph(bool isOutput,
 #else
     MICROFLO_DEBUG(this, DebugLevelError, DebugNotSupported);
 #endif
-    return 0;
+    return MICROFLO_OK;
 }
 
 
