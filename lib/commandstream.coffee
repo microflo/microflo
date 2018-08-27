@@ -37,7 +37,7 @@ writeString = (buf, offset, string) ->
   string.length
 
 writeNewCmd = () ->
-  b = new Buffer cmdFormat.commandSize
+  b = Buffer.alloc cmdFormat.commandSize
   b.fill 0, 0, cmdFormat.commandSize
   args = Array.prototype.slice.call arguments
   args.unshift b, 0
@@ -46,7 +46,7 @@ writeNewCmd = () ->
 
 serializeError = (obj) ->
     info = cmdFormat.errors[obj.error] or cmdFormat.errors['Unknown']
-    b = new Buffer(cmdFormat.commandSize-4)
+    b = Buffer.alloc(cmdFormat.commandSize-4)
     b.fill(0)
     b.writeUInt8 info.id, 0
     return { type: 'Error', data: b }
@@ -145,7 +145,7 @@ serializeCommands = (commands, tgt, tgtPort) ->
   buffers = []
   for cmd in commands
     type = cmdFormat.packetTypes[cmd.type].id
-    header = new Buffer 5
+    header = Buffer.alloc 5
     header.writeUInt8 0 # space for requestId
     header.writeInt8 cmdFormat.commands.SendPacket.id, 1
     header.writeUInt8 tgt, 2
@@ -153,7 +153,7 @@ serializeCommands = (commands, tgt, tgtPort) ->
     header.writeUInt8 type, 4
     data = cmd.data
     if not data
-        data = new Buffer cmdFormat.commandSize-header.length
+        data = Buffer.alloc cmdFormat.commandSize-header.length
         data.fill 0
     buffers.push header
     buffers.push data
