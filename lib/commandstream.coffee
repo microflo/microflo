@@ -52,15 +52,16 @@ serializeError = (obj) ->
     return { type: 'Error', data: b }
 
 serializeData = (literal) ->
+  dataSize = cmdFormat.commandSize-5
   # Null (bang)
   if not literal? or literal == 'null'
-    b = new Buffer(cmdFormat.commandSize-4)
+    b = Buffer.alloc dataSize
     b.fill(0)
     return { type: 'Void', data: b }
   # Integer
   value = parseInt(literal)
   if typeof value == 'number' and value % 1 == 0
-    b = new Buffer(cmdFormat.commandSize-4)
+    b = Buffer.alloc dataSize
     b.fill(0)
     b.writeInt32LE value, 0
     return { type: 'Integer', data: b }
@@ -68,7 +69,7 @@ serializeData = (literal) ->
   isBool = literal == 'true' or literal == 'false'
   value = literal == 'true'
   if isBool
-    b = new Buffer(cmdFormat.commandSize-4)
+    b = Buffer.alloc dataSize
     b.fill(0)
     val = if value then 1 else 0
     b.writeInt8 val, 0
@@ -85,7 +86,7 @@ deserializeData = (buf, offset) ->
     else if type == 'Void'
       data = null
     else if type == 'Integer' or type == 'Float'
-      data = buf.readInt16LE(offset+1) # FIXME: not enough space in PacketSent
+      data = buf.readInt32LE(offset+1)
     else if type == 'Byte'
       data = buf.readUInt8(offset+1)
     else if type == 'Error'
@@ -144,14 +145,15 @@ serializeCommands = (commands, tgt, tgtPort) ->
   buffers = []
   for cmd in commands
     type = cmdFormat.packetTypes[cmd.type].id
-    header = new Buffer 4
-    header.writeInt8 cmdFormat.commands.SendPacket.id, 0
-    header.writeUInt8 tgt, 1
-    header.writeUInt8 tgtPort, 2
-    header.writeUInt8 type, 3
+    header = new Buffer 5
+    header.writeUInt8 0 # space for requestId
+    header.writeInt8 cmdFormat.commands.SendPacket.id, 1
+    header.writeUInt8 tgt, 2
+    header.writeUInt8 tgtPort, 3
+    header.writeUInt8 type, 4
     data = cmd.data
     if not data
-        data = new Buffer cmdFormat.commandSize-4
+        data = new Buffer cmdFormat.commandSize-header.length
         data.fill 0
     buffers.push header
     buffers.push data
@@ -194,7 +196,7 @@ commands.graph.addnode = (payload, buffer, index, componentLib) ->
 
   # Add normal component
   parentId = undefined # subgraph not supported yet
-  index += writeCmd(buffer, index, cmdFormat.commands.CreateComponent.id, comp.id, parentId or 0)
+  index += writeCmd(buffer, index, 0, cmdFormat.commands.CreateComponent.id, comp.id, parentId or 0)
   return index
 
 commands.graph.removenode = (payload, buffer, index, componentLib, nodeMap) ->
@@ -202,7 +204,7 @@ commands.graph.removenode = (payload, buffer, index, componentLib, nodeMap) ->
   nodeId = nodeMap[nodeName].id
 
   # Add normal component
-  index += writeCmd(buffer, index, cmdFormat.commands.RemoveNode.id, nodeId)
+  index += writeCmd(buffer, index, 0, cmdFormat.commands.RemoveNode.id, nodeId)
   return index
 
 commands.graph.addedge = (payload, buffer, index, componentLib, nodeMap, componentMap) ->
@@ -222,7 +224,7 @@ commands.graph.addedge = (payload, buffer, index, componentLib, nodeMap, compone
   if not srcPort?
     throw new Error "Could not find source port #{srcNode}#{srcComponent} #{payload.src.port}"
 
-  index += writeCmd(buffer, index, cmdFormat.commands.ConnectNodes.id, nodeMap[srcNode].id, nodeMap[tgtNode].id, srcPort, tgtPort)  
+  index += writeCmd(buffer, index, 0, cmdFormat.commands.ConnectNodes.id, nodeMap[srcNode].id, nodeMap[tgtNode].id, srcPort, tgtPort)  
   return index
 
 commands.graph.removeedge = (payload, buffer, index, componentLib, nodeMap, componentMap) ->
@@ -242,7 +244,7 @@ commands.graph.removeedge = (payload, buffer, index, componentLib, nodeMap, comp
   if not srcPort?
     throw new Error "Could not find source port #{srcNode}#{srcComponent} #{payload.src.port}"
 
-  index += writeCmd(buffer, index, cmdFormat.commands.DisconnectNodes.id, nodeMap[srcNode].id, nodeMap[tgtNode].id, srcPort, tgtPort)
+  index += writeCmd(buffer, index, 0, cmdFormat.commands.DisconnectNodes.id, nodeMap[srcNode].id, nodeMap[tgtNode].id, srcPort, tgtPort)
   return index
 
 # TODO: support graph.removeinitial
@@ -256,38 +258,43 @@ commands.graph.addinitial = (payload, buffer, index, componentLib, nodeMap, comp
   catch err
     throw new Error "Could not attach IIP: '#{data} -> #{payload.tgt.port} #{tgtNode} : #{err}"
   cmdBuf = dataLiteralToCommand(data, nodeMap[tgtNode].id, tgtPort)
-  index += writeCmd buffer, index, cmdBuf
+  index += writeCmd buffer, index, 0, cmdBuf
   return index
 
 commands.graph.clear = (payload, buffer, index) ->
   # Clear existing graph
-  index += writeCmd(buffer, index, cmdFormat.commands.ClearNodes.id)
+  index += writeCmd(buffer, index, 0, cmdFormat.commands.ClearNodes.id)
   return index
 
 commands.network.start = (payload, buffer, index) ->
-  index += writeCmd(buffer, index, cmdFormat.commands.StartNetwork.id)
+  index += writeCmd(buffer, index, 0, cmdFormat.commands.StartNetwork.id)
   return index
 
 commands.network.stop = (payload, buffer, index) ->
-  index += writeCmd(buffer, index, cmdFormat.commands.StopNetwork.id)
+  index += writeCmd(buffer, index, 0, cmdFormat.commands.StopNetwork.id)
   return index
 
 commands.network.getstatus = (payload, buffer, index) ->
-  index += writeCmd(buffer, index, cmdFormat.commands.GetNetworkStatus.id)
+  index += writeCmd(buffer, index, 0, cmdFormat.commands.GetNetworkStatus.id)
   return index
 
 # The following are MicroFlo specific, not part of FBP runtime protocol
 commands.microflo.configuredebug = (payload, buffer, index) ->
   debugLevel = payload.level
-  index += writeCmd(buffer, index, cmdFormat.commands.ConfigureDebug.id, cmdFormat.debugLevels[debugLevel].id)
+  index += writeCmd(buffer, index, 0, cmdFormat.commands.ConfigureDebug.id, cmdFormat.debugLevels[debugLevel].id)
   return index
 
 commands.microflo.opencommunication = (payload, buffer, index) ->
   index += writeString(buffer, index, cmdFormat.magicString)
+  buffer[index++] = 0 # space for requestId
   return index
 
 commands.microflo.closecommunication = (payload, buffer, index) ->
-  index += writeCmd(buffer, index, cmdFormat.commands.End.id)
+  index += writeCmd(buffer, index, 0, cmdFormat.commands.End.id)
+  return index
+
+commands.microflo.ping = (payload, buffer, index) ->
+  index += writeCmd(buffer, index, 0, cmdFormat.commands.Ping.id)
   return index
 
 # Note: inverse of fromCommand
@@ -301,7 +308,9 @@ toCommandStreamBuffer = (message, componentLib, nodeMap, componentMap, buffer, i
   if not handler?
     throw new Error "Unknown FBP runtime command #{message.command} for protocol #{message.protocol}"
 
-  index = handler message.payload, buffer, index, componentLib, nodeMap, componentMap
+  requestId = message.requestId
+  payload = Object.assign({ request: requestId }, message.payload)
+  index = handler payload, buffer, index, componentLib, nodeMap, componentMap
 
   return index
 
@@ -333,7 +342,7 @@ responses.NodesCleared = (componentLib, graph) ->
       id: graph.name
   return m
 responses.NetworkStatus = (componentLib, graph, cmdData) ->
-  running = cmdData.readUInt8(0) == 1
+  running = cmdData.readUInt8(1) == 1
   m =
     protocol: 'network'
     command: 'status'
@@ -402,9 +411,17 @@ responses.NodesDisconnected = (componentLib, graph, cmdData) ->
 responses.PacketSent = (componentLib, graph, cmdData) ->
   srcNode = nodeNameById(graph.nodeMap, cmdData.readUInt8(1))
   srcPort = componentLib.outputPortById(nodeLookup(graph, srcNode).component, cmdData.readUInt8(2)).name
-  targetNode = nodeNameById(graph.nodeMap, cmdData.readUInt8(3))
-  targetPort = componentLib.inputPortById(nodeLookup(graph, targetNode).component, cmdData.readUInt8(4)).name
-  dataOffset = 5
+  hasTarget = cmdData.readUInt8(3) == 1
+
+  # find target (if any) using the graph connection info
+  tgt = null
+  for edge in graph.connections
+    if edge.src.node == srcNode and edge.src.port == srcPort
+      tgt = edge.tgt 
+  if hasTarget and not tgt
+    throw new Error("Failed to find target connection for Packet")
+
+  dataOffset = 4
   { data, type } = deserializeData cmdData, dataOffset
 
   # Should be mapped to `network:send` on FBP runtime protocol 
@@ -415,9 +432,7 @@ responses.PacketSent = (componentLib, graph, cmdData) ->
       src:
         node: srcNode
         port: srcPort
-      tgt:
-        node: targetNode
-        port: targetPort
+      tgt: tgt
       data: data
       type: type
   return m
@@ -518,6 +533,16 @@ responses.SendPacketDone = (componentLib, graph) ->
       graph: graph.name
       payload: {} # FIXME
   return m
+responses.Error = (componentLib, graph, cmdData) ->
+  errorCode = cmdData.readUInt8(1)
+  m =
+    protocol: 'microflo'
+    command: 'error'
+    payload:
+      error: errorCode
+      message: 'error' #FIXME: lookup error message
+
+  return m
 
 buildResponseMapping = () ->
   mapping = {}
@@ -540,15 +565,16 @@ buildResponseMapping = () ->
 responseFromCommandId = buildResponseMapping()
 
 # Return a list of FBP protocol messages
-fromCommand = (componentLib, graph, cmdData) ->
+fromCommand = (componentLib, graph, command) ->
 
-  if !componentLib
+  if not componentLib
     throw new Error('Missing component library')
-  cmdType = cmdData.readUInt8(0)
+  requestId = command.readUInt8 0
+  cmdType = command.readUInt8(1)
+  cmdData = command.slice(1) # skip requestId
   responseParser = responseFromCommandId[cmdType]
   if typeof responseParser != 'function'
-    console.log 'Unknown/unsupported command received', cmdType, typeof responseParser
-    return
+    throw new Error("Unknown/unsupported command received #{cmdType}")
 
   messages = responseParser componentLib, graph, cmdData
   if not messages?
@@ -627,14 +653,24 @@ buildMappings = (messages) ->
 
 cmdStreamFromGraph = (componentLib, graph, debugLevel, openclose) ->
   debugLevel = debugLevel or 'Error'
-  buffer = new Buffer(10*1024) # FIXME: unhardcode
+  buffer = Buffer.alloc cmdFormat.commandSize*1024 # FIXME: unhardcode
   index = 0
   graphName = 'default'
+  requestId = 1
 
   messages = initialGraphMessages graph, graphName, debugLevel, openclose
   mapping = buildMappings messages
   for message in messages
-    index = toCommandStreamBuffer message, componentLib, mapping.nodes, mapping.components, buffer, index
+    nextIndex = toCommandStreamBuffer message, componentLib, mapping.nodes, mapping.components, buffer, index
+    command = buffer.slice(index, nextIndex)
+    if message.command == 'opencommunication'
+        command.writeUInt8 requestId++, cmdFormat.commandSize-1
+    else
+        command.writeUInt8 requestId++, 0
+    index = nextIndex
+
+  if index % cmdFormat.commandSize != 0
+    throw new Error("Command stream length #{index} is not a multiple of command size")
 
   graph.nodeMap = mapping.nodes # HACK
   buffer = buffer.slice(0, index)

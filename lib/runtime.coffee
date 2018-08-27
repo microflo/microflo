@@ -106,10 +106,6 @@ sendPacketCmd = (runtime, port, event, payload) ->
 
     buffer = commandstream.dataToCommand payload, nodeId, portId
 
-sendPacket = (runtime, port, event, payload) ->
-    buffer = sendPacketCmd runtime, port, event, payload
-    runtime.device.sendCommands buffer, () ->
-        # done
 
 handleRuntimeCommand = (command, payload, connection, runtime) ->
     if command is "getruntime"
@@ -135,19 +131,22 @@ handleRuntimeCommand = (command, payload, connection, runtime) ->
         if runtime.options.id?
           r.id = runtime.options.id
 
-        runtime.device.ping (err) ->
-          if err
-            console.error 'getruntime ping failed', err
-            connection.send { protocol: 'runtime', command: 'error', payload: { message: err.message } }
-            return
+        runtime.device.ping().then () ->
           connection.send
             protocol: "runtime"
             command: "runtime"
             payload: r
-          sendExportedPorts connection, runtime       
+          sendExportedPorts connection, runtime
+        .catch (err) ->
+          console.error 'getruntime ping failed', err
+          connection.send { protocol: 'runtime', command: 'error', payload: { message: err.message } }
+
     else if command is 'packet'
         if payload.event is 'data'
-            sendPacket runtime, payload.port, payload.event, payload.payload
+            buffer = sendPacketCmd runtime, payload.port, payload.event, payload.payload
+            runtime.device.sendCommands buffer, (err) ->
+                # FIXME: send response?
+
     else
         console.log "Unknown FBP runtime command on 'runtime' protocol:", command, payload
     return
@@ -313,12 +312,13 @@ packetSent = (graph, collector, payload) ->
                 payload: data
         messages.push m
 
-    # Sent network:data for edge introspection
-    m =
-        protocol: 'network'
-        command: 'data'
-        payload: payload
-    messages.push m
+    if payload.tgt
+        # Sent network:data for edge introspection
+        m =
+            protocol: 'network'
+            command: 'data'
+            payload: payload
+        messages.push m
 
     return messages
 
@@ -401,7 +401,7 @@ subscribeEdges = (runtime, edges, callback) ->
             srcId = node.id
             srcComp = graph.processes[conn.src.process].component
             srcPort = runtime.library.outputPort(srcComp, conn.src.port).id
-            offset += commandstream.writeCmd buffer, offset,
+            offset += commandstream.writeCmd buffer, offset, 0,
                         cmdFormat.commands.SubscribeToPort.id, srcId, srcPort, 0
         return
     # Subscribe to enabled edges
@@ -409,7 +409,7 @@ subscribeEdges = (runtime, edges, callback) ->
         srcId = graph.nodeMap[edge.src.node].id
         srcComp = graph.processes[edge.src.node].component
         srcPort = runtime.library.outputPort(srcComp, edge.src.port).id
-        offset += commandstream.writeCmd buffer, offset,
+        offset += commandstream.writeCmd buffer, offset, 0,
                     cmdFormat.commands.SubscribeToPort.id, srcId, srcPort, 1
         return
 
@@ -603,6 +603,7 @@ setupSimulator = (file, baudRate, port, debugLevel, ip, callback) ->
             return callback null, runtime
 
 
+
 class Runtime extends EventEmitter
     constructor: (transport, options) ->
         super()
@@ -627,23 +628,33 @@ class Runtime extends EventEmitter
 
         @conn =
             send: (response) =>
-                console.log 'FBP MICROFLO SEND:', response if util.debug_protocol
+                console.log 'FBP SEND:', response if util.debug_protocol
                 @emit 'message', response
 
-        @device.on 'response', (cmd) =>
-            messages = commandstream.fromCommand @library, @graph, cmd
+        @device.on 'event', (cmd) =>
+            messages = @_handleCommand cmd
             if messages.length == 0
-               console.log 'Warning: No FBP mapping for device response', cmd
-            for m in messages
-                converted = mapMessage @graph, @collector, m
-                for c in converted
-                    @conn.send c
+               console.log 'Warning: No FBP mapping for FBCS event', cmd
+
+        # FIXME: remove when all requests handle their own responses
+        @device.on 'response', (cmd) =>
+            messages = @_handleCommand cmd
+            if messages.length == 0
+               console.log 'Warning: No FBP mapping for FBCS response', cmd
+
+    _handleCommand: (cmd) =>
+        messages = commandstream.fromCommand @library, @graph, cmd
+        for m in messages
+            converted = mapMessage @graph, @collector, m
+            for c in converted
+                @conn.send c
+        return messages
 
     liveUrl: () ->
         return liveUrl @options
 
     handleMessage: (msg) ->
-        console.log 'FBP MICROFLO RECV:', msg if util.debug_protocol
+        console.log 'FBP RECV:', msg if util.debug_protocol
         handleMessage @, msg
 
     uploadGraph: (graph, callback) ->
