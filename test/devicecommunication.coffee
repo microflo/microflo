@@ -72,31 +72,27 @@ describe 'DeviceCommunication', ->
 
   describe 'open()', ->
     describe 'without response', ->
-      it 'should give timeout', (done) ->
-        device.open (err, res) ->
+      it 'should give timeout', () ->
+        device.open().catch (err) ->
           chai.expect(err.message).to.contain 'did not respond'
-          return done()
 
     describe 'with success', ->
-      it 'should return response', (done) ->
+      it 'should return response', () ->
         transport.onRequest = (request) ->
           r = openResp request
           transport.fromDevice r
 
-        device.open (err, res) ->
-          chai.expect(err).to.be.null
-          return done()
+        return device.open()
 
   describe 'ping()', ->
-    it 'should return pong', (done) ->
-        transport.onRequest = (request) ->
-          r = openResp request
-          r = pingResponse(request) if not r
-          transport.fromDevice r
+    it 'should return pong', () ->
+      transport.onRequest = (request) ->
+        r = openResp request
+        r = pingResponse(request) if not r
+        transport.fromDevice r
 
-        device.open (err, res) ->
-          chai.expect(err).to.be.null
-          device.ping().then(((r) -> done(null)), done)
+      device.open().then (res) ->
+        return device.ping()
 
   describe 'sendCommands', ->
     describe 'with one command', ->
@@ -108,12 +104,13 @@ describe 'DeviceCommunication', ->
 
         req = Buffer.alloc cmdFormat.commandSize
         commandstream.commands.graph.clear {}, req, 0
-        device.open (err, res) ->
-          chai.expect(err).to.be.null
+        device.open().then (res) ->
           device.sendCommands req, (err, res) ->
             chai.expect(err).to.be.null
             chai.expect(res).to.have.length 1
             return done()
+        .catch done
+        return null
 
     describe 'with multiple commands', ->
       it 'should return responses', (done) ->
@@ -135,11 +132,12 @@ describe 'DeviceCommunication', ->
         for m in messages
           index = commandstream.toCommandStreamBuffer m, null, {}, {}, buffer, index
 
-        device.open (err, res) ->
-          chai.expect(err).to.be.null
+        device.open().then () ->
           device.sendCommands buffer, (err, res) ->
             chai.expect(err).to.be.null
             return done()
+        .catch done
+        return null
 
     describe 'with timeout', ->
       it 'should return error', (done) ->
@@ -163,12 +161,13 @@ describe 'DeviceCommunication', ->
         for m in messages
           index = commandstream.toCommandStreamBuffer m, null, {}, {}, buffer, index
 
-        device.open (err, res) ->
-          chai.expect(err).to.be.null
+        device.open().then () ->
           device.sendCommands buffer, (err, res) ->
             chai.expect(err).to.exist
             chai.expect(err.message).to.include 'did not respond'
             return done()
+        .catch done
+        return null
 
     describe 'with error', ->
       it 'should return error'

@@ -74,7 +74,7 @@ bufferToArrayBuffer = (buffer) ->
 
 arrayBufferToBuffer = (arrayBuffer) ->
   view = new Uint8Array(arrayBuffer)
-  buffer = new Buffer(view.length)
+  buffer = Buffer.alloc(view.length)
   i = 0
 
   while i < view.length

@@ -36,7 +36,7 @@ class CommandAccumulator extends EventEmitter
     constructor: (commandSize) ->
         super()
         @commandSize = commandSize
-        @buffer = new commandstream.Buffer(commandstream.cmdFormat.commandSize*100)
+        @buffer = commandstream.Buffer.alloc(commandstream.cmdFormat.commandSize*100)
         @offset = 0
 
     onData: (da) ->
@@ -78,17 +78,21 @@ class DeviceCommunication extends EventEmitter
             catch e
                 console.error 'MICROFLO RECV ERROR', e
 
-    open: (cb) ->
-        buffer = commandstream.Buffer commandstream.cmdFormat.commandSize
+    open: () ->
+        buffer = commandstream.Buffer.alloc commandstream.cmdFormat.commandSize
         commandstream.writeString(buffer, 0, commandstream.cmdFormat.magicString);
         # requestId is at the end in this message
         requestId = @_makeRequestId()
         buffer.writeUInt8 requestId, commandstream.cmdFormat.commandSize-1
-        @_sendRequest buffer, requestId, cb
+        return new Promise (resolve, reject) =>
+            @_sendRequest buffer, requestId, (err, res) ->
+                return reject err if err?
+                return resolve res
+            return null
 
     # High-level API
     ping: () ->
-        buffer = commandstream.Buffer commandstream.cmdFormat.commandSize
+        buffer = commandstream.Buffer.alloc commandstream.cmdFormat.commandSize
         commandstream.commands.microflo.ping {}, buffer, 0
         return @request buffer
 
@@ -232,7 +236,7 @@ class RemoteIo extends EventEmitter
 
     forwardTime: (increment, cb) ->
         c = commandstream.cmdFormat
-        buffer = commandstream.Buffer c.commandSize
+        buffer = commandstream.Buffer.alloc c.commandSize
         # FIXME: effective time change dependent on latency
         commandstream.writeCmd buffer, 0, 0, c.commands.SetIoValue.id, c.ioTypes.TimeMs.id
         newTime = @latestState.timeMs+increment

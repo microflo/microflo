@@ -49,6 +49,8 @@ connectionsWithoutEdge = (connections, findConn) ->
     return newList
 
 listComponents = (runtime, connection) ->
+  # wrapped to give Promise interface and handle exceptions
+  return new Promise (resolve, reject) ->
     componentLib = runtime.library
     components = componentLib.getComponents()
     for name of components
@@ -66,10 +68,12 @@ listComponents = (runtime, connection) ->
 
         connection.send resp
 
-    connection.send
+    ack =
         protocol: 'component'
         command: 'componentsready'
         payload: Object.keys(components).length
+
+    return resolve ack
 
 sendExportedPorts = (connection, runtime) ->
     # go over runtime.graph and expose exported ports
@@ -90,16 +94,23 @@ sendExportedPorts = (connection, runtime) ->
             type: 'any' # FIXME
             addressable: false # FIXME
             required: false # FIXME
-    connection.send
-        protocol: 'runtime'
-        command: 'ports'
-        payload: ports
+
+    # XXX: avoid being sent before response, confuses clients not supporting requestId/responseTo
+    setTimeout () ->
+      connection.send
+          protocol: 'runtime'
+          command: 'ports'
+          payload: ports
+    , 100
 
 sendPacketCmd = (runtime, port, event, payload) ->
     return console.log "WARN: sendPacket, unknown event #{event}" if event is not 'data'
     return console.log 'WARN: ignoring sendPacket during graph upload' if runtime.uploadInProgress
 
     internal = runtime.graph.inports[port]
+    if not internal
+        throw new Error("No runtime inport named #{port}")
+
     componentName = runtime.graph.processes[internal.process].component
     nodeId = runtime.graph.nodeMap[internal.process].id
     portId = runtime.library.inputPort(componentName, internal.port).id
@@ -131,73 +142,74 @@ handleRuntimeCommand = (command, payload, connection, runtime) ->
         if runtime.options.id?
           r.id = runtime.options.id
 
-        runtime.device.ping().then () ->
-          connection.send
+        return runtime.device.ping().then () ->
+          response =
             protocol: "runtime"
             command: "runtime"
             payload: r
           sendExportedPorts connection, runtime
-        .catch (err) ->
-          console.error 'getruntime ping failed', err
-          connection.send { protocol: 'runtime', command: 'error', payload: { message: err.message } }
+          return response
 
     else if command is 'packet'
         if payload.event is 'data'
             buffer = sendPacketCmd runtime, payload.port, payload.event, payload.payload
-            runtime.device.sendCommands buffer, (err) ->
-                # FIXME: send response?
+            runtime.device.sendMany(buffer)
+            .then () ->
+                return { protocol: 'runtime', command: 'packetsent', payload: payload }
+        else
+            return Promise.resolve(request)
 
     else
-        console.log "Unknown FBP runtime command on 'runtime' protocol:", command, payload
-    return
+        return Promise.reject("Unknown FBP command runtime:#{command}: #{payload}")
+
+getGraphSource = (runtime) ->
+    graph =
+      properties:
+        name: runtime.graph.name
+        environment:
+          type: 'microflo'
+      processes: runtime.graph.processes
+      connections: runtime.graph.connections
+      inports: []
+      outports: []
+    source =
+      code: JSON.stringify graph
+      name: runtime.graph.name
+      library: runtime.namespace
+      language: 'json'
+    return Promise.resolve source
+
+getComponentSource = (runtime, name) ->
+   return new Promise (resolve, reject) ->
+     runtime.library.getComponentSource name, (err, code) ->
+        return reject err if err
+        source =
+            name: name
+            language: "c++"
+            code: code
+        return resolve source
 
 handleComponentCommand = (command, payload, connection, runtime) ->
     if command is "list"
-        listComponents runtime, connection
+        return listComponents runtime, connection
     else if command is "getsource"
         # Main graph, used in live mode
-        if payload.name == runtime.namespace + '/' + runtime.graph.name
-            graph =
-              properties:
-                name: runtime.graph.name
-                environment:
-                  type: 'microflo'
-              processes: runtime.graph.processes
-              connections: runtime.graph.connections
-              inports: []
-              outports: []
-            resp =
-              code: JSON.stringify graph
-              name: runtime.graph.name
-              library: runtime.namespace
-              language: 'json'
-            connection.send { protocol: 'component', command: 'source', payload: resp }
-        else
-            runtime.library.getComponentSource payload.name, (err, source) ->
-                if err
-                  #connection.send { protocol: 'component', command: 'error', payload: { message: err.message } }
-                  source = err.message
-
-                r =
-                    name: payload.name
-                    language: "c++"
-                    code: source
-                connection.send
-                    protocol: "component"
-                    command: "source"
-                    payload: r
-                return
+        isMainGraph = payload.name == runtime.namespace + '/' + runtime.graph.name
+        p = if isMainGraph then getGraphSource(runtime) else getComponentSource(runtime, payload.name)
+        return p.then (payload) ->
+          return { protocol: 'component', command: 'source', payload: payload }
     else
-        console.log "Unknown FBP runtime command on 'component' protocol:", command, payload
+        return Promise.reject(new Error("Unknown FBP command component:#{command}: #{payload}"))
     return
 
-sendAck = (connection, msg) ->
-    delete msg.payload.secret
-    connection.send msg
 
 handleGraphCommand = (command, payload, connection, runtime) ->
+    request = { protocol: 'graph', command: command, payload: payload }
+
     graph = runtime.graph
     if command is "clear"
+        graph.inports = {}
+        graph.outports = {}
         graph.processes = {}
         graph.connections = []
         graph.name = payload.id or 'default/main'
@@ -207,57 +219,58 @@ handleGraphCommand = (command, payload, connection, runtime) ->
         runtime.exportedEdges = []
         runtime.edgesForInspection = []
 
-        sendMessage runtime, { protocol: 'graph', command: command, payload: payload }
+        return sendMessage(runtime, request)
     else if command is "addnode"
         graph.processes[payload.id] = payload
-        graph.nodeMap[payload.id] = { id: graph.currentNodeId++ }
         graph.componentMap[payload.id] = payload.component
-        # TODO: wait for nodeId from runtime, update nodeMap then
-        sendMessage runtime, { protocol: 'graph', command: command, payload: payload }
+        # TODO: respect nodeId from runtime
+        graph.nodeMap[payload.id] = { id: graph.currentNodeId++ }
+        return sendMessage(runtime, request).then (response) ->
+          return response
+
     else if command is "removenode"
-        sendMessage runtime, { protocol: 'graph', command: command, payload: payload }
-        delete graph.processes[payload.id]
-        delete graph.nodeMap[payload.id]
-        delete graph.componentMap[payload.id]
+        return sendMessage(runtime, request).then (response) ->
+          delete graph.processes[payload.id]
+          delete graph.nodeMap[payload.id]
+          delete graph.componentMap[payload.id]
+          return response
+
     else if command is "renamenode"
         node = graph.processes[payload.from]
         graph.processes[payload.to] = node
-        sendAck connection, { protocol: 'graph', command: command, payload: payload }
+        return sendMessage(runtime, request)
     else if command is "changenode"
         # FIXME: ignored
-        sendAck connection, { protocol: 'graph', command: command, payload: payload }
+        return Promise.resolve(request)
     else if command is "addedge"
         graph.connections.push protocol.wsConnectionFormatToFbp(payload)
-        sendMessage runtime, { protocol: 'graph', command: command, payload: payload }
+        return sendMessage(runtime, request)
     else if command is "removeedge"
         graph.connections = connectionsWithoutEdge(graph.connections, protocol.wsConnectionFormatToFbp(payload))
-        sendMessage runtime, { protocol: 'graph', command: command, payload: payload }
+        return sendMessage(runtime, request)
     else if command is "changeedge"
         # FIXME: ignored
-        sendAck connection, { protocol: 'graph', command: command, payload: payload }
+        return Promise.resolve { protocol: 'graph', command: command, payload: payload }
     else if command is "addinitial"
         graph.connections.push protocol.wsConnectionFormatToFbp(payload)
-        sendMessage runtime, { protocol: 'graph', command: command, payload: payload }
-        sendAck connection, { protocol: 'graph', command: command, payload: payload } # TODO: receive from RT
+        return sendMessage(runtime, request).then (response) ->
+          return Promise.resolve(request) # TODO: use response from RT
     else if command is "removeinitial"
         # TODO: send to runtime side, wait for response
         graph.connections = connectionsWithoutEdge(graph.connections, protocol.wsConnectionFormatToFbp(payload))
-        sendAck connection, { protocol: 'graph', command: command, payload: payload }
+        return Promise.resolve(request)
 
-    # PROTOCOL: Inconsistent that these don't ack on same format?
     else if command is "addinport"
-        graph.inports = {} if not graph.inports?
         graph.inports[payload.public] =
             process: payload.node
             port: payload.port
         sendExportedPorts connection, runtime
-        sendAck connection, { protocol: 'graph', command: command, payload: payload }
+        return Promise.resolve(request)
     else if command is "removeinport"
         delete graph.inports[payload.public]
         sendExportedPorts connection, runtime
-        sendAck connection, { protocol: 'graph', command: command, payload: payload }
+        return Promise.resolve(request)
     else if command is "addoutport"
-        graph.outports = {} if not graph.outports?
         graph.outports[payload.public] =
             process: payload.node
             port: payload.port
@@ -270,17 +283,15 @@ handleGraphCommand = (command, payload, connection, runtime) ->
 
         # update subscriptions on device side
         edges = runtime.exportedEdges.concat runtime.edgesForInspection
-        handleNetworkEdges runtime, connection, edges, (err) ->
-          console.log 'handle network edges error', err if err
+        return subscribeEdges(runtime, edges).then () ->
+          return request
 
-        sendAck connection, { protocol: 'graph', command: command, payload: payload }
     else if command is "removeoutport"
         delete graph.outports[payload.public]
         sendExportedPorts connection, runtime
-        sendAck connection, { protocol: 'graph', command: command, payload: payload }
+        return Promise.resolve(request)
     else
-        console.log "Unknown FBP runtime command on protocol 'graph':", command, payload
-    return
+        return Promise.reject(new Error("Unknown FBP command graph:#{command} : #{payload}"))
 
 packetSent = (graph, collector, payload) ->
     messages = []
@@ -323,7 +334,8 @@ packetSent = (graph, collector, payload) ->
     return messages
 
 
-mapMessage = (graph, collector, message)->
+# Convert an event from device into 0 or more FBP messages
+mapEvent = (graph, collector, message)->
     if message.protocol == 'microflo'
         if message.command == 'packetsent'
             # TODO: move this down to commandstream?
@@ -375,23 +387,27 @@ resetAndUploadGraph = (runtime, connection, debugLevel, callback) ->
     sendGraph = (cb) ->
         runtime.device.sendCommands data, (err) ->
             return cb err if err
+
             # Subscribe to change notifications
-            # TODO: use a dedicated mechanism for this based on subgraphs
             edges = runtime.exportedEdges.concat runtime.edgesForInspection
-            handleNetworkEdges runtime, connection, edges, (err) ->
+            subscribeEdges(runtime, edges)
+            .then() ->
                 runtime.uploadInProgress = false
-                return cb err
+                return cb()
+            .catch(err) ->
+                runtime.uploadInProgress = false
+                return cb(err)          
     setTimeout () ->
-        runtime.device.open (err) ->
-            return callback err if err
+        runtime.device.open.then () ->
             sendGraph (err) ->
                 return callback err
+        .catch callback
     , 1000 # HACK: wait for Arduino reset
 
-subscribeEdges = (runtime, edges, callback) ->
+subscribeEdges = (runtime, edges) ->
     graph = runtime.graph
     maxCommands = graph.connections.length+edges.length
-    buffer = new commandstream.Buffer cmdFormat.commandSize*maxCommands
+    buffer = commandstream.Buffer.alloc cmdFormat.commandSize*maxCommands
     offset = 0
 
     # Loop over all edges, unsubscribe
@@ -404,69 +420,110 @@ subscribeEdges = (runtime, edges, callback) ->
             offset += commandstream.writeCmd buffer, offset, 0,
                         cmdFormat.commands.SubscribeToPort.id, srcId, srcPort, 0
         return
+
     # Subscribe to enabled edges
     edges.forEach (edge) ->
-        srcId = graph.nodeMap[edge.src.node].id
-        srcComp = graph.processes[edge.src.node].component
-        srcPort = runtime.library.outputPort(srcComp, edge.src.port).id
+        mapping = graph.nodeMap[edge.src.node]
+        node = graph.processes[edge.src.node]
+        if not node
+            throw new Error("No node #{edge.src.node} in graph")
+        if not mapping
+            throw new Error("No node #{edge.src.node} in node map")
+        port = runtime.library.outputPort(node.component, edge.src.port)
+        if not port
+            throw new Error("#{edge.src.node}(#{src.component}) has no port #{edge.src.port}")
+
         offset += commandstream.writeCmd buffer, offset, 0,
-                    cmdFormat.commands.SubscribeToPort.id, srcId, srcPort, 1
+                    cmdFormat.commands.SubscribeToPort.id, mapping.id, port.id, 1
         return
 
     # Send commands
     sendBuf = buffer.slice 0, offset # chop off invalid data
     if sendBuf.length
-        runtime.device.sendCommands sendBuf, callback
+        return runtime.device.sendMany sendBuf
     else
-        return callback null
+        return Promise.resolve([])
 
-handleNetworkEdges = (runtime, connection, edges, callback) ->
-    subscribeEdges runtime, edges, callback
-
+# send a single message to device and back
 sendMessage = (runtime, message) ->
-  temp = new commandstream.Buffer 1024
+  temp = commandstream.Buffer.alloc commandstream.cmdFormat.commandSize
   g = runtime.graph
   index = commandstream.toCommandStreamBuffer message, runtime.library, g.nodeMap, g.componentMap, temp, 0
   data = temp.slice(0, index)
-  runtime.device.sendCommands data, (err) ->
-    console.log 'sendMessage error', err if err
+  return runtime.device.request(data).then (responseCmd) ->
+    responses = commandstream.fromCommand runtime.library, runtime.graph, responseCmd
+    if responses.length != 1
+      throw new Error("Expected single response to request #{message}")
+    response = responses[0]
+    return response
 
 handleNetworkCommand = (command, payload, connection, runtime, transport, debugLevel) ->
-    if command in ['start', 'stop', 'getstatus'] 
-        m = { protocol: 'network', command: command, payload: payload }
-        sendMessage runtime, m
+    if command in ['start', 'stop', 'getstatus']
+        req = { protocol: 'network', command: command, payload: payload }
+        return sendMessage(runtime, req).then (resp) ->
+          return resp
     else if command in ['debug']
         # does nothing relevant, response not expected
-        return
+        return Promise.resolve()
     else if command is "edges"
-        # TODO: merge with those of exported outports
         runtime.edgesForInspection = payload.edges
         edges = runtime.edgesForInspection.concat runtime.exportedEdges
-        handleNetworkEdges runtime, connection, edges, (err) ->
-          if err
-            return sendAck connection, { protocol: 'network', command: 'error', payload: { message: err.message } }
-          sendAck connection, { protocol: 'network', command: command, payload: payload }
+        return subscribeEdges(runtime, edges).then () ->
+          return { protocol: 'network', command: command, payload: payload }
     else
-        console.log "Unknown FBP runtime command on protocol 'network':", command, payload
-    return
+        e = new Error "Unknown FBP runtime command on protocol 'network':#{command}: #{payload}"
+        return Promise.reject(e)
+
+sendResponse = (connection, request, response) ->
+    response = JSON.parse(JSON.stringify(response)) # in case its a copy of request
+    response.responseTo = request.requestId
+    delete response.payload.secret
+    delete response.requestId
+    connection.send response
+
+validResponse = (m) ->
+  # basic sanity check
+  hasAll = m.protocol? and m.command? and m.payload?
+  return hasAll
 
 handleMessage = (runtime, contents) ->
     connection = runtime.conn
 
+    p = null
     try
         if contents.protocol is "component"
-            handleComponentCommand contents.command, contents.payload, connection, runtime
+            p = handleComponentCommand contents.command, contents.payload, connection, runtime
         else if contents.protocol is "graph"
-            handleGraphCommand contents.command, contents.payload, connection, runtime
+            p = handleGraphCommand contents.command, contents.payload, connection, runtime
         else if contents.protocol is "runtime"
-            handleRuntimeCommand contents.command, contents.payload, connection, runtime
+            p = handleRuntimeCommand contents.command, contents.payload, connection, runtime
         else if contents.protocol is "network"
-            handleNetworkCommand contents.command, contents.payload, connection, runtime
+            p = handleNetworkCommand contents.command, contents.payload, connection, runtime
         else
-            throw Error("Unknown FBP runtime protocol: #{contents.protocol}")
-    catch e
-        connection.send { protocol: contents.protocol, command: 'error', payload: { message: e } }
-    return
+            p = Promise.reject(new Error("Unknown FBP runtime protocol: #{contents.protocol}"))
+    catch err
+        err.message = "Unexpected error: #{err.message}"
+        p = Promise.reject(err)
+
+    if not p
+      console.error("handler for #{contents.protocol}:#{contents.command} did not return a Promise")
+
+    p.then (response) ->
+      if not validResponse(response)
+        throw new Error("Invalid FBP response to #{contents} : #{response}")
+      sendResponse connection, contents, response
+    .catch (err) ->
+        errorResponse =
+          responseTo: contents.requestId
+          protocol: contents.protocol,
+          command: 'error',
+          payload: { message: err.message }
+        connection.send errorResponse
+
+        console.error('FBP PROTOCOL error:', err)
+        console.error(err.stack)
+
+    return null
 
 class BracketDataCollector
   constructor: () ->
@@ -571,10 +628,12 @@ setupRuntime = (serialPortToUse, baudRate, componentMap, options, callback) ->
                 console.log 'WARN: could not load component mapping', e
 
         setTimeout () ->
-            runtime.device.open (err) ->
-                return callback err if err
+            runtime.device.open().then () ->
                 setupWebsocket runtime, options, (err, server) ->
                     return callback null, runtime
+            .catch (err) ->
+                return callback err
+
         , options.waitConnect*1000
 
 setupSimulator = (file, baudRate, port, debugLevel, ip, callback) ->
@@ -597,10 +656,11 @@ setupSimulator = (file, baudRate, port, debugLevel, ip, callback) ->
         console.log 'WARN: could not load simulator lib', e
 
     # Runtime expects device communication to already be open
-    runtime.device.open (err) ->
-        return callback err if err
+    runtime.device.open.then () ->
         setupWebsocket runtime, ip, port, (err, server) ->
             return callback null, runtime
+    .catch (err) ->
+        return callback err
 
 
 
@@ -632,20 +692,14 @@ class Runtime extends EventEmitter
                 @emit 'message', response
 
         @device.on 'event', (cmd) =>
-            messages = @_handleCommand cmd
+            messages = @_handleEvent cmd
             if messages.length == 0
                console.log 'Warning: No FBP mapping for FBCS event', cmd
 
-        # FIXME: remove when all requests handle their own responses
-        @device.on 'response', (cmd) =>
-            messages = @_handleCommand cmd
-            if messages.length == 0
-               console.log 'Warning: No FBP mapping for FBCS response', cmd
-
-    _handleCommand: (cmd) =>
+    _handleEvent: (cmd) =>
         messages = commandstream.fromCommand @library, @graph, cmd
         for m in messages
-            converted = mapMessage @graph, @collector, m
+            converted = mapEvent @graph, @collector, m
             for c in converted
                 @conn.send c
         return messages
