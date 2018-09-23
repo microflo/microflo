@@ -437,19 +437,24 @@ subscribeEdges = (runtime, edges) ->
     else
         return Promise.resolve([])
 
-
+# send a single message to device and back
 sendMessage = (runtime, message) ->
-  temp = new commandstream.Buffer 1024
+  temp = new commandstream.Buffer commandstream.cmdFormat.commandSize
   g = runtime.graph
   index = commandstream.toCommandStreamBuffer message, runtime.library, g.nodeMap, g.componentMap, temp, 0
   data = temp.slice(0, index)
-  return runtime.device.request data
+  return runtime.device.request(data).then (responseCmd) ->
+    responses = commandstream.fromCommand runtime.library, runtime.graph, responseCmd
+    if responses.length != 1
+      throw new Error("Expected single response to request #{message}")
+    response = responses[0]
+    return response
 
 handleNetworkCommand = (command, payload, connection, runtime, transport, debugLevel) ->
-    if command in ['start', 'stop', 'getstatus'] 
-        m = { protocol: 'network', command: command, payload: payload }
-        return sendMessage(runtime, m).then () ->
-          sendAck connection, m
+    if command in ['start', 'stop', 'getstatus']
+        req = { protocol: 'network', command: command, payload: payload }
+        return sendMessage(runtime, req).then (resp) ->
+          sendAck connection, resp
     else if command in ['debug']
         # does nothing relevant, response not expected
         return Promise.resolve()
