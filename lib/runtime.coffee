@@ -202,6 +202,8 @@ sendAck = (connection, msg) ->
     connection.send msg
 
 handleGraphCommand = (command, payload, connection, runtime) ->
+    request = { protocol: 'graph', command: command, payload: payload }
+
     graph = runtime.graph
     if command is "clear"
         graph.inports = {}
@@ -215,54 +217,66 @@ handleGraphCommand = (command, payload, connection, runtime) ->
         runtime.exportedEdges = []
         runtime.edgesForInspection = []
 
-        sendMessage runtime, { protocol: 'graph', command: command, payload: payload }
+        return sendMessage(runtime, request).then (response) ->
+          sendAck connection, response
     else if command is "addnode"
         graph.processes[payload.id] = payload
         graph.nodeMap[payload.id] = { id: graph.currentNodeId++ }
         graph.componentMap[payload.id] = payload.component
         # TODO: wait for nodeId from runtime, update nodeMap then
-        sendMessage runtime, { protocol: 'graph', command: command, payload: payload }
+        return sendMessage(runtime, request).then (response) ->
+          sendAck connection, response
+
     else if command is "removenode"
-        sendMessage runtime, { protocol: 'graph', command: command, payload: payload }
-        delete graph.processes[payload.id]
-        delete graph.nodeMap[payload.id]
-        delete graph.componentMap[payload.id]
+        return sendMessage(runtime, request).then (response) ->
+          delete graph.processes[payload.id]
+          delete graph.nodeMap[payload.id]
+          delete graph.componentMap[payload.id]
+          sendAck connection, response
+
     else if command is "renamenode"
         node = graph.processes[payload.from]
         graph.processes[payload.to] = node
-        sendAck connection, { protocol: 'graph', command: command, payload: payload }
+        return sendMessage(runtime, request).then (response) ->
+          sendAck connection, response
     else if command is "changenode"
         # FIXME: ignored
-        sendAck connection, { protocol: 'graph', command: command, payload: payload }
+        sendAck connection, request
+        return Promise.resolve()
     else if command is "addedge"
         graph.connections.push protocol.wsConnectionFormatToFbp(payload)
-        sendMessage runtime, { protocol: 'graph', command: command, payload: payload }
+        return sendMessage(runtime, request).then (response) ->
+          sendAck connection, response
     else if command is "removeedge"
         graph.connections = connectionsWithoutEdge(graph.connections, protocol.wsConnectionFormatToFbp(payload))
-        sendMessage runtime, { protocol: 'graph', command: command, payload: payload }
+        return sendMessage(runtime, request).then (response) ->
+          sendAck connection, response
     else if command is "changeedge"
         # FIXME: ignored
         sendAck connection, { protocol: 'graph', command: command, payload: payload }
+        return Promise.resolve()
     else if command is "addinitial"
         graph.connections.push protocol.wsConnectionFormatToFbp(payload)
-        sendMessage runtime, { protocol: 'graph', command: command, payload: payload }
-        sendAck connection, { protocol: 'graph', command: command, payload: payload } # TODO: receive from RT
+        return sendMessage(runtime, request).then (response) ->
+          sendAck connection, request # TODO: use response from RT
     else if command is "removeinitial"
         # TODO: send to runtime side, wait for response
         graph.connections = connectionsWithoutEdge(graph.connections, protocol.wsConnectionFormatToFbp(payload))
-        sendAck connection, { protocol: 'graph', command: command, payload: payload }
+        sendAck connection, request
+        return Promise.resolve()
 
-    # PROTOCOL: Inconsistent that these don't ack on same format?
     else if command is "addinport"
         graph.inports[payload.public] =
             process: payload.node
             port: payload.port
         sendExportedPorts connection, runtime
-        sendAck connection, { protocol: 'graph', command: command, payload: payload }
+        sendAck connection, request
+        return Promise.resolve()
     else if command is "removeinport"
         delete graph.inports[payload.public]
         sendExportedPorts connection, runtime
-        sendAck connection, { protocol: 'graph', command: command, payload: payload }
+        sendAck connection, request
+        return Promise.resolve()
     else if command is "addoutport"
         graph.outports[payload.public] =
             process: payload.node
@@ -277,15 +291,15 @@ handleGraphCommand = (command, payload, connection, runtime) ->
         # update subscriptions on device side
         edges = runtime.exportedEdges.concat runtime.edgesForInspection
         return subscribeEdges(runtime, edges).then () ->
-          sendAck connection, { protocol: 'graph', command: command, payload: payload }
+          sendAck connection, request
 
     else if command is "removeoutport"
         delete graph.outports[payload.public]
         sendExportedPorts connection, runtime
-        sendAck connection, { protocol: 'graph', command: command, payload: payload }
+        sendAck connection, request
+        return Promise.resolve()
     else
-        console.log "Unknown FBP runtime command on protocol 'graph':", command, payload
-    return
+        return Promise.reject(new Error("Unknown FBP command graph:#{command} : #{payload}"))
 
 packetSent = (graph, collector, payload) ->
     messages = []
@@ -476,7 +490,7 @@ handleMessage = (runtime, contents) ->
         if contents.protocol is "component"
             p = handleComponentCommand contents.command, contents.payload, connection, runtime
         else if contents.protocol is "graph"
-            handleGraphCommand contents.command, contents.payload, connection, runtime
+            p = handleGraphCommand contents.command, contents.payload, connection, runtime
         else if contents.protocol is "runtime"
             p = handleRuntimeCommand contents.command, contents.payload, connection, runtime
         else if contents.protocol is "network"
@@ -487,13 +501,15 @@ handleMessage = (runtime, contents) ->
         err.message = "Unexpected error: #{err.message}"
         p = Promise.reject(err)
 
-    if p
-        p.catch (err) ->
-            payload = { message: err.message }
-            connection.send { protocol: contents.protocol, command: 'error', payload: payload }
+    if not p
+      console.error("handler for #{contents.protocol}:#{contents.command} did not return a Promise")
 
-            console.error('FBP PROTOCOL error:', err)
-            console.error(err.stack)
+    p.catch (err) ->
+        payload = { message: err.message }
+        connection.send { protocol: contents.protocol, command: 'error', payload: payload }
+
+        console.error('FBP PROTOCOL error:', err)
+        console.error(err.stack)
 
     return null
 
