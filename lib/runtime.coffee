@@ -328,7 +328,8 @@ packetSent = (graph, collector, payload) ->
     return messages
 
 
-mapMessage = (graph, collector, message)->
+# Convert an event from device into 0 or more FBP messages
+mapEvent = (graph, collector, message)->
     if message.protocol == 'microflo'
         if message.command == 'packetsent'
             # TODO: move this down to commandstream?
@@ -663,20 +664,14 @@ class Runtime extends EventEmitter
                 @emit 'message', response
 
         @device.on 'event', (cmd) =>
-            messages = @_handleCommand cmd
+            messages = @_handleEvent cmd
             if messages.length == 0
                console.log 'Warning: No FBP mapping for FBCS event', cmd
 
-        # FIXME: remove when all requests handle their own responses
-        @device.on 'response', (cmd) =>
-            messages = @_handleCommand cmd
-            if messages.length == 0
-               console.log 'Warning: No FBP mapping for FBCS response', cmd
-
-    _handleCommand: (cmd) =>
+    _handleEvent: (cmd) =>
         messages = commandstream.fromCommand @library, @graph, cmd
         for m in messages
-            converted = mapMessage @graph, @collector, m
+            converted = mapEvent @graph, @collector, m
             for c in converted
                 @conn.send c
         return messages
