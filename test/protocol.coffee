@@ -60,3 +60,28 @@ describe 'FBP runtime protocol', ->
           chai.expect(response.message).to.contain 'No runtime inport named'
           chai.expect(response.message).to.contain 'noexist22'
 
+  describe 'component:list', ->
+    it 'should return components', ->
+        client.protocol.component.list()
+        .then (response) ->
+          chai.expect(response).to.be.a 'array'
+          chai.expect(response[0]).to.include.keys ['name', 'description', 'subgraph']
+          names = response.map (c) -> c.name
+          chai.expect(names).to.include 'ToggleBoolean'
+
+  describe 'component:getsource', ->
+    describe 'with main graph', ->
+      it 'is not implemented', ->
+          client.protocol.component.getsource({name: 'default/main'})
+          .then (response) ->
+            chai.expect(response).to.include.keys ['name', 'code', 'language', 'library']
+
+    describe 'with a component', ->
+      it 'is not implemented', ->
+          client.protocol.component.getsource({name: 'ToggleBoolean'})
+          .then (response) ->
+            chai.expect(response).to.not.exist
+          .catch (err) ->
+            chai.expect(err.message).to.contain 'not implemented'
+
+

@@ -49,6 +49,8 @@ connectionsWithoutEdge = (connections, findConn) ->
     return newList
 
 listComponents = (runtime, connection) ->
+  # wrapped to give Promise interface and handle exceptions
+  return new Promise (resolve, reject) ->
     componentLib = runtime.library
     components = componentLib.getComponents()
     for name of components
@@ -70,6 +72,8 @@ listComponents = (runtime, connection) ->
         protocol: 'component'
         command: 'componentsready'
         payload: Object.keys(components).length
+
+    return resolve null
 
 sendExportedPorts = (connection, runtime) ->
     # go over runtime.graph and expose exported ports
@@ -153,44 +157,44 @@ handleRuntimeCommand = (command, payload, connection, runtime) ->
     else
         return Promise.reject("Unknown FBP command runtime:#{command}: #{payload}")
 
+getGraphSource = (runtime) ->
+    graph =
+      properties:
+        name: runtime.graph.name
+        environment:
+          type: 'microflo'
+      processes: runtime.graph.processes
+      connections: runtime.graph.connections
+      inports: []
+      outports: []
+    source =
+      code: JSON.stringify graph
+      name: runtime.graph.name
+      library: runtime.namespace
+      language: 'json'
+    return Promise.resolve source
+
+getComponentSource = (runtime, name) ->
+   return new Promise (resolve, reject) ->
+     runtime.library.getComponentSource name, (err, code) ->
+        return reject err if err
+        source =
+            name: name
+            language: "c++"
+            code: code
+        return resolve source
+
 handleComponentCommand = (command, payload, connection, runtime) ->
     if command is "list"
-        listComponents runtime, connection
+        return listComponents runtime, connection
     else if command is "getsource"
         # Main graph, used in live mode
-        if payload.name == runtime.namespace + '/' + runtime.graph.name
-            graph =
-              properties:
-                name: runtime.graph.name
-                environment:
-                  type: 'microflo'
-              processes: runtime.graph.processes
-              connections: runtime.graph.connections
-              inports: []
-              outports: []
-            resp =
-              code: JSON.stringify graph
-              name: runtime.graph.name
-              library: runtime.namespace
-              language: 'json'
-            connection.send { protocol: 'component', command: 'source', payload: resp }
-        else
-            runtime.library.getComponentSource payload.name, (err, source) ->
-                if err
-                  #connection.send { protocol: 'component', command: 'error', payload: { message: err.message } }
-                  source = err.message
-
-                r =
-                    name: payload.name
-                    language: "c++"
-                    code: source
-                connection.send
-                    protocol: "component"
-                    command: "source"
-                    payload: r
-                return
+        isMainGraph = payload.name == runtime.namespace + '/' + runtime.graph.name
+        p = if isMainGraph then getGraphSource(runtime) else getComponentSource(runtime, payload.name)
+        return p.then (payload) ->
+          sendAck connection, { protocol: 'component', command: 'source', payload: payload }
     else
-        console.log "Unknown FBP runtime command on 'component' protocol:", command, payload
+        return Promise.reject("Unknown FBP command component:#{command}: #{payload}")
     return
 
 sendAck = (connection, msg) ->
@@ -464,7 +468,7 @@ handleMessage = (runtime, contents) ->
     p = null
     try
         if contents.protocol is "component"
-            handleComponentCommand contents.command, contents.payload, connection, runtime
+            p = handleComponentCommand contents.command, contents.payload, connection, runtime
         else if contents.protocol is "graph"
             handleGraphCommand contents.command, contents.payload, connection, runtime
         else if contents.protocol is "runtime"
