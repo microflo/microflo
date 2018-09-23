@@ -68,12 +68,12 @@ listComponents = (runtime, connection) ->
 
         connection.send resp
 
-    connection.send
+    ack =
         protocol: 'component'
         command: 'componentsready'
         payload: Object.keys(components).length
 
-    return resolve null
+    return resolve ack
 
 sendExportedPorts = (connection, runtime) ->
     # go over runtime.graph and expose exported ports
@@ -94,10 +94,14 @@ sendExportedPorts = (connection, runtime) ->
             type: 'any' # FIXME
             addressable: false # FIXME
             required: false # FIXME
-    connection.send
-        protocol: 'runtime'
-        command: 'ports'
-        payload: ports
+
+    # XXX: avoid being sent before response, confuses clients not supporting requestId/responseTo
+    setTimeout () ->
+      connection.send
+          protocol: 'runtime'
+          command: 'ports'
+          payload: ports
+    , 100
 
 sendPacketCmd = (runtime, port, event, payload) ->
     return console.log "WARN: sendPacket, unknown event #{event}" if event is not 'data'
@@ -139,20 +143,21 @@ handleRuntimeCommand = (command, payload, connection, runtime) ->
           r.id = runtime.options.id
 
         return runtime.device.ping().then () ->
-          connection.send
+          response =
             protocol: "runtime"
             command: "runtime"
             payload: r
           sendExportedPorts connection, runtime
+          return response
 
     else if command is 'packet'
         if payload.event is 'data'
             buffer = sendPacketCmd runtime, payload.port, payload.event, payload.payload
             runtime.device.sendMany(buffer)
             .then () ->
-                sendAck connection, { protocol: 'runtime', command: 'packetsent', payload: payload }
+                return { protocol: 'runtime', command: 'packetsent', payload: payload }
         else
-            return Promise.resolve()
+            return Promise.resolve(request)
 
     else
         return Promise.reject("Unknown FBP command runtime:#{command}: #{payload}")
@@ -192,14 +197,11 @@ handleComponentCommand = (command, payload, connection, runtime) ->
         isMainGraph = payload.name == runtime.namespace + '/' + runtime.graph.name
         p = if isMainGraph then getGraphSource(runtime) else getComponentSource(runtime, payload.name)
         return p.then (payload) ->
-          sendAck connection, { protocol: 'component', command: 'source', payload: payload }
+          return { protocol: 'component', command: 'source', payload: payload }
     else
-        return Promise.reject("Unknown FBP command component:#{command}: #{payload}")
+        return Promise.reject(new Error("Unknown FBP command component:#{command}: #{payload}"))
     return
 
-sendAck = (connection, msg) ->
-    delete msg.payload.secret
-    connection.send msg
 
 handleGraphCommand = (command, payload, connection, runtime) ->
     request = { protocol: 'graph', command: command, payload: payload }
@@ -217,66 +219,57 @@ handleGraphCommand = (command, payload, connection, runtime) ->
         runtime.exportedEdges = []
         runtime.edgesForInspection = []
 
-        return sendMessage(runtime, request).then (response) ->
-          sendAck connection, response
+        return sendMessage(runtime, request)
     else if command is "addnode"
         graph.processes[payload.id] = payload
-        graph.nodeMap[payload.id] = { id: graph.currentNodeId++ }
         graph.componentMap[payload.id] = payload.component
-        # TODO: wait for nodeId from runtime, update nodeMap then
+        # TODO: respect nodeId from runtime
+        graph.nodeMap[payload.id] = { id: graph.currentNodeId++ }
         return sendMessage(runtime, request).then (response) ->
-          sendAck connection, response
+          return response
 
     else if command is "removenode"
         return sendMessage(runtime, request).then (response) ->
           delete graph.processes[payload.id]
           delete graph.nodeMap[payload.id]
           delete graph.componentMap[payload.id]
-          sendAck connection, response
+          return response
 
     else if command is "renamenode"
         node = graph.processes[payload.from]
         graph.processes[payload.to] = node
-        return sendMessage(runtime, request).then (response) ->
-          sendAck connection, response
+        return sendMessage(runtime, request)
     else if command is "changenode"
         # FIXME: ignored
-        sendAck connection, request
-        return Promise.resolve()
+        return Promise.resolve(request)
     else if command is "addedge"
         graph.connections.push protocol.wsConnectionFormatToFbp(payload)
-        return sendMessage(runtime, request).then (response) ->
-          sendAck connection, response
+        return sendMessage(runtime, request)
     else if command is "removeedge"
         graph.connections = connectionsWithoutEdge(graph.connections, protocol.wsConnectionFormatToFbp(payload))
-        return sendMessage(runtime, request).then (response) ->
-          sendAck connection, response
+        return sendMessage(runtime, request)
     else if command is "changeedge"
         # FIXME: ignored
-        sendAck connection, { protocol: 'graph', command: command, payload: payload }
-        return Promise.resolve()
+        return Promise.resolve { protocol: 'graph', command: command, payload: payload }
     else if command is "addinitial"
         graph.connections.push protocol.wsConnectionFormatToFbp(payload)
         return sendMessage(runtime, request).then (response) ->
-          sendAck connection, request # TODO: use response from RT
+          return Promise.resolve(request) # TODO: use response from RT
     else if command is "removeinitial"
         # TODO: send to runtime side, wait for response
         graph.connections = connectionsWithoutEdge(graph.connections, protocol.wsConnectionFormatToFbp(payload))
-        sendAck connection, request
-        return Promise.resolve()
+        return Promise.resolve(request)
 
     else if command is "addinport"
         graph.inports[payload.public] =
             process: payload.node
             port: payload.port
         sendExportedPorts connection, runtime
-        sendAck connection, request
-        return Promise.resolve()
+        return Promise.resolve(request)
     else if command is "removeinport"
         delete graph.inports[payload.public]
         sendExportedPorts connection, runtime
-        sendAck connection, request
-        return Promise.resolve()
+        return Promise.resolve(request)
     else if command is "addoutport"
         graph.outports[payload.public] =
             process: payload.node
@@ -291,13 +284,12 @@ handleGraphCommand = (command, payload, connection, runtime) ->
         # update subscriptions on device side
         edges = runtime.exportedEdges.concat runtime.edgesForInspection
         return subscribeEdges(runtime, edges).then () ->
-          sendAck connection, request
+          return request
 
     else if command is "removeoutport"
         delete graph.outports[payload.public]
         sendExportedPorts connection, runtime
-        sendAck connection, request
-        return Promise.resolve()
+        return Promise.resolve(request)
     else
         return Promise.reject(new Error("Unknown FBP command graph:#{command} : #{payload}"))
 
@@ -469,7 +461,7 @@ handleNetworkCommand = (command, payload, connection, runtime, transport, debugL
     if command in ['start', 'stop', 'getstatus']
         req = { protocol: 'network', command: command, payload: payload }
         return sendMessage(runtime, req).then (resp) ->
-          sendAck connection, resp
+          return resp
     else if command in ['debug']
         # does nothing relevant, response not expected
         return Promise.resolve()
@@ -477,10 +469,22 @@ handleNetworkCommand = (command, payload, connection, runtime, transport, debugL
         runtime.edgesForInspection = payload.edges
         edges = runtime.edgesForInspection.concat runtime.exportedEdges
         return subscribeEdges(runtime, edges).then () ->
-          sendAck connection, { protocol: 'network', command: command, payload: payload }
+          return { protocol: 'network', command: command, payload: payload }
     else
         e = new Error "Unknown FBP runtime command on protocol 'network':#{command}: #{payload}"
         return Promise.reject(e)
+
+sendResponse = (connection, request, response) ->
+    response = JSON.parse(JSON.stringify(response)) # in case its a copy of request
+    response.responseTo = request.requestId
+    delete response.payload.secret
+    delete response.requestId
+    connection.send response
+
+validResponse = (m) ->
+  # basic sanity check
+  hasAll = m.protocol? and m.command? and m.payload?
+  return hasAll
 
 handleMessage = (runtime, contents) ->
     connection = runtime.conn
@@ -504,9 +508,17 @@ handleMessage = (runtime, contents) ->
     if not p
       console.error("handler for #{contents.protocol}:#{contents.command} did not return a Promise")
 
-    p.catch (err) ->
-        payload = { message: err.message }
-        connection.send { protocol: contents.protocol, command: 'error', payload: payload }
+    p.then (response) ->
+      if not validResponse(response)
+        throw new Error("Invalid FBP response to #{contents} : #{response}")
+      sendResponse connection, contents, response
+    .catch (err) ->
+        errorResponse =
+          responseTo: contents.requestId
+          protocol: contents.protocol,
+          command: 'error',
+          payload: { message: err.message }
+        connection.send errorResponse
 
         console.error('FBP PROTOCOL error:', err)
         console.error(err.stack)
