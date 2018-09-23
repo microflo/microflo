@@ -382,10 +382,10 @@ resetAndUploadGraph = (runtime, connection, debugLevel, callback) ->
                 runtime.uploadInProgress = false
                 return cb err
     setTimeout () ->
-        runtime.device.open (err) ->
-            return callback err if err
+        runtime.device.open.then () ->
             sendGraph (err) ->
                 return callback err
+        .catch callback
     , 1000 # HACK: wait for Arduino reset
 
 subscribeEdges = (runtime, edges, callback) ->
@@ -571,10 +571,12 @@ setupRuntime = (serialPortToUse, baudRate, componentMap, options, callback) ->
                 console.log 'WARN: could not load component mapping', e
 
         setTimeout () ->
-            runtime.device.open (err) ->
-                return callback err if err
+            runtime.device.open().then () ->
                 setupWebsocket runtime, options, (err, server) ->
                     return callback null, runtime
+            .catch (err) ->
+                return callback err
+
         , options.waitConnect*1000
 
 setupSimulator = (file, baudRate, port, debugLevel, ip, callback) ->
@@ -597,10 +599,11 @@ setupSimulator = (file, baudRate, port, debugLevel, ip, callback) ->
         console.log 'WARN: could not load simulator lib', e
 
     # Runtime expects device communication to already be open
-    runtime.device.open (err) ->
-        return callback err if err
+    runtime.device.open.then () ->
         setupWebsocket runtime, ip, port, (err, server) ->
             return callback null, runtime
+    .catch (err) ->
+        return callback err
 
 
 

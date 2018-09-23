@@ -78,13 +78,17 @@ class DeviceCommunication extends EventEmitter
             catch e
                 console.error 'MICROFLO RECV ERROR', e
 
-    open: (cb) ->
+    open: () ->
         buffer = commandstream.Buffer commandstream.cmdFormat.commandSize
         commandstream.writeString(buffer, 0, commandstream.cmdFormat.magicString);
         # requestId is at the end in this message
         requestId = @_makeRequestId()
         buffer.writeUInt8 requestId, commandstream.cmdFormat.commandSize-1
-        @_sendRequest buffer, requestId, cb
+        return new Promise (resolve, reject) =>
+            @_sendRequest buffer, requestId, (err, res) ->
+                return reject err if err?
+                return resolve res
+            return null
 
     # High-level API
     ping: () ->
