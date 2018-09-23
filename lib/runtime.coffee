@@ -100,6 +100,9 @@ sendPacketCmd = (runtime, port, event, payload) ->
     return console.log 'WARN: ignoring sendPacket during graph upload' if runtime.uploadInProgress
 
     internal = runtime.graph.inports[port]
+    if not internal
+        throw new Error("No runtime inport named #{port}")
+
     componentName = runtime.graph.processes[internal.process].component
     nodeId = runtime.graph.nodeMap[internal.process].id
     portId = runtime.library.inputPort(componentName, internal.port).id
@@ -131,25 +134,24 @@ handleRuntimeCommand = (command, payload, connection, runtime) ->
         if runtime.options.id?
           r.id = runtime.options.id
 
-        runtime.device.ping().then () ->
+        return runtime.device.ping().then () ->
           connection.send
             protocol: "runtime"
             command: "runtime"
             payload: r
           sendExportedPorts connection, runtime
-        .catch (err) ->
-          console.error 'getruntime ping failed', err
-          connection.send { protocol: 'runtime', command: 'error', payload: { message: err.message } }
 
     else if command is 'packet'
         if payload.event is 'data'
             buffer = sendPacketCmd runtime, payload.port, payload.event, payload.payload
-            runtime.device.sendCommands buffer, (err) ->
-                # FIXME: send response?
+            runtime.device.sendMany(buffer)
+            .then () ->
+                sendAck connection, { protocol: 'runtime', command: 'packetsent', payload: payload }
+        else
+            return Promise.resolve()
 
     else
-        console.log "Unknown FBP runtime command on 'runtime' protocol:", command, payload
-    return
+        return Promise.reject("Unknown FBP command runtime:#{command}: #{payload}")
 
 handleComponentCommand = (command, payload, connection, runtime) ->
     if command is "list"
@@ -198,6 +200,8 @@ sendAck = (connection, msg) ->
 handleGraphCommand = (command, payload, connection, runtime) ->
     graph = runtime.graph
     if command is "clear"
+        graph.inports = {}
+        graph.outports = {}
         graph.processes = {}
         graph.connections = []
         graph.name = payload.id or 'default/main'
@@ -246,7 +250,6 @@ handleGraphCommand = (command, payload, connection, runtime) ->
 
     # PROTOCOL: Inconsistent that these don't ack on same format?
     else if command is "addinport"
-        graph.inports = {} if not graph.inports?
         graph.inports[payload.public] =
             process: payload.node
             port: payload.port
@@ -257,7 +260,6 @@ handleGraphCommand = (command, payload, connection, runtime) ->
         sendExportedPorts connection, runtime
         sendAck connection, { protocol: 'graph', command: command, payload: payload }
     else if command is "addoutport"
-        graph.outports = {} if not graph.outports?
         graph.outports[payload.public] =
             process: payload.node
             port: payload.port
@@ -466,7 +468,7 @@ handleMessage = (runtime, contents) ->
         else if contents.protocol is "graph"
             handleGraphCommand contents.command, contents.payload, connection, runtime
         else if contents.protocol is "runtime"
-            handleRuntimeCommand contents.command, contents.payload, connection, runtime
+            p = handleRuntimeCommand contents.command, contents.payload, connection, runtime
         else if contents.protocol is "network"
             p = handleNetworkCommand contents.command, contents.payload, connection, runtime
         else

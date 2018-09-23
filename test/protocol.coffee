@@ -48,3 +48,15 @@ describe 'FBP runtime protocol', ->
           chai.expect(err.message).to.contain 'No node'
           chai.expect(err.message).to.contain 'fofo'
 
+  describe 'runtime:packet', ->
+    describe 'with data to non-existent port', ->
+      it 'should error', ->
+        client.protocol.graph.clear({id: 'main'})
+        .then () ->
+          client.protocol.runtime.packet({graph: 'main', port: 'noexist22', event: 'data', payload: 666})
+        .then (r) ->
+          chai.expect(r).to.not.exist
+        .catch (response) ->
+          chai.expect(response.message).to.contain 'No runtime inport named'
+          chai.expect(response.message).to.contain 'noexist22'
+
