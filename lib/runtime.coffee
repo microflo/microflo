@@ -415,7 +415,7 @@ resetAndUploadGraph = (runtime, connection, debugLevel, callback) ->
 subscribeEdges = (runtime, edges) ->
     graph = runtime.graph
     maxCommands = graph.connections.length+edges.length
-    buffer = new commandstream.Buffer cmdFormat.commandSize*maxCommands
+    buffer = commandstream.Buffer.alloc cmdFormat.commandSize*maxCommands
     offset = 0
 
     # Loop over all edges, unsubscribe
@@ -454,7 +454,7 @@ subscribeEdges = (runtime, edges) ->
 
 # send a single message to device and back
 sendMessage = (runtime, message) ->
-  temp = new commandstream.Buffer commandstream.cmdFormat.commandSize
+  temp = commandstream.Buffer.alloc commandstream.cmdFormat.commandSize
   g = runtime.graph
   index = commandstream.toCommandStreamBuffer message, runtime.library, g.nodeMap, g.componentMap, temp, 0
   data = temp.slice(0, index)
