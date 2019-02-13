@@ -66,7 +66,7 @@
     "grunt-mocha-test": "^0.13.2",
     "grunt-webpack": "^3.0.1",
     "mocha": "^5.0.0",
-    "msgflo": "^0.11.0",
+    "msgflo": "^0.12.0",
     "webpack": "^4.5.0"
   }
 }
